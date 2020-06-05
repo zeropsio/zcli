@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"path/filepath"
 
 	"github.com/zerops-io/zcli/src/helpers"
 	"github.com/zerops-io/zcli/src/service/httpClient"
@@ -66,9 +67,15 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 	appVersion := appVersionResponse.GetOutput()
 
-	data := &bytes.Buffer{}
+	sourceDirectoryPath, err := filepath.Abs(config.SourceDirectoryPath)
+	if err != nil {
+		return err
+	}
 
-	err = h.zipClient.Zip(h.config.SourceDirectoryPath, data)
+	h.logger.Info("packing directory: ", sourceDirectoryPath)
+
+	data := &bytes.Buffer{}
+	err = h.zipClient.Zip(sourceDirectoryPath, data)
 	if err != nil {
 		return err
 	}

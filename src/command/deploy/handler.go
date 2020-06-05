@@ -8,12 +8,12 @@ import (
 )
 
 type Config struct {
-	SourceDirectoryPath string
 }
 
 type RunConfig struct {
-	ProjectName      string
-	ServiceStackName string
+	ProjectName         string
+	ServiceStackName    string
+	SourceDirectoryPath string
 }
 
 type Handler struct {

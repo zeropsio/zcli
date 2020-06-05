@@ -73,7 +73,7 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 		}
 	}
 
-	if loginResponse.StatusCode < http.StatusMultipleChoices {
+	if loginResponse.StatusCode < http.StatusBadRequest {
 		err := json.Unmarshal(loginResponse.Body, &loginResponseObject)
 		if err != nil {
 			return err
@@ -110,7 +110,7 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 		return err
 	}
 
-	if cliResponse.StatusCode >= http.StatusMultipleChoices {
+	if cliResponse.StatusCode >= http.StatusBadRequest {
 		return parseRestApiError(cliResponse.Body)
 	}
 

@@ -43,16 +43,15 @@ func deployCmd() *cobra.Command {
 			zipClient := zipClient.New(zipClient.Config{})
 
 			return deploy.New(
-				deploy.Config{
-					SourceDirectoryPath: params.GetString("sourceDirectory"),
-				},
+				deploy.Config{},
 				httpClient,
 				zipClient,
 				logger,
 				apiGrpcClient,
 			).Run(ctx, deploy.RunConfig{
-				ProjectName:      args[0],
-				ServiceStackName: args[1],
+				SourceDirectoryPath: params.GetString("sourceDirectory"),
+				ProjectName:         args[0],
+				ServiceStackName:    args[1],
 			})
 		},
 	}
