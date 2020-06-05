@@ -39,6 +39,8 @@ jobs:
         uses: svenstaro/upx-action@v1-release
         with:
           file: ./${{ matrix.file }}
+          args: ${{ matrix.args }}
+          strip: ${{ matrix.strip }}
 
       - name: Upload asset
         uses: actions/upload-release-asset@v1
