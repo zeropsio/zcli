@@ -1,9 +1,8 @@
 name: Upload build asset
 
 on:
-  push:
-    tags:
-    - 'v*'
+  release:
+    types: [published, created, edited]
 
 jobs:
   build:
@@ -28,6 +27,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Get dependencies
+        run: |
+          export GOPATH=$HOME/go
+          ./tools/install.sh
+
       - name: Build
         run: ${{ matrix.buildCmd }}
 
@@ -36,23 +40,12 @@ jobs:
         with:
           file: ./${{ matrix.file }}
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
       - name: Upload asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./${{ matrix.file }}
           asset_name: ${{ matrix.file }}
           asset_content_type: application/octet-stream
