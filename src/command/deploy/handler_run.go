@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 
@@ -80,6 +81,24 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
+	h.logger.Info("packing is done")
+
+	if config.ZipFilePath != "" {
+		zipFilePath, err := filepath.Abs(config.ZipFilePath)
+		if err != nil {
+			return err
+		}
+
+		err = ioutil.WriteFile(zipFilePath, data.Bytes(), 0660)
+		if err != nil {
+			return err
+		}
+
+		h.logger.Info("zip file saved into: ", zipFilePath)
+	}
+
+	h.logger.Info("uploading to zerops server")
+
 	cephResponse, err := h.httpClient.Put(appVersion.GetUploadUrl(), data.Bytes(), httpClient.ContentType("application/zip"))
 	if err != nil {
 		return err
@@ -87,6 +106,10 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	if cephResponse.StatusCode != http.StatusCreated {
 		return errors.New("upload archive error")
 	}
+
+	h.logger.Info("uploading is done")
+
+	h.logger.Info("deploying")
 
 	deployResponse, err := h.apiGrpcClient.PutAppVersionDeploy(ctx, &zeropsApiProtocol.PutAppVersionDeployRequest{
 		Id:                appVersion.GetId(),
@@ -103,7 +126,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	h.logger.Info("done")
+	h.logger.Info("project deployed")
 
 	return nil
 }

@@ -14,6 +14,7 @@ type RunConfig struct {
 	ProjectName         string
 	ServiceStackName    string
 	SourceDirectoryPath string
+	ZipFilePath         string
 }
 
 type Handler struct {

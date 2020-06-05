@@ -50,6 +50,7 @@ func deployCmd() *cobra.Command {
 				apiGrpcClient,
 			).Run(ctx, deploy.RunConfig{
 				SourceDirectoryPath: params.GetString("sourceDirectory"),
+				ZipFilePath:         params.GetString("zipFilePath"),
 				ProjectName:         args[0],
 				ServiceStackName:    args[1],
 			})
@@ -57,6 +58,7 @@ func deployCmd() *cobra.Command {
 	}
 
 	params.RegisterString(cmd, "sourceDirectory", "./", "directory with source code, it will be zipped and will be send to zerops server for deploy")
+	params.RegisterString(cmd, "zipFilePath", "", "if it's set, save final zip file")
 
 	return cmd
 }
