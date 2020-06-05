@@ -8,10 +8,6 @@ cd ..
 export GOBIN=$GOPATH/bin
 export PATH=$GOBIN:$PATH
 
-echo $GOPATH
-echo "-----------\n"
-echo $PATH
-
 [[ ! -d "${GOBIN}" ]] && mkdir -p "${GOBIN}"
 
 go install tools/gomodrun.go
