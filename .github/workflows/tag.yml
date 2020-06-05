@@ -19,7 +19,7 @@ jobs:
           - os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-mac ./main.go
             file: zcli-mac
-            args: --better
+            args:
             strip: false
 
     steps:
