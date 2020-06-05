@@ -1,16 +1,9 @@
 name: Upload build asset
 
 on:
-#  push:
-#    # Sequence of patterns matched against refs/tags
-#    tags:
-#    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
+    tags:
+    - 'v*'
 
 jobs:
   build:
@@ -24,8 +17,18 @@ jobs:
       - name: Build project for linux
         run: env GOOS=linux GOARCH=amd64 go build -o zcli-linux ./main.go
 
+      - name: Compress linux binary
+        uses: svenstaro/upx-action@v1-release
+        with:
+          file: ./zcli-linux
+
       - name: Build project for mac
         run: env GOOS=darwin GOARCH=amd64 go build -o zcli-mac ./main.go
+
+      - name: Compress mac binary
+        uses: svenstaro/upx-action@v1-release
+        with:
+          file: ./zcli-mac
 
       - name: Create release
         id: create_release
