@@ -2,7 +2,7 @@ name: Upload build asset
 
 on:
   release:
-    types: [published, created, edited]
+    types: [published]
 
 jobs:
   build:
@@ -20,7 +20,7 @@ jobs:
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-mac ./main.go
             file: zcli-mac
             args: --better
-            strip: true
+            strip: false
 
     steps:
 
