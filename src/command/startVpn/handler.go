@@ -23,7 +23,7 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ProjectId string
+	ProjectName string
 }
 
 type Handler struct {
@@ -52,13 +52,35 @@ func New(
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
-	if h.storage.Data.ProjectId != "" && config.ProjectId != h.storage.Data.ProjectId {
+	if config.ProjectName == "" {
+		return errors.New("project name must be filled")
+	}
+
+	projectsResponse, err := h.apiGrpcClient.GetProjectsByName(ctx, &zeropsApiProtocol.GetProjectsByNameRequest{
+		Name: config.ProjectName,
+	})
+	if err := helpers.HandleGrpcApiError(projectsResponse, err); err != nil {
+		return err
+	}
+
+	projectsResponse.GetOutput().GetProjects()
+
+	projects := projectsResponse.GetOutput().GetProjects()
+	if len(projects) == 0 {
+		return errors.New("project not found")
+	}
+	if len(projects) > 1 {
+		return errors.New("there are multiple project with same name")
+	}
+	project := projects[0]
+
+	if h.storage.Data.ProjectId != "" && project.GetId() != h.storage.Data.ProjectId {
 		if h.isVpnAlive() {
 			return errors.New("vpn is started for another project, use stopVpn first")
 		}
 	}
 
-	err := h.cleanVpn()
+	err = h.cleanVpn()
 	if err != nil {
 		return err
 	}
@@ -69,7 +91,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 
 	apiVpnRequestResponse, err := h.apiGrpcClient.PostVpnRequest(ctx, &zeropsApiProtocol.PostVpnRequestRequest{
-		Id:              config.ProjectId,
+		Id:              project.GetId(),
 		ClientPublicKey: publicKey,
 	})
 	if err := helpers.HandleGrpcApiError(apiVpnRequestResponse, err); err != nil {
@@ -97,7 +119,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	defer closeFunc()
 
 	startVpnResponse, err := vpnGrpcClient.StartVpn(ctx, &zeropsVpnProtocol.StartVpnRequest{
-		InstanceId:      config.ProjectId,
+		InstanceId:      project.GetId(),
 		UserId:          h.config.UserId,
 		ClientPublicKey: publicKey,
 		Signature:       signature,
@@ -114,7 +136,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	h.logger.Info("\nclient is connected \n")
 
-	h.storage.Data.ProjectId = config.ProjectId
+	h.storage.Data.ProjectId = project.GetId()
 	err = h.storage.Save()
 	if err != nil {
 		return err

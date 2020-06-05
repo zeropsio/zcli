@@ -10,7 +10,7 @@ import (
 
 func startVpnCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "startVpn projectId",
+		Use:          "startVpn projectName",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -42,7 +42,7 @@ func startVpnCmd() *cobra.Command {
 
 			return startVpn.New(
 				startVpn.Config{
-					VpnAddress: params.GetString("vpnAddress"),
+					VpnAddress: params.GetString("vpnApiAddress"),
 					UserId:     certReader.UserId,
 				},
 				logger,
@@ -50,7 +50,7 @@ func startVpnCmd() *cobra.Command {
 				sudoers,
 				storage,
 			).Run(ctx, startVpn.RunConfig{
-				ProjectId: args[0],
+				ProjectName: args[0],
 			})
 		},
 	}

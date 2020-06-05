@@ -27,7 +27,7 @@ func (h *Handler) Zip(source string, w io.Writer) error {
 
 	info, err := os.Stat(source)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	var baseDir string

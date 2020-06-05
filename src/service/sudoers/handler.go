@@ -61,7 +61,7 @@ func runCommand(cmd *exec.Cmd) ([]byte, error) {
 				}
 			}
 		}
-		return nil, errors.New(errOutput.String())
+		return nil, err
 	}
 
 	return output.Bytes(), nil

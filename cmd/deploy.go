@@ -37,7 +37,7 @@ func deployCmd() *cobra.Command {
 			defer closeFunc()
 
 			httpClient := httpClient.New(httpClient.Config{
-				HttpTimeout: time.Second * 10,
+				HttpTimeout: time.Minute * 15,
 			})
 
 			zipClient := zipClient.New(zipClient.Config{})

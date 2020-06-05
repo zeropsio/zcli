@@ -48,7 +48,7 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 		return errors.New("param zeropsLogin must be set")
 	}
 	if runConfig.ZeropsPassword == "" {
-		return errors.New("param ZeropsPassword must be set")
+		return errors.New("param zeropsPassword must be set")
 	}
 
 	loginData, err := json.Marshal(struct {
