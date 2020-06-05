@@ -1,0 +1,819 @@
+syntax = "proto3";
+
+package zeropsApiProtocol;
+
+service zeropsApiProtocol {
+    rpc PutAppVersionDeploy( PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
+    rpc PostAppVersion( PostAppVersionRequest) returns (PostAppVersionResponse);
+    rpc GetProjectLog( GetProjectLogRequest) returns (GetProjectLogResponse);
+    rpc GetProjectsByName( GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
+    rpc GetProcess( GetProcessRequest) returns (GetProcessResponse);
+    rpc PostPublicHttpRouting( PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
+    rpc GetServiceStack( GetServiceStackRequest) returns (GetServiceStackResponse);
+    rpc GetServiceStackByName( GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
+    rpc GetUserInfo( GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc PostVpnRequest( PostVpnRequestRequest) returns (PostVpnRequestResponse);
+    
+}
+
+message Error {
+    ErrorCode code = 1;
+    string message = 2;
+}
+
+enum ErrorCode {
+    NO_ERROR = 0;
+    INTERNAL_SERVER_ERROR = 1;
+    INVALID_USER_INPUT = 2;
+    INVALID_USER_INPUT_WITH_TEXT = 3;
+    NOT_AUTHORIZED = 4;
+    INSUFFICIENT_PRIVILEGES = 5;
+    REFRESH_TOKEN_INVALID = 6;
+    ENDPOINT_NOT_FOUND = 7;
+    POTENTIALLY_FRAUD_BEHAVIOR_DETECTED = 8;
+    RE_CAPTCHA_RESPONSE_INVALID = 9;
+    DOWNLOAD_TOKEN_INVALID_OR_EXPIRED = 10;
+    INCORRECT_USER_CREDENTIALS = 11;
+    NO_RIGHTS_TO_SELECTED_ACTION = 12;
+    FILE_SIZE_LIMIT_EXCEEDED = 13;
+    ADDITIONAL_VERIFICATION_FAILED = 14;
+    ACTIVE_USER_MUST_BE_CONNECTED_TO_AT_LEAST_ONE_CLIENT = 15;
+    INVALID_CREDENTIALS = 16;
+    PASSWORD_TOO_WEAK = 17;
+    NO_ACTIVE_CONNECTION_TO_ANY_CLIENT = 18;
+    NO_ACTIVE_CONNECTION_TO_CURRENT_CLIENT = 19;
+    TOKEN_EXPIRED = 20;
+    CLIENT_NOT_FOUND = 21;
+    NO_ACCESS_TO_ZEROPS = 22;
+    USER_NOT_FOUND = 23;
+    INVALID_DOCUMENT_ROOT = 24;
+    INVALID_ENTRYPOINT = 25;
+    DOWNLOAD_EXPIRED = 26;
+    USER_DATA_NOT_FOUND = 27;
+    USER_DATA_KEY_INVALID = 28;
+    USER_DATA_CONTENT_INVALID = 29;
+    USER_DATA_DELETE_FORBIDDEN = 30;
+    USER_DATA_DUPLICATE_KEY = 31;
+    USER_DATA_SYNC_RUNNING = 32;
+    USER_DATA_VERSION_MISMATCH = 168;
+    USER_CERTIFICATE_NOT_FOUND = 33;
+    USER_ACCOUNT_NOT_FOUND = 34;
+    TEMPLATE_NOT_FOUND = 35;
+    COUNTRY_CALLING_CODE_DOES_NOT_MATCH_PHONE_NUMBER = 36;
+    INVALID_PHONE_NUMBER = 37;
+    INVALID_USER_ROLE = 38;
+    INVALID_CLIENT_USER_GROUP_COMBINATION = 39;
+    EMAIL_EXISTS = 40;
+    USER_ALREADY_CONNECTED_TO_COMPANY = 41;
+    COUNTRY_NOT_FOUND = 42;
+    RECORD_NOT_FOUND = 43;
+    MAXIMUM_NUMBER_OF_CLIENT_EXCEEDED = 44;
+    USER_IS_NOT_IN_BEING_DELETED_STATUS = 45;
+    UNABLE_TO_DELETE_YOUR_OWN_ACCOUNT = 46;
+    CLIENT_USER_CONNECTION_NOT_FOUND = 47;
+    CLIENT_USER_CONNECTION_HAS_BEEN_DELETED = 48;
+    BAD_OR_EXPIRED_ACTIVATION_LINK = 49;
+    UNABLE_TO_EDIT_DELETED_USER = 50;
+    CLIENT_USER_ALREADY_BEEN_DELETED = 51;
+    LANGUAGE_NOT_FOUND = 52;
+    LANGUAGE_NOT_SUPPORTED = 53;
+    DUPLICATED_USER = 54;
+    RECORD_IS_READ_ONLY = 55;
+    RECORD_IS_DELETED = 56;
+    RECORD_COMMON_KEY_EDIT = 57;
+    IS_NOT_POSSIBLE_TO_EDIT_ANOTHER_USER = 58;
+    MANUAL_REPAIR_REQUIRED = 59;
+    NOTHING_TO_SYNC = 60;
+    SERVICE_STACK_NOT_FOUND = 61;
+    SERVICE_STACK_TYPE_NOT_FOUND = 62;
+    SERVICE_STACK_TYPE_VERSION_NOT_FOUND = 63;
+    SERVICE_STACK_TYPE_VERSION_IS_NOT_ACTIVE = 64;
+    SERVICE_STACK_TYPE_VERSION_REMOVE_DEFAULT = 65;
+    SERVICE_STACK_TYPE_INVALID_VERSION = 66;
+    SERVICE_STACK_IS_FAILED = 67;
+    SERVICE_STACK_IS_SYSTEM_NOT_SUPPORTED = 68;
+    SERVICE_STACK_CUSTOM_PORTS_ENABLED_REQUIRED = 69;
+    SERVICE_STACK_TYPE_VERSION_NOT_MATCH_WITH_STACK_TYPE = 70;
+    SERVICE_STACK_STORAGE_DISK_MAX_LIMIT = 71;
+    SERVICE_STACK_STORAGE_DISK_MIN_LIMIT = 72;
+    SERVICE_STACK_OBJECT_STORAGE_QUOTA_NOT_FOUND = 73;
+    SERVICE_STACK_TYPE_OBJECT_STORAGE_REQUIRED = 74;
+    SERVICE_STACK_TYPE_OBJECT_STORAGE_FORBIDDEN = 75;
+    SERVICE_STACK_TYPE_SHARED_STORAGE_FORBIDDEN = 76;
+    SERVICE_STACK_IS_READY_TO_DEPLOY = 77;
+    SERVICE_STACK_IS_NOT_HTTP = 78;
+    SERVICE_STACK_RELOAD_NOT_AVAILABLE = 79;
+    SERVICE_STACK_NGINX_VIRTUALHOST_CONFIG = 80;
+    SERVICE_STACK_SUBDOMAIN_ACCESS_ALREADY_DISABLED = 81;
+    PROCESS_NOT_FOUND = 82;
+    PROCESS_IS_ALREADY_OVER = 83;
+    PROCESS_IS_ALREADY_CANCELED = 84;
+    PROCESS_IS_ALREADY_RUNNING = 85;
+    UNABLE_TO_CANCEL_PROCESS = 86;
+    UNABLE_TO_CREATE_PROCESS = 87;
+    ACTIVE_SERVICE_STACK_EXISTS_IN_PROJECT = 88;
+    INVALID_OLD_PASSWORD = 89;
+    PROJECT_STATUS_NOT_SUPPORTED = 90;
+    PROJECT_NOT_FOUND = 91;
+    PROJECT_IS_NOT_ACTIVE = 167;
+    SERVICE_STACK_NAME_UNAVAILABLE = 92;
+    SERVICE_STACK_NAME_INVALID = 93;
+    CORE_SERVICE_STACK_TYPE_VERSION_NOT_FOUND = 94;
+    L7_HTTP_BALANCER_SERVICE_STACK_TYPE_VERSION_NOT_FOUND = 95;
+    PROJECT_WILL_BE_DELETED = 96;
+    STACK_WILL_BE_DELETED = 97;
+    PUBLIC_HTTP_ROUTING_NOT_FOUND = 98;
+    PUBLIC_HTTP_ROUTING_AT_LEAST_ONE_DOMAIN_REQUIRED = 99;
+    PUBLIC_HTTP_ROUTING_DUPLICATE_DOMAIN_NAME = 100;
+    PUBLIC_HTTP_ROUTING_DUPLICATE_FALLBACK = 101;
+    PUBLIC_HTTP_ROUTING_DUPLICATE_DOMAIN_NAME_IN_ANOTHER_ROUTING = 102;
+    PUBLIC_HTTP_ROUTING_DUPLICATE_FALLBACK_IN_ANOTHER_ROUTING = 103;
+    PUBLIC_HTTP_ROUTING_DUPLICATE_LOCATION_PATHS = 104;
+    PUBLIC_HTTP_ROUTING_ITEMS_LIMIT = 105;
+    PUBLIC_HTTP_ROUTING_LOCATIONS_LIMIT = 106;
+    PUBLIC_HTTP_ROUTING_DOMAINS_LIMIT = 107;
+    PUBLIC_HTTP_ROUTING_INVALID_DOMAIN_NAME_FQDN = 108;
+    PUBLIC_HTTP_ROUTING_SSL_FALLBACK = 109;
+    PUBLIC_HTTP_ROUTING_LOCATION_DOES_NOT_FOUND = 110;
+    PUBLIC_HTTP_ROUTING_INVALID_LOCATIONS_PREFIX = 111;
+    PUBLIC_HTTP_ROUTING_MULTIPLE_SERVICE_STACK_ACCESS_POINTS = 112;
+    PUBLIC_HTTP_ROUTING_SERVICE_STACK_ACCESS_POINT_NOT_FOUND = 113;
+    PUBLIC_HTTP_ROUTING_REQUEST_ONLY_TCP_PORT = 114;
+    PUBLIC_HTTP_ROUTING_SERVICE_STACK_DOES_NOT_SUPPORT_HTTP = 115;
+    NO_PUBLIC_HTTP_ROUTING_IN_L7_HTTP_BALANCING = 116;
+    SSL_NOT_SUPPORTED = 117;
+    REGISTERED_DOMAIN_HOST_LIMIT_REACHED = 118;
+    PUBLIC_SUFFIX_LIST_CONTROL_FAILED = 119;
+    PORT_NOT_SUPPORTED = 120;
+    PUBLIC_HTTP_ROUTING_SYNC_RUNNING = 121;
+    PUBLIC_HTTP_ROUTING_VERSION_MISMATCH = 169;
+    PORT_OUT_OF_RANGE = 122;
+    PORT_PROTOCOL_INVALID = 123;
+    PORT_SCHEME_INVALID = 124;
+    UDP_PROTOCOL_SCHEME_MISMATCH = 125;
+    PUBLIC_IP_REQUEST_NOT_FOUND = 126;
+    PUBLIC_IP_REQUEST_ALREADY_EXISTS = 127;
+    PUBLIC_IP_REQUEST_ONLY_ONE = 128;
+    PUBLIC_IP_REQUEST_DISABLED_TILL = 129;
+    PUBLIC_IP_REQUEST_RELEASE_RUNNING = 130;
+    USER_NOTIFICATION_NOT_FOUND = 131;
+    PUBLIC_PORT_ROUTING_NOT_FOUND = 132;
+    PUBLIC_IP_TYPE_NOT_SUPPORTED = 133;
+    PORT_AND_PROTOCOL_COMBINATION_NOT_SUPPORTED = 134;
+    PUBLIC_PORT_ROUTING_DUPLICATE_RULE = 135;
+    PUBLIC_PORT_ROUTING_SYNC_RUNNING = 136;
+    PUBLIC_PORT_ROUTING_INVALID_IP_FORMAT = 137;
+    PUBLIC_PORT_ROUTING_FIREWALL_POLICY_CONFLICT = 138;
+    PUBLIC_PORT_ROUTING_VERSION_MISMATCH = 170;
+    PUBLIC_PORT_ROUTING_UNABLE_TO_EDIT_DELETED_RECORD = 139;
+    DRIVER_NOT_FOUND = 140;
+    DRIVER_ENTITY_IS_NOT_SERVICE_STACK = 141;
+    DRIVER_ALREADY_SET = 142;
+    CLIENT_USER_CONNECTION_ALREADY_EXISTS = 143;
+    USER_ALREADY_ASSIGNED = 144;
+    SERVICE_STACK_TYPE_USER_STORAGE_REQUIRED = 145;
+    APP_VERSION_NOT_FOUND = 146;
+    APP_VERSION_INVALID_STATUS = 147;
+    DEPLOY_PROCESS_ALREADY_CREATED = 148;
+    OBJECT_CONTENT_LENGTH_ZERO = 149;
+    OBJECT_MIME_TYPE_NOT_SUPPORTED = 150;
+    OBJECT_NOT_FOUND = 151;
+    MAX_OBJECT_DISK_SIZE_ESTIMATE_EXCEEDED = 152;
+    SHARED_STORAGE_NOT_FOUND = 153;
+    SHARED_STORAGE_INVALID_PROJECT = 154;
+    SERVICE_STACK_CONNECTION_NOT_FOUND = 155;
+    SHARED_STORAGE_INVALID_CATEGORY = 156;
+    USER_SERVICE_STACK_INVALID_CATEGORY = 157;
+    IDENTICAL_SHARED_STORAGE_AND_SERVICE_STACK = 158;
+    CLIENT_ID_PROJECT_SERVICE_STACK_MISSING = 159;
+    DIFFERENT_PROJECT_IDS = 160;
+    USER_ID_WAS_NOT_FOUND = 161;
+    AUTHOR_ID_WAS_NOT_FOUND = 162;
+    USER_DOES_NOT_HAVE_ACTIVE_CONNECTION_TO_ANY_CLIENT = 163;
+    USER_HAS_NOT_ACCESS_TO_ZEROPS = 164;
+    
+}
+
+message Timestamp {
+    bool isSet = 1;
+    int64 seconds = 2;
+    int32 nanos = 3;
+}
+
+//
+// REQUEST OBJECTS
+//
+
+message GetProcessRequest {
+    string id = 1;
+    
+}
+
+message GetProjectLogRequest {
+    string id = 1;
+    
+}
+
+message GetProjectsByNameRequest {
+    string name = 1;
+    
+}
+
+message GetServiceStackRequest {
+    string id = 1;
+    
+}
+
+message GetServiceStackByNameRequest {
+    string projectId = 2;
+    string name = 1;
+    
+}
+
+message GetUserInfoRequest {
+    
+}
+
+message PostAppVersionRequest {
+    string serviceStackId = 1;
+    
+}
+
+message PostPublicHttpRoutingRequest {
+    string projectId = 1;
+    bool sslEnabled = 2;
+    repeated string domains = 3;
+    repeated PublicHttpRoutingLocationPost locations = 4;
+    
+}
+
+message PostVpnRequestRequest {
+    string id = 1;
+    string clientPublicKey = 2;
+    
+}
+
+message PublicHttpRoutingLocationPost {
+    string path = 1;
+    int32 port = 2;
+    string serviceStackId = 3;
+    
+}
+
+message PutAppVersionDeployRequest {
+    string id = 1;
+    bool temporaryShutdown = 2;
+    
+}
+
+
+
+//
+// RESPONSE OBJECTS
+//
+
+
+message GetProcessResponse {
+    Error error = 1;
+    GetProcessResponseDto output = 2;
+}
+
+message GetProcessResponseDto {
+    string id = 1;
+    string clientId = 2;
+    ProjectLightJsonObject project = 3;
+    repeated ServiceStackLightJsonObject serviceStacks = 4;
+    ProcessStatus status = 5;
+    UserJsonObject createdByUser = 6;
+    UserJsonObject canceledByUser = 7;
+    string actionName = 8;
+    string blockedByProcessId = 9;
+    Timestamp created = 10;
+    Timestamp lastUpdate = 11;
+    bool createdBySystem = 12;
+    
+}
+
+
+message GetProjectLogResponse {
+    Error error = 1;
+    GetProjectLogResponseDto output = 2;
+}
+
+message GetProjectLogResponseDto {
+    string url = 1;
+    string signature = 2;
+    Timestamp expiry = 3;
+    
+}
+
+
+message GetProjectsByNameResponse {
+    Error error = 1;
+    GetProjectsByNameResponseDto output = 2;
+}
+
+message GetProjectsByNameResponseDto {
+    repeated Project projects = 1;
+    
+}
+
+
+message GetServiceStackResponse {
+    Error error = 1;
+    GetServiceStackResponseDto output = 2;
+}
+
+message GetServiceStackResponseDto {
+    string id = 1;
+    ServiceStackStatus status = 2;
+    string name = 3;
+    ServiceStackInfoJsonObject serviceStackTypeInfo = 4;
+    string serviceStackTypeId = 5;
+    string serviceStackTypeVersionId = 6;
+    bool isSystem = 7;
+    repeated ServicePort ports = 8;
+    RequestedPortsJsonObject requestedPorts = 9;
+    Timestamp created = 10;
+    Timestamp lastUpdate = 11;
+    ServiceStackMode mode = 12;
+    bool customPortsEnabled = 13;
+    bool subdomainAccess = 14;
+    bool reloadAvailable = 15;
+    string versionNumber = 16;
+    ProjectLight project = 17;
+    repeated ServiceStackConnectedServiceStack connectedStacks = 18;
+    AppVersionLight activeAppVersion = 19;
+    bool hasUnsyncedUserDataRecord = 20;
+    bool hasUnsyncedPublicHttpRoutingRecord = 21;
+    bool hasUnsyncedPublicPortRecord = 22;
+    bool hasPublicAccess = 23;
+    
+}
+
+
+message GetServiceStackByNameResponse {
+    Error error = 1;
+    GetServiceStackByNameResponseDto output = 2;
+}
+
+message GetServiceStackByNameResponseDto {
+    string id = 1;
+    ServiceStackStatus status = 2;
+    string name = 3;
+    ServiceStackInfoJsonObject serviceStackTypeInfo = 4;
+    string serviceStackTypeId = 5;
+    string serviceStackTypeVersionId = 6;
+    bool isSystem = 7;
+    repeated ServicePort ports = 8;
+    RequestedPortsJsonObject requestedPorts = 9;
+    Timestamp created = 10;
+    Timestamp lastUpdate = 11;
+    ServiceStackMode mode = 12;
+    bool customPortsEnabled = 13;
+    bool subdomainAccess = 14;
+    bool reloadAvailable = 15;
+    string versionNumber = 16;
+    ProjectLight project = 17;
+    repeated ServiceStackConnectedServiceStack connectedStacks = 18;
+    AppVersionLight activeAppVersion = 19;
+    bool hasUnsyncedUserDataRecord = 20;
+    bool hasUnsyncedPublicHttpRoutingRecord = 21;
+    bool hasUnsyncedPublicPortRecord = 22;
+    bool hasPublicAccess = 23;
+    
+}
+
+
+message GetUserInfoResponse {
+    Error error = 1;
+    GetUserInfoResponseDto output = 2;
+}
+
+message GetUserInfoResponseDto {
+    string id = 1;
+    string email = 2;
+    string fullName = 3;
+    string firstName = 4;
+    string lastName = 5;
+    int32 countryCallingCode = 6;
+    int32 phoneNumber = 7;
+    Language language = 8;
+    Timestamp created = 9;
+    Timestamp lastUpdate = 10;
+    UserStatus status = 11;
+    repeated ClientUser clientUserList = 12;
+    
+}
+
+
+message PostAppVersionResponse {
+    Error error = 1;
+    PostAppVersionResponseDto output = 2;
+}
+
+message PostAppVersionResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    string serviceStackId = 4;
+    int32 sequence = 5;
+    AppVersionStatus status = 6;
+    repeated AppVersionUserData userDataList = 7;
+    Timestamp created = 8;
+    Timestamp lastUpdate = 9;
+    string uploadUrl = 10;
+    
+}
+
+
+message PostPublicHttpRoutingResponse {
+    Error error = 1;
+    PostPublicHttpRoutingResponseDto output = 2;
+}
+
+message PostPublicHttpRoutingResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    bool sslEnabled = 4;
+    repeated PublicHttpRoutingDomain domains = 5;
+    repeated PublicHttpRoutingLocation locations = 6;
+    Timestamp created = 7;
+    Timestamp lastUpdate = 8;
+    bool isSynced = 9;
+    bool isDeleted = 10;
+    bool isEditable = 11;
+    
+}
+
+
+message PostVpnRequestResponse {
+    Error error = 1;
+    PostVpnRequestResponseDto output = 2;
+}
+
+message PostVpnRequestResponseDto {
+    string signature = 1;
+    Timestamp expiry = 2;
+    
+}
+
+
+message PutAppVersionDeployResponse {
+    Error error = 1;
+    PutAppVersionDeployResponseDto output = 2;
+}
+
+message PutAppVersionDeployResponseDto {
+    string id = 1;
+    
+}
+
+
+
+
+//
+// RESPONSE DTO OBJECTS
+//
+
+message AppVersionLight {
+    string id = 1;
+    AppVersionStatus status = 2;
+    Timestamp created = 3;
+    Timestamp lastUpdate = 4;
+    
+}
+
+message AppVersionUserData {
+    string key = 1;
+    string content = 2;
+    UserDataType type = 3;
+    
+}
+
+message ClientLight {
+    string id = 1;
+    string companyName = 2;
+    string companyNumber = 3;
+    string vatNumber = 4;
+    
+}
+
+message ClientUser {
+    string id = 1;
+    string clientId = 2;
+    string userId = 3;
+    ClientUserLightStatus status = 4;
+    ClientUserLightRoleCode roleCode = 5;
+    ClientLight client = 6;
+    UserLight user = 7;
+    
+}
+
+message Language {
+    string id = 1;
+    string name = 2;
+    
+}
+
+message LocationServiceStackInfo {
+    string serviceStackName = 1;
+    string serviceStackTypeName = 2;
+    string serviceStackTypeVersionName = 3;
+    
+}
+
+message Project {
+    string id = 1;
+    string clientId = 2;
+    string name = 3;
+    string description = 4;
+    repeated string tagList = 5;
+    ProjectStatus status = 6;
+    Timestamp created = 7;
+    Timestamp lastUpdate = 8;
+    string publicIpV4 = 9;
+    string publicIpV6 = 10;
+    bool publicIpV4PendingRequest = 11;
+    Timestamp publicIpV4RequestDisabledTill = 12;
+    string zeropsSubdomainHost = 13;
+    
+}
+
+message ProjectLight {
+    string id = 1;
+    string clientId = 2;
+    string name = 3;
+    string description = 4;
+    repeated string tagList = 5;
+    ProjectStatus status = 6;
+    Timestamp created = 7;
+    Timestamp lastUpdate = 8;
+    
+}
+
+message ProjectLightJsonObject {
+    string id = 1;
+    string clientId = 2;
+    string name = 3;
+    string description = 4;
+    repeated string tagList = 5;
+    ProjectStatus status = 6;
+    Timestamp created = 7;
+    Timestamp lastUpdate = 8;
+    
+}
+
+message PublicHttpRoutingDomain {
+    string domainName = 1;
+    PublicHttpRoutingDomainDnsCheckStatus dnsCheckStatus = 2;
+    PublicHttpRoutingDomainSslStatus sslStatus = 3;
+    
+}
+
+message PublicHttpRoutingLocation {
+    string path = 1;
+    int32 port = 2;
+    string serviceStackId = 3;
+    LocationServiceStackInfo serviceStackInfo = 4;
+    
+}
+
+message RequestedPortsJsonObject {
+    bool isActive = 1;
+    repeated ServicePort requestedPorts = 2;
+    
+}
+
+message ServicePort {
+    ServicePortProtocol protocol = 1;
+    int32 port = 2;
+    string description = 3;
+    ServicePortScheme scheme = 4;
+    string serviceId = 5;
+    
+}
+
+message ServiceStackConnectedServiceStack {
+    ServiceStackLight serviceStack = 1;
+    ServiceStackConnectionStatus status = 2;
+    
+}
+
+message ServiceStackInfoJsonObject {
+    string serviceStackTypeName = 1;
+    ServiceStackInfoJsonObjectServiceStackTypeCategory serviceStackTypeCategory = 2;
+    string serviceStackTypeVersionName = 3;
+    
+}
+
+message ServiceStackLight {
+    string id = 1;
+    ServiceStackStatus status = 2;
+    string name = 3;
+    ServiceStackInfoJsonObject serviceStackTypeInfo = 4;
+    string serviceStackTypeId = 5;
+    string serviceStackTypeVersionId = 6;
+    bool isSystem = 7;
+    
+}
+
+message ServiceStackLightJsonObject {
+    string id = 1;
+    Timestamp created = 2;
+    Timestamp lastUpdate = 3;
+    string projectId = 4;
+    string serviceStackTypeId = 5;
+    string serviceStackTypeVersionId = 6;
+    string driverId = 7;
+    string name = 8;
+    ServiceStackInfoJsonObject serviceStackTypeInfo = 9;
+    repeated ServicePort ports = 10;
+    
+}
+
+message UserJsonObject {
+    string id = 1;
+    string email = 2;
+    string firstName = 3;
+    string fullName = 4;
+    
+}
+
+message UserLight {
+    string id = 1;
+    string email = 2;
+    string fullName = 3;
+    string firstName = 4;
+    string lastName = 5;
+    
+}
+
+
+//
+// ENUMS
+//
+
+enum AppVersionStatus {
+ 	APP_VERSION_STATUS_UNKNOWN = 0;
+    APP_VERSION_STATUS_UPLOADING = 1;
+    APP_VERSION_STATUS_WAITING_TO_DEPLOY = 2;
+    APP_VERSION_STATUS_DEPLOYING = 3;
+    APP_VERSION_STATUS_DEPLOY_FAILED = 4;
+    APP_VERSION_STATUS_ACTIVE = 5;
+    APP_VERSION_STATUS_BACKUP = 6;
+    
+}
+
+enum ClientUserLightRoleCode {
+ 	CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
+    CLIENT_USER_LIGHT_ROLE_CODE_MANAGER = 1;
+    
+}
+
+enum ClientUserLightStatus {
+ 	CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
+    CLIENT_USER_LIGHT_STATUS_ACTIVE = 1;
+    CLIENT_USER_LIGHT_STATUS_WAITING_AUTHORIZATION = 2;
+    CLIENT_USER_LIGHT_STATUS_BEING_DELETED = 3;
+    
+}
+
+enum ProcessStatus {
+ 	PROCESS_STATUS_UNKNOWN = 0;
+    PROCESS_STATUS_PENDING = 1;
+    PROCESS_STATUS_RUNNING = 2;
+    PROCESS_STATUS_ROLLBACKING = 3;
+    PROCESS_STATUS_CANCELING = 4;
+    PROCESS_STATUS_FINISHED = 5;
+    PROCESS_STATUS_FAILED = 6;
+    PROCESS_STATUS_CANCELED = 7;
+    PROCESS_STATUS_DELETED = 8;
+    
+}
+
+enum ProjectStatus {
+ 	PROJECT_STATUS_UNKNOWN = 0;
+    PROJECT_STATUS_NEW = 1;
+    PROJECT_STATUS_CREATING = 2;
+    PROJECT_STATUS_ACTIVE = 3;
+    PROJECT_STATUS_DELETING = 4;
+    PROJECT_STATUS_FAILED = 5;
+    
+}
+
+enum PublicHttpRoutingDomainDnsCheckStatus {
+ 	PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
+    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_PENDING = 1;
+    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_CHECKING = 2;
+    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_OK = 3;
+    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_FAILED = 4;
+    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_IGNORED = 5;
+    
+}
+
+enum PublicHttpRoutingDomainSslStatus {
+ 	PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
+    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_INACTIVE = 1;
+    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_BEING_INSTALLED = 2;
+    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_WAITING_FOR_DNS = 3;
+    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_ACTIVE = 4;
+    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_INSTALLATION_FAILED = 5;
+    
+}
+
+enum ServicePortProtocol {
+ 	SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
+    SERVICE_PORT_PROTOCOL_tcp = 1;
+    SERVICE_PORT_PROTOCOL_udp = 2;
+    
+}
+
+enum ServicePortScheme {
+ 	SERVICE_PORT_SCHEME_UNKNOWN = 0;
+    SERVICE_PORT_SCHEME_tcp = 1;
+    SERVICE_PORT_SCHEME_udp = 2;
+    SERVICE_PORT_SCHEME_http = 3;
+    SERVICE_PORT_SCHEME_https = 4;
+    SERVICE_PORT_SCHEME_redis = 5;
+    SERVICE_PORT_SCHEME_rabbitmq = 6;
+    SERVICE_PORT_SCHEME_mysql = 7;
+    SERVICE_PORT_SCHEME_udpinflux = 8;
+    
+}
+
+enum ServiceStackConnectionStatus {
+ 	SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
+    SERVICE_STACK_CONNECTION_STATUS_CREATING = 1;
+    SERVICE_STACK_CONNECTION_STATUS_ACTIVE = 2;
+    SERVICE_STACK_CONNECTION_STATUS_DELETING = 3;
+    
+}
+
+enum ServiceStackInfoJsonObjectServiceStackTypeCategory {
+ 	SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_CORE = 1;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_HTTP_L7_BALANCER = 2;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_STANDARD = 3;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_USER = 4;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_SHARED_STORAGE = 5;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_OBJECT_STORAGE = 6;
+    
+}
+
+enum ServiceStackMode {
+ 	SERVICE_STACK_MODE_UNKNOWN = 0;
+    SERVICE_STACK_MODE_HA = 1;
+    SERVICE_STACK_MODE_NON_HA = 2;
+    
+}
+
+enum ServiceStackStatus {
+ 	SERVICE_STACK_STATUS_UNKNOWN = 0;
+    SERVICE_STACK_STATUS_NEW = 1;
+    SERVICE_STACK_STATUS_CREATING = 2;
+    SERVICE_STACK_STATUS_ACTIVE = 3;
+    SERVICE_STACK_STATUS_STOPPING = 4;
+    SERVICE_STACK_STATUS_STOPPED = 5;
+    SERVICE_STACK_STATUS_STARTING = 6;
+    SERVICE_STACK_STATUS_RESTARTING = 7;
+    SERVICE_STACK_STATUS_RELOADING = 8;
+    SERVICE_STACK_STATUS_DELETING = 9;
+    SERVICE_STACK_STATUS_DELETED = 10;
+    SERVICE_STACK_STATUS_FAILED = 11;
+    SERVICE_STACK_STATUS_UPGRADE_FAILED = 12;
+    SERVICE_STACK_STATUS_UPGRADING = 13;
+    SERVICE_STACK_STATUS_READY_TO_DEPLOY = 14;
+    SERVICE_STACK_STATUS_SERVICE_DELETING = 15;
+    SERVICE_STACK_STATUS_SERVICE_FAILED = 16;
+    SERVICE_STACK_STATUS_SERVICE_REPAIRING = 17;
+    SERVICE_STACK_STATUS_SERVICE_CREATING = 18;
+    SERVICE_STACK_STATUS_SERVICE_CONTAINER_FAILED = 19;
+    SERVICE_STACK_STATUS_SERVICE_MOVING_CONTAINER = 20;
+    SERVICE_STACK_STATUS_SERVICE_STOPPING = 21;
+    SERVICE_STACK_STATUS_SERVICE_STOPPED = 22;
+    SERVICE_STACK_STATUS_SERVICE_STARTING = 23;
+    SERVICE_STACK_STATUS_SERVICE_RESTARTING = 24;
+    SERVICE_STACK_STATUS_SERVICE_RELOADING = 25;
+    SERVICE_STACK_STATUS_SERVICE_UPGRADING = 26;
+    SERVICE_STACK_STATUS_SERVICE_UPGRADE_FAILED = 27;
+    
+}
+
+enum UserDataType {
+ 	USER_DATA_TYPE_UNKNOWN = 0;
+    USER_DATA_TYPE_RESTRICTED = 1;
+    USER_DATA_TYPE_COMMON = 2;
+    USER_DATA_TYPE_USER = 3;
+    USER_DATA_TYPE_INTERNAL = 4;
+    
+}
+
+enum UserStatus {
+ 	USER_STATUS_UNKNOWN = 0;
+    USER_STATUS_ACTIVE = 1;
+    USER_STATUS_DELETED = 2;
+    
+}
+
