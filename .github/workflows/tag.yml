@@ -14,7 +14,7 @@ jobs:
           - os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=amd64 go build -o zcli-linux ./main.go
             file: zcli-linux
-            args: --better
+            args:
             strip: true
           - os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-mac ./main.go
