@@ -2,8 +2,10 @@ package zipClient
 
 import (
 	"archive/zip"
+	"errors"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -21,57 +23,94 @@ func New(config Config) *Handler {
 	}
 }
 
-func (h *Handler) Zip(source string, w io.Writer) error {
+func (h *Handler) Zip(w io.Writer, workingDir string, sources ...string) error {
 	archive := zip.NewWriter(w)
 	defer archive.Close()
 
-	info, err := os.Stat(source)
-	if err != nil {
-		return err
-	}
+	for _, source := range sources {
 
-	var baseDir string
-	if info.IsDir() {
-		baseDir = filepath.Base(source)
-	}
-
-	err = filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+		parts := strings.Split(source, "*")
+		if len(parts) > 2 {
+			return errors.New("only one *(asterisk) is allowed")
 		}
+		source := path.Join(parts...)
 
-		header, err := zip.FileInfoHeader(info)
-		if err != nil {
-			return err
-		}
+		source = path.Join(workingDir, source)
 
-		if baseDir != "" {
-			header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, source))
-		}
+		err := filepath.Walk(source, func(filePath string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
 
-		if info.IsDir() {
-			header.Name += "/"
-		} else {
-			header.Method = zip.Deflate
-		}
+			header, err := zip.FileInfoHeader(info)
+			if err != nil {
+				return err
+			}
 
-		writer, err := archive.CreateHeader(header)
-		if err != nil {
-			return err
-		}
+			header.Name = strings.TrimPrefix(func(filePath string) string {
+				if info.IsDir() {
+					filePath += "/"
+				}
 
-		if info.IsDir() {
+				filePath = strings.TrimPrefix(filePath, workingDir)
+
+				if len(parts) == 1 {
+					return filePath
+				} else {
+					if filePath == parts[0] {
+						return ""
+					}
+					return strings.TrimPrefix(filePath, parts[0])
+				}
+
+			}(filePath), "/")
+
+			if header.Name == "" {
+				return nil
+			}
+
+			if !info.IsDir() {
+				header.Method = zip.Deflate
+			}
+
+			writer, err := archive.CreateHeader(header)
+			if err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				return nil
+			}
+
+			if header.FileInfo().Mode()&os.ModeSymlink != 0 {
+				symlink, err := os.Readlink(filePath)
+				if err != nil {
+					return err
+				}
+
+				_, err = writer.Write([]byte(symlink))
+				if err != nil {
+					return err
+				}
+			} else {
+				file, err := os.Open(filePath)
+				if err != nil {
+					return err
+				}
+				defer file.Close()
+				_, err = io.Copy(writer, file)
+				if err != nil {
+					return err
+				}
+			}
+
 			return nil
-		}
+		})
 
-		file, err := os.Open(path)
 		if err != nil {
 			return err
 		}
-		defer file.Close()
-		_, err = io.Copy(writer, file)
-		return err
-	})
+	}
 
-	return err
+	return nil
 }

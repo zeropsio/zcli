@@ -13,9 +13,9 @@ import (
 
 func deployCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "deploy projectName serviceName",
+		Use:          "deploy projectName serviceName pathToFileOrDir [pathToFileOrDir]",
 		SilenceUsage: true,
-		Args:         cobra.ExactArgs(2),
+		Args:         cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel, logger)
@@ -49,15 +49,16 @@ func deployCmd() *cobra.Command {
 				logger,
 				apiGrpcClient,
 			).Run(ctx, deploy.RunConfig{
-				SourceDirectoryPath: params.GetString("sourceDirectory"),
-				ZipFilePath:         params.GetString("zipFilePath"),
-				ProjectName:         args[0],
-				ServiceStackName:    args[1],
+				ZipFilePath:      params.GetString("zipFilePath"),
+				WorkingDir:       params.GetString("workingDir"),
+				ProjectName:      args[0],
+				ServiceStackName: args[1],
+				PathsForPacking:  args[2:],
 			})
 		},
 	}
 
-	params.RegisterString(cmd, "sourceDirectory", "./", "directory with source code, it will be zipped and will be send to zerops server for deploy")
+	params.RegisterString(cmd, "workingDir", "./", "working dir, all files path are relative to this directory")
 	params.RegisterString(cmd, "zipFilePath", "", "if it's set, save final zip file")
 
 	return cmd

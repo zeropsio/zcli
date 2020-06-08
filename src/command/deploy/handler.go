@@ -11,10 +11,11 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ProjectName         string
-	ServiceStackName    string
-	SourceDirectoryPath string
-	ZipFilePath         string
+	ProjectName      string
+	ServiceStackName string
+	PathsForPacking  []string
+	WorkingDir       string
+	ZipFilePath      string
 }
 
 type Handler struct {

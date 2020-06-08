@@ -60,6 +60,8 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	h.logger.Info("temporaryShutdown: ", temporaryShutdown)
 
+	h.logger.Info("creating package")
+
 	appVersionResponse, err := h.apiGrpcClient.PostAppVersion(ctx, &zeropsApiProtocol.PostAppVersionRequest{
 		ServiceStackId: serviceStack.GetId(),
 	})
@@ -68,20 +70,13 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 	appVersion := appVersionResponse.GetOutput()
 
-	sourceDirectoryPath, err := filepath.Abs(config.SourceDirectoryPath)
+	buff := &bytes.Buffer{}
+	err = h.zipClient.Zip(buff, config.WorkingDir, config.PathsForPacking...)
 	if err != nil {
 		return err
 	}
 
-	h.logger.Info("packing directory: ", sourceDirectoryPath)
-
-	data := &bytes.Buffer{}
-	err = h.zipClient.Zip(sourceDirectoryPath, data)
-	if err != nil {
-		return err
-	}
-
-	h.logger.Info("packing is done")
+	h.logger.Info("creating is done")
 
 	if config.ZipFilePath != "" {
 		zipFilePath, err := filepath.Abs(config.ZipFilePath)
@@ -89,7 +84,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 			return err
 		}
 
-		err = ioutil.WriteFile(zipFilePath, data.Bytes(), 0660)
+		err = ioutil.WriteFile(zipFilePath, buff.Bytes(), 0660)
 		if err != nil {
 			return err
 		}
@@ -97,9 +92,9 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		h.logger.Info("zip file saved into: ", zipFilePath)
 	}
 
-	h.logger.Info("uploading to zerops server")
+	h.logger.Info("uploading package to zerops server")
 
-	cephResponse, err := h.httpClient.Put(appVersion.GetUploadUrl(), data.Bytes(), httpClient.ContentType("application/zip"))
+	cephResponse, err := h.httpClient.Put(appVersion.GetUploadUrl(), buff.Bytes(), httpClient.ContentType("application/zip"))
 	if err != nil {
 		return err
 	}
