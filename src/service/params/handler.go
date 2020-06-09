@@ -11,7 +11,7 @@ import (
 )
 
 type Handler struct {
-	logger  *loggerPackage.Handler
+	logger  loggerPackage.Logger
 	storage *storage.Handler
 
 	params map[string]interface{}
@@ -19,7 +19,7 @@ type Handler struct {
 }
 
 func New(
-	logger *loggerPackage.Handler,
+	logger loggerPackage.Logger,
 	storage *storage.Handler,
 ) *Handler {
 	return &Handler{

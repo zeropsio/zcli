@@ -57,7 +57,7 @@ func ExecuteRootCmd(builtinToken string) {
 	}
 }
 
-func regSignals(contextCancel func(), logger *loggerPackage.Handler) {
+func regSignals(contextCancel func(), logger loggerPackage.Logger) {
 	sigs := make(chan os.Signal, 1)
 
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

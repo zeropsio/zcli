@@ -48,7 +48,6 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 	serviceStack := serviceStackResponse.GetOutput()
 
-	h.logger.Debug("service name: " + serviceStack.GetName())
 	h.logger.Debug("service status: " + serviceStack.GetStatus().String())
 
 	temporaryShutdown := false

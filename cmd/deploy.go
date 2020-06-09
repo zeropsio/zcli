@@ -40,7 +40,7 @@ func deployCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			zipClient := zipClient.New(zipClient.Config{})
+			zipClient := zipClient.New(zipClient.Config{}, logger)
 
 			return deploy.New(
 				deploy.Config{},

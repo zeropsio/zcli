@@ -8,6 +8,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/zerops-io/zcli/src/service/logger"
 )
 
 type Config struct {
@@ -15,11 +17,13 @@ type Config struct {
 
 type Handler struct {
 	config Config
+	logger logger.Logger
 }
 
-func New(config Config) *Handler {
+func New(config Config, logger logger.Logger) *Handler {
 	return &Handler{
 		config: config,
+		logger: logger,
 	}
 }
 
@@ -27,17 +31,45 @@ func (h *Handler) Zip(w io.Writer, workingDir string, sources ...string) error {
 	archive := zip.NewWriter(w)
 	defer archive.Close()
 
+	workingDir, err := filepath.Abs(workingDir)
+	if err != nil {
+		return err
+	}
+
+	h.logger.Info("working directory: " + workingDir)
+
 	for _, source := range sources {
 
 		parts := strings.Split(source, "*")
 		if len(parts) > 2 {
 			return errors.New("only one *(asterisk) is allowed")
 		}
-		source := path.Join(parts...)
+		if len(parts) == 1 {
+			parts = []string{
+				"", parts[0],
+			}
+		}
 
-		source = path.Join(workingDir, source)
+		source := path.Join(workingDir, path.Join(parts...))
+		source, err := filepath.Abs(source)
+		if err != nil {
+			return err
+		}
 
-		err := filepath.Walk(source, func(filePath string, info os.FileInfo, err error) error {
+		trimPart := path.Join(workingDir, parts[0])
+
+		fileInfo, err := os.Lstat(source)
+		if err != nil {
+			return err
+		}
+
+		if fileInfo.IsDir() {
+			h.logger.Info("packing directory: " + source)
+		} else {
+			h.logger.Info("packing file: " + source)
+		}
+
+		err = filepath.Walk(source, func(filePath string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
@@ -52,16 +84,12 @@ func (h *Handler) Zip(w io.Writer, workingDir string, sources ...string) error {
 					filePath += "/"
 				}
 
-				filePath = strings.TrimPrefix(filePath, workingDir)
+				filePath = strings.TrimPrefix(filePath, trimPart)
 
-				if len(parts) == 1 {
-					return filePath
-				} else {
-					if filePath == parts[0] {
-						return ""
-					}
-					return strings.TrimPrefix(filePath, parts[0])
+				if filePath == parts[0] {
+					return ""
 				}
+				return strings.TrimPrefix(filePath, parts[0])
 
 			}(filePath), "/")
 

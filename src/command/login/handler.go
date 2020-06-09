@@ -24,14 +24,14 @@ type RunConfig struct {
 
 type Handler struct {
 	config     Config
-	logger     *logger.Handler
+	logger     logger.Logger
 	storage    *storage.Handler
 	httpClient *httpClient.Handler
 }
 
 func New(
 	config Config,
-	logger *logger.Handler,
+	logger logger.Logger,
 	storage *storage.Handler,
 	httpClient *httpClient.Handler,
 ) *Handler {

@@ -22,7 +22,7 @@ type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
 	zipClient     *zipClient.Handler
-	logger        *logger.Handler
+	logger        logger.Logger
 	apiGrpcClient zeropsApiProtocol.ZeropsApiProtocolClient
 }
 
@@ -30,7 +30,7 @@ func New(
 	config Config,
 	httpClient *httpClient.Handler,
 	zipClient *zipClient.Handler,
-	logger *logger.Handler,
+	logger logger.Logger,
 	apiGrpcClient zeropsApiProtocol.ZeropsApiProtocolClient,
 ) *Handler {
 	return &Handler{

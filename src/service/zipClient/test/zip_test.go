@@ -17,6 +17,7 @@ var testErrorResponseDataProvider = []struct {
 	input      []string
 	output     []string
 }{
+
 	{
 		name:       "all",
 		workingDir: "./",
@@ -219,7 +220,9 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name+" in "+test.workingDir, func(t *testing.T) {
 			RegisterTestingT(t)
 
-			ziper := zipClient.New(zipClient.Config{})
+			logger := debugLogger{}
+
+			ziper := zipClient.New(zipClient.Config{}, logger)
 
 			b := &bytes.Buffer{}
 			err := ziper.Zip(b, test.workingDir, test.input...)
@@ -243,7 +246,9 @@ func TestValidation(t *testing.T) {
 func TestSymlink(t *testing.T) {
 	RegisterTestingT(t)
 
-	ziper := zipClient.New(zipClient.Config{})
+	logger := debugLogger{}
+
+	ziper := zipClient.New(zipClient.Config{}, &logger)
 
 	b := &bytes.Buffer{}
 	err := ziper.Zip(b, "var/www/", "dir/subDir/file3.3.symlink.txt")
@@ -260,5 +265,24 @@ func TestSymlink(t *testing.T) {
 	_, err = io.Copy(buf, fo)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(buf.String()).To(Equal("../file2.1.txt"))
+
+}
+
+type debugLogger struct {
+}
+
+func (d debugLogger) Info(a ...interface{}) {
+
+}
+
+func (d debugLogger) Warning(a ...interface{}) {
+
+}
+
+func (d debugLogger) Error(a ...interface{}) {
+
+}
+
+func (d debugLogger) Debug(a ...interface{}) {
 
 }

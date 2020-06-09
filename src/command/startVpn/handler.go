@@ -28,7 +28,7 @@ type RunConfig struct {
 
 type Handler struct {
 	config        Config
-	logger        *logger.Handler
+	logger        logger.Logger
 	apiGrpcClient zeropsApiProtocol.ZeropsApiProtocolClient
 	sudoers       *sudoers.Handler
 	storage       *storage.Handler
@@ -36,7 +36,7 @@ type Handler struct {
 
 func New(
 	config Config,
-	logger *logger.Handler,
+	logger logger.Logger,
 	apiGrpcClient zeropsApiProtocol.ZeropsApiProtocolClient,
 	sudoers *sudoers.Handler,
 	storage *storage.Handler,
