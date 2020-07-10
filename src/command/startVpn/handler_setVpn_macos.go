@@ -1,43 +1,49 @@
+// +build darwin
+
 package startVpn
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strconv"
-
-	"github.com/google/uuid"
 
 	"github.com/zerops-io/zcli/src/service/sudoers"
 
+	"github.com/google/uuid"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
 
 func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zeropsVpnProtocol.StartVpnResponse) error {
 	var err error
 
-	_, err = h.sudoers.RunCommand(exec.Command("ip", "link", "add", "wg0", "type", "wireguard"))
-	if err != nil {
-		if !errors.Is(err, sudoers.IpAlreadySetErr) {
-			return err
-		}
-	}
-
-	_, err = h.sudoers.RunCommand(exec.Command("ip", "link", "set", "mtu", "1420", "up", "dev", "wg0"))
+	output, err := h.sudoers.RunCommand(exec.Command("wireguard-go", "utun"))
 	if err != nil {
 		return err
 	}
 
+	re := regexp.MustCompile(`INFO: \((.*)\)`)
+	submatches := re.FindSubmatch(output)
+	if len(submatches) != 2 {
+		return errors.New("vpn interface not found")
+	}
+
+	interfaceName := string(submatches[1])
+
 	{
 		privateKeyName := uuid.New().String()
 		tempPrivateKeyFile := path.Join(os.TempDir(), privateKeyName)
+
+		fmt.Println(tempPrivateKeyFile)
 		err = ioutil.WriteFile(tempPrivateKeyFile, []byte(privateKey), 0755)
 		if err != nil {
 			return err
 		}
-		_, err = h.sudoers.RunCommand(exec.Command("wg", "set", "wg0", "private-key", tempPrivateKeyFile))
+		_, err = h.sudoers.RunCommand(exec.Command("wg", "set", interfaceName, "private-key", tempPrivateKeyFile))
 		if err != nil {
 			return err
 		}
@@ -47,12 +53,7 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zerops
 		}
 	}
 
-	_, err = h.sudoers.RunCommand(exec.Command("ip", "link", "set", "wg0", "up"))
-	if err != nil {
-		return err
-	}
-
-	_, err = h.sudoers.RunCommand(exec.Command("wg", "set", "wg0", "listen-port", wireguardPort))
+	_, err = h.sudoers.RunCommand(exec.Command("wg", "set", interfaceName, "listen-port", wireguardPort))
 	if err != nil {
 		return err
 	}
@@ -62,7 +63,7 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zerops
 	vpnRange := zeropsVpnProtocol.FromProtoIPRange(response.GetVpn().GetVpnIpRange())
 
 	args := []string{
-		"set", "wg0",
+		"set", interfaceName,
 		"peer", response.GetVpn().GetServerPublicKey(),
 		"allowed-ips", vpnRange.String(),
 		"endpoint", selectedVpnAddress + ":" + strconv.Itoa(int(response.GetVpn().GetPort())),
@@ -75,12 +76,12 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zerops
 		}
 	}
 
-	_, err = h.sudoers.RunCommand(exec.Command("ip", "-6", "address", "add", clientIp.String(), "dev", "wg0"))
+	_, err = h.sudoers.RunCommand(exec.Command("ifconfig", interfaceName, "inet6", clientIp.String(), "mtu", "1420"))
 	if err != nil {
 		return err
 	}
 
-	_, err = h.sudoers.RunCommand(exec.Command("ip", "route", "add", vpnRange.String(), "dev", "wg0"))
+	_, err = h.sudoers.RunCommand(exec.Command("route", "add", "-inet6", vpnRange.String(), serverIp.String()))
 	if err != nil {
 		return err
 	}

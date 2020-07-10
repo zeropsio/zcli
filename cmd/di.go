@@ -33,11 +33,14 @@ func createSudoers() *sudoers.Handler {
 }
 
 func createStorage() (*storage.Handler, error) {
-	tempDir := os.TempDir()
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
 
 	return storage.New(
 		storage.Config{
-			FilePath: path.Join(tempDir, "zcli.data"),
+			FilePath: path.Join(currentDir, "zcli.data"),
 		},
 	)
 }

@@ -11,7 +11,7 @@ func (h *Handler) isVpnAlive() bool {
 	}
 
 	for i := 0; i < 3; i++ {
-		_, err := exec.Command("ping", h.storage.Data.ServerIp, "-c", "1", "-W", "1").Output()
+		_, err := exec.Command("ping6", h.storage.Data.ServerIp, "-c", "1").Output()
 		if err != nil {
 			continue
 		}

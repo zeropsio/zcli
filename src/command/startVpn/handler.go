@@ -134,7 +134,11 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	h.logger.Info("\nclient is connected \n")
+	if h.isVpnAlive() {
+		h.logger.Info("\nvpn connection is established\n")
+	} else {
+		return errors.New("vpn is not connected")
+	}
 
 	h.storage.Data.ProjectId = project.GetId()
 	err = h.storage.Save()

@@ -2,12 +2,9 @@ package stopVpn
 
 import (
 	"context"
-	"errors"
-	"os/exec"
-
-	"github.com/zerops-io/zcli/src/service/storage"
 
 	"github.com/zerops-io/zcli/src/service/logger"
+	"github.com/zerops-io/zcli/src/service/storage"
 	"github.com/zerops-io/zcli/src/service/sudoers"
 )
 
@@ -40,11 +37,9 @@ func New(
 
 func (h *Handler) Run(_ context.Context, _ RunConfig) error {
 
-	_, err := h.sudoers.RunCommand(exec.Command("ip", "link", "del", "dev", "wg0"))
+	err := h.cleanVpn()
 	if err != nil {
-		if !errors.Is(err, sudoers.CannotFindDeviceErr) {
-			return err
-		}
+		return err
 	}
 
 	h.storage.Data.ProjectId = ""
@@ -53,6 +48,8 @@ func (h *Handler) Run(_ context.Context, _ RunConfig) error {
 	if err != nil {
 		return err
 	}
+
+	h.logger.Info("\nvpn connection was closed\n")
 
 	return nil
 }

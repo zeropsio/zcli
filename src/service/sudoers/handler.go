@@ -1,15 +1,15 @@
 package sudoers
 
 import (
-	"bytes"
 	"errors"
 	"os/exec"
-	"strings"
+
+	"github.com/zerops-io/zcli/src/helpers/cmdRunner"
 )
 
-var IpAlreadySetErr = errors.New("RTNETLINK answers: File exists")
-var CannotFindDeviceErr = errors.New(`Cannot find device "wg0"`)
-var OperationNotPermitted = errors.New(`Operation not permitted`)
+var IpAlreadySetErr = cmdRunner.IpAlreadySetErr
+var CannotFindDeviceErr = cmdRunner.CannotFindDeviceErr
+var OperationNotPermitted = cmdRunner.OperationNotPermitted
 
 type Config struct {
 }
@@ -27,42 +27,23 @@ func New(config Config) *Handler {
 // command with installation if operation is not permitted
 func (h *Handler) RunCommand(cmd *exec.Cmd) ([]byte, error) {
 
-	output, err := runCommand(cmd)
+	sudoCmd := exec.Command("sudo", cmd.Args...)
+	sudoCmd.Env = cmd.Env
+	sudoCmd.Stdin = cmd.Stdin
+	sudoCmd.Stderr = cmd.Stderr
+	sudoCmd.Stdout = cmd.Stdout
+	sudoCmd.Dir = cmd.Dir
+
+	output, err := cmdRunner.Run(sudoCmd)
 	if err != nil {
 		if errors.Is(err, OperationNotPermitted) {
 
 			newCmd := exec.Command("sudo", cmd.Args...)
 
-			output, err = runCommand(newCmd)
+			output, err = cmdRunner.Run(newCmd)
 		}
 	}
 
 	return output, err
 
-}
-
-func runCommand(cmd *exec.Cmd) ([]byte, error) {
-	output := &bytes.Buffer{}
-	errOutput := &bytes.Buffer{}
-	cmd.Stdout = output
-	cmd.Stderr = errOutput
-
-	if err := cmd.Run(); err != nil {
-		if errOutput.Len() > 0 {
-			errOutputString := string(errOutput.Bytes()[0 : errOutput.Len()-1])
-
-			if strings.Contains(errOutputString, OperationNotPermitted.Error()) {
-				return nil, OperationNotPermitted
-			}
-
-			for _, e := range []error{IpAlreadySetErr, CannotFindDeviceErr} {
-				if errOutputString == e.Error() {
-					return nil, e
-				}
-			}
-		}
-		return nil, err
-	}
-
-	return output.Bytes(), nil
 }

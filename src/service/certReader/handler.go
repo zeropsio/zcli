@@ -32,7 +32,7 @@ func New(config Config) (h *Handler, err error) {
 
 	tokens := strings.Split(config.Token, ";")
 	if len(tokens) != 3 {
-		return h, errors.New("wrong token")
+		return h, errors.New("invalid credentials, try `login` command")
 	}
 
 	if h.CaData, err = readData(tokens[0]); err != nil {

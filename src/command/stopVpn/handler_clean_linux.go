@@ -1,4 +1,6 @@
-package startVpn
+// +build linux
+
+package stopVpn
 
 import (
 	"errors"
