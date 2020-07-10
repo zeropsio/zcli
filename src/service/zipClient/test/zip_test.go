@@ -261,6 +261,7 @@ func TestSymlink(t *testing.T) {
 
 	fo, err := r.File[0].Open()
 	Expect(err).ShouldNot(HaveOccurred())
+	defer fo.Close()
 	buf := new(bytes.Buffer)
 	_, err = io.Copy(buf, fo)
 	Expect(err).ShouldNot(HaveOccurred())
