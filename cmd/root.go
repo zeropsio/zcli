@@ -29,9 +29,9 @@ func ExecuteRootCmd(builtinToken string) {
 		Use: "zcli",
 	}
 
-	params.RegisterString(rootCmd, "restApiAddress", "https://api.zerops.io", "address of rest api", paramsPackage.Persistent())
-	params.RegisterString(rootCmd, "grpcApiAddress", "api.zerops.io:20902", "address of grpc api", paramsPackage.Persistent())
-	params.RegisterString(rootCmd, "vpnApiAddress", "vpn.zerops.io", "address of vpn api", paramsPackage.Persistent())
+	params.RegisterString(rootCmd, "restApiAddress", "https://app.zerops.dev", "address of rest api", paramsPackage.Persistent())
+	params.RegisterString(rootCmd, "grpcApiAddress", "app.zerops.dev:20902", "address of grpc api", paramsPackage.Persistent())
+	params.RegisterString(rootCmd, "vpnApiAddress", "vpn.app.zerops.dev", "address of vpn api", paramsPackage.Persistent())
 	params.RegisterString(
 		rootCmd, "token", builtinToken, "authentication token",
 		paramsPackage.Persistent(),
