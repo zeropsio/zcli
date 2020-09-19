@@ -28,9 +28,9 @@ jobs:
         ./tools/install.sh
 
     - name: Build
-      run: go build -v .
+      run: go build -v ./cmd/main.go
 
     - name: Test
-      run: go test -v .
+      run: go test -v ./cmd/main.go
 
 
