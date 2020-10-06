@@ -14,8 +14,7 @@ function getPlatform() {
 
 function getBinary() {
   const platform_arch = getPlatform();
-  const version = require("./package.json").version;
-  const url = `https://github.com/zeropsio/zcli/releases/download/${version}/zcli-${platform_arch}.tar.gz`;
+  const url = `https://github.com/zeropsio/zcli/releases/download/latest/zcli-${platform_arch}.tar.gz`;
   const name = `zcli-${platform_arch}`;
   return new Binary(url, { name });
 }
