@@ -1,0 +1,17 @@
+{
+  "name": "@zerops/zcli",
+  "version": "v0.16",
+  "main": "tools/npm/binary.js",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "binary-install": "^0.0.1"
+  },
+  "bin": {
+    "zcli": "./tools/npm/run.js"
+  },
+  "scripts": {
+    "postinstall": "./tools/npm/install.js",
+    "preuninstall": "./tools/npm/uninstall.js"
+  }
+}
