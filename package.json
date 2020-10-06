@@ -1,6 +1,6 @@
 {
   "name": "@zerops/zcli",
-  "version": "v0.16",
+  "version": "v0.17",
   "main": "tools/npm/binary.js",
   "license": "MIT",
   "private": false,
