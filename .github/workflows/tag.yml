@@ -53,6 +53,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   bump:
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
