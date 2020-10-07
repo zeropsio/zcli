@@ -62,6 +62,7 @@ jobs:
           node-version: 12
           registry-url: https://registry.npmjs.org/
       - run: npm ci
+      - run: replace-in-files --string='v0.0.0' --replacement='${{ github.event.release.tag_name }}' package.json
       - run: npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

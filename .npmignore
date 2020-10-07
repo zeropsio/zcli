@@ -1,0 +1,6 @@
+src
+go.mod
+go.sum
+main.go
+zcli-mac
+zcli-linux

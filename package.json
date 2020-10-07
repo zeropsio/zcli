@@ -1,6 +1,6 @@
 {
   "name": "@zerops/zcli",
-  "version": "v1.0.0",
+  "version": "v0.0.0",
   "main": "tools/npm/binary.js",
   "license": "MIT",
   "private": false,
@@ -10,7 +10,8 @@
     "yargs": "^15.3.1"
   },
   "devDependencies": {
-    "standard": "^14.3.3"
+    "standard": "^14.3.3",
+    "replace-in-files-cli": "^1.0.0"
   },
   "bin": {
     "zcli": "./tools/npm/run.js"
