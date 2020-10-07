@@ -1,7 +1,7 @@
 {
   "name": "@zerops/zcli",
   "version": "v0.0.0-zerops",
-  "main": "./tools/npm/binary.js",
+  "main": "./binary.js",
   "license": "MIT",
   "private": false,
   "dependencies": {
@@ -13,15 +13,11 @@
     "standard": "^14.3.3"
   },
   "bin": {
-    "zcli": "./tools/npm/run.js"
+    "zcli": "run.js"
   },
-  "files": [
-    "/tools/npm",
-    "/package.json",
-    "/README.md"
-  ],
+  "files": [],
   "scripts": {
-    "postinstall": "./tools/npm/install.js",
-    "preuninstall": "./tools/npm/uninstall.js"
+    "postinstall": "./install.js",
+    "preuninstall": "./uninstall.js"
   }
 }

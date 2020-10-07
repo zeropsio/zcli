@@ -47,17 +47,27 @@ jobs:
           args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
 
-      - name: Package binaries
-        run: tar -czvf ${{ matrix.file }}.tar.gz builds/${{ matrix.file }}
+      - name: Package binaries for NPM
+        run: tar -czvf ${{ matrix.file }}-npm.tar.gz builds/${{ matrix.file }}
 
-      - name: Upload asset
+      - name: Upload asset for NPM
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.file }}.tar.gz
-          asset_name: ${{ matrix.file }}.tar.gz
+          asset_path: ./${{ matrix.file }}-npm.tar.gz
+          asset_name: ${{ matrix.file }}-npm.tar.gz
+          asset_content_type: application/octet-stream
+
+      - name: Upload asset clean bin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./builds/${{ matrix.file }}
+          asset_name: ${{ matrix.file }}
           asset_content_type: application/octet-stream
 
   publish-npm:
@@ -69,6 +79,7 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
+      - run: cd tools/npm
       - run: npm ci --ignore-scripts
       - run: npm i -g replace-in-files-cli
       - run: replace-in-files --string='v0.0.0-zerops' --replacement='${{ github.event.release.tag_name }}' package.json
