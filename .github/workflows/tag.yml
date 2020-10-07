@@ -12,18 +12,18 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=amd64 go build -o zcli-linux-amd64 ./main.go
-            file: zcli-linux-amd64
+            buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 ./main.go
+            file: builds/zcli-linux-amd64
             args:
             strip: true
           - os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=386 go build -o zcli-linux-i386 ./main.go
-            file: zcli-linux-i386
+            buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 ./main.go
+            file: builds/zcli-linux-i386
             args:
             strip: true
           - os: macos-latest
-            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-darwin-amd64 ./main.go
-            file: zcli-darwin-amd64
+            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./main.go
+            file: builds/zcli-darwin-amd64
             args:
             strip: false
 
@@ -48,7 +48,7 @@ jobs:
           strip: ${{ matrix.strip }}
 
       - name: Package binaries
-        run: tar -czvf ${{ matrix.file }}.tar.gz ${{ matrix.file }}
+        run: tar -czvf ${{ matrix.file }}.tar.gz builds/${{ matrix.file }}
 
       - name: Upload asset
         uses: actions/upload-release-asset@v1
