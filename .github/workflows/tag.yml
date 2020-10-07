@@ -48,8 +48,7 @@ jobs:
           strip: ${{ matrix.strip }}
 
       - name: Package binaries
-        run: |
-          tar -czvf ${{ matrix.file }}.tar.gz ${{ matrix.file }}
+        run: tar -czvf ${{ matrix.file }}.tar.gz ${{ matrix.file }}
 
       - name: Upload asset
         uses: actions/upload-release-asset@v1
