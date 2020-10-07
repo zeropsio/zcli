@@ -47,14 +47,18 @@ jobs:
           args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
 
+      - name: Package binaries
+        run: |
+          tar -czvf ${{ matrix.file }}.tar.gz ${{ matrix.file }}
+
       - name: Upload asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.file }}
-          asset_name: ${{ matrix.file }}
+          asset_path: ./${{ matrix.file }}.tar.gz
+          asset_name: ${{ matrix.file }}.tar.gz
           asset_content_type: application/octet-stream
 
   publish-npm:
