@@ -1,7 +1,4 @@
-src
-cmd
-go.mod
-go.sum
-main.go
-zcli-mac
-zcli-linux
+.*
+!dist/tools/npm/.*
+!package.json
+!README.md

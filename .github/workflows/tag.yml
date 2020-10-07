@@ -16,6 +16,11 @@ jobs:
             file: zcli-linux-amd64
             args:
             strip: true
+          - os: ubuntu-latest
+            buildCmd: env GOOS=linux GOARCH=386 go build -o zcli-linux-i386 ./main.go && tar -czvf zcli-linux-i386.tar.gz zcli-linux-i386
+            file: zcli-linux-i386
+            args:
+            strip: true
           - os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-darwin-amd64 ./main.go && tar -czvf zcli-darwin-amd64.tar.gz zcli-darwin-amd64
             file: zcli-darwin-amd64
