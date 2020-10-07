@@ -13,17 +13,17 @@ jobs:
         include:
           - os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 ./main.go
-            file: builds/zcli-linux-amd64
+            file: zcli-linux-amd64
             args:
             strip: true
           - os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 ./main.go
-            file: builds/zcli-linux-i386
+            file: zcli-linux-i386
             args:
             strip: true
           - os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./main.go
-            file: builds/zcli-darwin-amd64
+            file: zcli-darwin-amd64
             args:
             strip: false
 
@@ -43,7 +43,7 @@ jobs:
       - name: Compress binary
         uses: svenstaro/upx-action@v1-release
         with:
-          file: ./${{ matrix.file }}
+          file: ./builds/${{ matrix.file }}
           args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
 
