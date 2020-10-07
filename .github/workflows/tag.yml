@@ -71,7 +71,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci --ignore-scripts
       - run: npm i -g replace-in-files-cli
-      - run: replace-in-files --string='v0.0.0-zerops' --replacement='${{ github.event.release.tag_name }}' package.json
+      - run: replace-in-files --string='v0.0.0-zerops' --replacement='v${{ github.event.release.tag_name }}' package.json
       - run: npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
