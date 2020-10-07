@@ -3,5 +3,5 @@ cmd
 go.mod
 go.sum
 main.go
-zcli-mac
-zcli-linux
+zcli-linux-amd64
+zcli-darwin-amd64
