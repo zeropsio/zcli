@@ -13,12 +13,12 @@ jobs:
         include:
           - os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 ./main.go && tar -czvf zcli-linux-amd64.tar.gz builds/zcli-linux-amd64
-            file: builds/zcli-linux-amd64.tar.gz
+            file: ./builds/zcli-linux-amd64.tar.gz
             args:
             strip: true
           - os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./main.go && tar -czvf zcli-darwin-amd64.tar.gz builds/zcli-darwin-amd64
-            file: builds/zcli-darwin-amd64.tar.gz
+            file: ./builds/zcli-darwin-amd64.tar.gz
             args:
             strip: false
 
