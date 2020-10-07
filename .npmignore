@@ -1,4 +1,0 @@
-.*
-!dist/tools/npm/.*
-!package.json
-!README.md
