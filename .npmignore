@@ -1,0 +1,7 @@
+src
+cmd
+go.mod
+go.sum
+main.go
+zcli-linux-amd64
+zcli-darwin-amd64

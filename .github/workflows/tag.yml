@@ -12,13 +12,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=amd64 go build -o zcli-linux ./main.go
-            file: zcli-linux
+            buildCmd: env GOOS=linux GOARCH=amd64 go build -o zcli-linux-amd64 ./main.go && tar -czvf zcli-linux-amd64.tar.gz zcli-linux-amd64
+            file: zcli-linux-amd64
             args:
             strip: true
           - os: macos-latest
-            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-mac ./main.go
-            file: zcli-mac
+            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-darwin-amd64 ./main.go && tar -czvf zcli-darwin-amd64.tar.gz zcli-darwin-amd64
+            file: zcli-darwin-amd64
             args:
             strip: false
 
@@ -51,3 +51,19 @@ jobs:
           asset_path: ./${{ matrix.file }}
           asset_name: ${{ matrix.file }}
           asset_content_type: application/octet-stream
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci --ignore-scripts
+      - run: npm i -g replace-in-files-cli
+      - run: replace-in-files --string='v0.0.0-zerops' --replacement='${{ github.event.release.tag_name }}' package.json
+      - run: npm publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
