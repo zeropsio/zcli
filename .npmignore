@@ -1,7 +1,4 @@
-src
-cmd
-go.mod
-go.sum
-main.go
-zcli-linux-amd64
-zcli-darwin-amd64
+.*
+!dist/tools/npm/.*
+!package.json
+!README.md
