@@ -10,8 +10,7 @@
     "yargs": "^15.3.1"
   },
   "devDependencies": {
-    "standard": "^14.3.3",
-    "replace-in-files-cli": "^1.0.0"
+    "standard": "^14.3.3"
   },
   "bin": {
     "zcli": "./tools/npm/run.js"
