@@ -12,12 +12,17 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=amd64 go build -o zcli-linux-amd64 ./main.go && tar -czvf zcli-linux-amd64.tar.gz zcli-linux-amd64
+            buildCmd: env GOOS=linux GOARCH=amd64 go build -o zcli-linux-amd64 ./main.go
             file: zcli-linux-amd64
             args:
             strip: true
+          - os: ubuntu-latest
+            buildCmd: env GOOS=linux GOARCH=386 go build -o zcli-linux-i386 ./main.go
+            file: zcli-linux-i386
+            args:
+            strip: true
           - os: macos-latest
-            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-darwin-amd64 ./main.go && tar -czvf zcli-darwin-amd64.tar.gz zcli-darwin-amd64
+            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o zcli-darwin-amd64 ./main.go
             file: zcli-darwin-amd64
             args:
             strip: false
@@ -42,14 +47,17 @@ jobs:
           args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
 
+      - name: Package binaries
+        run: tar -czvf ${{ matrix.file }}.tar.gz ${{ matrix.file }}
+
       - name: Upload asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.file }}
-          asset_name: ${{ matrix.file }}
+          asset_path: ./${{ matrix.file }}.tar.gz
+          asset_name: ${{ matrix.file }}.tar.gz
           asset_content_type: application/octet-stream
 
   publish-npm:

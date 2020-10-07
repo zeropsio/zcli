@@ -15,6 +15,11 @@
   "bin": {
     "zcli": "./tools/npm/run.js"
   },
+  "files": [
+    "/tools/npm",
+    "/package.json",
+    "/README.md"
+  ],
   "scripts": {
     "postinstall": "./tools/npm/install.js",
     "preuninstall": "./tools/npm/uninstall.js"
