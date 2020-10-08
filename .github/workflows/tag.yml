@@ -12,17 +12,17 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 ./main.go
+            buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 ./cmd/main.go
             file: zcli-linux-amd64
             args:
             strip: true
           - os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 ./main.go
+            buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 ./cmd/main.go
             file: zcli-linux-i386
             args:
             strip: true
           - os: macos-latest
-            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./main.go
+            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./cmd/main.go
             file: zcli-darwin-amd64
             args:
             strip: false

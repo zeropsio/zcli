@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+PTYPES=`go list -f '{{ .Dir }}' -m github.com/golang/protobuf`
+
+protoc \
+     -I . \
+     -I ${PTYPES}/ptypes \
+     --go_out=plugins=grpc,paths=source_relative:. *.proto
+
+if [ $? -ne 0 ]; then
+    echo FAIL
+    exit 1
+fi

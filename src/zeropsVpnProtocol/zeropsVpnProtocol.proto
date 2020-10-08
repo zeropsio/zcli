@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/zerops-io/zcli/src/zeropsVpnProtocol";
+
 package zeropsVpnProtocol;
 
 service ZeropsVpnProtocol {
@@ -55,4 +57,5 @@ message startVpnOutDto {
     IP assignedClientIp = 3;
     IP serverIp = 4;
     IPRange vpnIpRange = 5;
+    IP dnsIp = 6;
 }

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/zerops-io/zcli/src/zeropsApiProtocol";
+
 package zeropsApiProtocol;
 
 service zeropsApiProtocol {

@@ -36,5 +36,5 @@ cd ..
 rm -rf tmp
 chmod +x bin/protoc
 
-# https://github.com/golangci/golangci-lint#go Please, do not install golangci-lint by go get
+# https://github.com/golangci/golangci-lint#go Please, do not installDaemon golangci-lint by go get
 curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$GOBIN" v1.23.8
