@@ -10,6 +10,7 @@ import (
 	"github.com/zerops-io/zcli/src/utils/certReader"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
+	"google.golang.org/grpc/status"
 )
 
 func (h *Handler) startVpn(
@@ -57,7 +58,11 @@ func (h *Handler) startVpn(
 		ClientPublicKey: publicKey,
 	})
 	if err := utils.HandleGrpcApiError(apiVpnRequestResponse, err); err != nil {
-		return err
+		if errStatus, ok := status.FromError(err); ok {
+			return errors.New(errStatus.Err().Error())
+		} else {
+			return err
+		}
 	}
 	h.logger.Debug("vpn request end")
 
@@ -95,7 +100,11 @@ func (h *Handler) startVpn(
 		Expiry:          zeropsVpnProtocol.ToProtoTimestamp(expiry),
 	})
 	if err := utils.HandleVpnApiError(startVpnResponse, err); err != nil {
-		return err
+		if errStatus, ok := status.FromError(err); ok {
+			return errors.New(errStatus.Err().Error())
+		} else {
+			return err
+		}
 	}
 
 	h.logger.Debug("call start vpn - end")

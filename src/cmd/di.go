@@ -85,8 +85,9 @@ func createDaemonStorage() (*daemonStorage.Handler, error) {
 func createVpn(storage *daemonStorage.Handler, dnsServer *dnsServer.Handler, logger *logger.Handler) *vpn.Handler {
 	return vpn.New(
 		vpn.Config{
-			VpnCheckInterval:   time.Second * 1,
+			VpnCheckInterval:   time.Second * 3,
 			VpnCheckRetryCount: 3,
+			VpnCheckTimeout:    time.Second * 3,
 		},
 		logger,
 		grpcApiClientFactory.New(),

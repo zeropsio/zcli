@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
@@ -24,11 +25,11 @@ func getNewVpnInterfaceName() (string, error) {
 		if err == nil {
 			continue
 		}
-		if err.Error() == "no such network interface" {
+		if err.Error() == "route ip+net: no such network interface" {
 			return interfaceName, nil
 		}
 	}
-	return "", errors.New("next  interface name not available")
+	return "", errors.New(i18n.VpnStartInterfaceAssignFailed)
 }
 
 func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zeropsVpnProtocol.StartVpnResponse) error {
