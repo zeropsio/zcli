@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
@@ -29,7 +30,7 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, resp
 	re := regexp.MustCompile(`INFO: \((.*)\)`)
 	submatches := re.FindSubmatch(output)
 	if len(submatches) != 2 {
-		return errors.New("vpn interface not found")
+		return errors.New(i18n.VpnStartWireguardInterfaceNotfound)
 	}
 
 	interfaceName := string(submatches[1])

@@ -29,6 +29,7 @@ const (
 type Config struct {
 	VpnCheckInterval   time.Duration
 	VpnCheckRetryCount int
+	VpnCheckTimeout    time.Duration
 }
 
 type Handler struct {
