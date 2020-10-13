@@ -25,6 +25,7 @@ message startVpnRequest {
     string vpnAddress = 2;
     string projectId = 3;
     string token = 4;
+    uint32 mtu = 5;
 }
 
 message startVpnResponse {

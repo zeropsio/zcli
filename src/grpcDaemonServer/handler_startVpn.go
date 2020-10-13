@@ -14,6 +14,7 @@ func (h *Handler) StartVpn(ctx context.Context, request *zeropsDaemonProtocol.St
 		request.GetVpnAddress(),
 		request.GetToken(),
 		request.GetProjectId(),
+		request.GetMtu(),
 	)
 	if err != nil {
 		return &zeropsDaemonProtocol.StartVpnResponse{}, err

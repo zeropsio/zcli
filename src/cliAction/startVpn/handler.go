@@ -14,6 +14,7 @@ type Config struct {
 type RunConfig struct {
 	ProjectName string
 	Token       string
+	Mtu         uint32
 }
 
 type Handler struct {

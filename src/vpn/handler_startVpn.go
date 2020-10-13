@@ -18,6 +18,7 @@ func (h *Handler) startVpn(
 	grpcVpnAddress string,
 	token string,
 	projectId string,
+	mtu uint32,
 ) (err error) {
 	defer func() {
 		if err != nil {
@@ -109,8 +110,9 @@ func (h *Handler) startVpn(
 	h.logger.Debug("server public key: " + startVpnResponse.GetVpn().GetServerPublicKey())
 	h.logger.Debug("serverIp address: " + serverIp.String())
 	h.logger.Debug("vpnRange: " + vpnRange.String())
+	h.logger.Debug("mtu: " + strconv.Itoa(int(mtu)))
 
-	err = h.setVpn(vpnAddress, privateKey, startVpnResponse)
+	err = h.setVpn(vpnAddress, privateKey, mtu, startVpnResponse)
 	if err != nil {
 		return err
 	}
@@ -146,6 +148,7 @@ func (h *Handler) startVpn(
 	data.ServerIp = serverIp.String()
 	data.VpnNetwork = vpnNetwork.String()
 	data.ProjectId = projectId
+	data.Mtu = mtu
 	data.DnsIp = dnsIp
 	data.ClientIp = clientIp
 	data.GrpcApiAddress = grpcApiAddress

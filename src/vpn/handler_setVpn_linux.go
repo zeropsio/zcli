@@ -31,7 +31,7 @@ func getNewVpnInterfaceName() (string, error) {
 	return "", errors.New("next  interface name not available")
 }
 
-func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zeropsVpnProtocol.StartVpnResponse) error {
+func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, response *zeropsVpnProtocol.StartVpnResponse) error {
 	var err error
 
 	interfaceName, err := getNewVpnInterfaceName()
@@ -46,7 +46,7 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zerops
 		}
 	}
 
-	_, err = cmdRunner.Run(exec.Command("ip", "link", "set", "mtu", "1420", "up", "dev", interfaceName))
+	_, err = cmdRunner.Run(exec.Command("ip", "link", "set", "mtu", strconv.Itoa(int(mtu)), "up", "dev", interfaceName))
 	if err != nil {
 		return err
 	}

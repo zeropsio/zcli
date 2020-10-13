@@ -10,9 +10,10 @@ func (h *Handler) StartVpn(
 	grpcVpnAddress string,
 	token string,
 	projectId string,
+	mtu uint32,
 ) (err error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	return h.startVpn(ctx, grpcApiAddress, grpcVpnAddress, token, projectId)
+	return h.startVpn(ctx, grpcApiAddress, grpcVpnAddress, token, projectId, mtu)
 }

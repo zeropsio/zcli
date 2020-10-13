@@ -62,9 +62,12 @@ func vpnStartCmd() *cobra.Command {
 			).Run(ctx, startVpn.RunConfig{
 				ProjectName: args[0],
 				Token:       token,
+				Mtu:         params.GetUint32("mtu"),
 			})
 		},
 	}
+
+	params.RegisterUInt32(cmd, "mtu", 1420, "vpn interface MTU")
 
 	return cmd
 }

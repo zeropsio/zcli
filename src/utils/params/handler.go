@@ -72,6 +72,39 @@ func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, descrip
 	}
 }
 
+func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue uint32, description string, options ...Option) {
+	var paramValue uint32
+
+	cfg := &optionConfig{}
+	for _, o := range options {
+		o(cfg)
+	}
+
+	if cfg.persistent {
+		cmd.PersistentFlags().Uint32Var(&paramValue, name, defaultValue, description)
+		h.viper.BindPFlags(cmd.PersistentFlags())
+	} else {
+		cmd.Flags().Uint32Var(&paramValue, name, defaultValue, description)
+	}
+
+	h.params[name] = func() uint32 {
+		if paramValue > 0 {
+			return paramValue
+		}
+		if cfg.loadFromTempData != nil {
+			value := cfg.loadFromTempData()
+			if v, ok := value.(uint32); ok {
+				return v
+			}
+		}
+		if h.viper.GetInt32(name) != 0 {
+			return h.viper.GetUint32(name)
+		}
+
+		return defaultValue
+	}
+}
+
 func (h *Handler) GetString(name string) string {
 	if param, exists := h.params[name]; exists {
 		if v, ok := param.(func() string); ok {
@@ -80,6 +113,16 @@ func (h *Handler) GetString(name string) string {
 		return ""
 	}
 	return ""
+}
+
+func (h *Handler) GetUint32(name string) uint32 {
+	if param, exists := h.params[name]; exists {
+		if v, ok := param.(func() uint32); ok {
+			return v()
+		}
+		return 0
+	}
+	return 0
 }
 
 func (h *Handler) InitViper() error {

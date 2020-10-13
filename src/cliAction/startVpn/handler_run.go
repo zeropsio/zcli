@@ -63,6 +63,7 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 		VpnAddress: h.config.VpnAddress,
 		ProjectId:  project.GetId(),
 		Token:      config.Token,
+		Mtu:        config.Mtu,
 	})
 	if err != nil {
 		if errStatus, ok := status.FromError(err); ok {

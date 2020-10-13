@@ -21,6 +21,7 @@ type Data struct {
 	Token          string
 	DnsIp          []byte
 	ClientIp       []byte
+	Mtu            uint32
 }
 
 func New(config Config) (*Handler, error) {
