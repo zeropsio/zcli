@@ -4,7 +4,6 @@ package vpn
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -17,7 +16,7 @@ import (
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
 
-func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zeropsVpnProtocol.StartVpnResponse) error {
+func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, response *zeropsVpnProtocol.StartVpnResponse) error {
 	var err error
 
 	h.logger.Debug("run wireguard-go utun")
@@ -28,7 +27,6 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zerops
 	}
 
 	re := regexp.MustCompile(`INFO: \((.*)\)`)
-	fmt.Println("??????", output)
 	submatches := re.FindSubmatch(output)
 	if len(submatches) != 2 {
 		return errors.New("vpn interface not found")
@@ -75,7 +73,7 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, response *zerops
 		}
 	}
 
-	_, err = cmdRunner.Run(exec.Command("ifconfig", interfaceName, "inet6", clientIp.String(), "mtu", "1420"))
+	_, err = cmdRunner.Run(exec.Command("ifconfig", interfaceName, "inet6", clientIp.String(), "mtu", strconv.Itoa(int(mtu))))
 	if err != nil {
 		return err
 	}

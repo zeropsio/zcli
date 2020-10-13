@@ -16,6 +16,7 @@ func (h *Handler) checkStatus(ctx context.Context) {
 				data.GrpcVpnAddress,
 				data.Token,
 				data.ProjectId,
+				data.Mtu,
 			)
 			if err != nil {
 				h.logger.Error(err)
