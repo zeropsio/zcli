@@ -8,23 +8,12 @@ output:
   format: colored-line-number
 
 linters-settings:
-  gocritic:
-    disabled-checks:
-      - captLocal # CIDR, IpV6, ....
-      - unlambda # falsePositive for function passed to defer
   godox:
     keywords:
       - FIXME
 
 issues:
   max-same-issues: 0
-
-  exclude-rules:
-
-    # Exclude some staticcheck messages
-    - linters:
-        - staticcheck
-      text: "SA4004:" #https://staticcheck.io/docs/checks#SA4004 The loop exits unconditionally after one iteration
 
 linters:
   enable:
@@ -38,21 +27,8 @@ linters:
     - structcheck
     - staticcheck
     - godox
-
-  # high priority
-  #    - rowserrcheck
-  #    - errcheck
-
-  # normal priority
-  #   - prealloc - jednotky
-
-
-  # low priority
-  #   - gosimple
-  #   - gosec
-  #   - goconst
-  #   - gocritic
-  #   - nakedret
+    - rowserrcheck
+    - prealloc
 
   disable-all: true
   fast: false
