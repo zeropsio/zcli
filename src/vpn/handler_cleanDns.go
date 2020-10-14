@@ -13,6 +13,8 @@ import (
 func (h *Handler) cleanDns(dnsIp, clientIp net.IP, dnsManagement localDnsManagement) error {
 
 	switch dnsManagement {
+	case localDnsManagementSystemdResolve:
+		return nil
 	case localDnsManagementResolveConf:
 		vpnInterfaceName, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(clientIp)
 		if err != nil {

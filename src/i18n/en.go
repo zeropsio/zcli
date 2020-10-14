@@ -1,8 +1,9 @@
 package i18n
 
 const (
-	/// cmd
+	// cmd
 	CmdDeployDesc    = "deploy your application into zerops.io"
+	CmdPushDesc      = "deploy your application into zerops.io and build it"
 	CmdLogin         = "log you into zerops.io"
 	CmdVpn           = "vpn commands group"
 	CmdVpnStart      = "start vpn"
@@ -14,6 +15,11 @@ const (
 	CmdDaemonRun     = "run daemon"
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
+
+	// flags description
+	BuildVersionName = "custom version name"
+	BuildWorkingDir  = "working dir, all files path are relative to this directory"
+	BuildZipFilePath = "save final zip file"
 
 	// process
 	ProcessInvalidState = "process is in wrong state"
@@ -33,20 +39,23 @@ const (
 	LoginSuccess               = "you are logged"
 
 	// deploy
-	DeployProjectNameMissing      = "project name must be filled"
-	DeployServiceStackNameMissing = "service name must be filled"
-	DeployProjectNotFound         = "project not found"
-	DeployProjectsWithSameName    = "there are multiple projects with same name"
-	DeployServiceStatus           = "service status"
-	DeployTemporaryShutdown       = "temporaryShutdown"
-	DeployCreatingPackageStart    = "creating package start"
-	DeployCreatingPackageDone     = "creating package done"
-	DeployPackageSavedInto        = "package file saved into"
-	DeployUploadingStart          = "uploading start"
-	DeployUploadingDone           = "uploading done"
-	DeployDeployingStart          = "deploying start"
-	DeployUploadArchiveFailed     = "upload archive failed"
-	DeploySuccess                 = "project deployed"
+	BuildDeployProjectNameMissing      = "project name must be filled"
+	BuildDeployServiceStackNameMissing = "service name must be filled"
+	BuildDeployProjectNotFound         = "project not found"
+	BuildDeployProjectsWithSameName    = "there are multiple projects with same name"
+	BuildDeployServiceStatus           = "service status"
+	BuildDeployTemporaryShutdown       = "temporaryShutdown"
+	BuildDeployCreatingPackageStart    = "creating package"
+	BuildDeployCreatingPackageDone     = "package created"
+	BuildDeployPackageSavedInto        = "package file saved into"
+	BuildDeployUploadingPackageStart   = "uploading package"
+	BuildDeployUploadingPackageDone    = "package uploaded"
+	BuildDeployUploadPackageFailed     = "package upload failed"
+	BuildDeployDeployingStart          = "deploying service"
+	BuildDeployBuildConfigNotFound     = "config file zerops_build.yml is not found"
+	BuildDeployBuildConfigEmpty        = "config file zerops_build.yml is empty"
+	BuildDeployBuildConfigTooLarge     = "max. size of zerops_build.yml is 10 MB"
+	BuildDeploySuccess                 = "service deployed"
 
 	// vpn start
 	VpnStartProjectNameIsEmpty         = "project name must be filled"

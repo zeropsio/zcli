@@ -30,13 +30,13 @@ func loginCmd() *cobra.Command {
 
 			return login.New(
 				login.Config{
-					ApiAddress: params.GetString("restApiAddress"),
+					ApiAddress: params.GetPersistentString("restApiAddress"),
 				},
 				storage,
 				httpClient,
 			).Run(ctx, login.RunConfig{
-				ZeropsLogin:    params.GetString("zeropsLogin"),
-				ZeropsPassword: params.GetString("zeropsPassword"),
+				ZeropsLogin:    params.GetString(cmd, "zeropsLogin"),
+				ZeropsPassword: params.GetString(cmd, "zeropsPassword"),
 			})
 		},
 	}

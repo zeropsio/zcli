@@ -1,4 +1,4 @@
-package deploy
+package buildDeploy
 
 import (
 	"github.com/zerops-io/zcli/src/utils/httpClient"
@@ -15,6 +15,7 @@ type RunConfig struct {
 	PathsForPacking  []string
 	WorkingDir       string
 	ZipFilePath      string
+	VersionName      string
 }
 
 type Handler struct {

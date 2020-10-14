@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 
+	"google.golang.org/grpc/status"
+
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
@@ -14,6 +16,9 @@ func HandleGrpcApiError(
 	err error,
 ) error {
 	if err != nil {
+		if s, ok := status.FromError(err); ok {
+			return errors.New(s.Message())
+		}
 		return err
 	}
 	if response.GetError().GetCode() != zeropsApiProtocol.ErrorCode_NO_ERROR {
@@ -30,6 +35,9 @@ func HandleVpnApiError(
 	err error,
 ) error {
 	if err != nil {
+		if s, ok := status.FromError(err); ok {
+			return errors.New(s.Message())
+		}
 		return err
 	}
 	if response.GetError().GetCode() != zeropsVpnProtocol.ErrorCode_NO_ERROR {
