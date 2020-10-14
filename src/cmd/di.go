@@ -59,7 +59,7 @@ func createTlsConfig(certReader *certReader.Handler) (*tls.Config, error) {
 
 func createApiGrpcClient(ctx context.Context, tlsConfig *tls.Config) (_ zeropsApiProtocol.ZeropsApiProtocolClient, closeFunc func(), _ error) {
 
-	connection, err := grpc.DialContext(ctx, params.GetString("grpcApiAddress"), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	connection, err := grpc.DialContext(ctx, params.GetPersistentString("grpcApiAddress"), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
 		return nil, nil, err
 	}

@@ -23,11 +23,12 @@ func ExecuteCmd() error {
 		Use: "zcli",
 	}
 
-	params.RegisterString(rootCmd, "restApiAddress", "https://app.zerops.dev", "address of rest api", paramsPackage.Persistent())
-	params.RegisterString(rootCmd, "grpcApiAddress", "app.zerops.dev:20902", "address of grpc api", paramsPackage.Persistent())
-	params.RegisterString(rootCmd, "vpnApiAddress", "vpn.app.zerops.dev", "address of vpn api", paramsPackage.Persistent())
+	params.RegisterPersistentString(rootCmd, "restApiAddress", "https://app.zerops.dev", "address of rest api")
+	params.RegisterPersistentString(rootCmd, "grpcApiAddress", "app.zerops.dev:20902", "address of grpc api")
+	params.RegisterPersistentString(rootCmd, "vpnApiAddress", "vpn.app.zerops.dev", "address of vpn api")
 
 	rootCmd.AddCommand(deployCmd())
+	rootCmd.AddCommand(pushCmd())
 	rootCmd.AddCommand(vpnCmd())
 	rootCmd.AddCommand(loginCmd())
 	rootCmd.AddCommand(logCmd())

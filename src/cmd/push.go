@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
+
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
@@ -12,12 +13,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func deployCmd() *cobra.Command {
+func pushCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "deploy projectName serviceName pathToFileOrDir [pathToFileOrDir]",
-		Short:        i18n.CmdDeployDesc,
+		Use:          "push projectName serviceName",
+		Short:        i18n.CmdPushDesc,
+		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
-		Args:         cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
@@ -56,13 +57,12 @@ func deployCmd() *cobra.Command {
 				httpClient,
 				zipClient,
 				apiGrpcClient,
-			).Deploy(ctx, buildDeploy.RunConfig{
+			).Push(ctx, buildDeploy.RunConfig{
 				ZipFilePath:      params.GetString(cmd, "zipFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
 				ProjectName:      args[0],
 				ServiceStackName: args[1],
-				PathsForPacking:  args[2:],
 			})
 		},
 	}

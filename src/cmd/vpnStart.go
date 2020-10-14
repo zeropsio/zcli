@@ -53,8 +53,8 @@ func vpnStartCmd() *cobra.Command {
 
 			return startVpn.New(
 				startVpn.Config{
-					GrpcApiAddress: params.GetString("grpcApiAddress"),
-					VpnAddress:     params.GetString("vpnApiAddress"),
+					GrpcApiAddress: params.GetPersistentString("grpcApiAddress"),
+					VpnAddress:     params.GetPersistentString("vpnApiAddress"),
 				},
 				apiGrpcClient,
 				grpcDaemonClientFactory.New(),

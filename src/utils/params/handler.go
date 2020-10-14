@@ -20,49 +20,23 @@ func New() *Handler {
 	}
 }
 
-type Option func(cfg *optionConfig)
-
-func Persistent() Option {
-	return func(cfg *optionConfig) {
-		cfg.persistent = true
-	}
-}
-
-func FromTempData(f func() interface{}) Option {
-	return func(cfg *optionConfig) {
-		cfg.loadFromTempData = f
-	}
-}
-
 type optionConfig struct {
-	persistent       bool
-	loadFromTempData func() interface{}
+	persistent bool
 }
 
-func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, description string, options ...Option) {
+func (h *Handler) getCmdId(cmd *cobra.Command, name string) string {
+	return cmd.Use + name
+}
+
+func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, description string) {
+
 	var paramValue string
 
-	cfg := &optionConfig{}
-	for _, o := range options {
-		o(cfg)
-	}
+	cmd.Flags().StringVar(&paramValue, name, "", description)
 
-	if cfg.persistent {
-		cmd.PersistentFlags().StringVar(&paramValue, name, "", description)
-		h.viper.BindPFlags(cmd.PersistentFlags())
-	} else {
-		cmd.Flags().StringVar(&paramValue, name, "", description)
-	}
-
-	h.params[name] = func() string {
+	h.params[h.getCmdId(cmd, name)] = func() string {
 		if paramValue != "" {
 			return paramValue
-		}
-		if cfg.loadFromTempData != nil {
-			value := cfg.loadFromTempData()
-			if v, ok := value.(string); ok {
-				return v
-			}
 		}
 		if h.viper.GetString(name) != "" {
 			return h.viper.GetString(name)
@@ -72,30 +46,33 @@ func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, descrip
 	}
 }
 
-func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue uint32, description string, options ...Option) {
+func (h *Handler) RegisterPersistentString(cmd *cobra.Command, name, defaultValue, description string) {
+
+	var paramValue string
+
+	cmd.PersistentFlags().StringVar(&paramValue, name, "", description)
+	h.viper.BindPFlags(cmd.PersistentFlags())
+
+	h.params[name] = func() string {
+		if paramValue != "" {
+			return paramValue
+		}
+		if h.viper.GetString(name) != "" {
+			return h.viper.GetString(name)
+		}
+
+		return defaultValue
+	}
+}
+
+func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue uint32, description string) {
 	var paramValue uint32
 
-	cfg := &optionConfig{}
-	for _, o := range options {
-		o(cfg)
-	}
-
-	if cfg.persistent {
-		cmd.PersistentFlags().Uint32Var(&paramValue, name, defaultValue, description)
-		h.viper.BindPFlags(cmd.PersistentFlags())
-	} else {
-		cmd.Flags().Uint32Var(&paramValue, name, defaultValue, description)
-	}
+	cmd.Flags().Uint32Var(&paramValue, name, defaultValue, description)
 
 	h.params[name] = func() uint32 {
 		if paramValue > 0 {
 			return paramValue
-		}
-		if cfg.loadFromTempData != nil {
-			value := cfg.loadFromTempData()
-			if v, ok := value.(uint32); ok {
-				return v
-			}
 		}
 		if h.viper.GetInt32(name) != 0 {
 			return h.viper.GetUint32(name)
@@ -105,8 +82,19 @@ func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue u
 	}
 }
 
-func (h *Handler) GetString(name string) string {
+func (h *Handler) GetPersistentString(name string) string {
 	if param, exists := h.params[name]; exists {
+		if v, ok := param.(func() string); ok {
+			return v()
+		}
+		return ""
+	}
+	return ""
+}
+
+func (h *Handler) GetString(cmd *cobra.Command, name string) string {
+	id := h.getCmdId(cmd, name)
+	if param, exists := h.params[id]; exists {
 		if v, ok := param.(func() string); ok {
 			return v()
 		}
