@@ -15,19 +15,19 @@ jobs:
             os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 ./cmd/main.go
             file: zcli-linux-amd64
-            args:
+            compress: true
             strip: true
           - name: linux 386
             os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 ./cmd/main.go
             file: zcli-linux-i386
-            args:
+            compress: true
             strip: true
           - name: darwin amd64
             os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./cmd/main.go
             file: zcli-darwin-amd64
-            args:
+            compress: false
             strip: false
 
     steps:
@@ -50,10 +50,10 @@ jobs:
         run: ${{ matrix.buildCmd }}
 
       - name: Compress binary
+        if: ${{ matrix.compress }}
         uses: svenstaro/upx-action@v1-release
         with:
           file: ./builds/${{ matrix.file }}
-          args: ${{ matrix.args }}
           strip: ${{ matrix.strip }}
 
       - name: Package binaries for NPM
