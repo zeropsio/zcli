@@ -11,7 +11,7 @@ func TestWrap(t *testing.T) {
 	RegisterTestingT(t)
 
 	err := &execErr{
-		error:    OperationNotPermitted,
+		prev:     OperationNotPermitted,
 		exitCode: 1,
 	}
 

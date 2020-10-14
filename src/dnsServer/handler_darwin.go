@@ -44,12 +44,12 @@ func New() *Handler {
 
 // listen and serve
 func (h *Handler) Run(ctx context.Context) error {
-	vpnInterfaceName, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(lo0IP)
+	_, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(lo0IP)
 	if err != nil {
 		return err
 	}
 	if !vpnInterfaceFound {
-		vpnInterfaceName = "lo0"
+		vpnInterfaceName := "lo0"
 		c := exec.Command("ifconfig", vpnInterfaceName, "alias", lo0IP.String(), "up")
 		if err := c.Run(); err != nil {
 			return fmt.Errorf("error create %s interface alias on %s: %s", vpnInterfaceName, lo0IP.String(), err.Error())

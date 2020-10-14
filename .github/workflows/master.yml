@@ -9,8 +9,22 @@ on:
 jobs:
 
   build:
-    name: Build
-    runs-on: ubuntu-latest
+
+    name: Build && tests for ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: linux amd64
+            os: ubuntu-latest
+            osEnv: GOOS=linux GOARCH=amd64
+          - name: linux 386
+            os: ubuntu-latest
+            osEnv: GOOS=linux GOARCH=386
+          - name: darwin amd64
+            os: macos-latest
+            osEnv: GOOS=darwin GOARCH=amd64
+
     steps:
 
     - name: Set up Go 1.x
@@ -28,9 +42,13 @@ jobs:
         ./tools/install.sh
 
     - name: Build
-      run: go build -v ./cmd/main.go
+      run: env ${{ matrix.osEnv }} go build -v ./cmd/... ./src/...
 
     - name: Test
-      run: go test -v ./cmd/main.go
+      run: env ${{ matrix.osEnv }} go test -v ./cmd/... ./src/...
+
+    - name: Lint
+      run: env ${{ matrix.osEnv }} gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
+
 
 

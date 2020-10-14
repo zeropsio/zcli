@@ -20,10 +20,6 @@ func New() *Handler {
 	}
 }
 
-type optionConfig struct {
-	persistent bool
-}
-
 func (h *Handler) getCmdId(cmd *cobra.Command, name string) string {
 	return cmd.Use + name
 }
