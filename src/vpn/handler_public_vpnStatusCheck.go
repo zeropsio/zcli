@@ -2,7 +2,7 @@ package vpn
 
 import "context"
 
-func (h *Handler) checkStatus(ctx context.Context) {
+func (h *Handler) vpnStatusStatus(ctx context.Context) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 

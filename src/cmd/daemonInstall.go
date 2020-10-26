@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/zerops-io/zcli/src/cliAction/installDaemon"
 
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/daemonInstaller"
@@ -15,7 +16,7 @@ func daemonInstallCmd() *cobra.Command {
 		Short:        i18n.CmdDaemonInstall,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
 
 			installer, err := daemonInstaller.New(daemonInstaller.Config{})
@@ -23,14 +24,11 @@ func daemonInstallCmd() *cobra.Command {
 				return err
 			}
 
-			err = installer.Install()
-			if err != nil {
-				return err
-			}
-
-			fmt.Println(i18n.DaemonInstallSuccess)
-
-			return nil
+			return installDaemon.New(
+				installDaemon.Config{},
+				installer,
+			).
+				Run(ctx, installDaemon.RunConfig{})
 		},
 	}
 

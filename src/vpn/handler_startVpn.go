@@ -149,13 +149,13 @@ func (h *Handler) startVpn(
 	}
 
 	h.logger.Debug("try vpn")
-	if !h.isVpnAlive(serverIp.String()) {
+	if !h.isVpnAlive(serverIp) {
 		return errors.New("vpn is not connected")
 	}
 
 	data := h.storage.Data()
-	data.ServerIp = serverIp.String()
-	data.VpnNetwork = vpnNetwork.String()
+	data.ServerIp = serverIp
+	data.VpnNetwork = vpnNetwork
 	data.ProjectId = projectId
 	data.Mtu = mtu
 	data.DnsIp = dnsIp
@@ -163,6 +163,7 @@ func (h *Handler) startVpn(
 	data.GrpcApiAddress = grpcApiAddress
 	data.GrpcVpnAddress = grpcVpnAddress
 	data.Token = token
+	data.DnsManagement = string(dnsManagement)
 
 	err = h.storage.Save(data)
 	if err != nil {

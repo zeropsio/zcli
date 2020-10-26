@@ -2,12 +2,13 @@ package vpn
 
 import (
 	"context"
+	"net"
 	"os/exec"
 )
 
-func (h *Handler) isVpnAlive(serverIp string) bool {
+func (h *Handler) isVpnAlive(serverIp net.IP) bool {
 
-	if serverIp == "" {
+	if serverIp.String() == "" {
 		return false
 	}
 
@@ -15,7 +16,7 @@ func (h *Handler) isVpnAlive(serverIp string) bool {
 		if func() bool {
 			ctx, cancel := context.WithTimeout(context.Background(), h.config.VpnCheckTimeout)
 			defer cancel()
-			_, err := exec.CommandContext(ctx, "ping6", "-c", "1", serverIp).Output()
+			_, err := exec.CommandContext(ctx, "ping6", "-c", "1", serverIp.String()).Output()
 			if err != nil {
 				return false
 			}

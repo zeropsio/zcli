@@ -46,3 +46,16 @@ func HandleVpnApiError(
 
 	return nil
 }
+
+func HandleDaemonError(
+	err error,
+) error {
+	if err != nil {
+		if s, ok := status.FromError(err); ok {
+			return errors.New(s.Message())
+		}
+		return err
+	}
+
+	return nil
+}

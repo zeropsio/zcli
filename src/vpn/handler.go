@@ -20,7 +20,8 @@ const (
 	localDnsManagementSystemdResolve localDnsManagement = "SYSTEMD_RESOLVE"
 	localDnsManagementResolveConf    localDnsManagement = "RESOLVCONF"
 	localDnsManagementFile           localDnsManagement = "FILE"
-	scutilDnsManagementFile          localDnsManagement = "SCUTIL"
+	localDnsManagementScutil         localDnsManagement = "SCUTIL"
+	localDnsManagementUnknown        localDnsManagement = "UNKNOWN"
 
 	resolvFilePath          = "/etc/resolv.conf"
 	resolvconfOrderFilePath = "/etc/resolvconf/interface-order"
@@ -67,7 +68,7 @@ func (h *Handler) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			h.checkStatus(ctx)
+			h.vpnStatusStatus(ctx)
 		}
 	}
 }
