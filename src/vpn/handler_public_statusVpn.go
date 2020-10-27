@@ -1,9 +1,37 @@
 package vpn
 
-func (h *Handler) StatusVpn() bool {
+import (
+	"fmt"
+
+	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
+)
+
+func (h *Handler) StatusVpn() (vpnStatus *zeropsDaemonProtocol.VpnStatus) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
 	data := h.storage.Data()
-	return h.isVpnAlive(data.ServerIp)
+
+	if !h.isVpnAlive(data.ServerIp) {
+		return
+	}
+
+	vpnStatus = &zeropsDaemonProtocol.VpnStatus{
+		TunnelState: zeropsDaemonProtocol.TunnelState_TUNNEL_ACTIVE,
+		DnsState:    zeropsDaemonProtocol.DnsState_DNS_ACTIVE,
+	}
+
+	if h.storage.Data().DnsManagement == string(localDnsManagementUnknown) {
+		vpnStatus.DnsState = zeropsDaemonProtocol.DnsState_DNS_INACTIVE
+		vpnStatus.AdditionalInfo = fmt.Sprintf(
+			"dns ip: %s\n"+
+				"vpn network: %s\n"+
+				"client ip: %s\n",
+			data.DnsIp.String(),
+			data.VpnNetwork.String(),
+			data.ClientIp.String(),
+		)
+	}
+
+	return
 }

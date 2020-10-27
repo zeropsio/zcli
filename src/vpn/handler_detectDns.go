@@ -12,10 +12,12 @@ import (
 func (h *Handler) detectDns() (localDnsManagement, error) {
 
 	if utils.FileExists(scutil.BinaryLocation) {
-		return scutilDnsManagementFile, nil
+		return localDnsManagementScutil, nil
 	}
 
-	if utils.FileExists(resolvFilePath) {
+	resolvExists := utils.FileExists(resolvFilePath)
+
+	if resolvExists {
 		valid, err := isValidSystemdResolve(resolvFilePath)
 		if err != nil {
 			return "", err
@@ -34,7 +36,11 @@ func (h *Handler) detectDns() (localDnsManagement, error) {
 		return localDnsManagementResolveConf, nil
 	}
 
-	return localDnsManagementFile, nil
+	if resolvExists {
+		return localDnsManagementFile, nil
+	}
+
+	return localDnsManagementUnknown, nil
 }
 
 func isValidSystemdResolve(filePath string) (bool, error) {

@@ -7,17 +7,9 @@ import (
 )
 
 func (h *Handler) StatusVpn(ctx context.Context, request *zeropsDaemonProtocol.StatusVpnRequest) (*zeropsDaemonProtocol.StatusVpnResponse, error) {
-
-	alive := h.vpn.StatusVpn()
-	if alive {
-		return &zeropsDaemonProtocol.StatusVpnResponse{
-			Status: zeropsDaemonProtocol.VpnStatus_ACTIVE,
-			Error:  nil,
-		}, nil
-	}
+	vpnStatus := h.vpn.StatusVpn()
 
 	return &zeropsDaemonProtocol.StatusVpnResponse{
-		Status: zeropsDaemonProtocol.VpnStatus_INACTIVE,
-		Error:  nil,
+		VpnStatus: vpnStatus,
 	}, nil
 }

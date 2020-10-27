@@ -8,10 +8,12 @@ import (
 
 func (h *Handler) StopVpn(ctx context.Context, request *zeropsDaemonProtocol.StopVpnRequest) (*zeropsDaemonProtocol.StopVpnResponse, error) {
 
-	err := h.vpn.StopVpn()
+	vpnStatus, err := h.vpn.StopVpn()
 	if err != nil {
 		return &zeropsDaemonProtocol.StopVpnResponse{}, err
 	}
 
-	return &zeropsDaemonProtocol.StopVpnResponse{}, nil
+	return &zeropsDaemonProtocol.StopVpnResponse{
+		VpnStatus: vpnStatus,
+	}, nil
 }

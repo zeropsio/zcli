@@ -10,14 +10,20 @@ service ZeropsDaemonProtocol {
     rpc statusVpn (statusVpnRequest) returns (statusVpnResponse);
 }
 
-message error {
-    errorCode code = 1;
-    string message = 2;
+enum tunnelState {
+    TUNNEL_INACTIVE = 0;
+    TUNNEL_ACTIVE = 1;
 }
 
-enum errorCode {
-    NO_ERROR = 0;
-    INTERNAL_SERVER_ERROR = 1;
+enum dnsState {
+    DNS_INACTIVE = 0;
+    DNS_ACTIVE = 1;
+}
+
+message vpnStatus {
+    tunnelState tunnelState = 1;
+    dnsState dnsState = 2;
+    string additionalInfo = 3;
 }
 
 message startVpnRequest {
@@ -29,26 +35,20 @@ message startVpnRequest {
 }
 
 message startVpnResponse {
-    error error = 1;
+    vpnStatus vpnStatus = 1;
 }
 
 message stopVpnRequest {
 }
 
 message stopVpnResponse {
-    error error = 1;
+    vpnStatus vpnStatus = 1;
 }
 
 message statusVpnRequest {
 }
 
-enum vpnStatus {
-    INACTIVE = 0;
-    ACTIVE = 1;
-}
-
 message statusVpnResponse {
-    vpnStatus status = 1;
-    error error = 2;
+    vpnStatus vpnStatus = 1;
 }
 

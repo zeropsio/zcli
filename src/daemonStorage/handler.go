@@ -1,6 +1,8 @@
 package daemonStorage
 
 import (
+	"net"
+
 	"github.com/zerops-io/zcli/src/utils/storage"
 )
 
@@ -14,14 +16,15 @@ type Handler struct {
 
 type Data struct {
 	ProjectId      string
-	ServerIp       string
-	VpnNetwork     string
+	ServerIp       net.IP
+	VpnNetwork     net.IPNet
 	GrpcApiAddress string
 	GrpcVpnAddress string
 	Token          string
-	DnsIp          []byte
-	ClientIp       []byte
+	DnsIp          net.IP
+	ClientIp       net.IP
 	Mtu            uint32
+	DnsManagement  string
 }
 
 func New(config Config) (*Handler, error) {

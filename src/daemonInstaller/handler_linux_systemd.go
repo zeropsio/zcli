@@ -33,8 +33,8 @@ func (daemon *systemDRecord) Install() error {
 	runtimeDirectory, _ := path.Split(constants.SocketFilePath)
 	runtimeDirectoryName := path.Base(runtimeDirectory)
 
-	serviceFilePath := path.Join(os.TempDir(), daemon.serviceName())
-	file, err := os.Create(serviceFilePath)
+	tmpServiceFilePath := path.Join(os.TempDir(), daemon.serviceName())
+	file, err := os.Create(tmpServiceFilePath)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,8 @@ func (daemon *systemDRecord) Install() error {
 
 	{
 		err := sudoCommands(
-			exec.Command("cp", serviceFilePath, daemon.servicePath()),
+			exec.Command("cp", tmpServiceFilePath, daemon.servicePath()),
+			exec.Command("rm", tmpServiceFilePath),
 			exec.Command("cp", binaryPath, path.Join(installDir, daemon.name)),
 			exec.Command("mkdir", "-p", daemonStorageDir),
 			exec.Command("mkdir", "-p", logDir),

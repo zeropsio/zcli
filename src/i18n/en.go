@@ -67,14 +67,23 @@ const (
 	VpnStartInstallDaemonPrompt        = "is it ok if we are going to install daemon for you?"
 	VpnStartTerminatedByUser           = "when you will be ready, try `zcli daemon install`"
 	VpnStartUserIsUnableToWriteYorN    = "type 'y' or 'n' please"
-	VpnStartSuccess                    = "vpn connection was established"
+	VpnStartTunnelStatusActive         = "wireguard tunnel is active"
+	VpnStartTunnelStatusInactive       = "wireguard tunnel is inactive, try `startVpn` command"
+	VpnStartDnsStatusActive            = "dns is active"
+	VpnStartDnsStatusInactive          = "dns is inactive, we weren't able to set dns"
+	VpnStartAdditionalInfo             = "additional info:"
 
 	// vpn status
-	VpnStatusActive   = "vpn is active"
-	VpnStatusInactive = "vpn is inactive, try `startVpn` command"
+	VpnStatusTunnelStatusActive   = "wireguard tunnel is active"
+	VpnStatusTunnelStatusInactive = "wireguard tunnel is inactive, try `startVpn` command"
+	VpnStatusDnsStatusActive      = "dns is active"
+	VpnStatusDnsStatusInactive    = "dns is inactive, we weren't able to set dns"
+	VpnStatusAdditionalInfo       = "additional info:"
 
 	// vpn stop
-	VpnStopSuccess = "vpn connection was closed"
+	VpnStopSuccess               = "vpn connection was closed"
+	VpnStopAdditionalInfo        = "additional info:"
+	VpnStopAdditionalInfoMessage = "dns could be set by yourself, if so it must be removed manually"
 
 	// daemon
 	DaemonInstallerDesc = "zerops daemon"

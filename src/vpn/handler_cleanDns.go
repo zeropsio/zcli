@@ -13,6 +13,8 @@ import (
 func (h *Handler) cleanDns(dnsIp, clientIp net.IP, dnsManagement localDnsManagement) error {
 
 	switch dnsManagement {
+	case localDnsManagementUnknown:
+		return nil
 	case localDnsManagementSystemdResolve:
 		return nil
 	case localDnsManagementResolveConf:
@@ -33,7 +35,7 @@ func (h *Handler) cleanDns(dnsIp, clientIp net.IP, dnsManagement localDnsManagem
 		if err != nil {
 			return err
 		}
-	case scutilDnsManagementFile:
+	case localDnsManagementScutil:
 		var zeropsDynamicStorage ZeropsDynamicStorage
 		zeropsDynamicStorage.Read()
 		zeropsDynamicStorage.Active = false

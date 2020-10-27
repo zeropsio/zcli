@@ -5,17 +5,17 @@ option go_package = "github.com/zerops-io/zcli/src/zeropsApiProtocol";
 package zeropsApiProtocol;
 
 service zeropsApiProtocol {
-    rpc PutAppVersionDeploy( PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
-    rpc PutAppVersionBuildAndDeploy( PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
-    rpc PostAppVersion( PostAppVersionRequest) returns (PostAppVersionResponse);
-    rpc GetProjectLog( GetProjectLogRequest) returns (GetProjectLogResponse);
-    rpc GetProjectsByName( GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
-    rpc GetProcess( GetProcessRequest) returns (GetProcessResponse);
-    rpc PostPublicHttpRouting( PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
-    rpc GetServiceStack( GetServiceStackRequest) returns (GetServiceStackResponse);
-    rpc GetServiceStackByName( GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
-    rpc GetUserInfo( GetUserInfoRequest) returns (GetUserInfoResponse);
-    rpc PostVpnRequest( PostVpnRequestRequest) returns (PostVpnRequestResponse);
+    rpc PutAppVersionDeploy (PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
+    rpc PutAppVersionBuildAndDeploy (PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
+    rpc PostAppVersion (PostAppVersionRequest) returns (PostAppVersionResponse);
+    rpc GetProjectLog (GetProjectLogRequest) returns (GetProjectLogResponse);
+    rpc GetProjectsByName (GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
+    rpc GetProcess (GetProcessRequest) returns (GetProcessResponse);
+    rpc PostPublicHttpRouting (PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
+    rpc GetServiceStack (GetServiceStackRequest) returns (GetServiceStackResponse);
+    rpc GetServiceStackByName (GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
+    rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc PostVpnRequest (PostVpnRequestRequest) returns (PostVpnRequestResponse);
 
 }
 
@@ -234,6 +234,11 @@ enum ErrorCode {
     GITHUB_PUSH_IGNORED = 217;
     ZEROPS_BUILD_FILE_TOO_LARGE = 204;
     SAME_SERVICE_STACK_TYPE_USED = 205;
+    GITHUB_WRONG_REPOSITORY_FULL_NAME_FORMAT = 220;
+    GITHUB_WEBHOOKS_LIMIT_EXCEEDED = 221;
+    AVATAR_UPLOAD_FORBIDDEN_IMAGE_TYPE = 222;
+    AVATAR_UPLOAD_MAX_SIZE = 223;
+    AVATAR_UPLOAD_FILE_NOT_FOUND = 224;
     USER_ID_WAS_NOT_FOUND = 161;
     AUTHOR_ID_WAS_NOT_FOUND = 162;
     USER_DOES_NOT_HAVE_ACTIVE_CONNECTION_TO_ANY_CLIENT = 163;
@@ -321,8 +326,6 @@ message PutAppVersionDeployRequest {
 
 }
 
-
-
 //
 // RESPONSE OBJECTS
 //
@@ -405,6 +408,8 @@ message GetServiceStackResponseDto {
     bool hasUnsyncedPublicPortRecord = 22;
     bool hasPublicPortRoutingAccess = 24;
     bool hasPublicHttpRoutingAccess = 25;
+    Int32Null activePublicHttpRoutingCount = 27;
+    Int32Null activePublicPortRoutingCount = 28;
 
 }
 
@@ -440,6 +445,8 @@ message GetServiceStackByNameResponseDto {
     bool hasUnsyncedPublicPortRecord = 22;
     bool hasPublicPortRoutingAccess = 24;
     bool hasPublicHttpRoutingAccess = 25;
+    Int32Null activePublicHttpRoutingCount = 27;
+    Int32Null activePublicPortRoutingCount = 28;
 
 }
 
@@ -455,6 +462,7 @@ message GetUserInfoResponseDto {
     string fullName = 3;
     string firstName = 4;
     string lastName = 5;
+    UserAvatarNull avatar = 13;
     Int32Null countryCallingCode = 6;
     Int32Null phoneNumber = 7;
     Language language = 8;
@@ -476,8 +484,7 @@ message PostAppVersionResponseDto {
     string clientId = 2;
     string projectId = 3;
     string serviceStackId = 4;
-    StringNull buildServiceStackId = 11;
-    StringNull buildServiceStackTypeVersionId = 12;
+    AppVersionBuildNull build = 13;
     int32 sequence = 5;
     AppVersionStatus status = 6;
     repeated AppVersionUserData userDataList = 7;
@@ -542,12 +549,18 @@ message PutAppVersionDeployResponseDto {
 
 }
 
-
-
-
 //
 // RESPONSE DTO OBJECTS
 //
+
+message AppVersionBuild {
+    StringNull serviceStackId = 1;
+    StringNull serviceStackName = 2;
+    StringNull serviceStackTypeVersionId = 3;
+    TimestampNull startDate = 4;
+    TimestampNull endDate = 5;
+
+}
 
 message AppVersionLight {
     string id = 1;
@@ -710,10 +723,17 @@ message ServiceStackLightJsonObject {
     string projectId = 4;
     string serviceStackTypeId = 5;
     string serviceStackTypeVersionId = 6;
-    string driverId = 7;
+    StringNull driverId = 7;
     string name = 8;
     ServiceStackInfoJsonObject serviceStackTypeInfo = 9;
     repeated ServicePort ports = 10;
+
+}
+
+message UserAvatar {
+    StringNull largeAvatarUrl = 1;
+    StringNull smallAvatarUrl = 2;
+    StringNull externalAvatarUrl = 3;
 
 }
 
@@ -723,6 +743,7 @@ message UserJsonObject {
     StringNull email = 2;
     StringNull firstName = 3;
     StringNull fullName = 4;
+    UserAvatarNull avatar = 6;
 
 }
 
@@ -732,16 +753,16 @@ message UserLight {
     string fullName = 3;
     string firstName = 4;
     string lastName = 5;
+    UserAvatarNull avatar = 6;
 
 }
-
 
 //
 // ENUMS
 //
 
 enum AppVersionStatus {
- 	APP_VERSION_STATUS_UNKNOWN = 0;
+    APP_VERSION_STATUS_UNKNOWN = 0;
     APP_VERSION_STATUS_UPLOADING = 1;
     APP_VERSION_STATUS_WAITING_TO_DEPLOY = 2;
     APP_VERSION_STATUS_DEPLOYING = 3;
@@ -755,13 +776,13 @@ enum AppVersionStatus {
 }
 
 enum ClientUserLightRoleCode {
- 	CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
+    CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
     CLIENT_USER_LIGHT_ROLE_CODE_MANAGER = 1;
 
 }
 
 enum ClientUserLightStatus {
- 	CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
+    CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
     CLIENT_USER_LIGHT_STATUS_ACTIVE = 1;
     CLIENT_USER_LIGHT_STATUS_WAITING_AUTHORIZATION = 2;
     CLIENT_USER_LIGHT_STATUS_BEING_DELETED = 3;
@@ -769,14 +790,14 @@ enum ClientUserLightStatus {
 }
 
 enum GithubIntegrationEventType {
- 	GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+    GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
     GITHUB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
     GITHUB_INTEGRATION_EVENT_TYPE_TAG = 2;
 
 }
 
 enum ProcessStatus {
- 	PROCESS_STATUS_UNKNOWN = 0;
+    PROCESS_STATUS_UNKNOWN = 0;
     PROCESS_STATUS_PENDING = 1;
     PROCESS_STATUS_RUNNING = 2;
     PROCESS_STATUS_ROLLBACKING = 3;
@@ -789,7 +810,7 @@ enum ProcessStatus {
 }
 
 enum ProjectStatus {
- 	PROJECT_STATUS_UNKNOWN = 0;
+    PROJECT_STATUS_UNKNOWN = 0;
     PROJECT_STATUS_NEW = 1;
     PROJECT_STATUS_CREATING = 2;
     PROJECT_STATUS_ACTIVE = 3;
@@ -799,7 +820,7 @@ enum ProjectStatus {
 }
 
 enum PublicHttpRoutingDomainDnsCheckStatus {
- 	PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
+    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_PENDING = 1;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_CHECKING = 2;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_OK = 3;
@@ -809,7 +830,7 @@ enum PublicHttpRoutingDomainDnsCheckStatus {
 }
 
 enum PublicHttpRoutingDomainSslStatus {
- 	PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
+    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_INACTIVE = 1;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_BEING_INSTALLED = 2;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_WAITING_FOR_DNS = 3;
@@ -819,14 +840,14 @@ enum PublicHttpRoutingDomainSslStatus {
 }
 
 enum ServicePortProtocol {
- 	SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
+    SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
     SERVICE_PORT_PROTOCOL_tcp = 1;
     SERVICE_PORT_PROTOCOL_udp = 2;
 
 }
 
 enum ServicePortScheme {
- 	SERVICE_PORT_SCHEME_UNKNOWN = 0;
+    SERVICE_PORT_SCHEME_UNKNOWN = 0;
     SERVICE_PORT_SCHEME_tcp = 1;
     SERVICE_PORT_SCHEME_udp = 2;
     SERVICE_PORT_SCHEME_http = 3;
@@ -840,7 +861,7 @@ enum ServicePortScheme {
 }
 
 enum ServiceStackConnectionStatus {
- 	SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
+    SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
     SERVICE_STACK_CONNECTION_STATUS_CREATING = 1;
     SERVICE_STACK_CONNECTION_STATUS_ACTIVE = 2;
     SERVICE_STACK_CONNECTION_STATUS_DELETING = 3;
@@ -848,7 +869,7 @@ enum ServiceStackConnectionStatus {
 }
 
 enum ServiceStackInfoJsonObjectServiceStackTypeCategory {
- 	SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_CORE = 1;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_HTTP_L7_BALANCER = 2;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_STANDARD = 3;
@@ -860,14 +881,14 @@ enum ServiceStackInfoJsonObjectServiceStackTypeCategory {
 }
 
 enum ServiceStackMode {
- 	SERVICE_STACK_MODE_UNKNOWN = 0;
+    SERVICE_STACK_MODE_UNKNOWN = 0;
     SERVICE_STACK_MODE_HA = 1;
     SERVICE_STACK_MODE_NON_HA = 2;
 
 }
 
 enum ServiceStackStatus {
- 	SERVICE_STACK_STATUS_UNKNOWN = 0;
+    SERVICE_STACK_STATUS_UNKNOWN = 0;
     SERVICE_STACK_STATUS_NEW = 1;
     SERVICE_STACK_STATUS_CREATING = 2;
     SERVICE_STACK_STATUS_ACTIVE = 3;
@@ -899,7 +920,7 @@ enum ServiceStackStatus {
 }
 
 enum UserDataType {
- 	USER_DATA_TYPE_UNKNOWN = 0;
+    USER_DATA_TYPE_UNKNOWN = 0;
     USER_DATA_TYPE_RESTRICTED = 1;
     USER_DATA_TYPE_COMMON = 2;
     USER_DATA_TYPE_USER = 3;
@@ -908,7 +929,7 @@ enum UserDataType {
 }
 
 enum UserJsonObjectType {
- 	USER_JSON_OBJECT_TYPE_UNKNOWN = 0;
+    USER_JSON_OBJECT_TYPE_UNKNOWN = 0;
     USER_JSON_OBJECT_TYPE_GITHUB = 1;
     USER_JSON_OBJECT_TYPE_USER = 2;
     USER_JSON_OBJECT_TYPE_SYSTEM = 3;
@@ -916,17 +937,20 @@ enum UserJsonObjectType {
 }
 
 enum UserStatus {
- 	USER_STATUS_UNKNOWN = 0;
+    USER_STATUS_UNKNOWN = 0;
     USER_STATUS_ACTIVE = 1;
     USER_STATUS_DELETED = 2;
 
 }
 
-
-
 //
 // NULL TYPES
 //
+
+message AppVersionBuildNull {
+    AppVersionBuild value = 1;
+    bool valid = 2;
+}
 
 message AppVersionLightNull {
     AppVersionLight value = 1;
@@ -955,6 +979,11 @@ message StringNull {
 
 message TimestampNull {
     Timestamp value = 1;
+    bool valid = 2;
+}
+
+message UserAvatarNull {
+    UserAvatar value = 1;
     bool valid = 2;
 }
 

@@ -24,6 +24,9 @@ func (h *Handler) setDns(dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dn
 	}
 
 	switch dnsManagement {
+	case localDnsManagementUnknown:
+		return nil
+
 	case localDnsManagementSystemdResolve:
 		_, err = cmdRunner.Run(exec.Command("systemd-resolve", "--set-dns="+dnsIp.String(), `--set-domain=zerops`, "--interface="+vpnInterfaceName))
 		if err != nil {
@@ -49,7 +52,7 @@ func (h *Handler) setDns(dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dn
 			return err
 		}
 
-	case scutilDnsManagementFile:
+	case localDnsManagementScutil:
 
 		var zeropsDynamicStorage ZeropsDynamicStorage
 		zeropsDynamicStorage.Read()

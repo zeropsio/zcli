@@ -8,7 +8,7 @@ import (
 
 func (h *Handler) StartVpn(ctx context.Context, request *zeropsDaemonProtocol.StartVpnRequest) (*zeropsDaemonProtocol.StartVpnResponse, error) {
 
-	err := h.vpn.StartVpn(
+	vpnStatus, err := h.vpn.StartVpn(
 		ctx,
 		request.GetApiAddress(),
 		request.GetVpnAddress(),
@@ -20,5 +20,7 @@ func (h *Handler) StartVpn(ctx context.Context, request *zeropsDaemonProtocol.St
 		return &zeropsDaemonProtocol.StartVpnResponse{}, err
 	}
 
-	return &zeropsDaemonProtocol.StartVpnResponse{}, nil
+	return &zeropsDaemonProtocol.StartVpnResponse{
+		VpnStatus: vpnStatus,
+	}, nil
 }
