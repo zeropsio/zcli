@@ -16,6 +16,7 @@ type Handler struct {
 
 type Data struct {
 	ProjectId      string
+	UserId         string
 	ServerIp       net.IP
 	VpnNetwork     net.IPNet
 	GrpcApiAddress string
@@ -25,6 +26,7 @@ type Data struct {
 	ClientIp       net.IP
 	Mtu            uint32
 	DnsManagement  string
+	CaCertificate  []byte
 }
 
 func New(config Config) (*Handler, error) {

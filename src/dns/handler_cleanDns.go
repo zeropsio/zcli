@@ -1,8 +1,12 @@
-package vpn
+package dns
 
 import (
 	"net"
 	"os/exec"
+
+	"github.com/zerops-io/zcli/src/dnsServer"
+
+	"github.com/zerops-io/zcli/src/constants"
 
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/interfaces"
@@ -10,14 +14,14 @@ import (
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 )
 
-func (h *Handler) cleanDns(dnsIp, clientIp net.IP, dnsManagement localDnsManagement) error {
+func CleanDns(dnsServer *dnsServer.Handler, dnsIp, clientIp net.IP, dnsManagement LocalDnsManagement) error {
 
 	switch dnsManagement {
-	case localDnsManagementUnknown:
+	case LocalDnsManagementUnknown:
 		return nil
-	case localDnsManagementSystemdResolve:
+	case LocalDnsManagementSystemdResolve:
 		return nil
-	case localDnsManagementResolveConf:
+	case LocalDnsManagementResolveConf:
 		vpnInterfaceName, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(clientIp)
 		if err != nil {
 			return err
@@ -30,17 +34,17 @@ func (h *Handler) cleanDns(dnsIp, clientIp net.IP, dnsManagement localDnsManagem
 		if err != nil {
 			return err
 		}
-	case localDnsManagementFile:
-		err := utils.RemoveFirstLine(resolvFilePath, "nameserver "+dnsIp.String())
+	case LocalDnsManagementFile:
+		err := utils.RemoveFirstLine(constants.ResolvFilePath, "nameserver "+dnsIp.String())
 		if err != nil {
 			return err
 		}
-	case localDnsManagementScutil:
+	case LocalDnsManagementScutil:
 		var zeropsDynamicStorage ZeropsDynamicStorage
 		zeropsDynamicStorage.Read()
 		zeropsDynamicStorage.Active = false
 		zeropsDynamicStorage.Apply()
-		h.dnsServer.StopForward()
+		dnsServer.StopForward()
 	default:
 		return UnknownDnsManagementErr
 	}

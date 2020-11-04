@@ -2,42 +2,46 @@ package grpcApiClientFactory
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 
-	"github.com/zerops-io/zcli/src/utils/certReader"
-	"github.com/zerops-io/zcli/src/utils/tlsConfig"
+	"golang.org/x/oauth2"
+	"google.golang.org/grpc/credentials/oauth"
+
+	"google.golang.org/grpc/credentials"
 
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
-type Handler struct {
+type Config struct {
+	CaCertificate []byte
 }
 
-func New() *Handler {
-	return &Handler{}
+type Handler struct {
+	config Config
+}
+
+func New(
+	config Config,
+) *Handler {
+	return &Handler{
+		config: config,
+	}
 }
 
 func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token string) (_ zeropsApiProtocol.ZeropsApiProtocolClient, closeFunc func(), err error) {
 
-	certReader, err := certReader.New(
-		certReader.Config{
-			Token: token,
-		},
-	)
+	tlsCreds, err := h.createTLSCredentials()
 	if err != nil {
-		return
+		return nil, nil, err
 	}
-
-	tlsConfig, err := tlsConfig.CreateTlsConfig(certReader)
-	if err != nil {
-		return
-	}
-
 	connection, err := grpc.DialContext(
 		ctx,
 		grpcApiAddress,
-		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
+		grpc.WithPerRPCCredentials(h.createBearerCredentials(token)),
+		grpc.WithTransportCredentials(tlsCreds),
 	)
 	if err != nil {
 		return
@@ -47,4 +51,19 @@ func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token
 
 	return zeropsApiProtocol.NewZeropsApiProtocolClient(connection), closeFunc, nil
 
+}
+
+func (h *Handler) createBearerCredentials(token string) credentials.PerRPCCredentials {
+	return oauth.NewOauthAccess(&oauth2.Token{AccessToken: token, TokenType: "Bearer"})
+}
+
+func (h *Handler) createTLSCredentials() (credentials.TransportCredentials, error) {
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(h.config.CaCertificate) {
+		return nil, fmt.Errorf("failed to add server CA certificate")
+	}
+	config := &tls.Config{
+		RootCAs: certPool,
+	}
+	return credentials.NewTLS(config), nil
 }

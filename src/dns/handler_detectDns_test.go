@@ -1,4 +1,4 @@
-package vpn
+package dns
 
 import (
 	"testing"

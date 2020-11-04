@@ -12,10 +12,6 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 )
 
-const (
-	installDir = "/usr/local/"
-)
-
 type darwinRecord struct {
 	name         string
 	description  string
@@ -62,7 +58,7 @@ func (daemon *darwinRecord) Install() error {
 			LogFile    string
 			WorkingDir string
 		}{
-			BinaryPath: path.Join(installDir, daemon.name),
+			BinaryPath: path.Join(constants.DaemonInstallDir, daemon.name),
 			Name:       daemon.name,
 			LogFile:    constants.LogFilePath,
 			WorkingDir: daemonStorageDir,
@@ -74,7 +70,7 @@ func (daemon *darwinRecord) Install() error {
 	{
 		err := sudoCommands(
 			exec.Command("cp", serviceFilePath, daemon.servicePath()),
-			exec.Command("cp", cliBinaryPath, path.Join(installDir, daemon.name)),
+			exec.Command("cp", cliBinaryPath, path.Join(constants.DaemonInstallDir, daemon.name)),
 			exec.Command("mkdir", "-p", daemonStorageDir),
 			exec.Command("mkdir", "-p", logDir),
 
@@ -108,7 +104,7 @@ func (daemon *darwinRecord) Remove() error {
 	{
 		err := sudoCommands(
 			exec.Command("rm", "-f", daemon.servicePath()),
-			exec.Command("rm", "-f", path.Join(installDir, daemon.name)),
+			exec.Command("rm", "-f", path.Join(constants.DaemonInstallDir, daemon.name)),
 			exec.Command("rm", "-rf", daemonStorageDir),
 		)
 		if err != nil {

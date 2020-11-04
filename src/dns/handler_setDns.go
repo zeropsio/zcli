@@ -1,4 +1,4 @@
-package vpn
+package dns
 
 import (
 	"errors"
@@ -7,15 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/utils/interfaces"
+	"github.com/zerops-io/zcli/src/dnsServer"
 
+	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zerops-io/zcli/src/utils/interfaces"
 )
 
 var UnknownDnsManagementErr = errors.New("unknown dns management")
 
-func (h *Handler) setDns(dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dnsManagement localDnsManagement) error {
+func SetDns(dnsServer *dnsServer.Handler, dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dnsManagement LocalDnsManagement) error {
 	var err error
 
 	vpnInterfaceName, _, err := interfaces.GetInterfaceNameByIp(clientIp)
@@ -24,17 +26,17 @@ func (h *Handler) setDns(dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dn
 	}
 
 	switch dnsManagement {
-	case localDnsManagementUnknown:
+	case LocalDnsManagementUnknown:
 		return nil
 
-	case localDnsManagementSystemdResolve:
+	case LocalDnsManagementSystemdResolve:
 		_, err = cmdRunner.Run(exec.Command("systemd-resolve", "--set-dns="+dnsIp.String(), `--set-domain=zerops`, "--interface="+vpnInterfaceName))
 		if err != nil {
 			return err
 		}
 
-	case localDnsManagementResolveConf:
-		err := utils.SetFirstLine(resolvconfOrderFilePath, "wg*")
+	case LocalDnsManagementResolveConf:
+		err := utils.SetFirstLine(constants.ResolvconfOrderFilePath, "wg*")
 		if err != nil {
 			return err
 		}
@@ -46,13 +48,13 @@ func (h *Handler) setDns(dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dn
 			return err
 		}
 
-	case localDnsManagementFile:
-		err := utils.SetFirstLine(resolvFilePath, "nameserver "+dnsIp.String())
+	case LocalDnsManagementFile:
+		err := utils.SetFirstLine(constants.ResolvFilePath, "nameserver "+dnsIp.String())
 		if err != nil {
 			return err
 		}
 
-	case localDnsManagementScutil:
+	case LocalDnsManagementScutil:
 
 		var zeropsDynamicStorage ZeropsDynamicStorage
 		zeropsDynamicStorage.Read()
@@ -62,7 +64,12 @@ func (h *Handler) setDns(dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dn
 		zeropsDynamicStorage.VpnNetwork = vpnNetwork.String()
 		zeropsDynamicStorage.DnsIp = dnsIp
 		zeropsDynamicStorage.Apply()
-		h.dnsServer.SetAddresses(zeropsDynamicStorage.ClientIp, zeropsDynamicStorage.ServerAddresses, zeropsDynamicStorage.DnsIp, vpnNetwork)
+		dnsServer.SetAddresses(
+			zeropsDynamicStorage.ClientIp,
+			zeropsDynamicStorage.ServerAddresses,
+			zeropsDynamicStorage.DnsIp,
+			vpnNetwork,
+		)
 
 	default:
 		return UnknownDnsManagementErr

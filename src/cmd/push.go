@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
 
 	"github.com/zerops-io/zcli/src/i18n"
@@ -28,19 +30,14 @@ func pushCmd() *cobra.Command {
 				return err
 			}
 
-			token := getToken(storage)
-
-			certReader, err := createCertReader(token)
-			if err != nil {
-				return err
-			}
-
-			tlsConfig, err := createTlsConfig(certReader)
-			if err != nil {
-				return err
-			}
-
-			apiGrpcClient, closeFunc, err := createApiGrpcClient(ctx, tlsConfig)
+			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+				CaCertificate: params.GetPersistentBytes("caCertificate"),
+			})
+			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+				ctx,
+				params.GetPersistentString("grpcApiAddress"),
+				getToken(storage),
+			)
 			if err != nil {
 				return err
 			}

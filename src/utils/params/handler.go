@@ -88,6 +88,16 @@ func (h *Handler) GetPersistentString(name string) string {
 	return ""
 }
 
+func (h *Handler) GetPersistentBytes(name string) []byte {
+	if param, exists := h.params[name]; exists {
+		if v, ok := param.(func() string); ok {
+			return []byte(v())
+		}
+		return nil
+	}
+	return nil
+}
+
 func (h *Handler) GetString(cmd *cobra.Command, name string) string {
 	id := h.getCmdId(cmd, name)
 	if param, exists := h.params[id]; exists {

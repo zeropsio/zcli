@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
+
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/cliAction/login"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -28,21 +32,30 @@ func loginCmd() *cobra.Command {
 				HttpTimeout: time.Second * 10,
 			})
 
+			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+				CaCertificate: params.GetPersistentBytes("caCertificate"),
+			})
+
 			return login.New(
 				login.Config{
-					ApiAddress: params.GetPersistentString("restApiAddress"),
+					RestApiAddress: params.GetPersistentString("restApiAddress"),
+					GrpcApiAddress: params.GetPersistentString("grpcApiAddress"),
 				},
 				storage,
 				httpClient,
+				apiClientFactory,
+				grpcDaemonClientFactory.New(),
 			).Run(ctx, login.RunConfig{
 				ZeropsLogin:    params.GetString(cmd, "zeropsLogin"),
 				ZeropsPassword: params.GetString(cmd, "zeropsPassword"),
+				ZeropsToken:    params.GetString(cmd, "zeropsToken"),
 			})
 		},
 	}
 
 	params.RegisterString(cmd, "zeropsLogin", "", "zerops account login")
 	params.RegisterString(cmd, "zeropsPassword", "", "zerops account password")
+	params.RegisterString(cmd, "zeropsToken", "", "zerops account token")
 
 	return cmd
 }

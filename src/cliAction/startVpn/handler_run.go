@@ -22,6 +22,12 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return errors.New(i18n.VpnStartProjectNameIsEmpty)
 	}
 
+	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &zeropsApiProtocol.GetUserInfoRequest{})
+	if err := utils.HandleGrpcApiError(userInfoResponse, err); err != nil {
+		return err
+	}
+	userId := userInfoResponse.GetOutput().GetId()
+
 	projectsResponse, err := h.apiGrpcClient.GetProjectsByName(ctx, &zeropsApiProtocol.GetProjectsByNameRequest{
 		Name: config.ProjectName,
 	})
@@ -40,7 +46,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 	project := projects[0]
 
-	err = h.tryStartVpn(ctx, project, config)
+	err = h.tryStartVpn(ctx, project, userId, config)
 	if err != nil {
 		return err
 	}
@@ -48,7 +54,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	return nil
 }
 
-func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Project, config RunConfig) error {
+func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Project, userId string, config RunConfig) error {
 
 	zeropsDaemonClient, closeFn, err := h.zeropsDaemonClientFactory.CreateClient(ctx)
 	if err != nil {
@@ -57,11 +63,13 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 	defer closeFn()
 
 	response, err := zeropsDaemonClient.StartVpn(ctx, &zeropsDaemonProtocol.StartVpnRequest{
-		ApiAddress: h.config.GrpcApiAddress,
-		VpnAddress: h.config.VpnAddress,
-		ProjectId:  project.GetId(),
-		Token:      config.Token,
-		Mtu:        config.Mtu,
+		ApiAddress:    h.config.GrpcApiAddress,
+		VpnAddress:    h.config.VpnAddress,
+		ProjectId:     project.GetId(),
+		Token:         config.Token,
+		Mtu:           config.Mtu,
+		UserId:        userId,
+		CaCertificate: config.CaCertificate,
 	})
 	if err != nil {
 		if errStatus, ok := status.FromError(err); ok {
@@ -86,7 +94,7 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 
 							// let's wait for daemon start
 							time.Sleep(3 * time.Second)
-							return h.tryStartVpn(ctx, project, config)
+							return h.tryStartVpn(ctx, project, userId, config)
 						} else {
 							fmt.Println(i18n.VpnStartUserIsUnableToWriteYorN)
 							continue
@@ -105,23 +113,6 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 		}
 	}
 
-	status := response.GetVpnStatus()
-	if status.GetTunnelState() == zeropsDaemonProtocol.TunnelState_TUNNEL_ACTIVE {
-		fmt.Println(i18n.VpnStartTunnelStatusActive)
-
-		if status.GetDnsState() == zeropsDaemonProtocol.DnsState_DNS_ACTIVE {
-			fmt.Println(i18n.VpnStartDnsStatusActive)
-		} else {
-			fmt.Println(i18n.VpnStartDnsStatusInactive)
-		}
-	} else {
-		fmt.Println(i18n.VpnStartTunnelStatusInactive)
-	}
-
-	if status.GetAdditionalInfo() != "" {
-		fmt.Println(i18n.VpnStartAdditionalInfo)
-		fmt.Println(status.GetAdditionalInfo())
-	}
-
+	utils.PrintVpnStatus(response.GetVpnStatus())
 	return nil
 }
