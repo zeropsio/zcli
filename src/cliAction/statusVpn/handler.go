@@ -2,6 +2,9 @@ package statusVpn
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/utils"
 
@@ -32,8 +35,14 @@ func New(
 func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 
 	response, err := h.zeropsDaemonClient.StatusVpn(ctx, &zeropsDaemonProtocol.StatusVpnRequest{})
-	if err := utils.HandleDaemonError(err); err != nil {
+	daemonInstalled, err := utils.HandleDaemonError(err)
+	if err != nil {
 		return err
+	}
+
+	if !daemonInstalled {
+		fmt.Println(i18n.VpnStatusDaemonIsUnavailable)
+		return nil
 	}
 
 	utils.PrintVpnStatus(response.GetVpnStatus())

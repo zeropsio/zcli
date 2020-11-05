@@ -35,6 +35,7 @@ const (
 	LoginZeropsLoginMissing    = "param zeropsLogin must be set"
 	LoginZeropsPasswordMissing = "param zeropsPassword must be set"
 	LoginSuccess               = "you are logged in"
+	LoginVpnClosed             = "vpn connection was closed"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
@@ -67,6 +68,7 @@ const (
 	VpnStartUserIsUnableToWriteYorN    = "type 'y' or 'n' please"
 
 	// vpn status
+	VpnStatusDaemonIsUnavailable  = "daemon is currently unavailable, did you install it?"
 	VpnStatusTunnelStatusActive   = "wireguard tunnel is active"
 	VpnStatusTunnelStatusInactive = "wireguard tunnel is inactive, try `startVpn` command"
 	VpnStatusDnsStatusActive      = "dns is active"
@@ -74,12 +76,10 @@ const (
 	VpnStatusAdditionalInfo       = "additional info:"
 
 	// vpn stop
+	VpnStopDaemonIsUnavailable   = "daemon is currently unavailable, did you install it?"
 	VpnStopSuccess               = "vpn connection was closed"
 	VpnStopAdditionalInfo        = "additional info:"
 	VpnStopAdditionalInfoMessage = "dns could be set by yourself, if so it must be removed manually"
-
-	// vpn restart
-	VpnRestartAfterLoginSuccess = "vpn restarted after new login"
 
 	// daemon
 	DaemonInstallerDesc = "zerops daemon"

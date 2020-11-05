@@ -8,7 +8,6 @@ service ZeropsDaemonProtocol {
     rpc startVpn (startVpnRequest) returns (startVpnResponse);
     rpc stopVpn (stopVpnRequest) returns (stopVpnResponse);
     rpc statusVpn (statusVpnRequest) returns (statusVpnResponse);
-    rpc restartVpn (restartVpnRequest) returns (restartVpnResponse);
 }
 
 enum tunnelState {
@@ -46,6 +45,7 @@ message stopVpnRequest {
 
 message stopVpnResponse {
     vpnStatus vpnStatus = 1;
+    bool activeBefore = 2;
 }
 
 message statusVpnRequest {
@@ -54,12 +54,3 @@ message statusVpnRequest {
 message statusVpnResponse {
     vpnStatus vpnStatus = 1;
 }
-
-message restartVpnRequest {
-    string token = 1;
-}
-
-message restartVpnResponse {
-    vpnStatus vpnStatus = 1;
-}
-

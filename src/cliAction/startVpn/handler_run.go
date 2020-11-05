@@ -12,8 +12,6 @@ import (
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
@@ -71,45 +69,41 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 		UserId:        userId,
 		CaCertificate: config.CaCertificate,
 	})
+	daemonInstalled, err := utils.HandleDaemonError(err)
 	if err != nil {
-		if errStatus, ok := status.FromError(err); ok {
-			if errStatus.Code() == codes.Unavailable {
-				fmt.Println(i18n.VpnStartDaemonIsUnavailable)
+		return err
+	}
+	if !daemonInstalled {
+		fmt.Println(i18n.VpnStartDaemonIsUnavailable)
 
-				line := liner.NewLiner()
-				defer line.Close()
-				line.SetCtrlCAborts(true)
+		line := liner.NewLiner()
+		defer line.Close()
+		line.SetCtrlCAborts(true)
 
-				fmt.Println(i18n.VpnStartInstallDaemonPrompt)
-				for {
-					if answer, err := line.Prompt("y/n "); err == nil {
-						if answer == "n" {
-							return errors.New(i18n.VpnStartTerminatedByUser)
-						} else if answer == "y" {
-							err := h.daemonInstaller.Install()
-							if err != nil {
-								return err
-							}
-							fmt.Println(i18n.DaemonInstallSuccess)
-
-							// let's wait for daemon start
-							time.Sleep(3 * time.Second)
-							return h.tryStartVpn(ctx, project, userId, config)
-						} else {
-							fmt.Println(i18n.VpnStartUserIsUnableToWriteYorN)
-							continue
-						}
-					} else if err == liner.ErrPromptAborted {
-						return errors.New(i18n.VpnStartTerminatedByUser)
-					} else {
+		fmt.Println(i18n.VpnStartInstallDaemonPrompt)
+		for {
+			if answer, err := line.Prompt("y/n "); err == nil {
+				if answer == "n" {
+					return errors.New(i18n.VpnStartTerminatedByUser)
+				} else if answer == "y" {
+					err := h.daemonInstaller.Install()
+					if err != nil {
 						return err
 					}
+					fmt.Println(i18n.DaemonInstallSuccess)
+
+					// let's wait for daemon start
+					time.Sleep(3 * time.Second)
+					return h.tryStartVpn(ctx, project, userId, config)
+				} else {
+					fmt.Println(i18n.VpnStartUserIsUnableToWriteYorN)
+					continue
 				}
+			} else if err == liner.ErrPromptAborted {
+				return errors.New(i18n.VpnStartTerminatedByUser)
 			} else {
-				return utils.HandleDaemonError(err)
+				return err
 			}
-		} else {
-			return err
 		}
 	}
 

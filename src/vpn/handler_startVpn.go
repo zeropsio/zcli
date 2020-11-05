@@ -163,6 +163,7 @@ func (h *Handler) startVpn(
 	data.Token = token
 	data.DnsManagement = string(dnsManagement)
 	data.CaCertificate = caCertificate
+	data.VpnStarted = true
 
 	err = h.storage.Save(data)
 	if err != nil {

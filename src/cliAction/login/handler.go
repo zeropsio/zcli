@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
 
 	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
@@ -83,27 +80,14 @@ func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 	}
 	defer closeFunc()
 
-	daemonInstalled := true
-	response, err := daemonClient.RestartVpn(ctx, &zeropsDaemonProtocol.RestartVpnRequest{
-		Token: h.storage.Data().Token,
-	})
+	response, err := daemonClient.StopVpn(ctx, &zeropsDaemonProtocol.StopVpnRequest{})
+	daemonInstalled, err := utils.HandleDaemonError(err)
 	if err != nil {
-		if errStatus, ok := status.FromError(err); ok {
-			if errStatus.Code() == codes.Unavailable {
-				daemonInstalled = false
-			} else {
-				return utils.HandleDaemonError(err)
-			}
-		} else {
-			return err
-		}
+		return err
 	}
 
-	if daemonInstalled {
-		if response.GetVpnStatus().GetTunnelState() == zeropsDaemonProtocol.TunnelState_TUNNEL_ACTIVE {
-			utils.PrintVpnStatus(response.GetVpnStatus())
-			fmt.Println(i18n.VpnRestartAfterLoginSuccess)
-		}
+	if daemonInstalled && response.GetActiveBefore() {
+		fmt.Println(i18n.LoginVpnClosed)
 	}
 
 	fmt.Println(i18n.LoginSuccess)

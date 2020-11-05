@@ -53,7 +53,7 @@ func (h *Handler) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			h.vpnStatusStatus(ctx)
+			h.vpnStatusCheck(ctx)
 		}
 	}
 }

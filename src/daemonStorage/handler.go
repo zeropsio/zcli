@@ -27,6 +27,7 @@ type Data struct {
 	Mtu            uint32
 	DnsManagement  string
 	CaCertificate  []byte
+	VpnStarted     bool
 }
 
 func New(config Config) (*Handler, error) {
