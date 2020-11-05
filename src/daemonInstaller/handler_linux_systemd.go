@@ -10,11 +10,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zerops-io/zcli/src/constants"
-)
+	"github.com/zerops-io/zcli/src/dns"
 
-const (
-	installDir = "/usr/sbin/"
+	"github.com/zerops-io/zcli/src/constants"
 )
 
 type systemDRecord struct {
@@ -28,11 +26,6 @@ func (daemon *systemDRecord) Install() error {
 		return ErrAlreadyInstalled
 	}
 
-	logDir, _ := path.Split(constants.LogFilePath)
-	daemonStorageDir, _ := path.Split(constants.DaemonStorageFilePath)
-	runtimeDirectory, _ := path.Split(constants.SocketFilePath)
-	runtimeDirectoryName := path.Base(runtimeDirectory)
-
 	tmpServiceFilePath := path.Join(os.TempDir(), daemon.serviceName())
 	file, err := os.Create(tmpServiceFilePath)
 	if err != nil {
@@ -40,26 +33,51 @@ func (daemon *systemDRecord) Install() error {
 	}
 	defer file.Close()
 
-	templ, err := template.New("systemdConfig").Parse(systemdConfig)
+	tmpl, err := template.New("systemdConfig").Parse(systemdConfig)
 	if err != nil {
 		return err
 	}
-	if err := templ.Execute(
+
+	// create read writes paths
+	logDir, _ := path.Split(constants.LogFilePath)
+	daemonStorageDir, _ := path.Split(constants.DaemonStorageFilePath)
+	readWritePaths := []string{
+		logDir,
+		daemonStorageDir,
+	}
+
+	dnsManagement, err := dns.DetectDns()
+	if err != nil {
+		return err
+	}
+	if dnsManagement == dns.LocalDnsManagementResolveConf {
+		dir, _ := path.Split(constants.ResolvconfOrderFilePath)
+		readWritePaths = append(readWritePaths, dir)
+		readWritePaths = append(readWritePaths, "/run/resolvconf/")
+	}
+	if dnsManagement == dns.LocalDnsManagementFile {
+		dir, _ := path.Split(constants.ResolvFilePath)
+		readWritePaths = append(readWritePaths, dir)
+	}
+
+	runtimeDirectory, _ := path.Split(constants.SocketFilePath)
+	runtimeDirectoryName := path.Base(runtimeDirectory)
+
+	if err := tmpl.Execute(
 		file,
 		&struct {
 			BinaryPath           string
 			Description          string
 			Dependencies         string
 			LogDir               string
-			DaemonStorageDir     string
 			RuntimeDirectoryName string
+			ReadWritePaths       []string
 		}{
-			BinaryPath:           path.Join(installDir, daemon.name),
+			BinaryPath:           path.Join(constants.DaemonInstallDir, daemon.name),
 			Description:          daemon.description,
 			Dependencies:         strings.Join(daemon.dependencies, " "),
 			RuntimeDirectoryName: runtimeDirectoryName,
-			LogDir:               logDir,
-			DaemonStorageDir:     daemonStorageDir,
+			ReadWritePaths:       readWritePaths,
 		},
 	); err != nil {
 		return err
@@ -74,7 +92,7 @@ func (daemon *systemDRecord) Install() error {
 		err := sudoCommands(
 			exec.Command("cp", tmpServiceFilePath, daemon.servicePath()),
 			exec.Command("rm", tmpServiceFilePath),
-			exec.Command("cp", binaryPath, path.Join(installDir, daemon.name)),
+			exec.Command("cp", binaryPath, path.Join(constants.DaemonInstallDir, daemon.name)),
 			exec.Command("mkdir", "-p", daemonStorageDir),
 			exec.Command("mkdir", "-p", logDir),
 			exec.Command("systemctl", "daemon-reload"),
@@ -110,7 +128,7 @@ func (daemon *systemDRecord) Remove() error {
 	{
 		err := sudoCommands(
 			exec.Command("rm", "-f", daemon.servicePath()),
-			exec.Command("rm", "-f", path.Join(installDir, daemon.name)),
+			exec.Command("rm", "-f", path.Join(constants.DaemonInstallDir, daemon.name)),
 			exec.Command("rm", "-rf", DaemonStorageDir),
 			exec.Command("rm", "-rf", logDir),
 		)
@@ -177,8 +195,9 @@ MemoryDenyWriteExecute=yes
 RestrictRealtime=yes
 RestrictNamespaces=yes
 
-ReadWritePaths={{.LogDir}}
-ReadWritePaths={{.DaemonStorageDir}}
+{{ range .ReadWritePaths -}}
+ReadWritePaths={{ . }}
+{{ end -}}
 RuntimeDirectory={{.RuntimeDirectoryName}}
 RuntimeDirectoryMode=0775
 

@@ -7,24 +7,12 @@ import (
 
 	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/dnsServer"
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 	"github.com/zerops-io/zcli/src/utils/logger"
 )
-
-type localDnsManagement string
 
 const (
 	wireguardPort  = "51820"
 	vpnApiGrpcPort = ":64510"
-
-	localDnsManagementSystemdResolve localDnsManagement = "SYSTEMD_RESOLVE"
-	localDnsManagementResolveConf    localDnsManagement = "RESOLVCONF"
-	localDnsManagementFile           localDnsManagement = "FILE"
-	localDnsManagementScutil         localDnsManagement = "SCUTIL"
-	localDnsManagementUnknown        localDnsManagement = "UNKNOWN"
-
-	resolvFilePath          = "/etc/resolv.conf"
-	resolvconfOrderFilePath = "/etc/resolvconf/interface-order"
 )
 
 type Config struct {
@@ -34,11 +22,10 @@ type Config struct {
 }
 
 type Handler struct {
-	config               Config
-	logger               logger.Logger
-	grpcApiClientFactory *grpcApiClientFactory.Handler
-	storage              *daemonStorage.Handler
-	dnsServer            *dnsServer.Handler
+	config    Config
+	logger    logger.Logger
+	storage   *daemonStorage.Handler
+	dnsServer *dnsServer.Handler
 
 	lock sync.RWMutex
 }
@@ -46,16 +33,14 @@ type Handler struct {
 func New(
 	config Config,
 	logger logger.Logger,
-	grpcApiClientFactory *grpcApiClientFactory.Handler,
 	daemonStorage *daemonStorage.Handler,
 	dnsServer *dnsServer.Handler,
 ) *Handler {
 	return &Handler{
-		config:               config,
-		logger:               logger,
-		grpcApiClientFactory: grpcApiClientFactory,
-		storage:              daemonStorage,
-		dnsServer:            dnsServer,
+		config:    config,
+		logger:    logger,
+		storage:   daemonStorage,
+		dnsServer: dnsServer,
 	}
 }
 
@@ -68,7 +53,7 @@ func (h *Handler) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			h.vpnStatusStatus(ctx)
+			h.vpnStatusCheck(ctx)
 		}
 	}
 }

@@ -6,7 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"runtime"
+
+	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
+
+	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
+
+	"github.com/zerops-io/zcli/src/utils"
+	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
+
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -14,38 +22,84 @@ import (
 )
 
 type Config struct {
-	ApiAddress string
+	RestApiAddress string
+	GrpcApiAddress string
 }
 
 type RunConfig struct {
 	ZeropsLogin    string
 	ZeropsPassword string
+	ZeropsToken    string
 }
 
 type Handler struct {
-	config     Config
-	storage    *cliStorage.Handler
-	httpClient *httpClient.Handler
+	config                    Config
+	storage                   *cliStorage.Handler
+	httpClient                *httpClient.Handler
+	grpcApiClientFactory      *grpcApiClientFactory.Handler
+	zeropsDaemonClientFactory *grpcDaemonClientFactory.Handler
 }
 
 func New(
 	config Config,
 	storage *cliStorage.Handler,
 	httpClient *httpClient.Handler,
+	grpcApiClientFactory *grpcApiClientFactory.Handler,
+	zeropsDaemonClientFactory *grpcDaemonClientFactory.Handler,
 ) *Handler {
 	return &Handler{
-		config:     config,
-		storage:    storage,
-		httpClient: httpClient,
+		config:                    config,
+		storage:                   storage,
+		httpClient:                httpClient,
+		grpcApiClientFactory:      grpcApiClientFactory,
+		zeropsDaemonClientFactory: zeropsDaemonClientFactory,
 	}
 }
 
-func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
+func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 
-	if runConfig.ZeropsLogin == "" {
+	if runConfig.ZeropsPassword == "" &&
+		runConfig.ZeropsLogin == "" &&
+		runConfig.ZeropsToken == "" {
+		return errors.New(i18n.LoginParamsMissing)
+	}
+
+	var err error
+	if runConfig.ZeropsToken != "" {
+		err = h.loginWithToken(ctx, runConfig.ZeropsToken)
+	} else {
+		err = h.loginWithPassword(ctx, runConfig.ZeropsLogin, runConfig.ZeropsPassword)
+	}
+	if err != nil {
+		return err
+	}
+
+	daemonClient, closeFunc, err := h.zeropsDaemonClientFactory.CreateClient(ctx)
+	if err != nil {
+		return err
+	}
+	defer closeFunc()
+
+	response, err := daemonClient.StopVpn(ctx, &zeropsDaemonProtocol.StopVpnRequest{})
+	daemonInstalled, err := utils.HandleDaemonError(err)
+	if err != nil {
+		return err
+	}
+
+	if daemonInstalled && response.GetActiveBefore() {
+		fmt.Println(i18n.LoginVpnClosed)
+	}
+
+	fmt.Println(i18n.LoginSuccess)
+	return nil
+}
+
+func (h *Handler) loginWithPassword(ctx context.Context, login, password string) error {
+
+	if login == "" {
 		return errors.New(i18n.LoginZeropsLoginMissing)
 	}
-	if runConfig.ZeropsPassword == "" {
+	if password == "" {
 		return errors.New(i18n.LoginZeropsPasswordMissing)
 	}
 
@@ -53,14 +107,14 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 		Email    string
 		Password string
 	}{
-		Email:    runConfig.ZeropsLogin,
-		Password: runConfig.ZeropsPassword,
+		Email:    login,
+		Password: password,
 	})
 	if err != nil {
 		return err
 	}
 
-	loginResponse, err := h.httpClient.Post(h.config.ApiAddress+"/api/rest/public/auth/login", loginData)
+	loginResponse, err := h.httpClient.Post(h.config.RestApiAddress+"/api/rest/public/auth/login", loginData)
 	if err != nil {
 		return err
 	}
@@ -80,28 +134,9 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 		return parseRestApiError(loginResponse.Body)
 	}
 
-	os := ""
-	switch runtime.GOOS {
-	case "windows":
-		os = "WINDOWS"
-	case "darwin":
-		os = "MAC"
-	case "linux":
-		os = "LINUX"
-	}
-
-	cliData, err := json.Marshal(struct {
-		Os string
-	}{
-		Os: os,
-	})
-	if err != nil {
-		return err
-	}
-
 	cliResponse, err := h.httpClient.Post(
-		h.config.ApiAddress+"/api/rest/public/cli/certificate",
-		cliData,
+		h.config.RestApiAddress+"/api/rest/public/user-token",
+		nil,
 		httpClient.BearerAuthorization(loginResponseObject.Auth.AccessToken),
 	)
 	if err != nil {
@@ -112,7 +147,36 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 		return parseRestApiError(cliResponse.Body)
 	}
 
-	token := string(cliResponse.Body)
+	var tokenResponseObject struct {
+		Token string `json:"token"`
+	}
+	err = json.Unmarshal(cliResponse.Body, &tokenResponseObject)
+	if err != nil {
+		return err
+	}
+
+	data := h.storage.Data()
+	data.Token = tokenResponseObject.Token
+	err = h.storage.Save(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) loginWithToken(ctx context.Context, token string) error {
+
+	grpcApiClient, closeFunc, err := h.grpcApiClientFactory.CreateClient(ctx, h.config.GrpcApiAddress, token)
+	if err != nil {
+		return err
+	}
+	defer closeFunc()
+
+	resp, err := grpcApiClient.GetUserInfo(ctx, &zeropsApiProtocol.GetUserInfoRequest{})
+	if err := utils.HandleGrpcApiError(resp, err); err != nil {
+		return err
+	}
 
 	data := h.storage.Data()
 	data.Token = token
@@ -120,8 +184,6 @@ func (h *Handler) Run(_ context.Context, runConfig RunConfig) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(i18n.LoginSuccess)
 
 	return nil
 }

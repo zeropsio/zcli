@@ -11,12 +11,9 @@ const (
 	LogFilePath           = "/var/log/zerops/zerops.log"
 	SocketFilePath        = "/run/zerops/daemon.sock"
 	DaemonStorageFilePath = "/var/lib/zerops/daemon.data"
+	DaemonInstallDir      = "/usr/local/"
 )
 
-var (
-	CliStorageFile string
-)
-
-func init() {
-	CliStorageFile = path.Join(os.Getenv("HOME"), "/.config/zerops/cli.data")
+func CliStorageFile() string {
+	return path.Join(os.Getenv("HOME"), "/.config/zerops/cli.data")
 }

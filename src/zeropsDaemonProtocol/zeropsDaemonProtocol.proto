@@ -32,6 +32,8 @@ message startVpnRequest {
     string projectId = 3;
     string token = 4;
     uint32 mtu = 5;
+    string userId = 6;
+    bytes caCertificate = 7;
 }
 
 message startVpnResponse {
@@ -43,6 +45,7 @@ message stopVpnRequest {
 
 message stopVpnResponse {
     vpnStatus vpnStatus = 1;
+    bool activeBefore = 2;
 }
 
 message statusVpnRequest {
@@ -51,4 +54,3 @@ message statusVpnRequest {
 message statusVpnResponse {
     vpnStatus vpnStatus = 1;
 }
-

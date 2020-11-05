@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 
+	"google.golang.org/grpc/codes"
+
 	"google.golang.org/grpc/status"
 
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
@@ -49,13 +51,15 @@ func HandleVpnApiError(
 
 func HandleDaemonError(
 	err error,
-) error {
+) (daemonInstalled bool, _ error) {
 	if err != nil {
 		if s, ok := status.FromError(err); ok {
-			return errors.New(s.Message())
+			if s.Code() == codes.Unavailable {
+				return false, nil
+			}
+			return true, errors.New(s.Message())
 		}
-		return err
+		return true, err
 	}
-
-	return nil
+	return true, nil
 }

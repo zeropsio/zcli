@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+
 	"github.com/zerops-io/zcli/src/daemonInstaller"
 	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
 
@@ -29,22 +31,18 @@ func vpnStartCmd() *cobra.Command {
 			}
 
 			token := getToken(storage)
-
-			certReader, err := createCertReader(token)
+			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+				CaCertificate: params.GetPersistentBytes("caCertificate"),
+			})
+			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+				ctx,
+				params.GetPersistentString("grpcApiAddress"),
+				token,
+			)
 			if err != nil {
 				return err
 			}
-
-			tlsConfig, err := createTlsConfig(certReader)
-			if err != nil {
-				return err
-			}
-
-			apiGrpcClient, apiCloseFunc, err := createApiGrpcClient(ctx, tlsConfig)
-			if err != nil {
-				return err
-			}
-			defer apiCloseFunc()
+			defer closeFunc()
 
 			installer, err := daemonInstaller.New(daemonInstaller.Config{})
 			if err != nil {
@@ -60,9 +58,10 @@ func vpnStartCmd() *cobra.Command {
 				grpcDaemonClientFactory.New(),
 				installer,
 			).Run(ctx, startVpn.RunConfig{
-				ProjectName: args[0],
-				Token:       token,
-				Mtu:         params.GetUint32("mtu"),
+				ProjectName:   args[0],
+				Token:         token,
+				Mtu:           params.GetUint32("mtu"),
+				CaCertificate: params.GetPersistentBytes("caCertificate"),
 			})
 		},
 	}

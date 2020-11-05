@@ -6,8 +6,11 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+
+	"github.com/zerops-io/zcli/src/dns"
+
 	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/utils/certReader"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 	"google.golang.org/grpc/status"
@@ -19,7 +22,9 @@ func (h *Handler) startVpn(
 	grpcVpnAddress string,
 	token string,
 	projectId string,
+	userId string,
 	mtu uint32,
+	caCertificate []byte,
 ) (err error) {
 	defer func() {
 		if err != nil {
@@ -37,16 +42,8 @@ func (h *Handler) startVpn(
 		return err
 	}
 
-	certReader, err := certReader.New(
-		certReader.Config{
-			Token: token,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	apiGrpcClient, closeFunc, err := h.grpcApiClientFactory.CreateClient(ctx, grpcApiAddress, token)
+	apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{CaCertificate: caCertificate})
+	apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(ctx, grpcApiAddress, token)
 	if err != nil {
 		return err
 	}
@@ -95,7 +92,7 @@ func (h *Handler) startVpn(
 
 	startVpnResponse, err := vpnGrpcClient.StartVpn(ctx, &zeropsVpnProtocol.StartVpnRequest{
 		InstanceId:      projectId,
-		UserId:          certReader.UserId,
+		UserId:          userId,
 		ClientPublicKey: publicKey,
 		Signature:       signature,
 		Expiry:          zeropsVpnProtocol.ToProtoTimestamp(expiry),
@@ -126,7 +123,7 @@ func (h *Handler) startVpn(
 		return err
 	}
 
-	dnsManagement, err := h.detectDns()
+	dnsManagement, err := dns.DetectDns()
 	if err != nil {
 		return err
 	}
@@ -143,7 +140,7 @@ func (h *Handler) startVpn(
 	h.logger.Debug("serverIp: " + serverIp.String())
 	h.logger.Debug("vpnNetwork: " + vpnNetwork.String())
 
-	err = h.setDns(dnsIp, clientIp, vpnNetwork, dnsManagement)
+	err = dns.SetDns(h.dnsServer, dnsIp, clientIp, vpnNetwork, dnsManagement)
 	if err != nil {
 		return err
 	}
@@ -157,6 +154,7 @@ func (h *Handler) startVpn(
 	data.ServerIp = serverIp
 	data.VpnNetwork = vpnNetwork
 	data.ProjectId = projectId
+	data.UserId = userId
 	data.Mtu = mtu
 	data.DnsIp = dnsIp
 	data.ClientIp = clientIp
@@ -164,6 +162,8 @@ func (h *Handler) startVpn(
 	data.GrpcVpnAddress = grpcVpnAddress
 	data.Token = token
 	data.DnsManagement = string(dnsManagement)
+	data.CaCertificate = caCertificate
+	data.VpnStarted = true
 
 	err = h.storage.Save(data)
 	if err != nil {

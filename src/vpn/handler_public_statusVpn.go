@@ -3,6 +3,8 @@ package vpn
 import (
 	"fmt"
 
+	"github.com/zerops-io/zcli/src/dns"
+
 	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
 )
 
@@ -21,7 +23,7 @@ func (h *Handler) StatusVpn() (vpnStatus *zeropsDaemonProtocol.VpnStatus) {
 		DnsState:    zeropsDaemonProtocol.DnsState_DNS_ACTIVE,
 	}
 
-	if h.storage.Data().DnsManagement == string(localDnsManagementUnknown) {
+	if h.storage.Data().DnsManagement == string(dns.LocalDnsManagementUnknown) {
 		vpnStatus.DnsState = zeropsDaemonProtocol.DnsState_DNS_INACTIVE
 		vpnStatus.AdditionalInfo = fmt.Sprintf(
 			"dns ip: %s\n"+

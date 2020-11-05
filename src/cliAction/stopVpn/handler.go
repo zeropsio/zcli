@@ -35,15 +35,22 @@ func New(
 func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 
 	response, err := h.zeropsDaemonClient.StopVpn(ctx, &zeropsDaemonProtocol.StopVpnRequest{})
-	if err := utils.HandleDaemonError(err); err != nil {
+	daemonInstalled, err := utils.HandleDaemonError(err)
+	if err != nil {
 		return err
 	}
 
-	fmt.Println(i18n.VpnStopSuccess)
-	status := response.GetVpnStatus()
-	if status.GetAdditionalInfo() != "" {
-		fmt.Println(i18n.VpnStopAdditionalInfo)
-		fmt.Println(status.GetAdditionalInfo())
+	if !daemonInstalled {
+		fmt.Println(i18n.VpnStopDaemonIsUnavailable)
+		return nil
+	}
+
+	if response.GetActiveBefore() {
+		fmt.Println(i18n.VpnStopSuccess)
+		if response.GetVpnStatus().GetAdditionalInfo() != "" {
+			fmt.Println(i18n.VpnStopAdditionalInfo)
+			fmt.Println(response.GetVpnStatus().GetAdditionalInfo())
+		}
 	}
 
 	return nil
