@@ -63,7 +63,8 @@ func (h *Handler) createTLSCredentials() (credentials.TransportCredentials, erro
 		return nil, fmt.Errorf("failed to add server CA certificate")
 	}
 	config := &tls.Config{
-		RootCAs: certPool,
+		RootCAs:    certPool,
+		ServerName: "zbusinessapi-runtime-1-2",
 	}
 	return credentials.NewTLS(config), nil
 }
