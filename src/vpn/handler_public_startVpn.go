@@ -17,7 +17,7 @@ func (h *Handler) StartVpn(
 	projectId string,
 	userId string,
 	mtu uint32,
-	caCertificate []byte,
+	caCertificateUrl string,
 ) (vpnStatus *zeropsDaemonProtocol.VpnStatus, err error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
@@ -30,7 +30,7 @@ func (h *Handler) StartVpn(
 		projectId,
 		userId,
 		mtu,
-		caCertificate,
+		caCertificateUrl,
 	)
 	if err != nil {
 		return nil, err

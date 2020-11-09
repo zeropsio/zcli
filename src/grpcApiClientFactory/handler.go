@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc/credentials/oauth"
@@ -16,7 +18,7 @@ import (
 )
 
 type Config struct {
-	CaCertificate []byte
+	CaCertificateUrl string
 }
 
 type Handler struct {
@@ -58,8 +60,19 @@ func (h *Handler) createBearerCredentials(token string) credentials.PerRPCCreden
 }
 
 func (h *Handler) createTLSCredentials() (credentials.TransportCredentials, error) {
+
+	resp, err := http.Get(h.config.CaCertificateUrl)
+	if err != nil {
+		return nil, fmt.Errorf("get caCertificate => %s", err.Error())
+	}
+	defer resp.Body.Close()
+	caCertBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read caCertificate response => %s", err.Error())
+	}
+
 	certPool := x509.NewCertPool()
-	if !certPool.AppendCertsFromPEM(h.config.CaCertificate) {
+	if !certPool.AppendCertsFromPEM(caCertBytes) {
 		return nil, fmt.Errorf("failed to add server CA certificate")
 	}
 	config := &tls.Config{

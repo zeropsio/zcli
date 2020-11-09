@@ -17,7 +17,7 @@ func (h *Handler) vpnStatusCheck(ctx context.Context) {
 				data.ProjectId,
 				data.UserId,
 				data.Mtu,
-				data.CaCertificate,
+				data.CaCertificateUrl,
 			)
 			if err != nil {
 				h.logger.Error(err)

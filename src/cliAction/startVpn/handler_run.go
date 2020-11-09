@@ -61,13 +61,13 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 	defer closeFn()
 
 	response, err := zeropsDaemonClient.StartVpn(ctx, &zeropsDaemonProtocol.StartVpnRequest{
-		ApiAddress:    h.config.GrpcApiAddress,
-		VpnAddress:    h.config.VpnAddress,
-		ProjectId:     project.GetId(),
-		Token:         config.Token,
-		Mtu:           config.Mtu,
-		UserId:        userId,
-		CaCertificate: config.CaCertificate,
+		ApiAddress:       h.config.GrpcApiAddress,
+		VpnAddress:       h.config.VpnAddress,
+		ProjectId:        project.GetId(),
+		Token:            config.Token,
+		Mtu:              config.Mtu,
+		UserId:           userId,
+		CaCertificateUrl: config.CaCertificateUrl,
 	})
 	daemonInstalled, err := utils.HandleDaemonError(err)
 	if err != nil {

@@ -24,7 +24,7 @@ func (h *Handler) startVpn(
 	projectId string,
 	userId string,
 	mtu uint32,
-	caCertificate []byte,
+	caCertificateUrl string,
 ) (err error) {
 	defer func() {
 		if err != nil {
@@ -42,7 +42,7 @@ func (h *Handler) startVpn(
 		return err
 	}
 
-	apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{CaCertificate: caCertificate})
+	apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{CaCertificateUrl: caCertificateUrl})
 	apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(ctx, grpcApiAddress, token)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (h *Handler) startVpn(
 	data.GrpcVpnAddress = grpcVpnAddress
 	data.Token = token
 	data.DnsManagement = string(dnsManagement)
-	data.CaCertificate = caCertificate
+	data.CaCertificateUrl = caCertificateUrl
 	data.VpnStarted = true
 
 	err = h.storage.Save(data)

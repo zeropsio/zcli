@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/zerops-io/zcli/src/constants"
+
 	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
 
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
@@ -33,13 +35,13 @@ func loginCmd() *cobra.Command {
 			})
 
 			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
-				CaCertificate: params.GetPersistentBytes("caCertificate"),
+				CaCertificateUrl: params.GetPersistentString(constants.PersistentParamCaCertificateUrl),
 			})
 
 			return login.New(
 				login.Config{
-					RestApiAddress: params.GetPersistentString("restApiAddress"),
-					GrpcApiAddress: params.GetPersistentString("grpcApiAddress"),
+					RestApiAddress: params.GetPersistentString(constants.PersistentParamRestApiAddress),
+					GrpcApiAddress: params.GetPersistentString(constants.PersistentParamGrpcApiAddress),
 				},
 				storage,
 				httpClient,

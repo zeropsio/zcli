@@ -12,10 +12,10 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ProjectName   string
-	Token         string
-	Mtu           uint32
-	CaCertificate []byte
+	ProjectName      string
+	Token            string
+	Mtu              uint32
+	CaCertificateUrl string
 }
 
 type Handler struct {
