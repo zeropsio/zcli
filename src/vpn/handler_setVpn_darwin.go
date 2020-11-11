@@ -24,7 +24,8 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, resp
 
 	output, err := cmdRunner.Run(exec.Command("wireguard-go", "utun"))
 	if err != nil {
-		return err
+		h.logger.Error(err)
+		return errors.New(i18n.VpnStartWireguardUtunError)
 	}
 
 	re := regexp.MustCompile(`INFO: \((.*)\)`)

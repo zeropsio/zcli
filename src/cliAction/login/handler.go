@@ -94,7 +94,7 @@ func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 	return nil
 }
 
-func (h *Handler) loginWithPassword(ctx context.Context, login, password string) error {
+func (h *Handler) loginWithPassword(_ context.Context, login, password string) error {
 
 	if login == "" {
 		return errors.New(i18n.LoginZeropsLoginMissing)

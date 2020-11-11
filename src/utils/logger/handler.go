@@ -20,7 +20,7 @@ type Handler struct {
 
 func New(config Config) (*Handler, error) {
 
-	dir, _ := path.Split(config.FilePath)
+	dir := path.Dir(config.FilePath)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return nil, err

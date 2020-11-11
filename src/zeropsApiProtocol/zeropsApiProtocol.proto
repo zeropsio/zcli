@@ -5,17 +5,17 @@ option go_package = "github.com/zerops-io/zcli/src/zeropsApiProtocol";
 package zeropsApiProtocol;
 
 service zeropsApiProtocol {
-    rpc PutAppVersionDeploy (PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
-    rpc PutAppVersionBuildAndDeploy (PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
-    rpc PostAppVersion (PostAppVersionRequest) returns (PostAppVersionResponse);
-    rpc GetProjectLog (GetProjectLogRequest) returns (GetProjectLogResponse);
-    rpc GetProjectsByName (GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
-    rpc GetProcess (GetProcessRequest) returns (GetProcessResponse);
-    rpc PostPublicHttpRouting (PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
-    rpc GetServiceStack (GetServiceStackRequest) returns (GetServiceStackResponse);
-    rpc GetServiceStackByName (GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
-    rpc GetUserInfo (GetUserInfoRequest) returns (GetUserInfoResponse);
-    rpc PostVpnRequest (PostVpnRequestRequest) returns (PostVpnRequestResponse);
+    rpc PutAppVersionDeploy( PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
+    rpc PutAppVersionBuildAndDeploy( PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
+    rpc PostAppVersion( PostAppVersionRequest) returns (PostAppVersionResponse);
+    rpc GetProjectLog( GetProjectLogRequest) returns (GetProjectLogResponse);
+    rpc GetProjectsByName( GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
+    rpc GetProcess( GetProcessRequest) returns (GetProcessResponse);
+    rpc PostPublicHttpRouting( PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
+    rpc GetServiceStack( GetServiceStackRequest) returns (GetServiceStackResponse);
+    rpc GetServiceStackByName( GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
+    rpc GetUserInfo( GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc PostVpnRequest( PostVpnRequestRequest) returns (PostVpnRequestResponse);
 
 }
 
@@ -61,7 +61,7 @@ enum ErrorCode {
     USER_DATA_DUPLICATE_KEY = 31;
     USER_DATA_SYNC_RUNNING = 32;
     USER_DATA_VERSION_MISMATCH = 168;
-    USER_CERTIFICATE_NOT_FOUND = 33;
+    USER_TOKEN_NOT_FOUND = 227;
     USER_ACCOUNT_NOT_FOUND = 34;
     TEMPLATE_NOT_FOUND = 35;
     COUNTRY_CALLING_CODE_DOES_NOT_MATCH_PHONE_NUMBER = 36;
@@ -191,11 +191,13 @@ enum ErrorCode {
     OBJECT_MIME_TYPE_NOT_SUPPORTED = 150;
     OBJECT_NOT_FOUND = 151;
     MAX_OBJECT_DISK_SIZE_ESTIMATE_EXCEEDED = 152;
+    APP_VERSION_IS_ACTIVE = 226;
     APP_VERSION_IS_BEING_DEPLOYED = 196;
     APP_VERSION_IS_BEING_BUILT = 197;
     APP_VERSION_IS_NOT_BEING_UPLOADED = 198;
     APP_VERSION_DEPLOYING_FAILED = 199;
     APP_VERSION_BUILDING_FAILED = 200;
+    APP_VERSION_YAML_PARSE_FAILED = 225;
     SHARED_STORAGE_NOT_FOUND = 153;
     SHARED_STORAGE_INVALID_PROJECT = 154;
     SERVICE_STACK_CONNECTION_NOT_FOUND = 155;
@@ -239,6 +241,18 @@ enum ErrorCode {
     AVATAR_UPLOAD_FORBIDDEN_IMAGE_TYPE = 222;
     AVATAR_UPLOAD_MAX_SIZE = 223;
     AVATAR_UPLOAD_FILE_NOT_FOUND = 224;
+    GITLAB_RATE_LIMIT_EXCEEDED = 228;
+    GITLAB_VERIFICATION_EXPIRED = 229;
+    INVALID_GITLAB_TOKEN_ACTION = 230;
+    GITLAB_REQUEST_FAILED = 231;
+    GITLAB_AUTHORIZATION_REQUIRED = 232;
+    GITLAB_FULL_API_ACCESS_REQUIRED = 233;
+    MULTIPLE_INTEGRATIONS_ARE_FORBIDDEN = 234;
+    GITLAB_BRANCH_DELETED = 235;
+    GITLAB_WEBHOOK_DELETED = 236;
+    GITLAB_WEBHOOK_INVALID_PARAMETERS = 237;
+    SERVICE_STACK_NO_GITLAB_INTEGRATION = 238;
+    GITLAB_PUSH_IGNORED = 239;
     USER_ID_WAS_NOT_FOUND = 161;
     AUTHOR_ID_WAS_NOT_FOUND = 162;
     USER_DOES_NOT_HAVE_ACTIVE_CONNECTION_TO_ANY_CLIENT = 163;
@@ -326,6 +340,8 @@ message PutAppVersionDeployRequest {
 
 }
 
+
+
 //
 // RESPONSE OBJECTS
 //
@@ -349,6 +365,7 @@ message GetProcessResponseDto {
     Timestamp created = 10;
     Timestamp lastUpdate = 11;
     bool createdBySystem = 12;
+    AppVersionJsonObjectNull appVersion = 13;
 
 }
 
@@ -391,6 +408,7 @@ message GetServiceStackResponseDto {
     string serviceStackTypeVersionId = 6;
     bool isSystem = 7;
     GithubIntegrationNull githubIntegration = 26;
+    GitlabIntegrationNull gitlabIntegration = 29;
     repeated ServicePort ports = 8;
     RequestedPortsJsonObject requestedPorts = 9;
     Timestamp created = 10;
@@ -428,6 +446,7 @@ message GetServiceStackByNameResponseDto {
     string serviceStackTypeVersionId = 6;
     bool isSystem = 7;
     GithubIntegrationNull githubIntegration = 26;
+    GitlabIntegrationNull gitlabIntegration = 29;
     repeated ServicePort ports = 8;
     RequestedPortsJsonObject requestedPorts = 9;
     Timestamp created = 10;
@@ -549,6 +568,9 @@ message PutAppVersionDeployResponseDto {
 
 }
 
+
+
+
 //
 // RESPONSE DTO OBJECTS
 //
@@ -559,6 +581,38 @@ message AppVersionBuild {
     StringNull serviceStackTypeVersionId = 3;
     TimestampNull startDate = 4;
     TimestampNull endDate = 5;
+
+}
+
+message AppVersionGithubIntegration {
+    AppVersionGithubIntegrationEventType eventType = 1;
+    StringNull branchName = 2;
+    string pusher = 3;
+    string commit = 4;
+    string repositoryFullName = 5;
+    StringNull tagName = 6;
+
+}
+
+message AppVersionGitlabIntegration {
+    AppVersionGitlabIntegrationEventType eventType = 1;
+    StringNull branchName = 2;
+    string pusher = 3;
+    string commit = 4;
+    string repositoryFullName = 5;
+    StringNull tagName = 6;
+
+}
+
+message AppVersionJsonObject {
+    string id = 1;
+    AppVersionSource source = 2;
+    int32 sequence = 3;
+    AppVersionBuildNull build = 4;
+    AppVersionGithubIntegrationNull githubIntegration = 5;
+    AppVersionGitlabIntegrationNull gitlabIntegration = 6;
+    UserJsonObjectNull createdByUser = 7;
+    TimestampNull activationDate = 8;
 
 }
 
@@ -604,6 +658,17 @@ message GithubIntegration {
     bool isActive = 6;
     string repositoryFullName = 7;
     Int32Null webhookId = 9;
+
+}
+
+message GitlabIntegration {
+    string userId = 1;
+    bool authorizationRequired = 2;
+    StringNull branchName = 3;
+    GitlabIntegrationEventType eventType = 4;
+    bool isActive = 5;
+    string repositoryFullName = 6;
+    Int32Null webhookId = 7;
 
 }
 
@@ -713,6 +778,7 @@ message ServiceStackLight {
     string serviceStackTypeVersionId = 6;
     bool isSystem = 7;
     GithubIntegrationNull githubIntegration = 8;
+    GitlabIntegrationNull gitlabIntegration = 9;
 
 }
 
@@ -757,12 +823,36 @@ message UserLight {
 
 }
 
+
 //
 // ENUMS
 //
 
+enum AppVersionGithubIntegrationEventType {
+ 	APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+    APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
+    APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_TAG = 2;
+
+}
+
+enum AppVersionGitlabIntegrationEventType {
+ 	APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+    APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
+    APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_TAG = 2;
+
+}
+
+enum AppVersionSource {
+ 	APP_VERSION_SOURCE_UNKNOWN = 0;
+    APP_VERSION_SOURCE_CLI = 1;
+    APP_VERSION_SOURCE_GUI = 2;
+    APP_VERSION_SOURCE_GITHUB = 3;
+    APP_VERSION_SOURCE_GITLAB = 4;
+
+}
+
 enum AppVersionStatus {
-    APP_VERSION_STATUS_UNKNOWN = 0;
+ 	APP_VERSION_STATUS_UNKNOWN = 0;
     APP_VERSION_STATUS_UPLOADING = 1;
     APP_VERSION_STATUS_WAITING_TO_DEPLOY = 2;
     APP_VERSION_STATUS_DEPLOYING = 3;
@@ -776,13 +866,13 @@ enum AppVersionStatus {
 }
 
 enum ClientUserLightRoleCode {
-    CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
+ 	CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
     CLIENT_USER_LIGHT_ROLE_CODE_MANAGER = 1;
 
 }
 
 enum ClientUserLightStatus {
-    CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
+ 	CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
     CLIENT_USER_LIGHT_STATUS_ACTIVE = 1;
     CLIENT_USER_LIGHT_STATUS_WAITING_AUTHORIZATION = 2;
     CLIENT_USER_LIGHT_STATUS_BEING_DELETED = 3;
@@ -790,14 +880,21 @@ enum ClientUserLightStatus {
 }
 
 enum GithubIntegrationEventType {
-    GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+ 	GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
     GITHUB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
     GITHUB_INTEGRATION_EVENT_TYPE_TAG = 2;
 
 }
 
+enum GitlabIntegrationEventType {
+ 	GITLAB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+    GITLAB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
+    GITLAB_INTEGRATION_EVENT_TYPE_TAG = 2;
+
+}
+
 enum ProcessStatus {
-    PROCESS_STATUS_UNKNOWN = 0;
+ 	PROCESS_STATUS_UNKNOWN = 0;
     PROCESS_STATUS_PENDING = 1;
     PROCESS_STATUS_RUNNING = 2;
     PROCESS_STATUS_ROLLBACKING = 3;
@@ -810,7 +907,7 @@ enum ProcessStatus {
 }
 
 enum ProjectStatus {
-    PROJECT_STATUS_UNKNOWN = 0;
+ 	PROJECT_STATUS_UNKNOWN = 0;
     PROJECT_STATUS_NEW = 1;
     PROJECT_STATUS_CREATING = 2;
     PROJECT_STATUS_ACTIVE = 3;
@@ -820,7 +917,7 @@ enum ProjectStatus {
 }
 
 enum PublicHttpRoutingDomainDnsCheckStatus {
-    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
+ 	PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_PENDING = 1;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_CHECKING = 2;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_OK = 3;
@@ -830,7 +927,7 @@ enum PublicHttpRoutingDomainDnsCheckStatus {
 }
 
 enum PublicHttpRoutingDomainSslStatus {
-    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
+ 	PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_INACTIVE = 1;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_BEING_INSTALLED = 2;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_WAITING_FOR_DNS = 3;
@@ -840,14 +937,14 @@ enum PublicHttpRoutingDomainSslStatus {
 }
 
 enum ServicePortProtocol {
-    SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
+ 	SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
     SERVICE_PORT_PROTOCOL_tcp = 1;
     SERVICE_PORT_PROTOCOL_udp = 2;
 
 }
 
 enum ServicePortScheme {
-    SERVICE_PORT_SCHEME_UNKNOWN = 0;
+ 	SERVICE_PORT_SCHEME_UNKNOWN = 0;
     SERVICE_PORT_SCHEME_tcp = 1;
     SERVICE_PORT_SCHEME_udp = 2;
     SERVICE_PORT_SCHEME_http = 3;
@@ -861,7 +958,7 @@ enum ServicePortScheme {
 }
 
 enum ServiceStackConnectionStatus {
-    SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
+ 	SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
     SERVICE_STACK_CONNECTION_STATUS_CREATING = 1;
     SERVICE_STACK_CONNECTION_STATUS_ACTIVE = 2;
     SERVICE_STACK_CONNECTION_STATUS_DELETING = 3;
@@ -869,7 +966,7 @@ enum ServiceStackConnectionStatus {
 }
 
 enum ServiceStackInfoJsonObjectServiceStackTypeCategory {
-    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
+ 	SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_CORE = 1;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_HTTP_L7_BALANCER = 2;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_STANDARD = 3;
@@ -877,18 +974,19 @@ enum ServiceStackInfoJsonObjectServiceStackTypeCategory {
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_SHARED_STORAGE = 5;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_OBJECT_STORAGE = 6;
     SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_BUILD = 7;
+    SERVICE_STACK_INFO_JSON_OBJECT_SERVICE_STACK_TYPE_CATEGORY_INTERNAL = 8;
 
 }
 
 enum ServiceStackMode {
-    SERVICE_STACK_MODE_UNKNOWN = 0;
+ 	SERVICE_STACK_MODE_UNKNOWN = 0;
     SERVICE_STACK_MODE_HA = 1;
     SERVICE_STACK_MODE_NON_HA = 2;
 
 }
 
 enum ServiceStackStatus {
-    SERVICE_STACK_STATUS_UNKNOWN = 0;
+ 	SERVICE_STACK_STATUS_UNKNOWN = 0;
     SERVICE_STACK_STATUS_NEW = 1;
     SERVICE_STACK_STATUS_CREATING = 2;
     SERVICE_STACK_STATUS_ACTIVE = 3;
@@ -900,7 +998,7 @@ enum ServiceStackStatus {
     SERVICE_STACK_STATUS_DELETING = 9;
     SERVICE_STACK_STATUS_DELETED = 10;
     SERVICE_STACK_STATUS_FAILED = 11;
-    SERVICE_STACK_STATUS_UPGRADE_FAILED = 12;
+    SERVICE_STACK_STATUS_ACTION_FAILED = 29;
     SERVICE_STACK_STATUS_UPGRADING = 13;
     SERVICE_STACK_STATUS_READY_TO_DEPLOY = 14;
     SERVICE_STACK_STATUS_SERVICE_DELETING = 15;
@@ -915,12 +1013,12 @@ enum ServiceStackStatus {
     SERVICE_STACK_STATUS_SERVICE_RESTARTING = 24;
     SERVICE_STACK_STATUS_SERVICE_RELOADING = 25;
     SERVICE_STACK_STATUS_SERVICE_UPGRADING = 26;
-    SERVICE_STACK_STATUS_SERVICE_UPGRADE_FAILED = 27;
+    SERVICE_STACK_STATUS_SERVICE_ACTION_FAILED = 28;
 
 }
 
 enum UserDataType {
-    USER_DATA_TYPE_UNKNOWN = 0;
+ 	USER_DATA_TYPE_UNKNOWN = 0;
     USER_DATA_TYPE_RESTRICTED = 1;
     USER_DATA_TYPE_COMMON = 2;
     USER_DATA_TYPE_USER = 3;
@@ -929,19 +1027,22 @@ enum UserDataType {
 }
 
 enum UserJsonObjectType {
-    USER_JSON_OBJECT_TYPE_UNKNOWN = 0;
+ 	USER_JSON_OBJECT_TYPE_UNKNOWN = 0;
     USER_JSON_OBJECT_TYPE_GITHUB = 1;
+    USER_JSON_OBJECT_TYPE_GITLAB = 4;
     USER_JSON_OBJECT_TYPE_USER = 2;
     USER_JSON_OBJECT_TYPE_SYSTEM = 3;
 
 }
 
 enum UserStatus {
-    USER_STATUS_UNKNOWN = 0;
+ 	USER_STATUS_UNKNOWN = 0;
     USER_STATUS_ACTIVE = 1;
     USER_STATUS_DELETED = 2;
 
 }
+
+
 
 //
 // NULL TYPES
@@ -952,6 +1053,21 @@ message AppVersionBuildNull {
     bool valid = 2;
 }
 
+message AppVersionGithubIntegrationNull {
+    AppVersionGithubIntegration value = 1;
+    bool valid = 2;
+}
+
+message AppVersionGitlabIntegrationNull {
+    AppVersionGitlabIntegration value = 1;
+    bool valid = 2;
+}
+
+message AppVersionJsonObjectNull {
+    AppVersionJsonObject value = 1;
+    bool valid = 2;
+}
+
 message AppVersionLightNull {
     AppVersionLight value = 1;
     bool valid = 2;
@@ -959,6 +1075,11 @@ message AppVersionLightNull {
 
 message GithubIntegrationNull {
     GithubIntegration value = 1;
+    bool valid = 2;
+}
+
+message GitlabIntegrationNull {
+    GitlabIntegration value = 1;
     bool valid = 2;
 }
 

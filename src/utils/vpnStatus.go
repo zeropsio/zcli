@@ -8,15 +8,24 @@ import (
 )
 
 func PrintVpnStatus(vpnStatus *zeropsDaemonProtocol.VpnStatus) {
-	if vpnStatus.GetTunnelState() == zeropsDaemonProtocol.TunnelState_TUNNEL_ACTIVE {
+	switch vpnStatus.GetTunnelState() {
+	case zeropsDaemonProtocol.TunnelState_TUNNEL_ACTIVE:
 		fmt.Println(i18n.VpnStatusTunnelStatusActive)
-		if vpnStatus.GetDnsState() == zeropsDaemonProtocol.DnsState_DNS_ACTIVE {
+	case zeropsDaemonProtocol.TunnelState_TUNNEL_SET_INACTIVE:
+		fmt.Println(i18n.VpnStatusTunnelStatusSetInactive)
+	case zeropsDaemonProtocol.TunnelState_TUNNEL_UNSET:
+		fmt.Println(i18n.VpnStatusTunnelStatusUnset)
+	}
+
+	if vpnStatus.GetTunnelState() == zeropsDaemonProtocol.TunnelState_TUNNEL_ACTIVE {
+		switch vpnStatus.GetDnsState() {
+		case zeropsDaemonProtocol.DnsState_DNS_ACTIVE:
 			fmt.Println(i18n.VpnStatusDnsStatusActive)
-		} else {
-			fmt.Println(i18n.VpnStatusDnsStatusInactive)
+		case zeropsDaemonProtocol.DnsState_DNS_SET_INACTIVE:
+			fmt.Println(i18n.VpnStatusDnsStatusSetInactive)
+		case zeropsDaemonProtocol.DnsState_DNS_UNSET:
+			fmt.Println(i18n.VpnStatusDnsStatusUnset)
 		}
-	} else {
-		fmt.Println(i18n.VpnStatusTunnelStatusInactive)
 	}
 	if vpnStatus.GetAdditionalInfo() != "" {
 		fmt.Println(i18n.VpnStatusAdditionalInfo)

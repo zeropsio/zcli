@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 
+	"github.com/zerops-io/zcli/src/i18n"
+
 	"google.golang.org/grpc/codes"
 
 	"google.golang.org/grpc/status"
@@ -11,15 +13,39 @@ import (
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
 
+func WithCustomTimeoutMessage(message string) HandleGrpcErrorOption {
+	return func(config *handleGrpcErrorConfig) {
+		config.customTimeoutMessage = message
+	}
+}
+
+type HandleGrpcErrorOption func(*handleGrpcErrorConfig)
+
+type handleGrpcErrorConfig struct {
+	customTimeoutMessage string
+}
+
 func HandleGrpcApiError(
 	response interface {
 		GetError() *zeropsApiProtocol.Error
 	},
 	err error,
+	options ...HandleGrpcErrorOption,
 ) error {
+	config := handleGrpcErrorConfig{
+		customTimeoutMessage: i18n.GrpcApiTimeout,
+	}
+	for _, o := range options {
+		o(&config)
+	}
+
 	if err != nil {
 		if s, ok := status.FromError(err); ok {
-			return errors.New(s.Message())
+			if s.Code() == codes.DeadlineExceeded && config.customTimeoutMessage != "" {
+				return errors.New(config.customTimeoutMessage)
+			} else {
+				return errors.New(s.Message())
+			}
 		}
 		return err
 	}
@@ -35,12 +61,24 @@ func HandleVpnApiError(
 		GetError() *zeropsVpnProtocol.Error
 	},
 	err error,
+	options ...HandleGrpcErrorOption,
+
 ) error {
+	config := handleGrpcErrorConfig{
+		customTimeoutMessage: i18n.GrpcVpnApiTimeout,
+	}
+	for _, o := range options {
+		o(&config)
+	}
+
 	if err != nil {
 		if s, ok := status.FromError(err); ok {
-			return errors.New(s.Message())
+			if s.Code() == codes.DeadlineExceeded && config.customTimeoutMessage != "" {
+				return errors.New(config.customTimeoutMessage)
+			} else {
+				return errors.New(s.Message())
+			}
 		}
-		return err
 	}
 	if response.GetError().GetCode() != zeropsVpnProtocol.ErrorCode_NO_ERROR {
 		return errors.New(response.GetError().GetMessage())

@@ -11,13 +11,15 @@ service ZeropsDaemonProtocol {
 }
 
 enum tunnelState {
-    TUNNEL_INACTIVE = 0;
-    TUNNEL_ACTIVE = 1;
+    TUNNEL_UNSET = 0;
+    TUNNEL_SET_INACTIVE = 1;
+    TUNNEL_ACTIVE = 2;
 }
 
 enum dnsState {
-    DNS_INACTIVE = 0;
-    DNS_ACTIVE = 1;
+    DNS_UNSET = 0;
+    DNS_SET_INACTIVE = 1;
+    DNS_ACTIVE = 2;
 }
 
 message vpnStatus {

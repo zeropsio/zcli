@@ -32,8 +32,8 @@ func (h *Handler) stopVpn() (vpnStatus *zeropsDaemonProtocol.VpnStatus, err erro
 	}
 
 	vpnStatus = &zeropsDaemonProtocol.VpnStatus{
-		TunnelState: zeropsDaemonProtocol.TunnelState_TUNNEL_INACTIVE,
-		DnsState:    zeropsDaemonProtocol.DnsState_DNS_INACTIVE,
+		TunnelState: zeropsDaemonProtocol.TunnelState_TUNNEL_UNSET,
+		DnsState:    zeropsDaemonProtocol.DnsState_DNS_UNSET,
 	}
 
 	if localDnsManagement == dns.LocalDnsManagementUnknown {

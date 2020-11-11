@@ -3,13 +3,16 @@ package vpn
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"net"
+	"sort"
 	"strconv"
+	"time"
 
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/dns"
-
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
@@ -76,10 +79,24 @@ func (h *Handler) startVpn(
 
 	h.logger.Debug("get vpn addresses end")
 
+	sort.Slice(ipRecords, func(i, j int) bool { return rand.Int()%2 == 0 })
+
 	vpnAddress := ""
 	for _, ip := range ipRecords {
-		vpnAddress = utils.IpToString(ip)
+		ipString := utils.IpToString(ip)
+		conn, err := net.DialTimeout("tcp", ipString+vpnApiGrpcPort, 5*time.Second)
+		if err != nil {
+			h.logger.Debug("check vpn addresses: " + ipString + " failed " + err.Error())
+			continue
+		}
+		conn.Close()
+		h.logger.Debug("check vpn addresses: " + ipString + " success")
+		vpnAddress = ipString
 		break
+	}
+
+	if vpnAddress == "" {
+		return errors.New(i18n.VpnStartVpnNotReachable)
 	}
 
 	vpnGrpcClient, closeFunc, err := h.startVpnClient(ctx, vpnAddress)
@@ -146,8 +163,8 @@ func (h *Handler) startVpn(
 	}
 
 	h.logger.Debug("try vpn")
-	if !h.isVpnAlive(serverIp) {
-		return errors.New("vpn is not connected")
+	if !h.isVpnTunnelAlive(serverIp) {
+		return errors.New(i18n.VpnStartTunnelIsNotAlive)
 	}
 
 	data := h.storage.Data()

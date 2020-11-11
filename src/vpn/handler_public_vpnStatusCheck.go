@@ -8,7 +8,7 @@ func (h *Handler) vpnStatusCheck(ctx context.Context) {
 
 	data := h.storage.Data()
 	if data.VpnStarted {
-		if !h.isVpnAlive(data.ServerIp) {
+		if !h.isVpnTunnelAlive(data.ServerIp) {
 			err := h.startVpn(
 				ctx,
 				data.GrpcApiAddress,

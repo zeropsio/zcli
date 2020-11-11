@@ -44,7 +44,7 @@ func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*zero
 	}
 	serviceStack := serviceStackResponse.GetOutput()
 
-	fmt.Println(i18n.BuildDeployServiceStatus + ": " + serviceStack.GetStatus().String())
+	fmt.Printf(i18n.BuildDeployServiceStatus+"\n", serviceStack.GetStatus().String())
 
 	return serviceStack, nil
 }

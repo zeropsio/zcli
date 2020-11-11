@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func (h *Handler) isVpnAlive(serverIp net.IP) bool {
+func (h *Handler) isVpnTunnelAlive(serverIp net.IP) bool {
 
 	if serverIp.String() == "" {
 		return false
