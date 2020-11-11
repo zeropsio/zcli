@@ -33,7 +33,7 @@ message startVpnRequest {
     string token = 4;
     uint32 mtu = 5;
     string userId = 6;
-    bytes caCertificate = 7;
+    string caCertificateUrl = 7;
 }
 
 message startVpnResponse {

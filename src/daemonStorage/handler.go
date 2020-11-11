@@ -15,19 +15,19 @@ type Handler struct {
 }
 
 type Data struct {
-	ProjectId      string
-	UserId         string
-	ServerIp       net.IP
-	VpnNetwork     net.IPNet
-	GrpcApiAddress string
-	GrpcVpnAddress string
-	Token          string
-	DnsIp          net.IP
-	ClientIp       net.IP
-	Mtu            uint32
-	DnsManagement  string
-	CaCertificate  []byte
-	VpnStarted     bool
+	ProjectId        string
+	UserId           string
+	ServerIp         net.IP
+	VpnNetwork       net.IPNet
+	GrpcApiAddress   string
+	GrpcVpnAddress   string
+	Token            string
+	DnsIp            net.IP
+	ClientIp         net.IP
+	Mtu              uint32
+	DnsManagement    string
+	CaCertificateUrl string
+	VpnStarted       bool
 }
 
 func New(config Config) (*Handler, error) {
