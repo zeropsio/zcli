@@ -51,9 +51,9 @@ const (
 	BuildDeployUploadingPackageDone    = "package uploaded"
 	BuildDeployUploadPackageFailed     = "package upload failed"
 	BuildDeployDeployingStart          = "deploying service"
-	BuildDeployBuildConfigNotFound     = "config file zerops_build.yml is not found"
-	BuildDeployBuildConfigEmpty        = "config file zerops_build.yml is empty"
-	BuildDeployBuildConfigTooLarge     = "max. size of zerops_build.yml is 10 MB"
+	BuildDeployBuildConfigNotFound     = "config file zerops.yml is not found"
+	BuildDeployBuildConfigEmpty        = "config file zerops.yml is empty"
+	BuildDeployBuildConfigTooLarge     = "max. size of zerops.yml is 10 MB"
 	BuildDeploySuccess                 = "service deployed"
 
 	// vpn start
