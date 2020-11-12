@@ -29,7 +29,7 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 
 	buildConfigContent, err := func() ([]byte, error) {
 		for _, file := range files {
-			if file.ArchivePath == "zerops_build.yml" {
+			if file.ArchivePath == "zerops.yml" {
 				buildConfigContent, err := ioutil.ReadFile(file.SourcePath)
 				if err != nil {
 					return nil, err
