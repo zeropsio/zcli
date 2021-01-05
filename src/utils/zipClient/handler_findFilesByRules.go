@@ -17,7 +17,7 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) (res []F
 		return nil, err
 	}
 
-	fmt.Println(i18n.ZipClientWorkingDirectory + ": " + workingDir)
+	fmt.Printf(i18n.ZipClientWorkingDirectory+"\n", workingDir)
 
 	for _, source := range sources {
 
@@ -45,9 +45,9 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) (res []F
 		}
 
 		if fileInfo.IsDir() {
-			fmt.Println(i18n.ZipClientPackingDirectory + ": " + source)
+			fmt.Printf(i18n.ZipClientPackingDirectory+"\n", source)
 		} else {
-			fmt.Println(i18n.ZipClientPackingFile + ": " + source)
+			fmt.Printf(i18n.ZipClientPackingFile+"\n", source)
 		}
 
 		err = filepath.Walk(source, func(filePath string, info os.FileInfo, err error) error {

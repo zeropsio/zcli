@@ -3,6 +3,7 @@
 package daemonInstaller
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path"
@@ -10,9 +11,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zerops-io/zcli/src/dns"
-
 	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/dns"
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
 type systemDRecord struct {
@@ -24,6 +25,11 @@ type systemDRecord struct {
 func (daemon *systemDRecord) Install() error {
 	if daemon.IsInstalled() {
 		return ErrAlreadyInstalled
+	}
+
+	_, err := exec.LookPath("wg")
+	if err != nil {
+		return errors.New(i18n.DaemonInstallWireguardNotFound)
 	}
 
 	tmpServiceFilePath := path.Join(os.TempDir(), daemon.serviceName())
@@ -39,8 +45,8 @@ func (daemon *systemDRecord) Install() error {
 	}
 
 	// create read writes paths
-	logDir, _ := path.Split(constants.LogFilePath)
-	daemonStorageDir, _ := path.Split(constants.DaemonStorageFilePath)
+	logDir := path.Dir(constants.LogFilePath)
+	daemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
 	readWritePaths := []string{
 		logDir,
 		daemonStorageDir,
@@ -51,17 +57,16 @@ func (daemon *systemDRecord) Install() error {
 		return err
 	}
 	if dnsManagement == dns.LocalDnsManagementResolveConf {
-		dir, _ := path.Split(constants.ResolvconfOrderFilePath)
+		dir := path.Dir(constants.ResolvconfOrderFilePath)
 		readWritePaths = append(readWritePaths, dir)
 		readWritePaths = append(readWritePaths, "/run/resolvconf/")
 	}
 	if dnsManagement == dns.LocalDnsManagementFile {
-		dir, _ := path.Split(constants.ResolvFilePath)
+		dir := path.Dir(constants.ResolvFilePath)
 		readWritePaths = append(readWritePaths, dir)
 	}
 
-	runtimeDirectory, _ := path.Split(constants.SocketFilePath)
-	runtimeDirectoryName := path.Base(runtimeDirectory)
+	runtimeDirectoryName := path.Base(path.Dir(constants.SocketFilePath))
 
 	if err := tmpl.Execute(
 		file,
@@ -122,8 +127,8 @@ func (daemon *systemDRecord) Remove() error {
 		}
 	}
 
-	logDir, _ := path.Split(constants.LogFilePath)
-	DaemonStorageDir, _ := path.Split(constants.DaemonStorageFilePath)
+	logDir := path.Dir(constants.LogFilePath)
+	DaemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
 
 	{
 		err := sudoCommands(

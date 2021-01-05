@@ -51,7 +51,11 @@ func daemonRunCmd() *cobra.Command {
 				}
 			}()
 
-			grpcServer := createDaemonGrpcServer(vpn)
+			grpcServer, err := createDaemonGrpcServer(vpn)
+			if err != nil {
+				return err
+			}
+
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

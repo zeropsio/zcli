@@ -3,6 +3,7 @@
 package daemonInstaller
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path"
@@ -10,6 +11,7 @@ import (
 	"text/template"
 
 	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
 type darwinRecord struct {
@@ -31,6 +33,16 @@ func (daemon *darwinRecord) Install() error {
 		return ErrAlreadyInstalled
 	}
 
+	_, err := exec.LookPath("wg")
+	if err != nil {
+		return errors.New(i18n.DaemonInstallWireguardNotFoundDarwin)
+	}
+
+	_, err = exec.LookPath("wireguard-go")
+	if err != nil {
+		return errors.New(i18n.DaemonInstallWireguardNotFoundDarwin)
+	}
+
 	cliBinaryPath, err := os.Executable()
 	if err != nil {
 		return err
@@ -43,8 +55,8 @@ func (daemon *darwinRecord) Install() error {
 	}
 	defer file.Close()
 
-	logDir, _ := path.Split(constants.LogFilePath)
-	daemonStorageDir, _ := path.Split(constants.DaemonStorageFilePath)
+	logDir := path.Dir(constants.LogFilePath)
+	daemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
 
 	templ, err := template.New("propertyList").Parse(propertyList)
 	if err != nil {
@@ -99,7 +111,7 @@ func (daemon *darwinRecord) Remove() error {
 		}
 	}
 
-	daemonStorageDir, _ := path.Split(constants.DaemonStorageFilePath)
+	daemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
 
 	{
 		err := sudoCommands(

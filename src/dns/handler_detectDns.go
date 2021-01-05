@@ -22,11 +22,18 @@ const (
 
 func DetectDns() (LocalDnsManagement, error) {
 
-	if utils.FileExists(scutil.BinaryLocation) {
+	binaryLocationExists, err := utils.FileExists(scutil.BinaryLocation)
+	if err != nil {
+		return "", err
+	}
+	if binaryLocationExists {
 		return LocalDnsManagementScutil, nil
 	}
 
-	resolvExists := utils.FileExists(constants.ResolvFilePath)
+	resolvExists, err := utils.FileExists(constants.ResolvFilePath)
+	if err != nil {
+		return "", err
+	}
 
 	if resolvExists {
 		valid, err := isValidSystemdResolve(constants.ResolvFilePath)
@@ -42,7 +49,7 @@ func DetectDns() (LocalDnsManagement, error) {
 		}
 	}
 
-	_, err := exec.LookPath("resolvconf")
+	_, err = exec.LookPath("resolvconf")
 	if err == nil {
 		return LocalDnsManagementResolveConf, nil
 	}

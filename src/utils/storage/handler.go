@@ -25,7 +25,7 @@ func New(config Config) (*Handler, error) {
 		config: config,
 	}
 
-	dir, _ := path.Split(config.FilePath)
+	dir := path.Dir(config.FilePath)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,12 @@ func (h *Handler) Load(data interface{}) interface{} {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	if utils.FileExists(h.config.FilePath) {
+	storageFileExists, err := utils.FileExists(h.config.FilePath)
+	if err != nil {
+		return data
+	}
+
+	if storageFileExists {
 		data, err := func() (interface{}, error) {
 			f, err := os.Open(h.config.FilePath)
 			if err != nil {

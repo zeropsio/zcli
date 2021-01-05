@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+	"path"
 	"time"
 
 	"github.com/zerops-io/zcli/src/cliStorage"
@@ -64,10 +66,16 @@ func createVpn(
 	)
 }
 
-func createDaemonGrpcServer(vpn *vpn.Handler) *grpcDaemonServer.Handler {
+func createDaemonGrpcServer(vpn *vpn.Handler) (*grpcDaemonServer.Handler, error) {
+	socketDir := path.Dir(constants.SocketFilePath)
+	err := os.MkdirAll(socketDir, 0755)
+	if err != nil {
+		return nil, err
+	}
+
 	return grpcDaemonServer.New(grpcDaemonServer.Config{
 		Socket: constants.SocketFilePath,
 	},
 		vpn,
-	)
+	), nil
 }

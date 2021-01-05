@@ -31,7 +31,7 @@ func loginCmd() *cobra.Command {
 			}
 
 			httpClient := httpClient.New(httpClient.Config{
-				HttpTimeout: time.Second * 10,
+				HttpTimeout: time.Second * 5,
 			})
 
 			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{

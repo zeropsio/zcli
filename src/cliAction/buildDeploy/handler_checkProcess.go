@@ -2,10 +2,10 @@ package buildDeploy
 
 import (
 	"context"
-	"errors"
-	"github.com/zerops-io/zcli/src/i18n"
+	"fmt"
 	"time"
 
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 )
@@ -31,7 +31,7 @@ func (h *Handler) checkProcess(ctx context.Context, processId string) error {
 
 			if !(processStatus == zeropsApiProtocol.ProcessStatus_PROCESS_STATUS_RUNNING ||
 				processStatus == zeropsApiProtocol.ProcessStatus_PROCESS_STATUS_PENDING) {
-				return errors.New(i18n.ProcessInvalidState + ": " + zeropsApiProtocol.ProcessStatus_name[int32(processStatus)])
+				return fmt.Errorf(i18n.ProcessInvalidState, getProcessResponse.GetOutput().GetId())
 			}
 			time.Sleep(time.Second)
 		}

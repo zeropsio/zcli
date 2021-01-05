@@ -21,7 +21,7 @@ func (h *Handler) savePackage(config RunConfig, buff *bytes.Buffer) error {
 			return err
 		}
 
-		fmt.Println(i18n.BuildDeployPackageSavedInto+": ", zipFilePath)
+		fmt.Printf(i18n.BuildDeployPackageSavedInto+"\n", zipFilePath)
 	}
 	return nil
 }
