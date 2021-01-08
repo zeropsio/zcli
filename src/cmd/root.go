@@ -25,10 +25,10 @@ func ExecuteCmd() error {
 		Use: "zcli",
 	}
 
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamRestApiAddress, "https://app.zerops.dev", "address of rest api")
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamGrpcApiAddress, "app.zerops.dev:20902", "address of grpc api")
+	params.RegisterPersistentString(rootCmd, constants.PersistentParamRestApiAddress, "https://api.zerops.dev", "address of rest api")
+	params.RegisterPersistentString(rootCmd, constants.PersistentParamGrpcApiAddress, "api.zerops.dev:20902", "address of grpc api")
 	params.RegisterPersistentString(rootCmd, constants.PersistentParamVpnApiAddress, "vpn.app.zerops.dev", "address of vpn api")
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamCaCertificateUrl, "https://app.zerops.dev/ca.crt", "download url for certificate of Zerops certificate authority used for tls encrypted communication via gRPC")
+	params.RegisterPersistentString(rootCmd, constants.PersistentParamCaCertificateUrl, "https://api.zerops.dev/ca.crt", "download url for certificate of Zerops certificate authority used for tls encrypted communication via gRPC")
 
 	rootCmd.AddCommand(deployCmd())
 	rootCmd.AddCommand(pushCmd())
