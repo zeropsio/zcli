@@ -36,7 +36,7 @@ jobs:
             runLint: true
             runTests: true
           - name: windows amd64
-            os: windows-latest
+            os: ubuntu-latest
             buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-amd64 ./cmd/main.go
             file: zcli-win-amd64
             compress: false
