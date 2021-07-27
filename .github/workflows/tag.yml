@@ -37,8 +37,8 @@ jobs:
             runTests: true
           - name: windows amd64
             os: ubuntu-latest
-            buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-amd64 ./cmd/main.go
-            file: zcli-win-amd64
+            buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-x64 ./cmd/main.go
+            file: zcli-win-x64
             compress: false
             strip: false
             runLint: false
