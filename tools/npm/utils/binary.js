@@ -8,6 +8,7 @@ function getPlatform() {
   if (type === "Linux" && arch === "x64") return "linux-amd64";
   if (type === "Linux" && arch === "x86") return "linux-i386";
   if (type === "Darwin" && arch === "x64") return "darwin-amd64";
+  if (type === "Windows_NT" && arch === "x64") return "win-x64";
 
   throw new Error(`Unsupported platform: ${type} ${arch}`);
 }
