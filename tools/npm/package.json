@@ -13,14 +13,14 @@
     "standard": "^14.3.3"
   },
   "bin": {
-    "zcli": "utils/run.js"
+    "zcli": "node utils/run.js"
   },
   "files": [
     "/utils",
     "package.json"
   ],
   "scripts": {
-    "postinstall": "./utils/install.js",
-    "preuninstall": "./utils/uninstall.js"
+    "postinstall": "node ./utils/install.js",
+    "preuninstall": "node ./utils/uninstall.js"
   }
 }
