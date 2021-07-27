@@ -4,14 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/constants"
-
-	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
-
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
-
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/cliAction/login"
+	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )

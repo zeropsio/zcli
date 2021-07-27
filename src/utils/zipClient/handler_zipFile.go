@@ -17,10 +17,10 @@ func zipFile(archive *zip.Writer, file File, info os.FileInfo) error {
 	archivePath := file.ArchivePath
 
 	if info.IsDir() {
-		archivePath = strings.TrimSuffix(archivePath, "/") + "/"
+		archivePath = strings.TrimSuffix(archivePath, string(os.PathSeparator)) + string(os.PathSeparator)
 	}
 
-	archivePath = strings.TrimPrefix(archivePath, "/")
+	archivePath = strings.TrimPrefix(archivePath, string(os.PathSeparator))
 
 	header.Name = archivePath
 

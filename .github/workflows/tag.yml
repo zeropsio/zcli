@@ -17,18 +17,32 @@ jobs:
             file: zcli-linux-amd64
             compress: true
             strip: true
+            runLint: true
+            runTests: true
           - name: linux 386
             os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 ./cmd/main.go
             file: zcli-linux-i386
             compress: true
             strip: true
+            runLint: true
+            runTests: true
           - name: darwin amd64
             os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 ./cmd/main.go
             file: zcli-darwin-amd64
             compress: false
             strip: false
+            runLint: true
+            runTests: true
+          - name: windows amd64
+            os: windows-latest
+            buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-amd64 ./cmd/main.go
+            file: zcli-win-amd64
+            compress: false
+            strip: false
+            runLint: false
+            runTests: false
 
     steps:
 

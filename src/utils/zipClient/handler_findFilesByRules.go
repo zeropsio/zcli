@@ -57,7 +57,7 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) (res []F
 
 			archivePath := func(filePath string) string {
 				if info.IsDir() {
-					filePath += "/"
+					filePath += string(os.PathSeparator)
 				}
 
 				filePath = strings.TrimPrefix(filePath, trimPart)
@@ -66,7 +66,7 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) (res []F
 					return ""
 				}
 				filePath = strings.TrimPrefix(filePath, parts[0])
-				filePath = strings.TrimPrefix(filePath, "/")
+				filePath = strings.TrimPrefix(filePath, string(os.PathSeparator))
 
 				return filePath
 			}(filePath)

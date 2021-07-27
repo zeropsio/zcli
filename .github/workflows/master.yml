@@ -18,19 +18,30 @@ jobs:
           - name: linux amd64
             os: ubuntu-latest
             osEnv: GOOS=linux GOARCH=amd64
+            runLint: true
+            runTests: true
           - name: linux 386
             os: ubuntu-latest
             osEnv: GOOS=linux GOARCH=386
+            runLint: true
+            runTests: true
           - name: darwin amd64
             os: macos-latest
             osEnv: GOOS=darwin GOARCH=amd64
+            runLint: true
+            runTests: true
+          - name: windows amd64
+            os: ubuntu-latest
+            osEnv: GOOS=windows GOARCH=amd64
+            runLint: false
+            runTests: false
 
     steps:
 
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.14
+        go-version: ^1.16
       id: go
 
     - name: Check out code into the Go module directory
@@ -45,9 +56,11 @@ jobs:
       run: env ${{ matrix.osEnv }} go build -v ./cmd/... ./src/...
 
     - name: Test
+      if: ${{ matrix.runTests }}
       run: env ${{ matrix.osEnv }} go test -v ./cmd/... ./src/...
 
     - name: Lint
+      if: ${{ matrix.runLint }}
       run: env ${{ matrix.osEnv }} gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 
 
