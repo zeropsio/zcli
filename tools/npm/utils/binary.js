@@ -1,4 +1,4 @@
-const { Binary } = require("binary-install");
+const { Binary } = require("@cloudflare/binary-install");
 const os = require("os");
 
 function getPlatform() {
@@ -18,7 +18,7 @@ function getBinary() {
   const url = `https://github.com/zeropsio/zcli/releases/download/${compatibleVersion}/zcli-${platform_arch}-npm.tar.gz`;
   const name = `zcli-${platform_arch}`;
 
-  return new Binary(name, url);
+  return new Binary(url, { name });
 }
 
 const run = () => {

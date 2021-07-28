@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "binary-install": "0.1.1",
+    "@cloudflare/binary-install": "0.2.0",
     "actions-toolkit": "^2.2.0",
     "yargs": "^15.3.1"
   },
