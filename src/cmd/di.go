@@ -30,9 +30,13 @@ func createLogger() (*logger.Handler, error) {
 }
 
 func createCliStorage() (*cliStorage.Handler, error) {
+	filePath, err := constants.CliStorageFile()
+	if err != nil {
+		return nil, err
+	}
 	return cliStorage.New(
 		cliStorage.Config{
-			FilePath: constants.CliStorageFile(),
+			FilePath: filePath,
 		},
 	)
 }
