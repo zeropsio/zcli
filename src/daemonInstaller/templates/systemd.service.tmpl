@@ -1,0 +1,31 @@
+[Unit]
+Description={{.Description}}
+Requires={{.Dependencies}}
+After={{.Dependencies}}
+
+[Service]
+ExecStart={{.BinaryPath}} daemon run
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+User=root
+Group=root
+RestartSec=3
+
+# Hardening
+ProtectSystem=strict
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+PrivateTmp=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+
+{{ range .ReadWritePaths -}}
+ReadWritePaths={{ . }}
+{{ end -}}
+RuntimeDirectory={{.RuntimeDirectoryName}}
+RuntimeDirectoryMode=0775
+
+[Install]
+WantedBy=multi-user.target
