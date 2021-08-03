@@ -36,6 +36,7 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(loginCmd())
 	rootCmd.AddCommand(logCmd())
 	rootCmd.AddCommand(daemonCmd())
+	rootCmd.AddCommand(versionCmd())
 
 	err := params.InitViper()
 	if err != nil {
