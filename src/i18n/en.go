@@ -15,6 +15,7 @@ const (
 	CmdDaemonRun     = "run daemon"
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
+	CmdVersion       = "version"
 
 	// flags description
 	BuildVersionName = "custom version name"
