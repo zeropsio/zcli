@@ -28,6 +28,7 @@ type Data struct {
 	DnsManagement    string
 	CaCertificateUrl string
 	VpnStarted       bool
+	InterfaceName    string
 }
 
 func New(config Config) (*Handler, error) {
