@@ -8,6 +8,7 @@ import (
 )
 
 func (h *Handler) stopVpn() (vpnStatus *zeropsDaemonProtocol.VpnStatus, err error) {
+	data := h.storage.Data()
 
 	err = h.cleanVpn()
 	if err != nil {
@@ -19,10 +20,11 @@ func (h *Handler) stopVpn() (vpnStatus *zeropsDaemonProtocol.VpnStatus, err erro
 		return nil, err
 	}
 
-	data := h.storage.Data()
-	err = dns.CleanDns(h.dnsServer, data.DnsIp, data.ClientIp, localDnsManagement)
-	if err != nil {
-		return nil, err
+	if data.InterfaceName != "" {
+		err = dns.CleanDns(h.dnsServer, data.DnsIp, data.InterfaceName, localDnsManagement)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	dataReset := &daemonStorage.Data{}

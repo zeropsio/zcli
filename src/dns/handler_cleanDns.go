@@ -9,12 +9,10 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 
 	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/utils/interfaces"
-
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 )
 
-func CleanDns(dnsServer *dnsServer.Handler, dnsIp, clientIp net.IP, dnsManagement LocalDnsManagement) error {
+func CleanDns(dnsServer *dnsServer.Handler, dnsIp net.IP, interfaceName string, dnsManagement LocalDnsManagement) error {
 
 	switch dnsManagement {
 	case LocalDnsManagementUnknown:
@@ -22,15 +20,8 @@ func CleanDns(dnsServer *dnsServer.Handler, dnsIp, clientIp net.IP, dnsManagemen
 	case LocalDnsManagementSystemdResolve:
 		return nil
 	case LocalDnsManagementResolveConf:
-		vpnInterfaceName, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(clientIp)
-		if err != nil {
-			return err
-		}
-		if !vpnInterfaceFound {
-			return nil
-		}
-		cmd := exec.Command("resolvconf", "-d", vpnInterfaceName)
-		_, err = cmdRunner.Run(cmd)
+		cmd := exec.Command("resolvconf", "-d", interfaceName)
+		_, err := cmdRunner.Run(cmd)
 		if err != nil {
 			return err
 		}

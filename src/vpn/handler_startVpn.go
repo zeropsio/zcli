@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/zerops-io/zcli/src/utils/interfaces"
+
 	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/dns"
@@ -32,12 +34,16 @@ func (h *Handler) startVpn(
 	defer func() {
 		if err != nil {
 			h.logger.Error(err)
+			err = h.cleanVpn()
+			if err != nil {
+				h.logger.Error(err)
+			}
 		}
 	}()
 
-	err = h.cleanVpn()
-	if err != nil {
-		return err
+	data := h.storage.Data()
+	if data.VpnStarted {
+		return nil
 	}
 
 	publicKey, privateKey, err := h.generateKeys()
@@ -162,12 +168,17 @@ func (h *Handler) startVpn(
 		return err
 	}
 
+	ifName, _, err := interfaces.GetInterfaceNameByIp(clientIp)
+	if err != nil {
+		return err
+	}
+
 	h.logger.Debug("try vpn")
 	if !h.isVpnTunnelAlive(serverIp) {
+		dns.CleanDns(h.dnsServer, dnsIp, ifName, dnsManagement)
 		return errors.New(i18n.VpnStartTunnelIsNotAlive)
 	}
 
-	data := h.storage.Data()
 	data.ServerIp = serverIp
 	data.VpnNetwork = vpnNetwork
 	data.ProjectId = projectId
@@ -181,6 +192,7 @@ func (h *Handler) startVpn(
 	data.DnsManagement = string(dnsManagement)
 	data.CaCertificateUrl = caCertificateUrl
 	data.VpnStarted = true
+	data.InterfaceName = ifName
 
 	err = h.storage.Save(data)
 	if err != nil {
