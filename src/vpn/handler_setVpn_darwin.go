@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -18,24 +18,24 @@ import (
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
 )
 
+const TunnelNameFile = "/tmp/wg-tun"
+
 func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, response *zeropsVpnProtocol.StartVpnResponse) error {
 	var err error
 
 	h.logger.Debug("run wireguard-go utun")
-
-	output, err := cmdRunner.Run(exec.Command("wireguard-go", "utun"))
+	cmd := exec.Command("wireguard-go", "utun")
+	cmd.Env = []string{"WG_TUN_NAME_FILE=" + TunnelNameFile}
+	_, err = cmdRunner.Run(cmd)
 	if err != nil {
 		h.logger.Error(err)
 		return errors.New(i18n.VpnStartWireguardUtunError)
 	}
 
-	re := regexp.MustCompile(`INFO: \((.*)\)`)
-	submatches := re.FindSubmatch(output)
-	if len(submatches) != 2 {
-		return errors.New(i18n.VpnStartWireguardInterfaceNotfound)
+	interfaceName, err := getTunnelName()
+	if err != nil {
+		return err
 	}
-
-	interfaceName := string(submatches[1])
 
 	{
 		privateKeyName := uuid.New().String()
@@ -88,4 +88,12 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, resp
 	}
 
 	return nil
+}
+
+func getTunnelName() (string, error) {
+	b, err := ioutil.ReadFile(TunnelNameFile)
+	if err != nil {
+		return "", errors.New(i18n.VpnStartWireguardInterfaceNotfound)
+	}
+	return strings.TrimSpace(string(b)), nil
 }
