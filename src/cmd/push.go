@@ -59,6 +59,7 @@ func pushCmd() *cobra.Command {
 				ZipFilePath:      params.GetString(cmd, "zipFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
+				SourceName:       params.GetString(cmd, "source"),
 				ProjectName:      args[0],
 				ServiceStackName: args[1],
 			})
@@ -68,6 +69,7 @@ func pushCmd() *cobra.Command {
 	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
+	params.RegisterString(cmd, "source", "", i18n.SourceName)
 
 	return cmd
 }

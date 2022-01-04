@@ -19,6 +19,7 @@ const (
 
 	// flags description
 	BuildVersionName = "custom version name"
+	SourceName       = "zerops.yml source service"
 	BuildWorkingDir  = "working dir, all files path are relative to this directory"
 	BuildZipFilePath = "save final zip file"
 
@@ -44,7 +45,6 @@ const (
 	BuildDeployProjectNotFound         = "project not found"
 	BuildDeployProjectsWithSameName    = "there are multiple projects with same name"
 	BuildDeployServiceStatus           = "service status: %s"
-	BuildDeployTemporaryShutdown       = "temporaryShutdown: %t"
 	BuildDeployCreatingPackageStart    = "creating package"
 	BuildDeployCreatingPackageDone     = "package created"
 	BuildDeployPackageSavedInto        = "package file saved into: %s"
