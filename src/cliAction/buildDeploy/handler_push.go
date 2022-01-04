@@ -8,16 +8,19 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
-
-	"github.com/zerops-io/zcli/src/i18n"
 )
 
 func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 	serviceStack, err := h.checkInputValues(ctx, config)
 	if err != nil {
 		return err
+	}
+
+	if config.SourceName == "" {
+		config.SourceName = serviceStack.GetName()
 	}
 
 	fmt.Println(i18n.BuildDeployCreatingPackageStart)
@@ -80,6 +83,10 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 	deployResponse, err := h.apiGrpcClient.PutAppVersionBuildAndDeploy(ctx, &zeropsApiProtocol.PutAppVersionBuildAndDeployRequest{
 		Id:                 appVersion.GetId(),
 		BuildConfigContent: base64.StdEncoding.EncodeToString(buildConfigContent),
+		Source: &zeropsApiProtocol.StringNull{
+			Value: config.SourceName,
+			Valid: true,
+		},
 	})
 	if err := utils.HandleGrpcApiError(deployResponse, err); err != nil {
 		return err

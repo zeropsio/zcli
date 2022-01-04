@@ -2,15 +2,13 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/zerops-io/zcli/src/i18n"
-
-	"google.golang.org/grpc/codes"
-
-	"google.golang.org/grpc/status"
-
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/zeropsVpnProtocol"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func WithCustomTimeoutMessage(message string) HandleGrpcErrorOption {
@@ -50,7 +48,8 @@ func HandleGrpcApiError(
 		return err
 	}
 	if response.GetError().GetCode() != zeropsApiProtocol.ErrorCode_NO_ERROR {
-		return errors.New(response.GetError().GetMessage())
+
+		return errors.New(fmt.Sprintf("%s [%s]", response.GetError().GetMessage(), string(response.GetError().GetMeta())))
 	}
 
 	return nil

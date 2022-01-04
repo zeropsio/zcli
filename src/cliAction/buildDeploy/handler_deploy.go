@@ -47,17 +47,8 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployDeployingStart)
 
-	temporaryShutdown := false
-	if serviceStack.GetStatus() == zeropsApiProtocol.ServiceStackStatus_SERVICE_STACK_STATUS_READY_TO_DEPLOY ||
-		serviceStack.GetStatus() == zeropsApiProtocol.ServiceStackStatus_SERVICE_STACK_STATUS_ACTION_FAILED {
-		temporaryShutdown = true
-	}
-
-	fmt.Printf(i18n.BuildDeployTemporaryShutdown+"\n", temporaryShutdown)
-
 	deployResponse, err := h.apiGrpcClient.PutAppVersionDeploy(ctx, &zeropsApiProtocol.PutAppVersionDeployRequest{
-		Id:                appVersion.GetId(),
-		TemporaryShutdown: temporaryShutdown,
+		Id: appVersion.GetId(),
 	})
 	if err := utils.HandleGrpcApiError(deployResponse, err); err != nil {
 		return err

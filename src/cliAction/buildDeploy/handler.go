@@ -11,6 +11,7 @@ type Config struct {
 
 type RunConfig struct {
 	ProjectName      string
+	SourceName       string
 	ServiceStackName string
 	PathsForPacking  []string
 	WorkingDir       string
