@@ -27,7 +27,7 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ZeropsLogin    string
+	ZeropsEmail    string
 	ZeropsPassword string
 	ZeropsToken    string
 }
@@ -59,7 +59,7 @@ func New(
 func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 
 	if runConfig.ZeropsPassword == "" &&
-		runConfig.ZeropsLogin == "" &&
+		runConfig.ZeropsEmail == "" &&
 		runConfig.ZeropsToken == "" {
 		return errors.New(i18n.LoginParamsMissing)
 	}
@@ -68,7 +68,7 @@ func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 	if runConfig.ZeropsToken != "" {
 		err = h.loginWithToken(ctx, runConfig.ZeropsToken)
 	} else {
-		err = h.loginWithPassword(ctx, runConfig.ZeropsLogin, runConfig.ZeropsPassword)
+		err = h.loginWithPassword(ctx, runConfig.ZeropsEmail, runConfig.ZeropsPassword)
 	}
 	if err != nil {
 		return err
@@ -95,14 +95,6 @@ func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 }
 
 func (h *Handler) loginWithPassword(_ context.Context, login, password string) error {
-
-	if login == "" {
-		return errors.New(i18n.LoginZeropsLoginMissing)
-	}
-	if password == "" {
-		return errors.New(i18n.LoginZeropsPasswordMissing)
-	}
-
 	loginData, err := json.Marshal(struct {
 		Email    string
 		Password string

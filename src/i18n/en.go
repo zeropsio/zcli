@@ -33,11 +33,9 @@ const (
 	ZipClientPackingFile      = "packing file: %s"
 
 	// login
-	LoginParamsMissing         = "either zeropsLogin + zeropsPassword or zeropsToken params must be set"
-	LoginZeropsLoginMissing    = "param zeropsLogin must be set"
-	LoginZeropsPasswordMissing = "param zeropsPassword must be set"
-	LoginSuccess               = "you are logged in"
-	LoginVpnClosed             = "vpn connection was closed"
+	LoginParamsMissing = "either login with password or token must be passed"
+	LoginSuccess       = "you are logged in"
+	LoginVpnClosed     = "vpn connection was closed"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
