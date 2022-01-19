@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/cliAction/login"
+
+	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
@@ -15,7 +16,7 @@ import (
 
 func loginCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "login",
+		Use:          "login {token | username password}",
 		Short:        i18n.CmdLogin,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -35,6 +36,8 @@ func loginCmd() *cobra.Command {
 				CaCertificateUrl: params.GetPersistentString(constants.PersistentParamCaCertificateUrl),
 			})
 
+			email, password, token := getCredentials(cmd, args)
+
 			return login.New(
 				login.Config{
 					RestApiAddress: params.GetPersistentString(constants.PersistentParamRestApiAddress),
@@ -45,9 +48,9 @@ func loginCmd() *cobra.Command {
 				apiClientFactory,
 				grpcDaemonClientFactory.New(),
 			).Run(ctx, login.RunConfig{
-				ZeropsLogin:    params.GetString(cmd, "zeropsLogin"),
-				ZeropsPassword: params.GetString(cmd, "zeropsPassword"),
-				ZeropsToken:    params.GetString(cmd, "zeropsToken"),
+				ZeropsEmail:    email,
+				ZeropsPassword: password,
+				ZeropsToken:    token,
 			})
 		},
 	}
@@ -57,4 +60,21 @@ func loginCmd() *cobra.Command {
 	params.RegisterString(cmd, "zeropsToken", "", "zerops account token")
 
 	return cmd
+}
+
+func getCredentials(cmd *cobra.Command, args []string) (login, password, token string) {
+	login = params.GetString(cmd, "zeropsLogin")
+	password = params.GetString(cmd, "zeropsPassword")
+	token = params.GetString(cmd, "zeropsToken")
+	if len(args) == 2 {
+		login = args[0]
+		password = args[1]
+		token = ""
+	}
+	if len(args) == 1 {
+		token = args[0]
+		login = ""
+		password = ""
+	}
+	return
 }
