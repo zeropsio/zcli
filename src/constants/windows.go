@@ -3,9 +3,26 @@
 
 package constants
 
-const (
-	LogFilePath           = "/var/log/zerops/zerops.log"
-	SocketFilePath        = "/run/zerops/daemon.sock"
-	DaemonStorageFilePath = "/var/lib/zerops/daemon.data"
-	DaemonInstallDir      = "/usr/local/"
+import (
+	"os"
+	"path/filepath"
 )
+
+var (
+	LogFilePath,
+	DaemonStorageFilePath,
+	DaemonAddress,
+	DaemonInstallDir string
+)
+
+const WireguardPath = `C:\Program Files\Wireguard`
+
+func init() {
+	appData, _ := os.UserConfigDir()
+	zeropsFolder := filepath.Join(appData, "Zerops")
+
+	LogFilePath = filepath.Join(zeropsFolder, "zerops.log")
+	DaemonAddress = ":45677"
+	DaemonStorageFilePath = filepath.Join(zeropsFolder, "daemon.data")
+	DaemonInstallDir = zeropsFolder
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/zerops-io/zcli/src/i18n"
@@ -32,6 +33,17 @@ func IsAlive() (bool, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 		defer cancel()
 		_, err = exec.CommandContext(ctx, "ping6", "-c", "1", "core-master.zerops").Output()
+		if err != nil {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	if runtime.GOOS == "windows" {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel()
+		_, err = exec.CommandContext(ctx, "ping", "/n", "1", "core-master").Output()
 		if err != nil {
 			return false, nil
 		}

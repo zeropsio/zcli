@@ -15,7 +15,7 @@ func (h *Handler) generateKeys() (public, private string, err error) {
 	if err != nil {
 		return
 	}
-	privateKey := privateKeyOutput[0 : len(privateKeyOutput)-1]
+	privateKey := bytes.TrimSpace(privateKeyOutput)
 
 	cmd := exec.Command("wg", "pubkey")
 	cmd.Stdin = bytes.NewReader(privateKey)
@@ -26,7 +26,7 @@ func (h *Handler) generateKeys() (public, private string, err error) {
 
 	h.logger.Debug("generate keys end")
 
-	publicKey := publicKeyOutput[0 : len(publicKeyOutput)-1]
+	publicKey := bytes.TrimSpace(publicKeyOutput)
 
 	return string(publicKey), string(privateKey), nil
 }

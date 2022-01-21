@@ -26,7 +26,7 @@ func SetDns(dnsServer *dnsServer.Handler, dnsIp net.IP, clientIp net.IP, vpnNetw
 	}
 
 	switch dnsManagement {
-	case LocalDnsManagementUnknown:
+	case LocalDnsManagementUnknown, LocalDnsManagementWindows:
 		return nil
 
 	case LocalDnsManagementSystemdResolve:

@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Handler) CreateClient(ctx context.Context) (_ zeropsDaemonProtocol.ZeropsDaemonProtocolClient, closeFunc func(), err error) {
-	connection, err := grpc.DialContext(ctx, "unix:///"+constants.SocketFilePath, grpc.WithInsecure())
+	connection, err := grpc.DialContext(ctx, "localhost"+constants.DaemonAddress, grpc.WithInsecure())
 	if err != nil {
 		return nil, nil, err
 	}

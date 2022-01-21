@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"text/template"
 
@@ -56,8 +57,8 @@ func (daemon *darwinRecord) Install() error {
 	}
 	defer file.Close()
 
-	logDir := path.Dir(constants.LogFilePath)
-	daemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
+	logDir := filepath.Dir(constants.LogFilePath)
+	daemonStorageDir := filepath.Dir(constants.DaemonStorageFilePath)
 
 	templ, err := template.New("propertyList").Parse(propertyList)
 	if err != nil {
@@ -112,7 +113,7 @@ func (daemon *darwinRecord) Remove() error {
 		}
 	}
 
-	daemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
+	daemonStorageDir := filepath.Dir(constants.DaemonStorageFilePath)
 
 	{
 		err := sudoCommands(

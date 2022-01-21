@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -47,8 +48,8 @@ func (daemon *systemDRecord) Install() error {
 	}
 
 	// create read writes paths
-	logDir := path.Dir(constants.LogFilePath)
-	daemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
+	logDir := filepath.Dir(constants.LogFilePath)
+	daemonStorageDir := filepath.Dir(constants.DaemonStorageFilePath)
 	readWritePaths := []string{
 		logDir,
 		daemonStorageDir,
@@ -59,16 +60,16 @@ func (daemon *systemDRecord) Install() error {
 		return err
 	}
 	if dnsManagement == dns.LocalDnsManagementResolveConf {
-		dir := path.Dir(constants.ResolvconfOrderFilePath)
+		dir := filepath.Dir(constants.ResolvconfOrderFilePath)
 		readWritePaths = append(readWritePaths, dir)
 		readWritePaths = append(readWritePaths, "/run/resolvconf/")
 	}
 	if dnsManagement == dns.LocalDnsManagementFile {
-		dir := path.Dir(constants.ResolvFilePath)
+		dir := filepath.Dir(constants.ResolvFilePath)
 		readWritePaths = append(readWritePaths, dir)
 	}
 
-	runtimeDirectoryName := path.Base(path.Dir(constants.SocketFilePath))
+	runtimeDirectoryName := path.Base(path.Dir(constants.DaemonAddress))
 
 	if err := tmpl.Execute(
 		file,
@@ -129,8 +130,8 @@ func (daemon *systemDRecord) Remove() error {
 		}
 	}
 
-	logDir := path.Dir(constants.LogFilePath)
-	DaemonStorageDir := path.Dir(constants.DaemonStorageFilePath)
+	logDir := filepath.Dir(constants.LogFilePath)
+	DaemonStorageDir := filepath.Dir(constants.DaemonStorageFilePath)
 
 	{
 		err := sudoCommands(

@@ -34,9 +34,9 @@ func (h *Handler) startVpn(
 	defer func() {
 		if err != nil {
 			h.logger.Error(err)
-			err = h.cleanVpn()
-			if err != nil {
-				h.logger.Error(err)
+			cleanErr := h.cleanVpn()
+			if cleanErr != nil {
+				h.logger.Error(cleanErr)
 			}
 		}
 	}()
@@ -120,6 +120,7 @@ func (h *Handler) startVpn(
 		Signature:       signature,
 		Expiry:          zeropsVpnProtocol.ToProtoTimestamp(expiry),
 	})
+
 	if err := utils.HandleVpnApiError(startVpnResponse, err); err != nil {
 		if errStatus, ok := status.FromError(err); ok {
 			return errors.New(errStatus.Err().Error())
