@@ -15,7 +15,8 @@ import (
 )
 
 type Config struct {
-	Socket string
+	Socket  string
+	Address string
 }
 
 type Handler struct {
@@ -41,12 +42,21 @@ func (h *Handler) Run(ctx context.Context) error {
 		return err
 	}
 
-	lis, err := net.Listen("unix", h.config.Socket)
-	if err != nil {
-		return errors.New(fmt.Sprintf("failed to listen: %v", err))
-	}
-	if err := os.Chmod(h.config.Socket, 0666); err != nil {
-		return errors.New(fmt.Sprintf("failed to chmod: %v", err))
+	var lis net.Listener
+	if h.config.Socket != "" {
+		lis, err = net.Listen("unix", h.config.Socket)
+		if err != nil {
+			return errors.New(fmt.Sprintf("failed to listen: %v", err))
+		}
+		if err := os.Chmod(h.config.Socket, 0666); err != nil {
+			return errors.New(fmt.Sprintf("failed to chmod: %v", err))
+		}
+
+	} else if h.config.Address != "" {
+		lis, err = net.Listen("tcp", h.config.Address)
+		if err != nil {
+			return errors.New(fmt.Sprintf("failed to listen: %v", err))
+		}
 	}
 
 	var opts []grpc.ServerOption

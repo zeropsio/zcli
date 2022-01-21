@@ -3,6 +3,7 @@ package dns
 import (
 	"os/exec"
 	"regexp"
+	"runtime"
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/scutil"
@@ -18,6 +19,7 @@ const (
 	LocalDnsManagementFile           LocalDnsManagement = "FILE"
 	LocalDnsManagementScutil         LocalDnsManagement = "SCUTIL"
 	LocalDnsManagementUnknown        LocalDnsManagement = "UNKNOWN"
+	LocalDnsManagementWindows        LocalDnsManagement = "WINDOWS"
 )
 
 func DetectDns() (LocalDnsManagement, error) {
@@ -58,6 +60,9 @@ func DetectDns() (LocalDnsManagement, error) {
 		return LocalDnsManagementFile, nil
 	}
 
+	if runtime.GOOS == "windows" {
+		return LocalDnsManagementWindows, nil
+	}
 	return LocalDnsManagementUnknown, nil
 }
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/zerops-io/zcli/src/utils"
@@ -25,7 +25,7 @@ func New(config Config) (*Handler, error) {
 		config: config,
 	}
 
-	dir := path.Dir(config.FilePath)
+	dir := filepath.Dir(config.FilePath)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return nil, err

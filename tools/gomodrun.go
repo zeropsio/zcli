@@ -6,13 +6,14 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 )
 
 func getMod(dir string) (string, error) {
 	if _, err := os.Stat(path.Join(dir, "go.mod")); err == nil {
 		return dir, nil
 	}
-	newDir := path.Dir(dir)
+	newDir := filepath.Dir(dir)
 	if newDir != "" {
 		return getMod(newDir)
 	}

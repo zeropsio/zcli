@@ -3,7 +3,7 @@ package logger
 import (
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,7 +20,7 @@ type Handler struct {
 
 func New(config Config) (*Handler, error) {
 
-	dir := path.Dir(config.FilePath)
+	dir := filepath.Dir(config.FilePath)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return nil, err

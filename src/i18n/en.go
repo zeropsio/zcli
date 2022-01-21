@@ -89,6 +89,7 @@ const (
 
 	// daemon
 	DaemonInstallerDesc = "zerops daemon"
+	DaemonElevated      = "operation continues in the new window"
 
 	// daemon install
 	DaemonInstallSuccess                 = "zerops daemon has been installed"

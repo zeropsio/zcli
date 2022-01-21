@@ -3,7 +3,7 @@ package utils
 import "net"
 
 func IpToString(ip net.IP) string {
-	if ip.To16() != nil {
+	if ip.To4() == nil {
 		return "[" + ip.String() + "]"
 	}
 
