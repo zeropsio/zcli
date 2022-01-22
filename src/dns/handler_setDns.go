@@ -42,7 +42,7 @@ func SetDns(dnsServer *dnsServer.Handler, dnsIp net.IP, clientIp net.IP, vpnNetw
 		}
 
 		cmd := exec.Command("resolvconf", "-a", vpnInterfaceName)
-		cmd.Stdin = strings.NewReader("nameserver " + dnsIp.String())
+		cmd.Stdin = strings.NewReader(strings.Join([]string{"nameserver " + dnsIp.String(), "search zerops"}, "\n"))
 		_, err = cmdRunner.Run(cmd)
 		if err != nil {
 			return err
