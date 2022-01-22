@@ -21,9 +21,9 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) (res []F
 
 	for _, source := range sources {
 
-		parts := strings.Split(source, "*")
+		parts := strings.Split(source, "~")
 		if len(parts) > 2 {
-			return nil, errors.New(i18n.ZipClientMaxOneAsterix)
+			return nil, errors.New(i18n.ZipClientMaxOneTilde)
 		}
 		if len(parts) == 1 {
 			parts = []string{

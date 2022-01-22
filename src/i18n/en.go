@@ -28,7 +28,7 @@ const (
 
 	// zipClient
 	ZipClientWorkingDirectory = "working directory: %s"
-	ZipClientMaxOneAsterix    = "only one *(asterisk) is allowed"
+	ZipClientMaxOneTilde      = "only one ~(tilde) is allowed"
 	ZipClientPackingDirectory = "packing directory: %s"
 	ZipClientPackingFile      = "packing file: %s"
 
