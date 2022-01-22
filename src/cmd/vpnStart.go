@@ -21,7 +21,7 @@ func vpnStartCmd() *cobra.Command {
 		Use:          "start projectName",
 		Short:        i18n.CmdVpnStart,
 		SilenceUsage: true,
-		Args:         cobra.ExactArgs(1),
+		Args:         CustomMessageArgs(cobra.ExactArgs(1), i18n.VpnStartExpectedProjectName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
