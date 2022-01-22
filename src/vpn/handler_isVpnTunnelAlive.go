@@ -3,8 +3,8 @@ package vpn
 import (
 	"context"
 	"net"
-	"os/exec"
-	"runtime"
+
+	"github.com/zerops-io/zcli/src/nettools"
 )
 
 func (h *Handler) isVpnTunnelAlive(serverIp net.IP) bool {
@@ -18,12 +18,7 @@ func (h *Handler) isVpnTunnelAlive(serverIp net.IP) bool {
 			ctx, cancel := context.WithTimeout(context.Background(), h.config.VpnCheckTimeout)
 			defer cancel()
 
-			pingCommand := exec.CommandContext(ctx, "ping6", "-c", "1", serverIp.String())
-			if runtime.GOOS == "windows" {
-				pingCommand = exec.CommandContext(ctx, "ping", "/n", "1", serverIp.String())
-			}
-
-			_, err := pingCommand.Output()
+			err := nettools.Ping(ctx, serverIp.String())
 			if err != nil {
 				return false
 			}

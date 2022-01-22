@@ -2,7 +2,10 @@ package removeDaemon
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/zerops-io/zcli/src/daemonInstaller"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,6 +29,9 @@ func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 	}
 
 	err := h.daemonInstaller.Remove()
+	if errors.Is(err, daemonInstaller.ErrElevatedPrivileges) {
+		return nil
+	}
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ type daemon interface {
 }
 
 var (
-	ErrAlreadyInstalled = errors.New("Service has already been installed")
-	ErrNotInstalled     = errors.New("Service is not installed")
+	ErrElevatedPrivileges = errors.New("Installation continues in the new window")
+	ErrAlreadyInstalled   = errors.New("Service has already been installed")
+	ErrNotInstalled       = errors.New("Service is not installed")
 )
