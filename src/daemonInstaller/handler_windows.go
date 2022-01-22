@@ -39,13 +39,9 @@ func (daemon *windowsRecord) Install() error {
 		return errors.New(i18n.DaemonInstallWireguardNotFound)
 	}
 
-	if !amAdmin() {
-		err := runMeElevated()
-		if err != nil {
-			return err
-		}
-		fmt.Println(i18n.DaemonElevated)
-		return nil
+	err = checkAndRunAsAdmin()
+	if err != nil {
+		return err
 	}
 
 	m, err := mgr.Connect()
@@ -59,9 +55,9 @@ func (daemon *windowsRecord) Install() error {
 		return err
 	}
 
-	ser, err := m.CreateService("zerops", binaryPath, mgr.Config{
-		Description:      "zcli zerops daemon",
-		DisplayName:      "zerops",
+	ser, err := m.CreateService(daemon.name, binaryPath, mgr.Config{
+		Description:      daemon.description,
+		DisplayName:      "zerops daemon",
 		StartType:        mgr.StartAutomatic,
 		ServiceStartName: ".\\LocalSystem",
 		ErrorControl:     mgr.ErrorNormal,
@@ -80,13 +76,9 @@ func (daemon *windowsRecord) Remove() error {
 		return ErrNotInstalled
 	}
 
-	if !amAdmin() {
-		err := runMeElevated()
-		if err != nil {
-			return err
-		}
-		fmt.Println(i18n.DaemonElevated)
-		return nil
+	err := checkAndRunAsAdmin()
+	if err != nil {
+		return err
 	}
 
 	m, err := mgr.Connect()
@@ -95,7 +87,7 @@ func (daemon *windowsRecord) Remove() error {
 	}
 	defer m.Disconnect()
 
-	ser, err := m.OpenService("zerops")
+	ser, err := m.OpenService(daemon.name)
 	if err != nil {
 		return err
 	}
@@ -108,30 +100,38 @@ func (daemon *windowsRecord) Remove() error {
 func (daemon *windowsRecord) IsInstalled() bool {
 	h, err := windows.OpenSCManager(nil, nil, windows.SC_MANAGER_CONNECT)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	defer windows.Close(h)
 
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
-	serviceName, err := syscall.UTF16PtrFromString("zerops")
+	serviceName, err := syscall.UTF16PtrFromString(daemon.name)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	ser, err := windows.OpenService(h, serviceName, windows.SERVICE_QUERY_STATUS)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	defer windows.CloseServiceHandle(ser)
 	return true
 }
 
-func runMeElevated() error {
+func checkAndRunAsAdmin() error {
+	if !runsUnderAdmin() {
+		err := runAsAdmin()
+		if err != nil {
+			return err
+		}
+		fmt.Println(i18n.DaemonElevated)
+		return ErrElevatedPrivileges
+	}
+	return nil
+}
+
+func runAsAdmin() error {
 	verb := "runas"
 	exe, _ := os.Executable()
 	cwd, _ := os.Getwd()
@@ -148,7 +148,7 @@ func runMeElevated() error {
 	err := windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd)
 	return err
 }
-func amAdmin() bool {
+func runsUnderAdmin() bool {
 	_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
 	if err != nil {
 		return false

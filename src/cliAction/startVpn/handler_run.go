@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zerops-io/zcli/src/daemonInstaller"
+
 	"github.com/peterh/liner"
 
 	"github.com/zerops-io/zcli/src/i18n"
@@ -87,6 +89,11 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 					return errors.New(i18n.VpnStartTerminatedByUser)
 				} else if answer == "y" {
 					err := h.daemonInstaller.Install()
+
+					if errors.Is(err, daemonInstaller.ErrElevatedPrivileges) {
+						return nil
+					}
+
 					if err != nil {
 						return err
 					}
