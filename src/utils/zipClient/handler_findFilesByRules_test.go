@@ -80,9 +80,9 @@ var testErrorResponseDataProvider = []struct {
 		name:       "single files - strip directory",
 		workingDir: "./",
 		input: []string{
-			"test/var/www/dir/*/file2.1.txt",
-			"test/var/www/dir/*/subDir/file3.1.txt",
-			"test/var/www/dir/subDir/*/file3.1.txt",
+			"test/var/www/dir/~/file2.1.txt",
+			"test/var/www/dir/~/subDir/file3.1.txt",
+			"test/var/www/dir/subDir/~/file3.1.txt",
 		},
 		output: []string{
 			"file2.1.txt",
@@ -94,8 +94,8 @@ var testErrorResponseDataProvider = []struct {
 		name:       "all files - strip directory",
 		workingDir: "./",
 		input: []string{
-			"test/var/www/dir/*",
-			"test/var/www/dir/subDir/*",
+			"test/var/www/dir/~",
+			"test/var/www/dir/subDir/~",
 		},
 		output: []string{
 			"file2.1.txt",
@@ -178,9 +178,9 @@ var testErrorResponseDataProvider = []struct {
 		name:       "single files - strip directory",
 		workingDir: "test/var/www/",
 		input: []string{
-			"dir/*/file2.1.txt",
-			"dir/*/subDir/file3.1.txt",
-			"dir/subDir/*/file3.1.txt",
+			"dir/~/file2.1.txt",
+			"dir/~/subDir/file3.1.txt",
+			"dir/subDir/~/file3.1.txt",
 		},
 		output: []string{
 			"file2.1.txt",
@@ -192,8 +192,8 @@ var testErrorResponseDataProvider = []struct {
 		name:       "all files - strip directory",
 		workingDir: "test/var/www/",
 		input: []string{
-			"dir/*",
-			"dir/subDir/*",
+			"dir/~",
+			"dir/subDir/~",
 		},
 		output: []string{
 			"file2.1.txt",
