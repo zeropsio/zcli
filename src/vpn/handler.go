@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	wireguardPort  = "51820"
 	vpnApiGrpcPort = ":64510"
 )
 
