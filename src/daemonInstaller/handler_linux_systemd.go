@@ -149,10 +149,11 @@ func (daemon *systemDRecord) Remove() error {
 }
 
 func (daemon *systemDRecord) IsInstalled() bool {
-	if _, err := os.Stat(daemon.servicePath()); err == nil {
-		return true
+	if _, err := os.Stat(daemon.servicePath()); err != nil {
+		return false
 	}
-	return false
+	err := exec.Command("systemctl", "check", daemon.name).Run()
+	return err == nil
 }
 
 func (daemon *systemDRecord) serviceName() string {

@@ -33,6 +33,8 @@ func newDaemon(name, description string, dependencies []string) (daemon, error) 
 	}, nil
 }
 
+const errnoServiceAlreadyExists = syscall.Errno(1073)
+
 func (daemon *windowsRecord) Install() error {
 	exists, err := utils.FileExists(filepath.Join(constants.WireguardPath, "wireguard.exe"))
 	if err != nil || !exists {
@@ -62,6 +64,10 @@ func (daemon *windowsRecord) Install() error {
 		ServiceStartName: ".\\LocalSystem",
 		ErrorControl:     mgr.ErrorNormal,
 	}, "daemon", "run")
+
+	if errors.Is(err, errnoServiceAlreadyExists) {
+		ser, err = m.OpenService(daemon.name)
+	}
 
 	if err != nil {
 		return err
