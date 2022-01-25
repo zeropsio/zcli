@@ -20,7 +20,7 @@ Endpoint = {{.ServerAddress}}
 `
 
 func Write(path string, config Config) error {
-	err := os.MkdirAll(filepath.Dir(path), 0644)
+	err := os.MkdirAll(filepath.Dir(path), 0664)
 	if err != nil {
 		return err
 	}

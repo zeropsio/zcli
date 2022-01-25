@@ -58,7 +58,7 @@ func createVpn(
 	return vpn.New(
 		vpn.Config{
 			VpnCheckInterval:   time.Second * 3,
-			VpnCheckRetryCount: 3,
+			VpnCheckRetryCount: 5,
 			VpnCheckTimeout:    time.Second * 3,
 		},
 		logger,

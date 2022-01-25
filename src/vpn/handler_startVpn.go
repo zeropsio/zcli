@@ -9,11 +9,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zerops-io/zcli/src/utils/interfaces"
+	"github.com/zerops-io/zcli/src/dns"
 
 	"github.com/zerops-io/zcli/src/i18n"
 
-	"github.com/zerops-io/zcli/src/dns"
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
@@ -164,19 +163,8 @@ func (h *Handler) startVpn(
 	h.logger.Debug("serverIp: " + serverIp.String())
 	h.logger.Debug("vpnNetwork: " + vpnNetwork.String())
 
-	err = dns.SetDns(h.dnsServer, dnsIp, clientIp, vpnNetwork, dnsManagement)
-	if err != nil {
-		return err
-	}
-
-	ifName, _, err := interfaces.GetInterfaceNameByIp(clientIp)
-	if err != nil {
-		return err
-	}
-
 	h.logger.Debug("try vpn")
 	if !h.isVpnTunnelAlive(serverIp) {
-		dns.CleanDns(h.dnsServer, dnsIp, ifName, dnsManagement)
 		return errors.New(i18n.VpnStartTunnelIsNotAlive)
 	}
 
@@ -193,7 +181,6 @@ func (h *Handler) startVpn(
 	data.DnsManagement = string(dnsManagement)
 	data.CaCertificateUrl = caCertificateUrl
 	data.VpnStarted = true
-	data.InterfaceName = ifName
 
 	err = h.storage.Save(data)
 	if err != nil {

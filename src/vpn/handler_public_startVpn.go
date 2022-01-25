@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/i18n"
-
 	"github.com/zerops-io/zcli/src/dns"
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
 )

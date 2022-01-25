@@ -21,7 +21,6 @@ func (h *Handler) stopVpn() (vpnStatus *zeropsDaemonProtocol.VpnStatus, err erro
 	}
 
 	if data.InterfaceName != "" {
-		err = dns.CleanDns(h.dnsServer, data.DnsIp, data.InterfaceName, localDnsManagement)
 		if err != nil {
 			return nil, err
 		}

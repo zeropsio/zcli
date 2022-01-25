@@ -1,12 +1,12 @@
 package dns
 
 import (
+	"errors"
 	"os/exec"
 	"regexp"
 	"runtime"
 
 	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/scutil"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 )
@@ -22,13 +22,11 @@ const (
 	LocalDnsManagementWindows        LocalDnsManagement = "WINDOWS"
 )
 
+var UnknownDnsManagementErr = errors.New("unknown dns management")
+
 func DetectDns() (LocalDnsManagement, error) {
 
-	binaryLocationExists, err := utils.FileExists(scutil.BinaryLocation)
-	if err != nil {
-		return "", err
-	}
-	if binaryLocationExists {
+	if runtime.GOOS == "darwin" {
 		return LocalDnsManagementScutil, nil
 	}
 

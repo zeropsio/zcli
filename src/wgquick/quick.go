@@ -7,9 +7,10 @@ import (
 )
 
 type Configurator struct {
-	configPath  string
-	upCommand   *exec.Cmd
-	downCommand *exec.Cmd
+	configPath    string
+	upCommand     *exec.Cmd
+	downCommand   *exec.Cmd
+	additionalDns []string
 }
 
 func (c Configurator) Up(ifName string, config Config) error {
@@ -21,6 +22,8 @@ func (c Configurator) Up(ifName string, config Config) error {
 	}
 
 	path := filepath.Join(c.configPath, ifName+".conf")
+
+	config.DnsServers = append(config.DnsServers, c.additionalDns...)
 
 	err = Write(path, config)
 	if err != nil {
