@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
 	"github.com/zerops-io/zcli/src/utils/logger"
 )
 
@@ -21,10 +20,9 @@ type Config struct {
 }
 
 type Handler struct {
-	config    Config
-	logger    logger.Logger
-	storage   *daemonStorage.Handler
-	dnsServer *dnsServer.Handler
+	config  Config
+	logger  logger.Logger
+	storage *daemonStorage.Handler
 
 	lock sync.RWMutex
 }
@@ -33,13 +31,11 @@ func New(
 	config Config,
 	logger logger.Logger,
 	daemonStorage *daemonStorage.Handler,
-	dnsServer *dnsServer.Handler,
 ) *Handler {
 	return &Handler{
-		config:    config,
-		logger:    logger,
-		storage:   daemonStorage,
-		dnsServer: dnsServer,
+		config:  config,
+		logger:  logger,
+		storage: daemonStorage,
 	}
 }
 

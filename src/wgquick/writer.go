@@ -3,6 +3,7 @@ package wgquick
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -12,6 +13,7 @@ const Template = `
 PrivateKey = {{.ClientPrivateKey}}
 Address = {{.ClientAddress}}
 DNS = {{.DnsServers}}
+MTU = {{.MTU}}
 
 [Peer]
 PublicKey = {{.ServerPublicKey}}
@@ -20,7 +22,7 @@ Endpoint = {{.ServerAddress}}
 `
 
 func Write(path string, config Config) error {
-	err := os.MkdirAll(filepath.Dir(path), 0664)
+	err := os.MkdirAll(filepath.Dir(path), 0775)
 	if err != nil {
 		return err
 	}
@@ -37,6 +39,7 @@ func Write(path string, config Config) error {
 		ClientPrivateKey string
 		ClientAddress    string
 		DnsServers       string
+		MTU              string
 
 		ServerPublicKey string
 		AllowedIPs      string
@@ -48,6 +51,7 @@ func Write(path string, config Config) error {
 		ServerAddress:    config.ServerAddress,
 		ServerPublicKey:  config.ServerPublicKey,
 		ClientAddress:    config.ClientAddress.String(),
+		MTU:              strconv.Itoa(config.MTU),
 	})
 
 	return err

@@ -21,6 +21,7 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, resp
 		ServerAddress:    serverAddress,
 		AllowedIPs:       vpnRange,
 		ClientPrivateKey: privateKey,
+		MTU:              int(mtu),
 	})
 
 	return err

@@ -39,18 +39,7 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 
 	wg := sync.WaitGroup{}
 
-	dnsServer := createDnsServer()
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := dnsServer.Run(ctx)
-		if err != nil {
-			logger.Error(err)
-			cancel()
-		}
-	}()
-
-	vpnHandler := createVpn(storage, dnsServer, logger)
+	vpnHandler := createVpn(storage, logger)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

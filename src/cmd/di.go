@@ -6,7 +6,6 @@ import (
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
 	"github.com/zerops-io/zcli/src/utils/logger"
 	"github.com/zerops-io/zcli/src/vpn"
 )
@@ -38,10 +37,6 @@ func createCliStorage() (*cliStorage.Handler, error) {
 	)
 }
 
-func createDnsServer() *dnsServer.Handler {
-	return dnsServer.New()
-}
-
 func createDaemonStorage() (*daemonStorage.Handler, error) {
 	return daemonStorage.New(
 		daemonStorage.Config{
@@ -52,7 +47,6 @@ func createDaemonStorage() (*daemonStorage.Handler, error) {
 
 func createVpn(
 	storage *daemonStorage.Handler,
-	dnsServer *dnsServer.Handler,
 	logger *logger.Handler,
 ) *vpn.Handler {
 	return vpn.New(
@@ -63,6 +57,5 @@ func createVpn(
 		},
 		logger,
 		storage,
-		dnsServer,
 	)
 }
