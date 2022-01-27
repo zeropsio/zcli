@@ -68,7 +68,7 @@ const (
 	VpnStartWireguardUtunError         = "we weren't able to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
 	VpnStartTunnelIsNotAlive           = "we weren't able to establish zerops vpn"
-	VpnStartExpectedProjectName        = "expected project name as an positional argument"
+	VpnStartExpectedProjectName        = "expected project name as a positional argument"
 
 	// vpn status
 	VpnStatusDaemonIsUnavailable     = "daemon is currently unavailable, did you install it?"
