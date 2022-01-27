@@ -33,10 +33,10 @@ func (h *Handler) startVpn(
 	defer func() {
 		if err != nil {
 			h.logger.Error(err)
-			/*cleanErr := h.cleanVpn()
+			cleanErr := h.cleanVpn()
 			if cleanErr != nil {
 				h.logger.Error(cleanErr)
-			}*/
+			}
 		}
 	}()
 

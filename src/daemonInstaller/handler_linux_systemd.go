@@ -53,6 +53,7 @@ func (daemon *systemDRecord) Install() error {
 	readWritePaths := []string{
 		logDir,
 		daemonStorageDir,
+		constants.WireguardConfigDir,
 	}
 
 	dnsManagement, err := dns.DetectDns()

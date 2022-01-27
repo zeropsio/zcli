@@ -8,4 +8,5 @@ const (
 	DaemonAddress         = "/run/zerops/daemon.sock"
 	DaemonStorageFilePath = "/var/lib/zerops/daemon.data"
 	DaemonInstallDir      = "/usr/local/"
+	WireguardConfigDir    = "/etc/wireguard/"
 )

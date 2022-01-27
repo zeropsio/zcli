@@ -1,6 +1,7 @@
 package wgquick
 
 import (
+	_ "embed"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -8,26 +9,16 @@ import (
 	"text/template"
 )
 
-const Template = `
-[Interface]
-PrivateKey = {{.ClientPrivateKey}}
-Address = {{.ClientAddress}}
-DNS = {{.DnsServers}}
-MTU = {{.MTU}}
-
-[Peer]
-PublicKey = {{.ServerPublicKey}}
-AllowedIPs = {{.AllowedIPs}}
-Endpoint = {{.ServerAddress}}
-`
+//go:embed templates/wg.conf.tmpl
+var configTemplate string
 
 func Write(path string, config Config) error {
-	err := os.MkdirAll(filepath.Dir(path), 0775)
+	err := os.MkdirAll(filepath.Dir(path), 0664)
 	if err != nil {
 		return err
 	}
 
-	tmpl := template.Must(template.New("").Parse(Template))
+	tmpl := template.Must(template.New("").Parse(configTemplate))
 
 	f, err := os.Create(path)
 	if err != nil {
