@@ -3,6 +3,7 @@ package vpn
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"sort"
@@ -81,23 +82,25 @@ func (h *Handler) startVpn(
 	if err != nil {
 		return err
 	}
-
+	fmt.Println(ipRecords)
 	h.logger.Debug("get vpn addresses end")
 
 	sort.Slice(ipRecords, func(i, j int) bool { return rand.Int()%2 == 0 })
 
 	vpnAddress := ""
 	for _, ip := range ipRecords {
-		ipString := utils.IpToString(ip)
-		conn, err := net.DialTimeout("tcp", ipString+vpnApiGrpcPort, 5*time.Second)
-		if err != nil {
-			h.logger.Debug("check vpn addresses: " + ipString + " failed " + err.Error())
-			continue
+		if ip.To4() == nil { //FIXME: try only ipv6 addresses
+			ipString := utils.IpToString(ip)
+			conn, err := net.DialTimeout("tcp", ipString+vpnApiGrpcPort, 5*time.Second)
+			if err != nil {
+				h.logger.Debug("check vpn addresses: " + ipString + " failed " + err.Error())
+				continue
+			}
+			conn.Close()
+			h.logger.Debug("check vpn addresses: " + ipString + " success")
+			vpnAddress = ipString
+			break
 		}
-		conn.Close()
-		h.logger.Debug("check vpn addresses: " + ipString + " success")
-		vpnAddress = ipString
-		break
 	}
 
 	if vpnAddress == "" {

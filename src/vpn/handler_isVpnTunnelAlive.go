@@ -2,6 +2,7 @@ package vpn
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/zerops-io/zcli/src/nettools"
@@ -20,6 +21,7 @@ func (h *Handler) isVpnTunnelAlive(serverIp net.IP) bool {
 
 			err := nettools.Ping(ctx, serverIp.String())
 			if err != nil {
+				fmt.Println()
 				return false
 			}
 			return true

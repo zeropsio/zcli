@@ -2,6 +2,7 @@ package nettools
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"runtime"
 )
@@ -17,5 +18,9 @@ func Ping(ctx context.Context, address string) error {
 		pingCommand = exec.CommandContext(ctx, "ping", "/n", "1", address)
 	}
 
-	return pingCommand.Run()
+	out, err := pingCommand.CombinedOutput()
+	if err != nil {
+		fmt.Println(out, err)
+	}
+	return err
 }

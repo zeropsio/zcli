@@ -33,9 +33,7 @@ func (c Configurator) Up(ifName string, config Config) error {
 	c.upCommand.Args = append(c.upCommand.Args, path)
 
 	output, err := c.upCommand.CombinedOutput()
-	if err != nil {
-		fmt.Println(string(output))
-	}
+	fmt.Println(string(output))
 	return err
 }
 
