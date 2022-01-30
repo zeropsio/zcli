@@ -35,6 +35,14 @@ jobs:
             strip: false
             runLint: true
             runTests: true
+          - name: darwin arm64
+            os: macos-latest
+            buildCmd: env GOOS=darwin GOARCH=arm64 go build -o builds/zcli-darwin-arm64 -ldflags "-X github.com/zerops-io/zcli/src/cmd.Version=${{ github.event.release.tag_name }}" ./cmd/main.go
+            file: zcli-darwin-arm64
+            compress: false
+            strip: false
+            runLint: false
+            runTests: false
           - name: windows amd64
             os: ubuntu-latest
             buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-x64.exe -ldflags "-X github.com/zerops-io/zcli/src/cmd.Version=${{ github.event.release.tag_name }}" ./cmd/main.go
