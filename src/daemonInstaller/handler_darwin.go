@@ -130,11 +130,11 @@ func (daemon *darwinRecord) Remove() error {
 }
 
 func (daemon *darwinRecord) IsInstalled() bool {
-	if _, err := os.Stat(daemon.servicePath()); err == nil {
-		return true
+	if _, err := os.Stat(daemon.servicePath()); err != nil {
+		return false
 	}
 
-	return false
+	return daemon.checkRunning()
 }
 
 func (daemon *darwinRecord) checkRunning() bool {
