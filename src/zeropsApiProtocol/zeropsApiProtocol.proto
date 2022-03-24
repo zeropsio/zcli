@@ -416,7 +416,7 @@ message GetProcessResponse {
 message GetProcessResponseDto {
     string id = 1;
     string clientId = 2;
-    ProjectLightJsonObjectNull project = 3;
+    ProjectLightJsonObject project = 3;
     repeated ServiceStackLightJsonObject serviceStacks = 4;
     ProcessStatus status = 5;
     UserJsonObject createdByUser = 6;
