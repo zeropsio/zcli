@@ -27,7 +27,7 @@ func createLogger() (*logger.Handler, error) {
 }
 
 func createCliStorage() (*cliStorage.Handler, error) {
-	filePath, err := constants.CliStorageFile()
+	filePath, err := constants.CliLoginData()
 	if err != nil {
 		return nil, err
 	}

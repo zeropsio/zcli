@@ -37,6 +37,9 @@ const (
 	LoginSuccess       = "you are logged in"
 	LoginVpnClosed     = "vpn connection was closed"
 
+	// region
+	RegionNotFound = "region not found"
+
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
 	BuildDeployServiceStackNameMissing = "service name must be filled"

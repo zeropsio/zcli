@@ -52,6 +52,10 @@ func (h *Handler) Post(url string, data []byte, options ...Option) (Response, er
 	return h.do("POST", url, data, options...)
 }
 
+func (h *Handler) Get(url string, options ...Option) (Response, error) {
+	return h.do("GET", url, nil)
+}
+
 func (h *Handler) do(method string, url string, data []byte, options ...Option) (Response, error) {
 	cfg := &optionConfig{
 		headers: map[string]string{
