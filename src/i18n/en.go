@@ -18,10 +18,11 @@ const (
 	CmdVersion       = "version"
 
 	// flags description
-	BuildVersionName = "custom version name"
-	SourceName       = "zerops.yml source service"
-	BuildWorkingDir  = "working dir, all files path are relative to this directory"
-	BuildZipFilePath = "save final zip file"
+	BuildVersionName   = "custom version name"
+	SourceName         = "zerops.yml source service"
+	BuildWorkingDir    = "working dir, all files path are relative to this directory"
+	BuildZipFilePath   = "save final zip file"
+	ZeropsYamlLocation = "zerops yaml location relative to working directory"
 
 	// process
 	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"
@@ -53,9 +54,10 @@ const (
 	BuildDeployUploadingPackageDone    = "package uploaded"
 	BuildDeployUploadPackageFailed     = "package upload failed"
 	BuildDeployDeployingStart          = "deploying service"
-	BuildDeployBuildConfigNotFound     = "config file zerops.yml is not found"
-	BuildDeployBuildConfigEmpty        = "config file zerops.yml is empty"
-	BuildDeployBuildConfigTooLarge     = "max. size of zerops.yml is 10 MB"
+	BuildDeployZeropsYamlEmpty         = "config file zerops.yml is empty"
+	BuildDeployZeropsYamlTooLarge      = "max. size of zerops.yml is 10 KB"
+	BuildDeployZeropsYamlFound         = "zerops.yml found"
+	BuildDeployZeropsYamlNotFound      = "zerops.yml not found"
 	BuildDeploySuccess                 = "service deployed"
 
 	// vpn start
