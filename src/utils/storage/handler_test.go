@@ -15,35 +15,27 @@ func TestStorage(t *testing.T) {
 	}
 
 	{
-		storage, err := New(Config{
+		storage, err := New[dataObject](Config{
 			FilePath: "./test",
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		data := storage.Load(&dataObject{})
-		if d, ok := data.(*dataObject); ok {
-			Expect(d.Param).To(Equal(""))
-			d.Param = "value"
+		d := storage.Load()
+		Expect(d.Param).To(Equal(""))
+		d.Param = "value"
 
-			err = storage.Save(d)
-			Expect(err).ShouldNot(HaveOccurred())
-		} else {
-			t.Fail()
-		}
+		err = storage.Save(d)
+		Expect(err).ShouldNot(HaveOccurred())
 	}
 
 	{
-		storage, err := New(Config{
+		storage, err := New[dataObject](Config{
 			FilePath: "./test",
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		data := storage.Load(&dataObject{})
-		if d, ok := data.(*dataObject); ok {
-			Expect(d.Param).To(Equal("value"))
-		} else {
-			t.Fail()
-		}
+		d := storage.Load()
+		Expect(d.Param).To(Equal("value"))
 	}
 
 	err := os.Remove("./test")

@@ -14,14 +14,14 @@ type Config struct {
 	FilePath string
 }
 
-type Handler struct {
+type Handler[T any] struct {
 	config Config
 
 	lock sync.Mutex
 }
 
-func New(config Config) (*Handler, error) {
-	h := &Handler{
+func New[T any](config Config) (*Handler[T], error) {
+	h := &Handler[T]{
 		config: config,
 	}
 
@@ -40,44 +40,46 @@ func New(config Config) (*Handler, error) {
 	return h, nil
 }
 
-func (h *Handler) Load(data interface{}) interface{} {
+func (h *Handler[T]) Load() *T {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
+	var data T
+
 	storageFileExists, err := utils.FileExists(h.config.FilePath)
 	if err != nil {
-		return data
+		return &data
 	}
 
 	if storageFileExists {
-		data, err := func() (interface{}, error) {
+		err := func() error {
 			f, err := os.Open(h.config.FilePath)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			defer f.Close()
 
 			bytes, err := ioutil.ReadAll(f)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			err = json.Unmarshal(bytes, &data)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
-			return data, nil
+			return nil
 		}()
 		if err == nil {
-			return data
+			return &data
 		}
 	}
 
-	return data
+	return &data
 }
 
-func (h *Handler) Save(data interface{}) error {
+func (h *Handler[T]) Save(data *T) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
@@ -92,4 +94,8 @@ func (h *Handler) Save(data interface{}) error {
 	}
 
 	return nil
+}
+
+func (h *Handler[T]) Data() *T {
+	return h.Load()
 }
