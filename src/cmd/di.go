@@ -3,6 +3,8 @@ package cmd
 import (
 	"time"
 
+	"github.com/zerops-io/zcli/src/utils/storage"
+
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/daemonStorage"
@@ -31,11 +33,12 @@ func createCliStorage() (*cliStorage.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cliStorage.New(
-		cliStorage.Config{
+	s, err := storage.New[cliStorage.Data](
+		storage.Config{
 			FilePath: filePath,
 		},
 	)
+	return s, err
 }
 
 func createDnsServer() *dnsServer.Handler {
@@ -43,11 +46,12 @@ func createDnsServer() *dnsServer.Handler {
 }
 
 func createDaemonStorage() (*daemonStorage.Handler, error) {
-	return daemonStorage.New(
-		daemonStorage.Config{
+	s, err := storage.New[daemonStorage.Data](
+		storage.Config{
 			FilePath: constants.DaemonStorageFilePath,
 		},
 	)
+	return s, err
 }
 
 func createVpn(
