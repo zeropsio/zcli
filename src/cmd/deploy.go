@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/region"
 
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
@@ -31,12 +31,17 @@ func deployCmd() *cobra.Command {
 				return err
 			}
 
+			reg, err := region.RetrieveFromFile()
+			if err != nil {
+				return err
+			}
+
 			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
-				CaCertificateUrl: params.GetPersistentString(constants.PersistentParamCaCertificateUrl),
+				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
-				params.GetPersistentString(constants.PersistentParamGrpcApiAddress),
+				reg.GrpcApiAddress,
 				getToken(storage),
 			)
 			if err != nil {

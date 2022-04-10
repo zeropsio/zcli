@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/region"
+
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
@@ -31,12 +32,17 @@ func pushCmd() *cobra.Command {
 				return err
 			}
 
+			reg, err := region.RetrieveFromFile()
+			if err != nil {
+				return err
+			}
+
 			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
-				CaCertificateUrl: params.GetPersistentString(constants.PersistentParamCaCertificateUrl),
+				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
-				params.GetPersistentString(constants.PersistentParamGrpcApiAddress),
+				reg.GrpcApiAddress,
 				getToken(storage),
 			)
 			if err != nil {
@@ -44,16 +50,16 @@ func pushCmd() *cobra.Command {
 			}
 			defer closeFunc()
 
-			httpClient := httpClient.New(httpClient.Config{
+			client := httpClient.New(httpClient.Config{
 				HttpTimeout: time.Minute * 15,
 			})
 
-			zipClient := zipClient.New(zipClient.Config{})
+			zip := zipClient.New(zipClient.Config{})
 
 			return buildDeploy.New(
 				buildDeploy.Config{},
-				httpClient,
-				zipClient,
+				client,
+				zip,
 				apiGrpcClient,
 			).Push(ctx, buildDeploy.RunConfig{
 				ZipFilePath:      params.GetString(cmd, "zipFilePath"),

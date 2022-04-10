@@ -6,8 +6,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/zerops-io/zcli/src/constants"
-
 	"github.com/spf13/cobra"
 	paramsPackage "github.com/zerops-io/zcli/src/utils/params"
 )
@@ -24,11 +22,6 @@ func ExecuteCmd() error {
 	rootCmd := &cobra.Command{
 		Use: "zcli",
 	}
-
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamRestApiAddress, "https://api.app.zerops.io", "address of rest api")
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamGrpcApiAddress, "api.app.zerops.io:20902", "address of grpc api")
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamVpnApiAddress, "vpn.app.zerops.io", "address of vpn api")
-	params.RegisterPersistentString(rootCmd, constants.PersistentParamCaCertificateUrl, "https://api.app.zerops.io/ca.crt", "download url for certificate of Zerops certificate authority used for tls encrypted communication via gRPC")
 
 	rootCmd.AddCommand(deployCmd())
 	rootCmd.AddCommand(pushCmd())

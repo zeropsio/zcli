@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/zerops-io/zcli/src/constants"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -115,7 +117,12 @@ func (h *Handler) InitViper() error {
 	if err != nil {
 		return err
 	}
+	cliStorage, err := constants.CliStorageFilepath()
+	if err != nil {
+		return err
+	}
 	h.viper.AddConfigPath(path)
+	h.viper.AddConfigPath(cliStorage)
 	h.viper.SetConfigName("zcli.config")
 	h.viper.AutomaticEnv()
 

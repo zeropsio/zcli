@@ -2,12 +2,16 @@ package cmd
 
 import (
 	"context"
+	"os"
 	"time"
+
+	"github.com/zerops-io/zcli/src/constants"
+
+	"github.com/zerops-io/zcli/src/region"
 
 	"github.com/zerops-io/zcli/src/cliAction/login"
 
 	"github.com/spf13/cobra"
-	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -23,28 +27,44 @@ func loginCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
 
+			path, err := constants.CliStorageFilepath()
+			if err != nil {
+				return err
+			}
+			if err := os.MkdirAll(path, 0775); err != nil {
+				return err
+			}
+
 			storage, err := createCliStorage()
 			if err != nil {
 				return err
 			}
 
-			httpClient := httpClient.New(httpClient.Config{
+			client := httpClient.New(httpClient.Config{
 				HttpTimeout: time.Second * 5,
 			})
 
+			regionURL := params.GetString(cmd, "regionURL")
+			regionName := params.GetString(cmd, "region")
+
+			reg, err := region.RetrieveFromURL(client, regionURL, regionName)
+			if err != nil {
+				return err
+			}
+
 			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
-				CaCertificateUrl: params.GetPersistentString(constants.PersistentParamCaCertificateUrl),
+				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 
 			email, password, token := getCredentials(cmd, args)
 
 			return login.New(
 				login.Config{
-					RestApiAddress: params.GetPersistentString(constants.PersistentParamRestApiAddress),
-					GrpcApiAddress: params.GetPersistentString(constants.PersistentParamGrpcApiAddress),
+					RestApiAddress: reg.RestApiAddress,
+					GrpcApiAddress: reg.GrpcApiAddress,
 				},
 				storage,
-				httpClient,
+				client,
 				apiClientFactory,
 				grpcDaemonClientFactory.New(),
 			).Run(ctx, login.RunConfig{
@@ -58,6 +78,8 @@ func loginCmd() *cobra.Command {
 	params.RegisterString(cmd, "zeropsLogin", "", "zerops account login")
 	params.RegisterString(cmd, "zeropsPassword", "", "zerops account password")
 	params.RegisterString(cmd, "zeropsToken", "", "zerops account token")
+	params.RegisterString(cmd, "region", "", "zerops region")
+	params.RegisterString(cmd, "regionURL", "https://api.app.zerops.io/api/rest/public/region/zcli", "zerops region file url")
 
 	return cmd
 }

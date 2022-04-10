@@ -5,17 +5,22 @@ import (
 	"path"
 )
 
-const (
-	PersistentParamCaCertificateUrl = "caCertificateUrl"
-	PersistentParamRestApiAddress   = "restApiAddress"
-	PersistentParamGrpcApiAddress   = "grpcApiAddress"
-	PersistentParamVpnApiAddress    = "vpnApiAddress"
-)
+func CliLoginData() (string, error) {
+	return cliStorageFilepath("cli.data")
+}
 
-func CliStorageFile() (string, error) {
+func CliRegionData() (string, error) {
+	return cliStorageFilepath("region.data")
+}
+
+func CliStorageFilepath() (string, error) {
+	return cliStorageFilepath("")
+}
+
+func cliStorageFilepath(filename string) (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return path.Join(configDir, ".config", "zerops", "cli.data"), nil
+	return path.Join(configDir, "zerops", filename), nil
 }
