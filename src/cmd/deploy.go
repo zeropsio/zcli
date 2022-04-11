@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/region"
-
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
@@ -27,6 +25,11 @@ func deployCmd() *cobra.Command {
 			regSignals(cancel)
 
 			storage, err := createCliStorage()
+			if err != nil {
+				return err
+			}
+
+			region, err := createRegionRetriever()
 			if err != nil {
 				return err
 			}

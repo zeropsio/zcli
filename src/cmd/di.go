@@ -3,13 +3,14 @@ package cmd
 import (
 	"time"
 
-	"github.com/zerops-io/zcli/src/utils/storage"
-
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/dnsServer"
+	"github.com/zerops-io/zcli/src/region"
+	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/logger"
+	"github.com/zerops-io/zcli/src/utils/storage"
 	"github.com/zerops-io/zcli/src/vpn"
 )
 
@@ -52,6 +53,17 @@ func createDaemonStorage() (*daemonStorage.Handler, error) {
 		},
 	)
 	return s, err
+}
+
+func createRegionRetriever() (*region.Handler, error) {
+	filepath, err := constants.CliRegionData()
+	if err != nil {
+		return nil, err
+	}
+	s, err := storage.New[region.Data](
+		storage.Config{FilePath: filepath},
+	)
+	return region.New(httpClient.New(httpClient.Config{HttpTimeout: time.Second * 5}), s), err
 }
 
 func createVpn(

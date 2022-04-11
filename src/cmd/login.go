@@ -2,12 +2,7 @@ package cmd
 
 import (
 	"context"
-	"os"
 	"time"
-
-	"github.com/zerops-io/zcli/src/constants"
-
-	"github.com/zerops-io/zcli/src/region"
 
 	"github.com/zerops-io/zcli/src/cliAction/login"
 
@@ -27,14 +22,6 @@ func loginCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
 
-			path, err := constants.CliStorageFilepath()
-			if err != nil {
-				return err
-			}
-			if err := os.MkdirAll(path, 0775); err != nil {
-				return err
-			}
-
 			storage, err := createCliStorage()
 			if err != nil {
 				return err
@@ -44,10 +31,15 @@ func loginCmd() *cobra.Command {
 				HttpTimeout: time.Second * 5,
 			})
 
+			region, err := createRegionRetriever()
+			if err != nil {
+				return err
+			}
+
 			regionURL := params.GetString(cmd, "regionURL")
 			regionName := params.GetString(cmd, "region")
 
-			reg, err := region.RetrieveFromURL(client, regionURL, regionName)
+			reg, err := region.RetrieveFromURL(regionURL, regionName)
 			if err != nil {
 				return err
 			}

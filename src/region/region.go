@@ -3,63 +3,54 @@ package region
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"os"
-
 	"github.com/zerops-io/zcli/src/i18n"
-
-	"github.com/zerops-io/zcli/src/constants"
-
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/storage"
 )
 
-func RetrieveFromURL(client *httpClient.Handler, regionURL, region string) (Config, error) {
-	resp, err := client.Get(regionURL)
+type Data struct {
+	Name             string `json:"name"`
+	IsDefault        bool   `json:"isDefault"`
+	RestApiAddress   string `json:"restApiAddress"`
+	GrpcApiAddress   string `json:"grpcApiAddress"`
+	VpnApiAddress    string `json:"vpnApiAddress"`
+	CaCertificateUrl string `json:"caCertificateUrl"`
+}
+
+type Handler struct {
+	client *httpClient.Handler
+	storage *storage.Handler[Data]
+}
+
+func New(client *httpClient.Handler, storage *storage.Handler[Data]) *Handler {
+	return &Handler{storage: storage, client: client}
+}
+
+func (h *Handler) RetrieveFromURL(regionURL, region string) (Data, error) {
+	resp, err := h.client.Get(regionURL)
 	if err != nil {
-		return Config{}, err
+		return Data{}, err
 	}
 	reg, err := readRegion(region, resp.Body)
 	if err != nil {
-		return Config{}, err
+		return Data{}, err
 	}
-	regJson, err := json.Marshal(reg)
-	if err != nil {
-		return Config{}, err
-	}
-	filepath, err := constants.CliRegionData()
-	if err != nil {
-		return Config{}, err
-	}
-	err = os.WriteFile(filepath, regJson, 0666)
-	return reg, err
+	return reg, h.storage.Save(&reg)
 }
 
-func RetrieveFromFile() (Config, error) {
-	filepath, err := constants.CliRegionData()
-	if err != nil {
-		return Config{}, err
-	}
-	f, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return Config{}, err
-	}
-	var reg Config
-	err = json.Unmarshal(f, &reg)
-	if err != nil {
-		return Config{}, err
-	}
-	return reg, nil
+func (h *Handler) RetrieveFromFile() (Data, error) {
+	return *h.storage.Data(), nil
 }
 
-func readRegion(region string, regionFile json.RawMessage) (Config, error) {
-	var regions []Config
+func readRegion(region string, regionFile json.RawMessage) (Data, error) {
+	var regions []Data
 
 	err := json.Unmarshal(regionFile, &regions)
 	if err != nil {
-		return Config{}, err
+		return Data{}, err
 	}
 
-	var reg *Config
+	var reg *Data
 	for _, r := range regions {
 		r := r
 		if r.IsDefault && region == "" {
@@ -71,7 +62,7 @@ func readRegion(region string, regionFile json.RawMessage) (Config, error) {
 	}
 
 	if reg == nil {
-		return Config{}, errors.New(i18n.RegionNotFound)
+		return Data{}, errors.New(i18n.RegionNotFound)
 	}
 
 	return *reg, nil
