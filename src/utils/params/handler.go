@@ -32,15 +32,16 @@ func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, descrip
 
 	cmd.Flags().StringVar(&paramValue, name, "", description)
 
-	h.params[h.getCmdId(cmd, name)] = func() string {
+	h.params[h.getCmdId(cmd, name)] = func() *string {
 		if paramValue != "" {
-			return paramValue
+			return &paramValue
 		}
 		if h.viper.GetString(name) != "" {
-			return h.viper.GetString(name)
+			v := h.viper.GetString(name)
+			return &v
 		}
 
-		return defaultValue
+		return &defaultValue
 	}
 }
 
@@ -51,15 +52,16 @@ func (h *Handler) RegisterPersistentString(cmd *cobra.Command, name, defaultValu
 	cmd.PersistentFlags().StringVar(&paramValue, name, "", description)
 	h.viper.BindPFlags(cmd.PersistentFlags())
 
-	h.params[name] = func() string {
+	h.params[name] = func() *string {
 		if paramValue != "" {
-			return paramValue
+			return &paramValue
 		}
 		if h.viper.GetString(name) != "" {
-			return h.viper.GetString(name)
+			v := h.viper.GetString(name)
+			return &v
 		}
 
-		return defaultValue
+		return &defaultValue
 	}
 }
 
@@ -68,22 +70,23 @@ func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue u
 
 	cmd.Flags().Uint32Var(&paramValue, name, defaultValue, description)
 
-	h.params[name] = func() uint32 {
+	h.params[name] = func() *uint32 {
 		if paramValue > 0 {
-			return paramValue
+			return &paramValue
 		}
-		if h.viper.GetInt32(name) != 0 {
-			return h.viper.GetUint32(name)
+		if h.viper.GetUint32(name) != 0 {
+			v := h.viper.GetUint32(name)
+			return &v
 		}
 
-		return defaultValue
+		return &defaultValue
 	}
 }
 
 func (h *Handler) GetPersistentString(name string) string {
 	if param, exists := h.params[name]; exists {
-		if v, ok := param.(func() string); ok {
-			return v()
+		if v, ok := param.(func() *string); ok {
+			return *v()
 		}
 		return ""
 	}
@@ -93,22 +96,41 @@ func (h *Handler) GetPersistentString(name string) string {
 func (h *Handler) GetString(cmd *cobra.Command, name string) string {
 	id := h.getCmdId(cmd, name)
 	if param, exists := h.params[id]; exists {
-		if v, ok := param.(func() string); ok {
-			return v()
+		if v, ok := param.(func() *string); ok {
+			return *v()
 		}
 		return ""
 	}
 	return ""
 }
 
+func (h *Handler) GetStringP(cmd *cobra.Command, name string) *string {
+	id := h.getCmdId(cmd, name)
+	if param, exists := h.params[id]; exists {
+		if v, ok := param.(func() *string); ok {
+			return v()
+		}
+	}
+	return nil
+}
+
 func (h *Handler) GetUint32(name string) uint32 {
 	if param, exists := h.params[name]; exists {
-		if v, ok := param.(func() uint32); ok {
-			return v()
+		if v, ok := param.(func() *uint32); ok {
+			return *v()
 		}
 		return 0
 	}
 	return 0
+}
+
+func (h *Handler) GetUint32P(name string) *uint32 {
+	if param, exists := h.params[name]; exists {
+		if v, ok := param.(func() *uint32); ok {
+			return v()
+		}
+	}
+	return nil
 }
 
 func (h *Handler) InitViper() error {

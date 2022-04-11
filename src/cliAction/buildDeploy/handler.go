@@ -6,6 +6,8 @@ import (
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 )
 
+const zeropsYamlFileName = "zerops.yml"
+
 type Config struct {
 }
 
@@ -17,6 +19,7 @@ type RunConfig struct {
 	WorkingDir       string
 	ZipFilePath      string
 	VersionName      string
+	ZeropsYamlPath   *string
 }
 
 type Handler struct {

@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils"
@@ -32,24 +32,29 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 
 	buildConfigContent, err := func() ([]byte, error) {
 		for _, file := range files {
-			if file.ArchivePath == "zerops.yml" {
-				buildConfigContent, err := ioutil.ReadFile(file.SourcePath)
+			if file.ArchivePath == zeropsYamlFileName {
+				stat, err := os.Stat(file.SourcePath)
 				if err != nil {
 					return nil, err
 				}
 
-				if len(buildConfigContent) == 0 {
-					return nil, errors.New(i18n.BuildDeployBuildConfigEmpty)
+				if stat.Size() == 0 {
+					return nil, errors.New(i18n.BuildDeployZeropsYamlEmpty)
 				}
-				if len(buildConfigContent) > 10*1024*1024 {
-					return nil, errors.New(i18n.BuildDeployBuildConfigTooLarge)
+				if stat.Size() > 10*1024 {
+					return nil, errors.New(i18n.BuildDeployZeropsYamlTooLarge)
+				}
+
+				buildConfigContent, err := os.ReadFile(file.SourcePath)
+				if err != nil {
+					return nil, err
 				}
 
 				return buildConfigContent, nil
 			}
 		}
 
-		return nil, errors.New(i18n.BuildDeployBuildConfigNotFound)
+		return nil, errors.New(i18n.BuildDeployZeropsYamlNotFound)
 	}()
 	if err != nil {
 		return err
