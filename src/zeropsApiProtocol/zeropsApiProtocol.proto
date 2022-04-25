@@ -5,23 +5,33 @@ option go_package = "github.com/zerops-io/zcli/src/zeropsApiProtocol";
 package zeropsApiProtocol;
 
 service zeropsApiProtocol {
-    rpc PutAppVersionDeploy( PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
-    rpc PutAppVersionBuildAndDeploy( PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
-    rpc PostAppVersion( PostAppVersionRequest) returns (PostAppVersionResponse);
-    rpc GetProjectsByName( GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
-    rpc GetProcess( GetProcessRequest) returns (GetProcessResponse);
-    rpc PostPublicHttpRouting( PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
-    rpc GetServiceStack( GetServiceStackRequest) returns (GetServiceStackResponse);
-    rpc GetServiceStackByName( GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
-    rpc GetUserInfo( GetUserInfoRequest) returns (GetUserInfoResponse);
-    rpc PostVpnRequest( PostVpnRequestRequest) returns (PostVpnRequestResponse);
-
+    rpc PutAppVersionDeploy(PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
+    rpc PutAppVersionBuildAndDeploy(PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
+    rpc PostAppVersion(PostAppVersionRequest) returns (PostAppVersionResponse);
+    rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
+    rpc GetProjectsByName(GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
+    rpc PutProjectStart(PutProjectStartRequest) returns (PutProjectStartResponse);
+    rpc PutProjectStop(PutProjectStopRequest) returns (PutProjectStopResponse);
+    rpc PostProjectImport(PostProjectImportRequest) returns (PostProjectImportResponse);
+    rpc GetProcess(GetProcessRequest) returns (GetProcessResponse);
+    rpc PostPublicHttpRouting(PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
+    rpc GetServiceStack(GetServiceStackRequest) returns (GetServiceStackResponse);
+    rpc GetServiceStackByName(GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
+    rpc PostServiceStackImport(PostServiceStackImportRequest) returns (PostServiceStackImportResponse);
+    rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc PostVpnRequest(PostVpnRequestRequest) returns (PostVpnRequestResponse);
+    
 }
 
 message Error {
     ErrorCode code = 1;
     string message = 2;
     bytes meta = 3;
+}
+
+message ErrorNull {
+    Error value = 1;
+    bool valid = 2;
 }
 
 enum ErrorCode {
@@ -88,9 +98,6 @@ enum ErrorCode {
     RECORD_IS_READ_ONLY = 55;
     RECORD_IS_DELETED = 56;
     RECORD_COMMON_KEY_EDIT = 57;
-    IS_NOT_POSSIBLE_TO_EDIT_ANOTHER_USER = 58;
-    MANUAL_REPAIR_REQUIRED = 59;
-    NOTHING_TO_SYNC = 60;
     SERVICE_STACK_NOT_FOUND = 61;
     SERVICE_STACK_TYPE_NOT_FOUND = 62;
     SERVICE_STACK_TYPE_VERSION_NOT_FOUND = 63;
@@ -122,14 +129,13 @@ enum ErrorCode {
     ACTIVE_SERVICE_STACK_REQUIRED = 283;
     USER_APPLICATION_RUNTIME_SERVICE_STACK_REQUIRED = 284;
     PROCESS_NOT_FOUND = 82;
-    PROCESS_IS_WITHOUT_PROJECT = 299;
-    PROCESS_PROJECT_NOT_FOUND = 243;
     PROCESS_IS_ALREADY_OVER = 83;
-    PROCESS_IS_ALREADY_CANCELED = 84;
     PROCESS_IS_ALREADY_RUNNING = 85;
     UNABLE_TO_CREATE_PROCESS = 87;
-    PROCESS_WRONG_STATE = 201;
-    PROCESS_WRONG_SERVICE_STACK_TYPE = 202;
+    CREATE_PROCESS_QUEUED_PROJECT_PROCESS_COUNT_EXCEEDED = 323;
+    MANUAL_REPAIR_REQUIRED = 59;
+    NOTHING_TO_SYNC = 60;
+    IS_NOT_POSSIBLE_TO_EDIT_ANOTHER_USER = 58;
     ACTIVE_SERVICE_STACK_EXISTS_IN_PROJECT = 88;
     INVALID_OLD_PASSWORD = 89;
     PROJECT_STATUS_NOT_SUPPORTED = 90;
@@ -211,6 +217,7 @@ enum ErrorCode {
     APP_VERSION_DEPLOYING_FAILED = 199;
     APP_VERSION_BUILDING_FAILED = 200;
     APP_VERSION_YAML_PARSE_FAILED = 225;
+    APP_VERSION_YAML_CONFIG_REQUIRED = 324;
     APP_VERSION_DATA_NOT_AVAILABLE = 285;
     APP_VERSION_ACTIVE_HAS_DEFAULT_RUNTIME = 306;
     SHARED_STORAGE_NOT_FOUND = 153;
@@ -316,13 +323,26 @@ enum ErrorCode {
     CUSTOM_VERTICAL_AUTOSCALING_FORBIDDEN_FOR_THIS_STACK_CATEGORY = 305;
     CUSTOM_HORIZONTAL_AUTOSCALING_FORBIDDEN_FOR_THIS_STACK_CATEGORY = 307;
     CUSTOM_HORIZONTAL_AUTOSCALING_FORBIDDEN_IN_NON_HA_MODE = 308;
+    ACTION_FORBIDDEN_FOR_THIS_STACK_CATEGORY = 311;
+    MODE_UPDATE_FORBIDDEN_FOR_THIS_STACK_CATEGORY = 312;
     YAML_VALIDATION_INVALID_YAML = 304;
+    UNEXPECTED_YAML_ENCODING = 325;
     USER_ID_WAS_NOT_FOUND = 161;
     AUTHOR_ID_WAS_NOT_FOUND = 162;
     USER_DOES_NOT_HAVE_ACTIVE_CONNECTION_TO_ANY_CLIENT = 163;
     USER_HAS_NOT_ACCESS_TO_ZEROPS = 164;
     INVALID_EMAIL_TOKEN = 195;
-
+    CLIENT_CREATE_FAILED = 321;
+    CLIENT_ID_TOO_LONG = 322;
+    TRANSFER_ID_TOO_LONG = 316;
+    EMAIL_IS_INVALID = 313;
+    USER_ACCOUNT_DELETED = 314;
+    NO_CONTABO_CLIENT_CONNECTED = 315;
+    UNSUPPORTED_CURRENCY = 317;
+    INVALID_CURRENCY_CODE = 320;
+    TRANSFER_PARAM_MISMATCH = 318;
+    AMOUNT_MUST_BE_POSITIVE = 319;
+    
 }
 
 message Timestamp {
@@ -335,35 +355,46 @@ message Timestamp {
 // REQUEST OBJECTS
 //
 
+message DeleteProjectRequest {
+    string id = 1;
+    
+}
+
 message GetProcessRequest {
     string id = 1;
-
+    
 }
 
 message GetProjectsByNameRequest {
     string name = 1;
-
+    
 }
 
 message GetServiceStackRequest {
     string id = 1;
-
+    
 }
 
 message GetServiceStackByNameRequest {
     string projectId = 2;
     string name = 1;
-
+    
 }
 
 message GetUserInfoRequest {
-
+    
 }
 
 message PostAppVersionRequest {
     string serviceStackId = 1;
     StringNull name = 2;
+    
+}
 
+message PostProjectImportRequest {
+    string clientId = 1;
+    string yaml = 2;
+    
 }
 
 message PostPublicHttpRoutingRequest {
@@ -371,34 +402,50 @@ message PostPublicHttpRoutingRequest {
     bool sslEnabled = 2;
     repeated string domains = 3;
     repeated PublicHttpRoutingLocationPost locations = 4;
+    
+}
 
+message PostServiceStackImportRequest {
+    string projectId = 1;
+    string yaml = 2;
+    
 }
 
 message PostVpnRequestRequest {
     string id = 1;
     string clientPublicKey = 2;
-
+    
 }
 
 message PublicHttpRoutingLocationPost {
     string path = 1;
     int32 port = 2;
     string serviceStackId = 3;
-
+    
 }
 
 message PutAppVersionBuildAndDeployRequest {
     string id = 1;
     string buildConfigContent = 5;
     StringNull source = 7;
-    PutAppVersionBuildAndDeployMode mode = 6;
+    
 }
 
 message PutAppVersionDeployRequest {
     string id = 1;
     StringNull configContent = 3;
     StringNull source = 4;
+    
+}
 
+message PutProjectStartRequest {
+    string id = 1;
+    
+}
+
+message PutProjectStopRequest {
+    string id = 1;
+    
 }
 
 
@@ -406,6 +453,33 @@ message PutAppVersionDeployRequest {
 //
 // RESPONSE OBJECTS
 //
+
+
+message DeleteProjectResponse {
+    Error error = 1;
+    DeleteProjectResponseDto output = 2;
+}
+
+message DeleteProjectResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+    
+}
 
 
 message GetProcessResponse {
@@ -416,18 +490,22 @@ message GetProcessResponse {
 message GetProcessResponseDto {
     string id = 1;
     string clientId = 2;
+    string projectId = 14;
+    StringNull serviceStackId = 15;
     ProjectLightJsonObject project = 3;
     repeated ServiceStackLightJsonObject serviceStacks = 4;
     ProcessStatus status = 5;
+    int32 sequence = 16;
     UserJsonObject createdByUser = 6;
     UserJsonObjectNull canceledByUser = 7;
     string actionName = 8;
-    StringNull blockedByProcessId = 9;
     Timestamp created = 10;
     Timestamp lastUpdate = 11;
+    TimestampNull started = 17;
+    TimestampNull finished = 18;
     bool createdBySystem = 12;
     AppVersionJsonObjectNull appVersion = 13;
-
+    
 }
 
 
@@ -438,7 +516,7 @@ message GetProjectsByNameResponse {
 
 message GetProjectsByNameResponseDto {
     repeated Project projects = 1;
-
+    
 }
 
 
@@ -471,6 +549,7 @@ message GetServiceStackResponseDto {
     string projectId = 32;
     ProjectLight project = 17;
     repeated ServiceStackConnectedServiceStack connectedStacks = 18;
+    repeated UserDataLight userData = 34;
     AppVersionLightNull activeAppVersion = 19;
     bool hasUnsyncedUserDataRecord = 20;
     bool hasUnsyncedPublicHttpRoutingRecord = 21;
@@ -479,7 +558,7 @@ message GetServiceStackResponseDto {
     bool hasPublicHttpRoutingAccess = 25;
     Int32Null activePublicHttpRoutingCount = 27;
     Int32Null activePublicPortRoutingCount = 28;
-
+    
 }
 
 
@@ -512,6 +591,7 @@ message GetServiceStackByNameResponseDto {
     string projectId = 32;
     ProjectLight project = 17;
     repeated ServiceStackConnectedServiceStack connectedStacks = 18;
+    repeated UserDataLight userData = 34;
     AppVersionLightNull activeAppVersion = 19;
     bool hasUnsyncedUserDataRecord = 20;
     bool hasUnsyncedPublicHttpRoutingRecord = 21;
@@ -520,7 +600,7 @@ message GetServiceStackByNameResponseDto {
     bool hasPublicHttpRoutingAccess = 25;
     Int32Null activePublicHttpRoutingCount = 27;
     Int32Null activePublicPortRoutingCount = 28;
-
+    
 }
 
 
@@ -543,7 +623,7 @@ message GetUserInfoResponseDto {
     Timestamp lastUpdate = 10;
     UserStatus status = 11;
     repeated ClientUserExtra clientUserList = 12;
-
+    
 }
 
 
@@ -564,7 +644,20 @@ message PostAppVersionResponseDto {
     Timestamp created = 8;
     Timestamp lastUpdate = 9;
     string uploadUrl = 10;
+    
+}
 
+
+message PostProjectImportResponse {
+    Error error = 1;
+    PostProjectImportResponseDto output = 2;
+}
+
+message PostProjectImportResponseDto {
+    string projectId = 1;
+    string projectName = 2;
+    repeated ProjectImportServiceStack serviceStacks = 3;
+    
 }
 
 
@@ -585,7 +678,20 @@ message PostPublicHttpRoutingResponseDto {
     bool isSynced = 9;
     bool isEditable = 11;
     bool deleteOnSync = 12;
+    
+}
 
+
+message PostServiceStackImportResponse {
+    Error error = 1;
+    PostServiceStackImportResponseDto output = 2;
+}
+
+message PostServiceStackImportResponseDto {
+    string projectId = 1;
+    string projectName = 2;
+    repeated ProjectImportServiceStack serviceStacks = 3;
+    
 }
 
 
@@ -597,7 +703,7 @@ message PostVpnRequestResponse {
 message PostVpnRequestResponseDto {
     string signature = 1;
     Timestamp expiry = 2;
-
+    
 }
 
 
@@ -608,7 +714,23 @@ message PutAppVersionBuildAndDeployResponse {
 
 message PutAppVersionBuildAndDeployResponseDto {
     string id = 1;
-
+    string clientId = 2;
+    string projectId = 14;
+    StringNull serviceStackId = 15;
+    ProjectLightJsonObject project = 3;
+    repeated ServiceStackLightJsonObject serviceStacks = 4;
+    ProcessStatus status = 5;
+    int32 sequence = 16;
+    UserJsonObject createdByUser = 6;
+    UserJsonObjectNull canceledByUser = 7;
+    string actionName = 8;
+    Timestamp created = 10;
+    Timestamp lastUpdate = 11;
+    TimestampNull started = 17;
+    TimestampNull finished = 18;
+    bool createdBySystem = 12;
+    AppVersionJsonObjectNull appVersion = 13;
+    
 }
 
 
@@ -619,7 +741,77 @@ message PutAppVersionDeployResponse {
 
 message PutAppVersionDeployResponseDto {
     string id = 1;
+    string clientId = 2;
+    string projectId = 14;
+    StringNull serviceStackId = 15;
+    ProjectLightJsonObject project = 3;
+    repeated ServiceStackLightJsonObject serviceStacks = 4;
+    ProcessStatus status = 5;
+    int32 sequence = 16;
+    UserJsonObject createdByUser = 6;
+    UserJsonObjectNull canceledByUser = 7;
+    string actionName = 8;
+    Timestamp created = 10;
+    Timestamp lastUpdate = 11;
+    TimestampNull started = 17;
+    TimestampNull finished = 18;
+    bool createdBySystem = 12;
+    AppVersionJsonObjectNull appVersion = 13;
+    
+}
 
+
+message PutProjectStartResponse {
+    Error error = 1;
+    PutProjectStartResponseDto output = 2;
+}
+
+message PutProjectStartResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+    
+}
+
+
+message PutProjectStopResponse {
+    Error error = 1;
+    PutProjectStopResponseDto output = 2;
+}
+
+message PutProjectStopResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+    
 }
 
 
@@ -634,12 +826,14 @@ message AppVersionBuild {
     StringNull serviceStackName = 2;
     StringNull serviceStackTypeVersionId = 3;
     TimestampNull pipelineStart = 10;
+    TimestampNull pipelineFinish = 11;
+    TimestampNull pipelineFailed = 12;
     TimestampNull containerCreationStart = 9;
     TimestampNull startDate = 4;
     TimestampNull endDate = 5;
     bool cacheUsed = 6;
     bool hasCurrentCache = 7;
-
+    
 }
 
 message AppVersionGithubIntegration {
@@ -649,7 +843,7 @@ message AppVersionGithubIntegration {
     string commit = 4;
     string repositoryFullName = 5;
     StringNull tagName = 6;
-
+    
 }
 
 message AppVersionGitlabIntegration {
@@ -659,7 +853,7 @@ message AppVersionGitlabIntegration {
     string commit = 4;
     string repositoryFullName = 5;
     StringNull tagName = 6;
-
+    
 }
 
 message AppVersionJsonObject {
@@ -679,7 +873,7 @@ message AppVersionJsonObject {
     TimestampNull activationDate = 8;
     AppVersionPublicGitSourceNull publicGitSource = 12;
     StringNull configContent = 14;
-
+    
 }
 
 message AppVersionLight {
@@ -687,27 +881,27 @@ message AppVersionLight {
     AppVersionStatus status = 2;
     Timestamp created = 3;
     Timestamp lastUpdate = 4;
-
+    
 }
 
 message AppVersionPublicGitSource {
     string gitUrl = 1;
     string branchName = 2;
-
+    
 }
 
 message AppVersionUserData {
     string key = 1;
     string content = 2;
     UserDataType type = 3;
-
+    
 }
 
 message ClientAvatar {
     StringNull largeAvatarUrl = 1;
     StringNull smallAvatarUrl = 2;
     StringNull externalAvatarUrl = 3;
-
+    
 }
 
 message ClientExtra {
@@ -717,7 +911,7 @@ message ClientExtra {
     StringNull vatNumber = 4;
     ClientAvatarNull avatar = 5;
     string accountName = 6;
-
+    
 }
 
 message ClientUserExtra {
@@ -728,13 +922,13 @@ message ClientUserExtra {
     ClientUserLightRoleCode roleCode = 5;
     ClientExtra client = 6;
     UserLight user = 7;
-
+    
 }
 
 message CustomAutoscaling {
     VerticalAutoscalingNull verticalAutoscaling = 1;
     HorizontalAutoscalingNull horizontalAutoscaling = 2;
-
+    
 }
 
 message GithubIntegration {
@@ -745,7 +939,7 @@ message GithubIntegration {
     bool isActive = 6;
     string repositoryFullName = 7;
     Int32Null webhookId = 9;
-
+    
 }
 
 message GitlabIntegration {
@@ -756,26 +950,26 @@ message GitlabIntegration {
     bool isActive = 5;
     string repositoryFullName = 6;
     Int32Null webhookId = 7;
-
+    
 }
 
 message HorizontalAutoscaling {
     int32 maxContainerCount = 1;
     int32 minContainerCount = 2;
-
+    
 }
 
 message Language {
     string id = 1;
     string name = 2;
-
+    
 }
 
 message LocationServiceStackInfo {
     string serviceStackName = 1;
     string serviceStackTypeName = 2;
     string serviceStackTypeVersionName = 3;
-
+    
 }
 
 message PrepareCustomRuntime {
@@ -784,7 +978,28 @@ message PrepareCustomRuntime {
     TimestampNull endDate = 2;
     StringNull serviceStackId = 5;
     StringNull serviceStackName = 6;
+    
+}
 
+message Process {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+    
 }
 
 message Project {
@@ -800,7 +1015,15 @@ message Project {
     StringNull publicIpV6 = 10;
     StringNull zeropsSubdomainHost = 13;
     bool autoStartup = 14;
+    
+}
 
+message ProjectImportServiceStack {
+    string id = 1;
+    string name = 2;
+    ErrorNull error = 3;
+    repeated Process processes = 4;
+    
 }
 
 message ProjectLight {
@@ -812,7 +1035,7 @@ message ProjectLight {
     ProjectStatus status = 6;
     Timestamp created = 7;
     Timestamp lastUpdate = 8;
-
+    
 }
 
 message ProjectLightJsonObject {
@@ -824,14 +1047,14 @@ message ProjectLightJsonObject {
     ProjectStatus status = 6;
     Timestamp created = 7;
     Timestamp lastUpdate = 8;
-
+    
 }
 
 message PublicHttpRoutingDomain {
     string domainName = 1;
     PublicHttpRoutingDomainDnsCheckStatus dnsCheckStatus = 2;
     PublicHttpRoutingDomainSslStatus sslStatus = 3;
-
+    
 }
 
 message PublicHttpRoutingLocation {
@@ -839,20 +1062,20 @@ message PublicHttpRoutingLocation {
     int32 port = 2;
     string serviceStackId = 3;
     LocationServiceStackInfo serviceStackInfo = 4;
-
+    
 }
 
 message RequestedPortsJsonObject {
     bool isActive = 1;
     repeated ServicePort requestedPorts = 2;
-
+    
 }
 
 message ScalingResource {
     int32 cpuCoreCount = 1;
     float memoryGBytes = 2;
     float diskGBytes = 3;
-
+    
 }
 
 message ServicePort {
@@ -861,20 +1084,20 @@ message ServicePort {
     string description = 3;
     ServicePortScheme scheme = 4;
     StringNull serviceId = 5;
-
+    
 }
 
 message ServiceStackConnectedServiceStack {
     ServiceStackLight serviceStack = 1;
     ServiceStackConnectionStatus status = 2;
-
+    
 }
 
 message ServiceStackInfoJsonObject {
     string serviceStackTypeName = 1;
     ServiceStackTypeCategory serviceStackTypeCategory = 2;
     string serviceStackTypeVersionName = 3;
-
+    
 }
 
 message ServiceStackLight {
@@ -889,7 +1112,7 @@ message ServiceStackLight {
     GithubIntegrationNull githubIntegration = 8;
     GitlabIntegrationNull gitlabIntegration = 9;
     CustomAutoscalingNull customAutoscaling = 12;
-
+    
 }
 
 message ServiceStackLightJsonObject {
@@ -903,14 +1126,31 @@ message ServiceStackLightJsonObject {
     string name = 8;
     ServiceStackInfoJsonObject serviceStackTypeInfo = 9;
     repeated ServicePort ports = 10;
-
+    
 }
 
 message UserAvatar {
     StringNull largeAvatarUrl = 1;
     StringNull smallAvatarUrl = 2;
     StringNull externalAvatarUrl = 3;
+    
+}
 
+message UserDataLight {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    string serviceStackId = 4;
+    string key = 5;
+    string content = 6;
+    UserDataType type = 7;
+    Timestamp created = 8;
+    Timestamp lastUpdate = 9;
+    bool isSynced = 10;
+    bool deleteOnSync = 11;
+    UserDataVersion version = 12;
+    TimestampNull lastSync = 13;
+    
 }
 
 message UserJsonObject {
@@ -920,7 +1160,7 @@ message UserJsonObject {
     StringNull firstName = 3;
     StringNull fullName = 4;
     UserAvatarNull avatar = 6;
-
+    
 }
 
 message UserLight {
@@ -930,13 +1170,13 @@ message UserLight {
     string firstName = 4;
     string lastName = 5;
     UserAvatarNull avatar = 6;
-
+    
 }
 
 message VerticalAutoscaling {
     ScalingResource maxResource = 1;
     ScalingResource minResource = 2;
-
+    
 }
 
 
@@ -945,31 +1185,31 @@ message VerticalAutoscaling {
 //
 
 enum AppVersionGithubIntegrationEventType {
-    APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+ 	APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
     APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
     APP_VERSION_GITHUB_INTEGRATION_EVENT_TYPE_TAG = 2;
-
+    
 }
 
 enum AppVersionGitlabIntegrationEventType {
-    APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+ 	APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
     APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
     APP_VERSION_GITLAB_INTEGRATION_EVENT_TYPE_TAG = 2;
-
+    
 }
 
 enum AppVersionSource {
-    APP_VERSION_SOURCE_UNKNOWN = 0;
+ 	APP_VERSION_SOURCE_UNKNOWN = 0;
     APP_VERSION_SOURCE_CLI = 1;
     APP_VERSION_SOURCE_GUI = 2;
     APP_VERSION_SOURCE_GITHUB = 3;
     APP_VERSION_SOURCE_GITLAB = 4;
     APP_VERSION_SOURCE_GIT = 5;
-
+    
 }
 
 enum AppVersionStatus {
-    APP_VERSION_STATUS_UNKNOWN = 0;
+ 	APP_VERSION_STATUS_UNKNOWN = 0;
     APP_VERSION_STATUS_UPLOADING = 1;
     APP_VERSION_STATUS_WAITING_TO_DEPLOY = 2;
     APP_VERSION_STATUS_DEPLOYING = 3;
@@ -981,39 +1221,40 @@ enum AppVersionStatus {
     APP_VERSION_STATUS_BUILD_FAILED = 9;
     APP_VERSION_STATUS_PREPARING_RUNTIME = 10;
     APP_VERSION_STATUS_PREPARING_RUNTIME_FAILED = 11;
-
+    APP_VERSION_STATUS_BUILD_VALIDATION_FAILED = 12;
+    
 }
 
 enum ClientUserLightRoleCode {
-    CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
+ 	CLIENT_USER_LIGHT_ROLE_CODE_UNKNOWN = 0;
     CLIENT_USER_LIGHT_ROLE_CODE_MANAGER = 1;
-
+    
 }
 
 enum ClientUserLightStatus {
-    CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
+ 	CLIENT_USER_LIGHT_STATUS_UNKNOWN = 0;
     CLIENT_USER_LIGHT_STATUS_ACTIVE = 1;
     CLIENT_USER_LIGHT_STATUS_WAITING_AUTHORIZATION = 2;
     CLIENT_USER_LIGHT_STATUS_BEING_DELETED = 3;
-
+    
 }
 
 enum GithubIntegrationEventType {
-    GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+ 	GITHUB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
     GITHUB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
     GITHUB_INTEGRATION_EVENT_TYPE_TAG = 2;
-
+    
 }
 
 enum GitlabIntegrationEventType {
-    GITLAB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
+ 	GITLAB_INTEGRATION_EVENT_TYPE_UNKNOWN = 0;
     GITLAB_INTEGRATION_EVENT_TYPE_BRANCH = 1;
     GITLAB_INTEGRATION_EVENT_TYPE_TAG = 2;
-
+    
 }
 
 enum ProcessStatus {
-    PROCESS_STATUS_UNKNOWN = 0;
+ 	PROCESS_STATUS_UNKNOWN = 0;
     PROCESS_STATUS_PENDING = 1;
     PROCESS_STATUS_RUNNING = 2;
     PROCESS_STATUS_ROLLBACKING = 3;
@@ -1021,12 +1262,11 @@ enum ProcessStatus {
     PROCESS_STATUS_FINISHED = 5;
     PROCESS_STATUS_FAILED = 6;
     PROCESS_STATUS_CANCELED = 7;
-    PROCESS_STATUS_DELETED = 8;
-
+    
 }
 
 enum ProjectStatus {
-    PROJECT_STATUS_UNKNOWN = 0;
+ 	PROJECT_STATUS_UNKNOWN = 0;
     PROJECT_STATUS_NEW = 1;
     PROJECT_STATUS_CREATING = 2;
     PROJECT_STATUS_ACTIVE = 3;
@@ -1035,45 +1275,38 @@ enum ProjectStatus {
     PROJECT_STATUS_STOPPING = 6;
     PROJECT_STATUS_STOPPED = 7;
     PROJECT_STATUS_STARTING = 8;
-
+    
 }
 
 enum PublicHttpRoutingDomainDnsCheckStatus {
-    PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
+ 	PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_UNKNOWN = 0;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_PENDING = 1;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_CHECKING = 2;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_OK = 3;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_FAILED = 4;
     PUBLIC_HTTP_ROUTING_DOMAIN_DNS_CHECK_STATUS_IGNORED = 5;
-
+    
 }
 
 enum PublicHttpRoutingDomainSslStatus {
-    PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
+ 	PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_UNKNOWN = 0;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_INACTIVE = 1;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_BEING_INSTALLED = 2;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_WAITING_FOR_DNS = 3;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_ACTIVE = 4;
     PUBLIC_HTTP_ROUTING_DOMAIN_SSL_STATUS_INSTALLATION_FAILED = 5;
-
-}
-
-enum PutAppVersionBuildAndDeployMode {
-    PUT_APP_VERSION_BUILD_AND_DEPLOY_MODE_UNKNOWN = 0;
-    PUT_APP_VERSION_BUILD_AND_DEPLOY_MODE_BUILD = 1;
-    PUT_APP_VERSION_BUILD_AND_DEPLOY_MODE_DEPLOY = 2;
-
+    
 }
 
 enum ServicePortProtocol {
-    SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
+ 	SERVICE_PORT_PROTOCOL_UNKNOWN = 0;
     SERVICE_PORT_PROTOCOL_tcp = 1;
     SERVICE_PORT_PROTOCOL_udp = 2;
-
+    
 }
 
 enum ServicePortScheme {
-    SERVICE_PORT_SCHEME_UNKNOWN = 0;
+ 	SERVICE_PORT_SCHEME_UNKNOWN = 0;
     SERVICE_PORT_SCHEME_tcp = 1;
     SERVICE_PORT_SCHEME_udp = 2;
     SERVICE_PORT_SCHEME_http = 3;
@@ -1084,26 +1317,26 @@ enum ServicePortScheme {
     SERVICE_PORT_SCHEME_udpinflux = 8;
     SERVICE_PORT_SCHEME_mongodb = 9;
     SERVICE_PORT_SCHEME_postgresql = 10;
-
+    
 }
 
 enum ServiceStackConnectionStatus {
-    SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
+ 	SERVICE_STACK_CONNECTION_STATUS_UNKNOWN = 0;
     SERVICE_STACK_CONNECTION_STATUS_CREATING = 1;
     SERVICE_STACK_CONNECTION_STATUS_ACTIVE = 2;
     SERVICE_STACK_CONNECTION_STATUS_DELETING = 3;
-
+    
 }
 
 enum ServiceStackMode {
-    SERVICE_STACK_MODE_UNKNOWN = 0;
+ 	SERVICE_STACK_MODE_UNKNOWN = 0;
     SERVICE_STACK_MODE_HA = 1;
     SERVICE_STACK_MODE_NON_HA = 2;
-
+    
 }
 
 enum ServiceStackStatus {
-    SERVICE_STACK_STATUS_UNKNOWN = 0;
+ 	SERVICE_STACK_STATUS_UNKNOWN = 0;
     SERVICE_STACK_STATUS_NEW = 1;
     SERVICE_STACK_STATUS_CREATING = 2;
     SERVICE_STACK_STATUS_ACTIVE = 3;
@@ -1118,24 +1351,33 @@ enum ServiceStackStatus {
     SERVICE_STACK_STATUS_ACTION_FAILED = 29;
     SERVICE_STACK_STATUS_UPGRADING = 13;
     SERVICE_STACK_STATUS_READY_TO_DEPLOY = 14;
-    SERVICE_STACK_STATUS_SERVICE_DELETING = 15;
-    SERVICE_STACK_STATUS_SERVICE_FAILED = 16;
-    SERVICE_STACK_STATUS_SERVICE_REPAIRING = 17;
     SERVICE_STACK_STATUS_SERVICE_CREATING = 18;
-    SERVICE_STACK_STATUS_SERVICE_CONTAINER_FAILED = 19;
-    SERVICE_STACK_STATUS_SERVICE_MOVING_CONTAINER = 20;
+    SERVICE_STACK_STATUS_SERVICE_ACTIVE = 35;
     SERVICE_STACK_STATUS_SERVICE_STOPPING = 21;
     SERVICE_STACK_STATUS_SERVICE_STOPPED = 22;
     SERVICE_STACK_STATUS_SERVICE_STARTING = 23;
     SERVICE_STACK_STATUS_SERVICE_RESTARTING = 24;
     SERVICE_STACK_STATUS_SERVICE_RELOADING = 25;
-    SERVICE_STACK_STATUS_SERVICE_UPGRADING = 26;
+    SERVICE_STACK_STATUS_SERVICE_DELETING = 15;
+    SERVICE_STACK_STATUS_SERVICE_DELETED = 36;
+    SERVICE_STACK_STATUS_SERVICE_FAILED = 16;
     SERVICE_STACK_STATUS_SERVICE_ACTION_FAILED = 28;
-
+    SERVICE_STACK_STATUS_SERVICE_REPAIRING = 17;
+    SERVICE_STACK_STATUS_SERVICE_CONTAINER_FAILED = 19;
+    SERVICE_STACK_STATUS_SERVICE_MOVING_CONTAINER = 20;
+    SERVICE_STACK_STATUS_SERVICE_UPGRADING = 26;
+    SERVICE_STACK_STATUS_SERVICE_SCALING = 37;
+    SERVICE_STACK_STATUS_SERVICE_REPAIR_FAILED = 38;
+    SERVICE_STACK_STATUS_REPAIRING = 30;
+    SERVICE_STACK_STATUS_CONTAINER_FAILED = 31;
+    SERVICE_STACK_STATUS_MOVING_CONTAINER = 32;
+    SERVICE_STACK_STATUS_SCALING = 33;
+    SERVICE_STACK_STATUS_REPAIR_FAILED = 34;
+    
 }
 
 enum ServiceStackTypeCategory {
-    SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
+ 	SERVICE_STACK_TYPE_CATEGORY_UNKNOWN = 0;
     SERVICE_STACK_TYPE_CATEGORY_CORE = 1;
     SERVICE_STACK_TYPE_CATEGORY_HTTP_L7_BALANCER = 2;
     SERVICE_STACK_TYPE_CATEGORY_STANDARD = 3;
@@ -1145,32 +1387,39 @@ enum ServiceStackTypeCategory {
     SERVICE_STACK_TYPE_CATEGORY_BUILD = 7;
     SERVICE_STACK_TYPE_CATEGORY_INTERNAL = 8;
     SERVICE_STACK_TYPE_CATEGORY_PREPARE_RUNTIME = 9;
-
+    
 }
 
 enum UserDataType {
-    USER_DATA_TYPE_UNKNOWN = 0;
+ 	USER_DATA_TYPE_UNKNOWN = 0;
     USER_DATA_TYPE_RESTRICTED = 1;
     USER_DATA_TYPE_COMMON = 2;
     USER_DATA_TYPE_USER = 3;
     USER_DATA_TYPE_INTERNAL = 4;
+    
+}
 
+enum UserDataVersion {
+ 	USER_DATA_VERSION_UNKNOWN = 0;
+    USER_DATA_VERSION_USER = 1;
+    USER_DATA_VERSION_INFRASTRUCTURE = 2;
+    
 }
 
 enum UserJsonObjectType {
-    USER_JSON_OBJECT_TYPE_UNKNOWN = 0;
+ 	USER_JSON_OBJECT_TYPE_UNKNOWN = 0;
     USER_JSON_OBJECT_TYPE_GITHUB = 1;
     USER_JSON_OBJECT_TYPE_GITLAB = 4;
     USER_JSON_OBJECT_TYPE_USER = 2;
     USER_JSON_OBJECT_TYPE_SYSTEM = 3;
-
+    
 }
 
 enum UserStatus {
-    USER_STATUS_UNKNOWN = 0;
+ 	USER_STATUS_UNKNOWN = 0;
     USER_STATUS_ACTIVE = 1;
     USER_STATUS_DELETED = 2;
-
+    
 }
 
 
@@ -1241,11 +1490,6 @@ message Int32Null {
 
 message PrepareCustomRuntimeNull {
     PrepareCustomRuntime value = 1;
-    bool valid = 2;
-}
-
-message ProjectLightJsonObjectNull {
-    ProjectLightJsonObject value = 1;
     bool valid = 2;
 }
 
