@@ -6,13 +6,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
 	"os"
 	"path"
 	"path/filepath"
-
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 )
 
 func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
@@ -57,11 +56,11 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployDeployingStart)
 
-	deployResponse, err := h.apiGrpcClient.PutAppVersionDeploy(ctx, &zeropsApiProtocol.PutAppVersionDeployRequest{
+	deployResponse, err := h.apiGrpcClient.PutAppVersionDeploy(ctx, &business.PutAppVersionDeployRequest{
 		Id:            appVersion.GetId(),
 		ConfigContent: configContent,
 	})
-	if err := utils.HandleGrpcApiError(deployResponse, err); err != nil {
+	if err := proto.BusinessError(deployResponse, err); err != nil {
 		return err
 	}
 
@@ -77,7 +76,7 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 	return nil
 }
 
-func getConfigContent(config RunConfig) (*zeropsApiProtocol.StringNull, error) {
+func getConfigContent(config RunConfig) (*business.StringNull, error) {
 	workingDir, err := filepath.Abs(config.WorkingDir)
 	if err != nil {
 		return nil, err
@@ -113,7 +112,7 @@ func getConfigContent(config RunConfig) (*zeropsApiProtocol.StringNull, error) {
 		return nil, err
 	}
 
-	return &zeropsApiProtocol.StringNull{
+	return &business.StringNull{
 		Value: base64.StdEncoding.EncodeToString(yamlContent),
 		Valid: true,
 	}, nil

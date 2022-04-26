@@ -9,18 +9,18 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/grpcDaemonServer"
+	"github.com/zerops-io/zcli/src/daemonServer"
 	"github.com/zerops-io/zcli/src/vpn"
 )
 
-func createDaemonGrpcServer(vpn *vpn.Handler) (*grpcDaemonServer.Handler, error) {
+func createDaemonGrpcServer(vpn *vpn.Handler) (*daemonServer.Handler, error) {
 	socketDir := filepath.Dir(constants.DaemonAddress)
 	err := os.MkdirAll(socketDir, 0777)
 	if err != nil {
 		return nil, err
 	}
 
-	return grpcDaemonServer.New(grpcDaemonServer.Config{
+	return daemonServer.New(daemonServer.Config{
 		Socket: constants.DaemonAddress,
 	}, vpn), nil
 }

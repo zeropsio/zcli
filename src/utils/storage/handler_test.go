@@ -20,7 +20,7 @@ func TestStorage(t *testing.T) {
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		d := storage.Load()
+		d := storage.load()
 		Expect(d.Param).To(Equal(""))
 		d.Param = "value"
 
@@ -34,7 +34,7 @@ func TestStorage(t *testing.T) {
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		d := storage.Load()
+		d := storage.load()
 		Expect(d.Param).To(Equal("value"))
 	}
 

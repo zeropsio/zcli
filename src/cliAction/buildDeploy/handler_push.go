@@ -6,11 +6,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
-
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
+	"os"
 )
 
 func (h *Handler) Push(ctx context.Context, config RunConfig) error {
@@ -85,15 +84,15 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployDeployingStart)
 
-	deployResponse, err := h.apiGrpcClient.PutAppVersionBuildAndDeploy(ctx, &zeropsApiProtocol.PutAppVersionBuildAndDeployRequest{
+	deployResponse, err := h.apiGrpcClient.PutAppVersionBuildAndDeploy(ctx, &business.PutAppVersionBuildAndDeployRequest{
 		Id:                 appVersion.GetId(),
 		BuildConfigContent: base64.StdEncoding.EncodeToString(buildConfigContent),
-		Source: &zeropsApiProtocol.StringNull{
+		Source: &business.StringNull{
 			Value: config.SourceName,
 			Valid: true,
 		},
 	})
-	if err := utils.HandleGrpcApiError(deployResponse, err); err != nil {
+	if err := proto.BusinessError(deployResponse, err); err != nil {
 		return err
 	}
 

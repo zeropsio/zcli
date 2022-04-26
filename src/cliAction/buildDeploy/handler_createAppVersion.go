@@ -2,25 +2,24 @@ package buildDeploy
 
 import (
 	"context"
-
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
 )
 
-func (h *Handler) createAppVersion(ctx context.Context, config RunConfig, serviceStack *zeropsApiProtocol.GetServiceStackByNameResponseDto) (*zeropsApiProtocol.PostAppVersionResponseDto, error) {
-	appVersionResponse, err := h.apiGrpcClient.PostAppVersion(ctx, &zeropsApiProtocol.PostAppVersionRequest{
+func (h *Handler) createAppVersion(ctx context.Context, config RunConfig, serviceStack *business.GetServiceStackByNameResponseDto) (*business.PostAppVersionResponseDto, error) {
+	appVersionResponse, err := h.apiGrpcClient.PostAppVersion(ctx, &business.PostAppVersionRequest{
 		ServiceStackId: serviceStack.GetId(),
-		Name: func() *zeropsApiProtocol.StringNull {
+		Name: func() *business.StringNull {
 			if config.VersionName != "" {
-				return &zeropsApiProtocol.StringNull{
+				return &business.StringNull{
 					Value: config.VersionName,
 					Valid: true,
 				}
 			}
-			return &zeropsApiProtocol.StringNull{}
+			return &business.StringNull{}
 		}(),
 	})
-	if err := utils.HandleGrpcApiError(appVersionResponse, err); err != nil {
+	if err := proto.BusinessError(appVersionResponse, err); err != nil {
 		return nil, err
 	}
 	appVersion := appVersionResponse.GetOutput()

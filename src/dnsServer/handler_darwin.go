@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/zerops-io/zcli/src/nettools"
 	"net"
 	"os/exec"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
-	"github.com/zerops-io/zcli/src/utils/interfaces"
 )
 
 var (
@@ -44,7 +44,7 @@ func New() *Handler {
 
 // listen and serve
 func (h *Handler) Run(ctx context.Context) error {
-	_, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(lo0IP)
+	_, vpnInterfaceFound, err := nettools.GetInterfaceNameByIp(lo0IP)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (h *Handler) Run(ctx context.Context) error {
 		if err := serverUdp.ListenAndServe(); err != nil {
 			fmt.Println(err.Error())
 		}
-		vpnInterfaceName, vpnInterfaceFound, err := interfaces.GetInterfaceNameByIp(lo0IP)
+		vpnInterfaceName, vpnInterfaceFound, err := nettools.GetInterfaceNameByIp(lo0IP)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

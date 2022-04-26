@@ -1,7 +1,6 @@
 package vpn
 
 import (
-	"context"
 	"sync"
 	"time"
 
@@ -10,10 +9,7 @@ import (
 	"github.com/zerops-io/zcli/src/utils/logger"
 )
 
-const (
-	wireguardPort  = "51820"
-	vpnApiGrpcPort = ":64510"
-)
+const wireguardPort = "51820"
 
 type Config struct {
 	VpnCheckInterval   time.Duration
@@ -41,19 +37,5 @@ func New(
 		logger:    logger,
 		storage:   daemonStorage,
 		dnsServer: dnsServer,
-	}
-}
-
-func (h *Handler) Run(ctx context.Context) error {
-	t := time.NewTicker(h.config.VpnCheckInterval)
-	defer t.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-t.C:
-			h.vpnStatusCheck(ctx)
-		}
 	}
 }

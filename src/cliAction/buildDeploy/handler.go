@@ -1,9 +1,9 @@
 package buildDeploy
 
 import (
+	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 )
 
 const zeropsYamlFileName = "zerops.yml"
@@ -26,14 +26,14 @@ type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
 	zipClient     *zipClient.Handler
-	apiGrpcClient zeropsApiProtocol.ZeropsApiProtocolClient
+	apiGrpcClient business.ZeropsApiProtocolClient
 }
 
 func New(
 	config Config,
 	httpClient *httpClient.Handler,
 	zipClient *zipClient.Handler,
-	apiGrpcClient zeropsApiProtocol.ZeropsApiProtocolClient,
+	apiGrpcClient business.ZeropsApiProtocolClient,
 ) *Handler {
 	return &Handler{
 		config:        config,

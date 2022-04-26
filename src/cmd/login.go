@@ -2,13 +2,12 @@ package cmd
 
 import (
 	"context"
+	"github.com/zerops-io/zcli/src/proto/business"
 	"time"
 
 	"github.com/zerops-io/zcli/src/cliAction/login"
 
 	"github.com/spf13/cobra"
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
-	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )
@@ -44,7 +43,7 @@ func loginCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+			apiClientFactory := business.New(business.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 
@@ -58,7 +57,6 @@ func loginCmd() *cobra.Command {
 				storage,
 				client,
 				apiClientFactory,
-				grpcDaemonClientFactory.New(),
 			).Run(ctx, login.RunConfig{
 				ZeropsEmail:    email,
 				ZeropsPassword: password,

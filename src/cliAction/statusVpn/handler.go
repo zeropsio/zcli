@@ -3,12 +3,12 @@ package statusVpn
 import (
 	"context"
 	"fmt"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/daemon"
 
 	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/utils"
-
-	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
 )
 
 type Config struct {
@@ -19,12 +19,12 @@ type RunConfig struct {
 
 type Handler struct {
 	config             Config
-	zeropsDaemonClient zeropsDaemonProtocol.ZeropsDaemonProtocolClient
+	zeropsDaemonClient daemon.ZeropsDaemonProtocolClient
 }
 
 func New(
 	config Config,
-	zeropsDaemonClient zeropsDaemonProtocol.ZeropsDaemonProtocolClient,
+	zeropsDaemonClient daemon.ZeropsDaemonProtocolClient,
 ) *Handler {
 	return &Handler{
 		config:             config,
@@ -34,8 +34,8 @@ func New(
 
 func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 
-	response, err := h.zeropsDaemonClient.StatusVpn(ctx, &zeropsDaemonProtocol.StatusVpnRequest{})
-	daemonInstalled, err := utils.HandleDaemonError(err)
+	response, err := h.zeropsDaemonClient.StatusVpn(ctx, &daemon.StatusVpnRequest{})
+	daemonInstalled, err := proto.DaemonError(err)
 	if err != nil {
 		return err
 	}

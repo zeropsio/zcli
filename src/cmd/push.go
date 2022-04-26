@@ -2,9 +2,8 @@ package cmd
 
 import (
 	"context"
+	"github.com/zerops-io/zcli/src/proto/business"
 	"time"
-
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
 
@@ -40,7 +39,7 @@ func pushCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+			apiClientFactory := business.New(business.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
