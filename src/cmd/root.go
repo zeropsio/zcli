@@ -30,6 +30,9 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(logCmd())
 	rootCmd.AddCommand(daemonCmd())
 	rootCmd.AddCommand(versionCmd())
+	rootCmd.AddCommand(startProjectCmd())
+	rootCmd.AddCommand(stopProjectCmd())
+	rootCmd.AddCommand(deleteProjectCmd())
 
 	err := params.InitViper()
 	if err != nil {
