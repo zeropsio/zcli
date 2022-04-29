@@ -54,7 +54,7 @@ const (
 	ImportYamlFound    = "import.yml found"
 	ImportYamlNotFound = "import.yml not found"
 
-	// find projct by name
+	// find project by name
 	ProjectNotFound      = "project not found"
 	ProjectsWithSameName = "there are multiple projects with the same name"
 	ProjectNameIsEmpty   = "project name must be filled"
