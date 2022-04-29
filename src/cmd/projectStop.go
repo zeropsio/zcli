@@ -5,6 +5,7 @@ import (
 
 	"time"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
 	"github.com/zerops-io/zcli/src/cliAction/startStopDeleteProject"
@@ -16,12 +17,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var confirm bool
-
-func deleteProjectCmd() *cobra.Command {
+func stopProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "delete project [projectName] --confirm",
-		Short:        i18n.CmdDeleteProject,
+		Use:          "stop project [projectName]",
+		Short:        i18n.CmdStopProject,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,21 +68,11 @@ func deleteProjectCmd() *cobra.Command {
 				apiGrpcClient,
 			).Run(ctx, startStopDeleteProject.RunConfig{
 				ProjectName: args[1],
-			}, getActionType())
+			}, constants.Stop)
 		},
 	}
 
 	params.RegisterString(cmd, "projectName", "", i18n.ProjectName)
 
-	cmd.Flags().BoolVarP(&confirm, "confirm", "c", false, "confirm delete project")
-	// cmd.Flags().BoolP("confirm", "c", true, "confirm delete")
-
 	return cmd
-}
-
-func getActionType() string {
-	if confirm {
-		return "y-delete"
-	}
-	return "delete"
 }

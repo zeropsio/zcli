@@ -5,6 +5,7 @@ import (
 
 	"time"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
 	"github.com/zerops-io/zcli/src/cliAction/startStopDeleteProject"
@@ -16,10 +17,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func stopProjectCmd() *cobra.Command {
+func startProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "stop project [projectName]",
-		Short:        i18n.CmdStopProject,
+		Use:          "start project [projectName]",
+		Short:        i18n.CmdStartProject,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -67,7 +68,7 @@ func stopProjectCmd() *cobra.Command {
 				apiGrpcClient,
 			).Run(ctx, startStopDeleteProject.RunConfig{
 				ProjectName: args[1],
-			}, "stop")
+			}, constants.Start)
 		},
 	}
 
