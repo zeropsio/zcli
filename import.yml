@@ -1,0 +1,79 @@
+project:
+  name: foobar-dev
+  description: Recipe showcasing cost efficient environment (for local development, or stage) of project consisting of Angular frontend and Nest.js backend, using PostgreSQL for database.
+  tags:
+    - foobar
+    - dev
+    - zerops-recipe
+services:
+  - hostname: db
+    type: postgresql@12
+    mode: NON_HA
+    priority: 10
+  - hostname: app
+    type: nginx@1.20
+    mode: NON_HA
+    buildFromGit: https://github.com/zeropsio/recipe-angular-app
+    enableSubdomainAccess: true
+    envVariables:
+      ZEROPS_RECIPE_CONFIG_JSON: |
+        {
+          "guiEndpoint": "${zeropsSubdomain}",
+          "apiEndpoint": "${api_zeropsSubdomain}",
+          "intro": "Hey",
+          "description": "Here's a best practice guide on how to fully utilize and integrate Zerops on tech stack with Angular application for frontend, Nest.js for backend API with PostgreSQL database. Play around with the TODO to see how the request flows through the project in Zerops and follow the TODO items to discover Zerops features.",
+          "knowledgeBaseLink": "https://docs.zerops.io/documentation/",
+          "projectName": "foobar-dev",
+          "services": [
+            {
+              "hostname": "api",
+              "port": 3000,
+              "routings": ["${api_zeropsSubdomain}"],
+              "repository": "https://github.com/zeropsio/recipe-nestjs-postgres-api",
+              "type": "nodejs",
+              "version": "v16.12",
+              "readwrite": ["db"],
+              "containers": 1
+            },
+            {
+              "hostname": "app",
+              "port": 80,
+              "routings": ["${zeropsSubdomain}"],
+              "repository": "https://github.com/zeropsio/recipe-angular-app",
+              "type": "nginx",
+              "isEntryApp": 1,
+              "version": "v1.20",
+              "containers": 1
+            },
+            {
+              "hostname": "db",
+              "type": "postgres",
+              "version": "v12",
+              "mode": "NON_HA"
+            }
+          ]
+        }
+      ZEROPS_RECIPE_CONFIG: ${ZEROPS_RECIPE_CONFIG_JSON|stringify}
+    nginxConfig: |
+      server {
+          listen 80 default_server;
+          listen [::]:80 default_server;
+          server_name _;
+          root /var/www;
+          location / {
+              try_files $uri $uri/ /index.html;
+          }
+          access_log syslog:server=unix:/dev/log,facility=local1 default_short;
+          error_log syslog:server=unix:/dev/log,facility=local1;
+      }
+  - hostname: api
+    type: nodejs@16
+    mode: NON_HA
+    buildFromGit: https://github.com/zeropsio/recipe-nestjs-postgres-api
+    enableSubdomainAccess: true
+    envVariables:
+      DB_URL: ${db_connectionString}/${db_hostname}
+      ZEROPS_RECIPE_DATA_SEED: '["Add, update or remove TODO item to see how the request flows through the project infrastructure","Open and fork source repository of app and / or api and then connect it from service detail in Zerops app, to setup automatic build and deploy on new commit / tag","Setup your own project in Zerops and delete the recipe project"]'
+    ports:
+      - port: 3000
+        httpSupport: true

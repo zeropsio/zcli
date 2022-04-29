@@ -23,7 +23,6 @@ func ExecuteCmd() error {
 		Use: "zcli",
 	}
 
-	rootCmd.AddCommand(importCmd())
 	rootCmd.AddCommand(deployCmd())
 	rootCmd.AddCommand(pushCmd())
 	rootCmd.AddCommand(vpnCmd())
