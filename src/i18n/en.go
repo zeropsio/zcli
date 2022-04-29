@@ -2,6 +2,7 @@ package i18n
 
 const (
 	// cmd
+	CmdImportDesc    = "crate project in zerops.io and add stack services"
 	CmdDeployDesc    = "deploy your application into zerops.io"
 	CmdPushDesc      = "deploy your application into zerops.io and build it"
 	CmdLogin         = "log you into zerops.io"
@@ -16,6 +17,9 @@ const (
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
 	CmdVersion       = "version"
+	CmdStartProject  = "run process to start the project and wait until finished"
+	CmdStopProject   = "run process to stop the project and wait until finished"
+	CmdDeleteProject = "run process to delete the project and wait until finished"
 
 	// flags description
 	BuildVersionName   = "custom version name"
@@ -23,6 +27,9 @@ const (
 	BuildWorkingDir    = "working dir, all files path are relative to this directory"
 	BuildZipFilePath   = "save final zip file"
 	ZeropsYamlLocation = "zerops yaml location relative to working directory"
+	ImportYamlLocation = "import yaml location relative to working directory"
+	ProjectName        = "project name"
+	ClientId           = "client ID"
 
 	// process
 	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"
@@ -40,6 +47,19 @@ const (
 
 	// region
 	RegionNotFound = "region not found"
+
+	// import project
+	ImportYamlEmpty    = "config file import.yml is empty"
+	ImportYamlTooLarge = "max. size of import.yml is 10 KB"
+	ImportYamlFound    = "import.yml found"
+	ImportYamlNotFound = "import.yml not found"
+
+	// start project
+	StartProjectNotFound      = "project not found"
+	StartProjectsWithSameName = "there are multiple projects with the same name"
+	StartProjectNameIsEmpty   = "project name must be filled"
+	StartProjectProcessInit   = "starting the project"
+	StartProcessSuccess       = "project started successfully"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
