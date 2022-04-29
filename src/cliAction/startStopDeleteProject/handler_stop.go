@@ -22,7 +22,6 @@ func (h *Handler) RunStop(ctx context.Context, config RunConfig, projectId strin
 
 	processId := stopProjectResponse.GetOutput().GetId()
 
-	// check process until FINISHED or CANCELED/FAILED
 	err = h.checkProcess(ctx, processId)
 	if err != nil {
 		return err
