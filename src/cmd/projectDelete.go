@@ -17,8 +17,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var confirm bool
-
 func deleteProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "delete project [projectName] --confirm",
@@ -70,20 +68,12 @@ func deleteProjectCmd() *cobra.Command {
 				apiGrpcClient,
 			).Run(ctx, startStopDeleteProject.RunConfig{
 				ProjectName: args[1],
-			}, getActionType())
+				Confirm:     params.GetBool(cmd, "confirm"),
+			}, constants.Delete)
 		},
 	}
 
-	params.RegisterString(cmd, "projectName", "", i18n.ProjectName)
-
-	cmd.Flags().BoolVarP(&confirm, "confirm", "c", false, "confirm delete project")
+	params.RegisterBool(cmd, "confirm", false, i18n.ConfirmDeleteProject)
 
 	return cmd
-}
-
-func getActionType() string {
-	if confirm {
-		return constants.YDelete
-	}
-	return constants.Delete
 }

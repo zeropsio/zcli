@@ -11,6 +11,7 @@ type Config struct {
 
 type RunConfig struct {
 	ProjectName string
+	Confirm     bool
 }
 
 type Handler struct {

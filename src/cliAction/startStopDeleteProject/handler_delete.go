@@ -12,11 +12,10 @@ import (
 
 func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId string, actionType string) error {
 
-	isConfirmed := string(actionType[0]) == "y"
-	if !isConfirmed {
+	if !config.Confirm {
 		// run confirm dialogue
-		answer := askForConfirmation()
-		if !answer {
+		shouldDelete := askForConfirmation()
+		if !shouldDelete {
 			fmt.Println(i18n.CanceledByUser)
 			return nil
 		}
@@ -49,7 +48,7 @@ func askForConfirmation() bool {
 
 	_, err := fmt.Scan(&response)
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return false
 	}
 

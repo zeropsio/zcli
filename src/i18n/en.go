@@ -22,14 +22,14 @@ const (
 	CmdDeleteProject = "run process to delete the project and wait until finished"
 
 	// flags description
-	BuildVersionName   = "custom version name"
-	SourceName         = "zerops.yml source service"
-	BuildWorkingDir    = "working dir, all files path are relative to this directory"
-	BuildZipFilePath   = "save final zip file"
-	ZeropsYamlLocation = "zerops yaml location relative to working directory"
-	ImportYamlLocation = "import yaml location relative to working directory"
-	ProjectName        = "project name"
-	ClientId           = "client ID"
+	BuildVersionName     = "custom version name"
+	SourceName           = "zerops.yml source service"
+	BuildWorkingDir      = "working dir, all files path are relative to this directory"
+	BuildZipFilePath     = "save final zip file"
+	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
+	ImportYamlLocation   = "import yaml location relative to working directory"
+	ClientId             = "client ID"
+	ConfirmDeleteProject = "confirm delete project"
 
 	// process
 	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"

@@ -72,7 +72,5 @@ func stopProjectCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmd, "projectName", "", i18n.ProjectName)
-
 	return cmd
 }
