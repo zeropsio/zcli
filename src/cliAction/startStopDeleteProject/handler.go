@@ -10,7 +10,7 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ProjectName      string
+	ProjectName string
 }
 
 type Handler struct {

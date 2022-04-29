@@ -67,6 +67,12 @@ const (
 	StopProjectProcessInit = "stopping the project"
 	StopProcessSuccess     = "project stopped successfully"
 
+	// delete project
+	ConfirmDelete            = "Please confirm you want to delete the project (y/n): "
+	CanceledByUser           = "delete project command canceled by user"
+	DeleteProjectProcessInit = "going to delete the project"
+	DeleteProcessSuccess     = "project deleted successfully"
+
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
 	BuildDeployServiceStackNameMissing = "service name must be filled"

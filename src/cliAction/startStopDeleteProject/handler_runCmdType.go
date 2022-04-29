@@ -8,11 +8,12 @@ func (h *Handler) Run(ctx context.Context, config RunConfig, actionType string) 
 		return err
 	}
 
-	// todo add delete and change to switch
 	if actionType == "start" {
 		return h.RunStart(ctx, config, projectId)
-	} else {
+	} else if actionType == "stop" {
 		return h.RunStop(ctx, config, projectId)
+	} else {
+		return h.RunDelete(ctx, config, projectId, actionType)
 	}
 
 }
