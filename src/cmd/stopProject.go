@@ -16,10 +16,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func startProjectCmd() *cobra.Command {
+func stopProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "start project [projectName]",
-		Short:        i18n.CmdStartProject,
+		Use:          "stop project [projectName]",
+		Short:        i18n.CmdStopProject,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -67,7 +67,7 @@ func startProjectCmd() *cobra.Command {
 				apiGrpcClient,
 			).Run(ctx, startStopDeleteProject.RunConfig{
 				ProjectName: args[1],
-			}, "start")
+			}, "stop")
 		},
 	}
 

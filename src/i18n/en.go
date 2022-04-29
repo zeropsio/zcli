@@ -54,12 +54,18 @@ const (
 	ImportYamlFound    = "import.yml found"
 	ImportYamlNotFound = "import.yml not found"
 
+	// find projct by name
+	ProjectNotFound      = "project not found"
+	ProjectsWithSameName = "there are multiple projects with the same name"
+	ProjectNameIsEmpty   = "project name must be filled"
+
 	// start project
-	StartProjectNotFound      = "project not found"
-	StartProjectsWithSameName = "there are multiple projects with the same name"
-	StartProjectNameIsEmpty   = "project name must be filled"
-	StartProjectProcessInit   = "starting the project"
-	StartProcessSuccess       = "project started successfully"
+	StartProjectProcessInit = "starting the project"
+	StartProcessSuccess     = "project started successfully"
+
+	// stop project
+	StopProjectProcessInit = "stopping the project"
+	StopProcessSuccess     = "project stopped successfully"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
