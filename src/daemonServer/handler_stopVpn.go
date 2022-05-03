@@ -2,6 +2,7 @@ package daemonServer
 
 import (
 	"context"
+
 	"github.com/zerops-io/zcli/src/proto/daemon"
 )
 

@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/proto/daemon"
-	"net/http"
 
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/i18n"

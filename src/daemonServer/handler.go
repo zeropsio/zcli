@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/zerops-io/zcli/src/proto/daemon"
 	"net"
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/zerops-io/zcli/src/proto/daemon"
 
 	"github.com/zerops-io/zcli/src/vpn"
 	"google.golang.org/grpc"

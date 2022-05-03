@@ -5,13 +5,14 @@ package vpn
 
 import (
 	"errors"
-	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strconv"
 	"strings"
+
+	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
 
 	"github.com/google/uuid"
 	"github.com/zerops-io/zcli/src/i18n"

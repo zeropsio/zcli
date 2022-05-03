@@ -2,11 +2,12 @@ package dns
 
 import (
 	"errors"
-	"github.com/zerops-io/zcli/src/nettools"
 	"net"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/zerops-io/zcli/src/nettools"
 
 	"github.com/zerops-io/zcli/src/dnsServer"
 

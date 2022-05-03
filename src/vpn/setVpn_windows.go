@@ -5,12 +5,13 @@ package vpn
 
 import (
 	"bytes"
-	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
 )
 
 const Template = `

@@ -2,12 +2,13 @@ package prolongVpn
 
 import (
 	"context"
+	"time"
+
 	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/proto/vpnproxy"
 	"github.com/zerops-io/zcli/src/utils/logger"
-	"time"
 )
 
 const (

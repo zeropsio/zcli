@@ -3,6 +3,7 @@ package vpn
 import (
 	"context"
 	"fmt"
+
 	"github.com/zerops-io/zcli/src/proto/daemon"
 
 	"github.com/zerops-io/zcli/src/i18n"

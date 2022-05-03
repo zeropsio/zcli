@@ -6,10 +6,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
-	"os"
 )
 
 func (h *Handler) Push(ctx context.Context, config RunConfig) error {

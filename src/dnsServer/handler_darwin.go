@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/zerops-io/zcli/src/nettools"
 	"net"
 	"os/exec"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/zerops-io/zcli/src/nettools"
 
 	"github.com/miekg/dns"
 )

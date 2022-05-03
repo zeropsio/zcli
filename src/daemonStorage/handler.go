@@ -1,13 +1,14 @@
 package daemonStorage
 
 import (
-	"github.com/zerops-io/zcli/src/utils/storage"
 	"net"
 	"time"
+
+	"github.com/zerops-io/zcli/src/utils/storage"
 )
 
 type Handler struct {
-	storage.Handler[Data]
+	*storage.Handler[Data]
 }
 
 type Data struct {

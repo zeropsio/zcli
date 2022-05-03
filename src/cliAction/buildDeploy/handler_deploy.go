@@ -6,12 +6,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
 )
 
 func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {

@@ -3,6 +3,7 @@ package statusVpn
 import (
 	"context"
 	"fmt"
+
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/daemon"
 

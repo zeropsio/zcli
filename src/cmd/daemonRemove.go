@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+
 	"github.com/zerops-io/zcli/src/proto/daemon"
 
 	"github.com/zerops-io/zcli/src/cliAction/removeDaemon"

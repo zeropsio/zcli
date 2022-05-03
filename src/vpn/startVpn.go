@@ -3,19 +3,18 @@ package vpn
 import (
 	"context"
 	"errors"
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/nettools"
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
-	"github.com/zerops-io/zcli/src/proto/vpnproxy"
 	"math/rand"
 	"net"
 	"sort"
 	"strconv"
 
-	"github.com/zerops-io/zcli/src/i18n"
-
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/dns"
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/nettools"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/vpnproxy"
 )
 
 func (h *Handler) startVpn(

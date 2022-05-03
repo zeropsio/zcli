@@ -2,8 +2,9 @@ package vpnproxy
 
 import (
 	"context"
-	"google.golang.org/grpc"
 	"time"
+
+	"google.golang.org/grpc"
 )
 
 func CreateClient(ctx context.Context, targetAddress string) (_ ZeropsVpnProtocolClient, closeFunc func(), _ error) {
