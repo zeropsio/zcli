@@ -3,6 +3,7 @@ package region
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/storage"
@@ -18,7 +19,7 @@ type Data struct {
 }
 
 type Handler struct {
-	client *httpClient.Handler
+	client  *httpClient.Handler
 	storage *storage.Handler[Data]
 }
 

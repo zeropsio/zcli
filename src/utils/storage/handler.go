@@ -16,6 +16,7 @@ type Config struct {
 
 type Handler[T any] struct {
 	config Config
+	data   *T
 
 	lock sync.Mutex
 }
@@ -40,10 +41,7 @@ func New[T any](config Config) (*Handler[T], error) {
 	return h, nil
 }
 
-func (h *Handler[T]) Load() *T {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-
+func (h *Handler[T]) load() *T {
 	var data T
 
 	storageFileExists, err := utils.FileExists(h.config.FilePath)
@@ -83,6 +81,8 @@ func (h *Handler[T]) Save(data *T) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
+	h.data = data
+
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -97,5 +97,11 @@ func (h *Handler[T]) Save(data *T) error {
 }
 
 func (h *Handler[T]) Data() *T {
-	return h.Load()
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	if h.data != nil {
+		return h.data
+	}
+	h.data = h.load()
+	return h.data
 }

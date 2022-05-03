@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+option go_package = "github.com/zerops-io/zcli/src/protocol/daemon";
+
+package zeropsDaemonProtocol;
+
+service ZeropsDaemonProtocol {
+    rpc startVpn (startVpnRequest) returns (startVpnResponse);
+    rpc stopVpn (stopVpnRequest) returns (stopVpnResponse);
+    rpc statusVpn (statusVpnRequest) returns (statusVpnResponse);
+}
+
+enum tunnelState {
+    TUNNEL_UNSET = 0;
+    TUNNEL_SET_INACTIVE = 1;
+    TUNNEL_ACTIVE = 2;
+}
+
+enum dnsState {
+    DNS_UNSET = 0;
+    DNS_SET_INACTIVE = 1;
+    DNS_ACTIVE = 2;
+}
+
+message vpnStatus {
+    tunnelState tunnelState = 1;
+    dnsState dnsState = 2;
+    string additionalInfo = 3;
+}
+
+message startVpnRequest {
+    string apiAddress = 1;
+    string vpnAddress = 2;
+    string projectId = 3;
+    string token = 4;
+    uint32 mtu = 5;
+    string userId = 6;
+    string caCertificateUrl = 7;
+}
+
+message startVpnResponse {
+    vpnStatus vpnStatus = 1;
+}
+
+message stopVpnRequest {
+}
+
+message stopVpnResponse {
+    vpnStatus vpnStatus = 1;
+    bool activeBefore = 2;
+}
+
+message statusVpnRequest {
+}
+
+message statusVpnResponse {
+    vpnStatus vpnStatus = 1;
+}

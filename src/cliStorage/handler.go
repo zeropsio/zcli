@@ -2,7 +2,9 @@ package cliStorage
 
 import "github.com/zerops-io/zcli/src/utils/storage"
 
-type Handler = storage.Handler[Data]
+type Handler struct {
+	*storage.Handler[Data]
+}
 
 type Data struct {
 	ProjectId string

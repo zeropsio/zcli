@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
+	"github.com/zerops-io/zcli/src/proto/daemon"
 
 	"github.com/zerops-io/zcli/src/i18n"
 
@@ -21,7 +21,7 @@ func vpnStatusCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
 
-			daemonClient, daemonCloseFunc, err := grpcDaemonClientFactory.New().CreateClient(ctx)
+			daemonClient, daemonCloseFunc, err := daemon.CreateClient(ctx)
 			if err != nil {
 				return err
 			}

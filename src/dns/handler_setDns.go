@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zerops-io/zcli/src/nettools"
+
 	"github.com/zerops-io/zcli/src/dnsServer"
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
-	"github.com/zerops-io/zcli/src/utils/interfaces"
 )
 
 var UnknownDnsManagementErr = errors.New("unknown dns management")
@@ -20,7 +21,7 @@ var UnknownDnsManagementErr = errors.New("unknown dns management")
 func SetDns(dnsServer *dnsServer.Handler, dnsIp net.IP, clientIp net.IP, vpnNetwork net.IPNet, dnsManagement LocalDnsManagement) error {
 	var err error
 
-	vpnInterfaceName, _, err := interfaces.GetInterfaceNameByIp(clientIp)
+	vpnInterfaceName, _, err := nettools.GetInterfaceNameByIp(clientIp)
 	if err != nil {
 		return err
 	}

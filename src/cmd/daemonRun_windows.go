@@ -12,12 +12,12 @@ import (
 	"github.com/judwhite/go-svc"
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/grpcDaemonServer"
+	"github.com/zerops-io/zcli/src/daemonServer"
 	"github.com/zerops-io/zcli/src/vpn"
 )
 
-func createDaemonGrpcServer(vpn *vpn.Handler) (*grpcDaemonServer.Handler, error) {
-	return grpcDaemonServer.New(grpcDaemonServer.Config{
+func createDaemonGrpcServer(vpn *vpn.Handler) (*daemonServer.Handler, error) {
+	return daemonServer.New(daemonServer.Config{
 		Address: constants.DaemonAddress,
 	},
 		vpn,

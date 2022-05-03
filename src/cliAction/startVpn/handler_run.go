@@ -6,14 +6,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/daemon"
+
 	"github.com/zerops-io/zcli/src/daemonInstaller"
 
 	"github.com/peterh/liner"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
@@ -22,16 +24,16 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return errors.New(i18n.VpnStartProjectNameIsEmpty)
 	}
 
-	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &zeropsApiProtocol.GetUserInfoRequest{})
-	if err := utils.HandleGrpcApiError(userInfoResponse, err); err != nil {
+	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
+	if err := proto.BusinessError(userInfoResponse, err); err != nil {
 		return err
 	}
 	userId := userInfoResponse.GetOutput().GetId()
 
-	projectsResponse, err := h.apiGrpcClient.GetProjectsByName(ctx, &zeropsApiProtocol.GetProjectsByNameRequest{
+	projectsResponse, err := h.apiGrpcClient.GetProjectsByName(ctx, &business.GetProjectsByNameRequest{
 		Name: config.ProjectName,
 	})
-	if err := utils.HandleGrpcApiError(projectsResponse, err); err != nil {
+	if err := proto.BusinessError(projectsResponse, err); err != nil {
 		return err
 	}
 
@@ -54,15 +56,15 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	return nil
 }
 
-func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Project, userId string, config RunConfig) error {
+func (h *Handler) tryStartVpn(ctx context.Context, project *business.Project, userId string, config RunConfig) error {
 
-	zeropsDaemonClient, closeFn, err := h.zeropsDaemonClientFactory.CreateClient(ctx)
+	zeropsDaemonClient, closeFn, err := daemon.CreateClient(ctx)
 	if err != nil {
 		return err
 	}
 	defer closeFn()
 
-	response, err := zeropsDaemonClient.StartVpn(ctx, &zeropsDaemonProtocol.StartVpnRequest{
+	response, err := zeropsDaemonClient.StartVpn(ctx, &daemon.StartVpnRequest{
 		ApiAddress:       h.config.GrpcApiAddress,
 		VpnAddress:       h.config.VpnAddress,
 		ProjectId:        project.GetId(),
@@ -71,7 +73,7 @@ func (h *Handler) tryStartVpn(ctx context.Context, project *zeropsApiProtocol.Pr
 		UserId:           userId,
 		CaCertificateUrl: config.CaCertificateUrl,
 	})
-	daemonInstalled, err := utils.HandleDaemonError(err)
+	daemonInstalled, err := proto.DaemonError(err)
 	if err != nil {
 		return err
 	}
