@@ -2,9 +2,9 @@ package i18n
 
 const (
 	// cmd
-	CmdDeployDesc    = "deploy your application into zerops.io"
-	CmdPushDesc      = "deploy your application into zerops.io and build it"
-	CmdLogin         = "log you into zerops.io"
+	CmdDeployDesc    = "deploy your application into Zerops"
+	CmdPushDesc      = "deploy your application into Zerops and build it"
+	CmdLogin         = "log you into Zerops"
 	CmdVpn           = "vpn commands group"
 	CmdVpnStart      = "start vpn"
 	CmdVpnStop       = "stop vpn"
