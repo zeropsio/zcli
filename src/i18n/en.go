@@ -2,7 +2,7 @@ package i18n
 
 const (
 	// cmd
-	CmdImportDesc    = "crate project in zerops.io and add stack services"
+	CmdImportDesc    = "create project in zerops.io and add stack services"
 	CmdDeployDesc    = "deploy your application into zerops.io"
 	CmdPushDesc      = "deploy your application into zerops.io and build it"
 	CmdLogin         = "log you into zerops.io"
