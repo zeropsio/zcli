@@ -1,4 +1,4 @@
-package importProject
+package importProjectService
 
 import (
 	"github.com/zerops-io/zcli/src/utils/httpClient"
@@ -10,9 +10,10 @@ type Config struct {
 }
 
 type RunConfig struct {
-    WorkingDir       string
+	WorkingDir     string
 	ImportYamlPath *string
 	ClientId       string
+	ProjectName    string
 }
 
 type Handler struct {

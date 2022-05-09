@@ -6,7 +6,7 @@ import (
 
 	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
 
-	"github.com/zerops-io/zcli/src/cliAction/importProject"
+	"github.com/zerops-io/zcli/src/cliAction/importProjectService"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
@@ -16,10 +16,20 @@ import (
 )
 
 func importCmd() *cobra.Command {
-	cmd := &cobra.Command{
+
+	// func NewCmd() *cobra.Command {
+	// 	cmd := &cobra.Command{Use: "app"}
+	// 	cmd2 := &cobra.Command{Use: "add"}
+	// 	cmd3 := &cobra.Command{Use: "delete"}
+	// 	cmd4 := &cobra.Command{Use: "list"}
+	// 	cmd.AddCommand(cmd2, cmd3, cmd4)
+	// 	return cmd
+	// }
+	cmd := &cobra.Command{Use: "import", Short: "import project or service"}
+	cmdProject := &cobra.Command{
 		// TODO ask how to define voluntary client id var
-		Use:          "import project [pathToImportYaml]  --clientId=<string>",
-		Short:        i18n.CmdImportDesc,
+		Use:          "project [pathToImportYaml]  --clientId=<string>",
+		Short:        i18n.CmdProjectImport,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -60,26 +70,82 @@ func importCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return importProject.New(
-				importProject.Config{},
+			return importProjectService.New(
+				importProjectService.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, importProject.RunConfig{
-// 				ZipFilePath:    params.GetString(cmd, "zipFilePath"),
-				WorkingDir:     params.GetString(cmd, "workingDir"),
-// 				VersionName:    params.GetString(cmd, "versionName"),
+			).Run(ctx, importProjectService.RunConfig{
+				// 				ZipFilePath:    params.GetString(cmd, "zipFilePath"),
+				WorkingDir: params.GetString(cmd, "workingDir"),
+				// 				VersionName:    params.GetString(cmd, "versionName"),
 				ImportYamlPath: &args[1],
 				ClientId:       params.GetString(cmd, "clientId"),
 			})
 		},
 	}
 
-	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
-// 	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
-// 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
-	params.RegisterString(cmd, "clientId", "", i18n.ClientId)
-	params.RegisterString(cmd, "importYamlPath", "", i18n.ImportYamlLocation)
+	cmdService := &cobra.Command{
+		// TODO ask how to define voluntary client id var
+		Use:          "service [projectName] [path to import.yml]",
+		Short:        i18n.CmdServiceImport,
+		Args:         cobra.MinimumNArgs(2),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx, cancel := context.WithCancel(context.Background())
+			regSignals(cancel)
 
+			storage, err := createCliStorage()
+			if err != nil {
+				return err
+			}
+
+			region, err := createRegionRetriever()
+			if err != nil {
+				return err
+			}
+
+			reg, err := region.RetrieveFromFile()
+			if err != nil {
+				return err
+			}
+
+			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+				CaCertificateUrl: reg.CaCertificateUrl,
+			})
+			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+				ctx,
+				reg.GrpcApiAddress,
+				getToken(storage),
+			)
+			if err != nil {
+				return err
+			}
+			defer closeFunc()
+
+			client := httpClient.New(httpClient.Config{
+				HttpTimeout: time.Minute * 15,
+			})
+
+			zip := zipClient.New(zipClient.Config{})
+
+			return importProjectService.New(
+				importProjectService.Config{},
+				client,
+				zip,
+				apiGrpcClient,
+			).Run(ctx, importProjectService.RunConfig{
+				WorkingDir:     params.GetString(cmd, "workingDir"),
+				ProjectName:    args[0],
+				ImportYamlPath: &args[1],
+			})
+		},
+	}
+
+	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
+	params.RegisterString(cmd, "importYamlPath", "", i18n.ImportYamlLocation)
+	params.RegisterString(cmdProject, "clientId", "", i18n.ClientId)
+
+	cmd.AddCommand(cmdProject, cmdService)
 	return cmd
 }

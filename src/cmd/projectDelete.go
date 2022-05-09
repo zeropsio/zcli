@@ -20,7 +20,7 @@ import (
 func deleteProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "delete project [projectName] --confirm",
-		Short:        i18n.CmdDeleteProject,
+		Short:        i18n.CmdProjectDelete,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {

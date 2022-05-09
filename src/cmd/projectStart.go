@@ -20,7 +20,7 @@ import (
 func startProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "start project [projectName]",
-		Short:        i18n.CmdStartProject,
+		Short:        i18n.CmdProjectStart,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {

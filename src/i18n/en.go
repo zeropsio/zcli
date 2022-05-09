@@ -2,7 +2,6 @@ package i18n
 
 const (
 	// cmd
-	CmdImportDesc    = "create project in zerops.io and add stack services"
 	CmdDeployDesc    = "deploy your application into zerops.io"
 	CmdPushDesc      = "deploy your application into zerops.io and build it"
 	CmdLogin         = "log you into zerops.io"
@@ -17,9 +16,14 @@ const (
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
 	CmdVersion       = "version"
-	CmdStartProject  = "run process to start the project and wait until finished"
-	CmdStopProject   = "run process to stop the project and wait until finished"
-	CmdDeleteProject = "run process to delete the project and wait until finished"
+	CmdProjectStart  = "run process to start the project and wait until finished"
+	CmdProjectStop   = "run process to stop the project and wait until finished"
+	CmdProjectDelete = "run process to delete the project and wait until finished"
+	CmdProjectImport = "create project in zerops.io and add service(s)"
+	CmdServiceImport = "create one or more services for given project"
+	CmdServiceStart  = "run process to start the service and wait until finished"
+	CmdServiceStop   = "run process to stop the service and wait until finished"
+	CmdServiceDelete = "run process to delete the service and wait until finished"
 
 	// flags description
 	BuildVersionName     = "custom version name"

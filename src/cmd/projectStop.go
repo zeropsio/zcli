@@ -20,7 +20,7 @@ import (
 func stopProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "stop project [projectName]",
-		Short:        i18n.CmdStopProject,
+		Short:        i18n.CmdProjectStop,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {

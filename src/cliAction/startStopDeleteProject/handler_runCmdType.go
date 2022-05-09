@@ -2,6 +2,7 @@ package startStopDeleteProject
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zerops-io/zcli/src/constants"
 )
@@ -9,6 +10,7 @@ import (
 func (h *Handler) Run(ctx context.Context, config RunConfig, actionType string) error {
 	projectId, err := h.getProjectId(ctx, config)
 	if err != nil {
+		fmt.Println("error ", err)
 		return err
 	}
 

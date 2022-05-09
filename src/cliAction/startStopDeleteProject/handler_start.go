@@ -6,6 +6,7 @@ import (
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils"
+	"github.com/zerops-io/zcli/src/utils/processChecker"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 )
 
@@ -22,7 +23,7 @@ func (h *Handler) RunStart(ctx context.Context, config RunConfig, projectId stri
 
 	processId := startProjectResponse.GetOutput().GetId()
 
-	err = h.checkProcess(ctx, processId)
+	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
 	if err != nil {
 		return err
 	}
