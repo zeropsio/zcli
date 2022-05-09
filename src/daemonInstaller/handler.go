@@ -1,8 +1,9 @@
 package daemonInstaller
 
 import (
-	"github.com/zerops-io/zcli/src/i18n"
 	"os/exec"
+
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 )

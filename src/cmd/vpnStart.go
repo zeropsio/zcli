@@ -3,11 +3,9 @@ package cmd
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+	"github.com/zerops-io/zcli/src/proto/business"
 
 	"github.com/zerops-io/zcli/src/daemonInstaller"
-	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
-
 	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/cliAction/startVpn"
@@ -42,7 +40,7 @@ func vpnStartCmd() *cobra.Command {
 
 			caCertUrl := reg.CaCertificateUrl
 			token := getToken(storage)
-			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{CaCertificateUrl: caCertUrl})
+			apiClientFactory := business.New(business.Config{CaCertificateUrl: caCertUrl})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
@@ -64,7 +62,6 @@ func vpnStartCmd() *cobra.Command {
 					VpnAddress:     reg.VpnApiAddress,
 				},
 				apiGrpcClient,
-				grpcDaemonClientFactory.New(),
 				installer,
 			).Run(ctx, startVpn.RunConfig{
 				ProjectName:      args[0],

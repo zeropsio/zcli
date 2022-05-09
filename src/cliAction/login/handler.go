@@ -7,14 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/zerops-io/zcli/src/zeropsDaemonProtocol"
-
-	"github.com/zerops-io/zcli/src/grpcDaemonClientFactory"
-
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
-
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/daemon"
 
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -33,26 +28,23 @@ type RunConfig struct {
 }
 
 type Handler struct {
-	config                    Config
-	storage                   *cliStorage.Handler
-	httpClient                *httpClient.Handler
-	grpcApiClientFactory      *grpcApiClientFactory.Handler
-	zeropsDaemonClientFactory *grpcDaemonClientFactory.Handler
+	config               Config
+	storage              *cliStorage.Handler
+	httpClient           *httpClient.Handler
+	grpcApiClientFactory *business.Handler
 }
 
 func New(
 	config Config,
 	storage *cliStorage.Handler,
 	httpClient *httpClient.Handler,
-	grpcApiClientFactory *grpcApiClientFactory.Handler,
-	zeropsDaemonClientFactory *grpcDaemonClientFactory.Handler,
+	grpcApiClientFactory *business.Handler,
 ) *Handler {
 	return &Handler{
-		config:                    config,
-		storage:                   storage,
-		httpClient:                httpClient,
-		grpcApiClientFactory:      grpcApiClientFactory,
-		zeropsDaemonClientFactory: zeropsDaemonClientFactory,
+		config:               config,
+		storage:              storage,
+		httpClient:           httpClient,
+		grpcApiClientFactory: grpcApiClientFactory,
 	}
 }
 
@@ -74,14 +66,14 @@ func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 		return err
 	}
 
-	daemonClient, closeFunc, err := h.zeropsDaemonClientFactory.CreateClient(ctx)
+	daemonClient, closeFunc, err := daemon.CreateClient(ctx)
 	if err != nil {
 		return err
 	}
 	defer closeFunc()
 
-	response, err := daemonClient.StopVpn(ctx, &zeropsDaemonProtocol.StopVpnRequest{})
-	daemonInstalled, err := utils.HandleDaemonError(err)
+	response, err := daemonClient.StopVpn(ctx, &daemon.StopVpnRequest{})
+	daemonInstalled, err := proto.DaemonError(err)
 	if err != nil {
 		return err
 	}
@@ -165,8 +157,8 @@ func (h *Handler) loginWithToken(ctx context.Context, token string) error {
 	}
 	defer closeFunc()
 
-	resp, err := grpcApiClient.GetUserInfo(ctx, &zeropsApiProtocol.GetUserInfoRequest{})
-	if err := utils.HandleGrpcApiError(resp, err); err != nil {
+	resp, err := grpcApiClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
+	if err := proto.BusinessError(resp, err); err != nil {
 		return err
 	}
 

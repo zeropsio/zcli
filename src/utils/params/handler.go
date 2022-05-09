@@ -45,25 +45,6 @@ func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, descrip
 	}
 }
 
-func (h *Handler) RegisterBool(cmd *cobra.Command, name string, defaultValue bool, description string) {
-
-	var paramValue bool
-
-	cmd.Flags().BoolVar(&paramValue, name, false, description)
-
-	h.params[h.getCmdId(cmd, name)] = func() *bool {
-		if paramValue != false {
-			return &paramValue
-		}
-		if h.viper.GetBool(name) != false {
-			v := h.viper.GetBool(name)
-			return &v
-		}
-
-		return &defaultValue
-	}
-}
-
 func (h *Handler) RegisterPersistentString(cmd *cobra.Command, name, defaultValue, description string) {
 
 	var paramValue string
@@ -150,17 +131,6 @@ func (h *Handler) GetUint32P(name string) *uint32 {
 		}
 	}
 	return nil
-}
-
-func (h *Handler) GetBool(cmd *cobra.Command, name string) bool {
-	id := h.getCmdId(cmd, name)
-	if param, exists := h.params[id]; exists {
-		if v, ok := param.(func() *bool); ok {
-			return *v()
-		}
-		return false
-	}
-	return false
 }
 
 func (h *Handler) InitViper() error {

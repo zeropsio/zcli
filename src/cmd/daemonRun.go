@@ -51,15 +51,6 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 	}()
 
 	vpnHandler := createVpn(storage, dnsServer, logger)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := vpnHandler.Run(ctx)
-		if err != nil {
-			logger.Error(err)
-			cancel()
-		}
-	}()
 
 	grpcServer, err := createDaemonGrpcServer(vpnHandler)
 	if err != nil {
@@ -70,6 +61,17 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 	go func() {
 		defer wg.Done()
 		err := grpcServer.Run(ctx)
+		if err != nil {
+			logger.Error(err)
+			cancel()
+		}
+	}()
+
+	vpnProlong := createVpnProlong(storage, logger)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := vpnProlong.Run(ctx)
 		if err != nil {
 			logger.Error(err)
 			cancel()

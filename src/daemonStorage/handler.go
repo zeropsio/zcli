@@ -1,11 +1,15 @@
 package daemonStorage
 
 import (
-	"github.com/zerops-io/zcli/src/utils/storage"
 	"net"
+	"time"
+
+	"github.com/zerops-io/zcli/src/utils/storage"
 )
 
-type Handler = storage.Handler[Data]
+type Handler struct {
+	*storage.Handler[Data]
+}
 
 type Data struct {
 	ProjectId        string
@@ -22,4 +26,7 @@ type Data struct {
 	CaCertificateUrl string
 	VpnStarted       bool
 	InterfaceName    string
+	Expiry           time.Time
+	PublicKey        string
+	PrivateKey       string
 }

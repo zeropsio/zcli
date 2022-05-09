@@ -183,6 +183,8 @@ var propertyList = `<?xml version="1.0" encoding="UTF-8"?>
     <dict>
         <key>PATH</key>
         <string>/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>HOME</key>
+        <string>/etc</string>
     </dict>
 </dict>
 </plist>
