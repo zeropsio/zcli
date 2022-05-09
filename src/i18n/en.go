@@ -16,13 +16,24 @@ const (
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
 	CmdVersion       = "version"
+	CmdProjectStart  = "run process to start the project and wait until finished"
+	CmdProjectStop   = "run process to stop the project and wait until finished"
+	CmdProjectDelete = "run process to delete the project and wait until finished"
+	CmdProjectImport = "create project in zerops.io and add service(s)"
+	CmdServiceImport = "create one or more services for given project"
+	CmdServiceStart  = "run process to start the service and wait until finished"
+	CmdServiceStop   = "run process to stop the service and wait until finished"
+	CmdServiceDelete = "run process to delete the service and wait until finished"
 
 	// flags description
-	BuildVersionName   = "custom version name"
-	SourceName         = "zerops.yml source service"
-	BuildWorkingDir    = "working dir, all files path are relative to this directory"
-	BuildZipFilePath   = "save final zip file"
-	ZeropsYamlLocation = "zerops yaml location relative to working directory"
+	BuildVersionName     = "custom version name"
+	SourceName           = "zerops.yml source service"
+	BuildWorkingDir      = "working dir, all files path are relative to this directory"
+	BuildZipFilePath     = "save final zip file"
+	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
+	ImportYamlLocation   = "import yaml location relative to working directory"
+	ClientId             = "client ID"
+	ConfirmDeleteProject = "confirm delete project"
 
 	// process
 	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"
@@ -40,6 +51,35 @@ const (
 
 	// region
 	RegionNotFound = "region not found"
+
+	// import project
+	ImportYamlEmpty     = "config file import.yml is empty"
+	ImportYamlTooLarge  = "max. size of import.yml is 10 KB"
+	ImportYamlFound     = "import.yml found"
+	ImportYamlNotFound  = "import.yml not found"
+	ImportYamlCorrupted = "import yaml corrupted"
+
+	// import service
+	ImportServiceFailed = "import service failed"
+
+	// find project by name
+	ProjectNotFound      = "project not found"
+	ProjectsWithSameName = "there are multiple projects with the same name"
+	ProjectNameIsEmpty   = "project name must be filled"
+
+	// start project
+	StartProjectProcessInit = "starting the project"
+	StartProcessSuccess     = "project started successfully"
+
+	// stop project
+	StopProjectProcessInit = "stopping the project"
+	StopProcessSuccess     = "project stopped successfully"
+
+	// delete project
+	ConfirmDelete            = "Please confirm you want to delete the project (y/n): "
+	CanceledByUser           = "delete project command canceled by user"
+	DeleteProjectProcessInit = "going to delete the project"
+	DeleteProcessSuccess     = "project deleted successfully"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"
