@@ -4,11 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/grpcApiClientFactory"
-
 	"github.com/zerops-io/zcli/src/cliAction/importProjectService"
-
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
 
@@ -17,14 +15,6 @@ import (
 
 func importCmd() *cobra.Command {
 
-	// func NewCmd() *cobra.Command {
-	// 	cmd := &cobra.Command{Use: "app"}
-	// 	cmd2 := &cobra.Command{Use: "add"}
-	// 	cmd3 := &cobra.Command{Use: "delete"}
-	// 	cmd4 := &cobra.Command{Use: "list"}
-	// 	cmd.AddCommand(cmd2, cmd3, cmd4)
-	// 	return cmd
-	// }
 	cmd := &cobra.Command{Use: "import", Short: "import project or service"}
 	cmdProject := &cobra.Command{
 		// TODO ask how to define voluntary client id var
@@ -51,7 +41,7 @@ func importCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+			apiClientFactory := business.New(business.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
@@ -86,7 +76,6 @@ func importCmd() *cobra.Command {
 	}
 
 	cmdService := &cobra.Command{
-		// TODO ask how to define voluntary client id var
 		Use:          "service [projectName] [path to import.yml]",
 		Short:        i18n.CmdServiceImport,
 		Args:         cobra.MinimumNArgs(2),
@@ -110,7 +99,7 @@ func importCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := grpcApiClientFactory.New(grpcApiClientFactory.Config{
+			apiClientFactory := business.New(business.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
@@ -134,7 +123,7 @@ func importCmd() *cobra.Command {
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, importProjectService.RunConfig{
+			).ImportService(ctx, importProjectService.RunConfig{
 				WorkingDir:     params.GetString(cmd, "workingDir"),
 				ProjectName:    args[0],
 				ImportYamlPath: &args[1],

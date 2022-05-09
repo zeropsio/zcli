@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
 )
 
 func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId string, actionType string) error {
@@ -21,10 +21,10 @@ func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId str
 		}
 	}
 
-	deleteProjectResponse, err := h.apiGrpcClient.DeleteProject(ctx, &zeropsApiProtocol.DeleteProjectRequest{
+	deleteProjectResponse, err := h.apiGrpcClient.DeleteProject(ctx, &business.DeleteProjectRequest{
 		Id: projectId,
 	})
-	if err := utils.HandleGrpcApiError(deleteProjectResponse, err); err != nil {
+	if err := proto.BusinessError(deleteProjectResponse, err); err != nil {
 		return err
 	}
 

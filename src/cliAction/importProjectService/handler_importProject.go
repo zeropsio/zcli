@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
+	"github.com/zerops-io/zcli/src/i18n"
+	// "github.com/zerops-io/zcli/src/proto"
+	// "github.com/zerops-io/zcli/src/proto/business"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
@@ -27,21 +28,20 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	if len(importYamlContent) == 0 {
 		// TODO use some of the constants
-		return errors.New("import yaml corrupted")
+		return errors.New(i18n.ImportYamlCorrupted)
 	}
 
 	fmt.Printf("config content is %v \n\n END \n\n", string(importYamlContent))
 
-	res, err := h.apiGrpcClient.PostProjectImport(ctx, &zeropsApiProtocol.PostProjectImportRequest{
-		ClientId: clientId,
-		Yaml:     string(importYamlContent),
-	})
-	if err := utils.HandleGrpcApiError(res, err); err != nil {
-		fmt.Println("ERRR", err)
-		return err
-	}
+	// res, err := h.apiGrpcClient.PostProjectImport(ctx, &business.PostProjectImportRequest{
+	// 	ClientId: clientId,
+	// 	Yaml:     string(importYamlContent),
+	// })
+	// if err := proto.BusinessError(res, err); err != nil {
+	// 	return err
+	// }
 
-	fmt.Println("RESPONSE", res)
+	// fmt.Println("RESPONSE", res)
 	/////////////////////
 
 	// deployProcessId := deployResponse.GetOutput().GetId()
@@ -51,7 +51,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	// 	return err
 	// }
 
-	// fmt.Println(i18n.BuildDeploySuccess)
+	fmt.Println(i18n.BuildDeploySuccess)
 
 	return nil
 }

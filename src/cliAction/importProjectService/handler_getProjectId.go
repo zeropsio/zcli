@@ -1,4 +1,4 @@
-package startStopDeleteProject
+package importProjectService
 
 import (
 	"context"

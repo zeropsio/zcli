@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
@@ -12,10 +14,10 @@ import (
 
 func (h *Handler) RunStart(ctx context.Context, config RunConfig, projectId string) error {
 
-	startProjectResponse, err := h.apiGrpcClient.PutProjectStart(ctx, &zeropsApiProtocol.PutProjectStartRequest{
+	startProjectResponse, err := h.apiGrpcClient.PutProjectStart(ctx, &business.PutProjectStartRequest{
 		Id: projectId,
 	})
-	if err := utils.HandleGrpcApiError(startProjectResponse, err); err != nil {
+	if err := proto.BusinessError(startProjectResponse, err); err != nil {
 		return err
 	}
 

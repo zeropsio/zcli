@@ -15,6 +15,11 @@ service zeropsApiProtocol {
     rpc GetServiceStackByName( GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
     rpc GetUserInfo( GetUserInfoRequest) returns (GetUserInfoResponse);
     rpc PostVpnRequest( PostVpnRequestRequest) returns (PostVpnRequestResponse);
+    rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
+    rpc PutProjectStart(PutProjectStartRequest) returns (PutProjectStartResponse);
+    rpc PutProjectStop(PutProjectStopRequest) returns (PutProjectStopResponse);
+    rpc PostProjectImport(PostProjectImportRequest) returns (PostProjectImportResponse);
+    rpc PostServiceStackImport(PostServiceStackImportRequest) returns (PostServiceStackImportResponse);
 
 }
 

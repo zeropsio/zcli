@@ -2,9 +2,9 @@ package i18n
 
 const (
 	// cmd
-	CmdDeployDesc    = "deploy your application into zerops.io"
-	CmdPushDesc      = "deploy your application into zerops.io and build it"
-	CmdLogin         = "log you into zerops.io"
+	CmdDeployDesc    = "deploy your application into Zerops"
+	CmdPushDesc      = "deploy your application into Zerops and build it"
+	CmdLogin         = "log you into Zerops"
 	CmdVpn           = "vpn commands group"
 	CmdVpnStart      = "start vpn"
 	CmdVpnStop       = "stop vpn"
@@ -53,10 +53,14 @@ const (
 	RegionNotFound = "region not found"
 
 	// import project
-	ImportYamlEmpty    = "config file import.yml is empty"
-	ImportYamlTooLarge = "max. size of import.yml is 10 KB"
-	ImportYamlFound    = "import.yml found"
-	ImportYamlNotFound = "import.yml not found"
+	ImportYamlEmpty     = "config file import.yml is empty"
+	ImportYamlTooLarge  = "max. size of import.yml is 10 KB"
+	ImportYamlFound     = "import.yml found"
+	ImportYamlNotFound  = "import.yml not found"
+	ImportYamlCorrupted = "import yaml corrupted"
+
+	// import service
+	ImportServiceFailed = "import service failed"
 
 	// find project by name
 	ProjectNotFound      = "project not found"

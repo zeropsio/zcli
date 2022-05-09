@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils"
+	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/zeropsApiProtocol"
 )
 
@@ -14,7 +14,7 @@ func (h *Handler) RunStop(ctx context.Context, config RunConfig, projectId strin
 	stopProjectResponse, err := h.apiGrpcClient.PutProjectStop(ctx, &zeropsApiProtocol.PutProjectStopRequest{
 		Id: projectId,
 	})
-	if err := utils.HandleGrpcApiError(stopProjectResponse, err); err != nil {
+	if err := proto.BusinessError(stopProjectResponse, err); err != nil {
 		return err
 	}
 
