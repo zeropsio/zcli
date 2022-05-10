@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
 )
 
 func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId string, actionType string) error {
@@ -21,21 +19,21 @@ func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId str
 		}
 	}
 
-	deleteProjectResponse, err := h.apiGrpcClient.DeleteProject(ctx, &business.DeleteProjectRequest{
-		Id: projectId,
-	})
-	if err := proto.BusinessError(deleteProjectResponse, err); err != nil {
-		return err
-	}
-
-	fmt.Println(i18n.DeleteProjectProcessInit)
-
-	processId := deleteProjectResponse.GetOutput().GetId()
-
-	err = h.checkProcess(ctx, processId)
-	if err != nil {
-		return err
-	}
+	//deleteProjectResponse, err := h.apiGrpcClient.DeleteProject(ctx, &business.DeleteProjectRequest{
+	//	Id: projectId,
+	//})
+	//if err := proto.BusinessError(deleteProjectResponse, err); err != nil {
+	//	return err
+	//}
+	//
+	//fmt.Println(i18n.DeleteProjectProcessInit)
+	//
+	//processId := deleteProjectResponse.GetOutput().GetId()
+	//
+	//err = h.checkProcess(ctx, processId)
+	//if err != nil {
+	//	return err
+	//}
 
 	fmt.Println(i18n.DeleteProcessSuccess)
 

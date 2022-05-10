@@ -16,6 +16,9 @@ const (
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
 	CmdVersion       = "version"
+	CmdStart         = "start project or service"
+	CmdStop          = "stop project or service"
+	CmdDelete        = "delete project or service"
 	CmdProjectStart  = "run process to start the project and wait until finished"
 	CmdProjectStop   = "run process to stop the project and wait until finished"
 	CmdProjectDelete = "run process to delete the project and wait until finished"
@@ -33,7 +36,8 @@ const (
 	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
 	ImportYamlLocation   = "import yaml location relative to working directory"
 	ClientId             = "client ID"
-	ConfirmDeleteProject = "confirm delete project"
+	ConfirmDeleteProject = "confirm to delete the project"
+	ConfirmDeleteService = "confirm to delete the service"
 
 	// process
 	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"

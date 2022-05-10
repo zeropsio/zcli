@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/cliAction/importProjectService"
+	"github.com/zerops-io/zcli/src/cliAction/startStopDeleteProject"
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
@@ -13,13 +14,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func importCmd() *cobra.Command {
-	// TODO add to dictionary
-	cmd := &cobra.Command{Use: "import", Short: "import project or service"}
+func deleteCmd() *cobra.Command {
+	//todo add to dict
+	cmd := &cobra.Command{Use: "delete", Short: i18n.CmdDelete}
 	cmdProject := &cobra.Command{
-		// TODO ask how to define voluntary client id var
-		Use:          "project [pathToImportYaml]  --clientId=<string>",
-		Short:        i18n.CmdProjectImport,
+		Use:          "project [projectName] --confirm",
+		Short:        i18n.CmdProjectDelete,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -60,24 +60,20 @@ func importCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return importProjectService.New(
-				importProjectService.Config{},
+			return startStopDeleteProject.New(
+				startStopDeleteProject.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, importProjectService.RunConfig{
-				// 				ZipFilePath:    params.GetString(cmd, "zipFilePath"),
-				WorkingDir: params.GetString(cmd, "workingDir"),
-				// 				VersionName:    params.GetString(cmd, "versionName"),
-				ImportYamlPath: &args[1],
-				ClientId:       params.GetString(cmd, "clientId"),
-			})
+			).Run(ctx, startStopDeleteProject.RunConfig{
+				ProjectName: args[0],
+				Confirm:     params.GetBool(cmd, "confirm"),
+			}, constants.Delete)
 		},
 	}
-
 	cmdService := &cobra.Command{
-		Use:          "service [projectName] [path to import.yml]",
-		Short:        i18n.CmdServiceImport,
+		Use:          "service [projectName] [serviceName] --confirm",
+		Short:        i18n.CmdServiceDelete,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -118,22 +114,21 @@ func importCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return importProjectService.New(
-				importProjectService.Config{},
+			return startStopDeleteProject.New(
+				startStopDeleteProject.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).ImportService(ctx, importProjectService.RunConfig{
-				WorkingDir:     params.GetString(cmd, "workingDir"),
-				ProjectName:    args[0],
-				ImportYamlPath: &args[1],
-			})
+			).Run(ctx, startStopDeleteProject.RunConfig{
+				ProjectName: args[0],
+				ServiceName: args[1],
+				Confirm:     params.GetBool(cmd, "confirm"),
+			}, constants.Delete)
 		},
 	}
 
-	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
-	params.RegisterString(cmd, "importYamlPath", "", i18n.ImportYamlLocation)
-	params.RegisterString(cmdProject, "clientId", "", i18n.ClientId)
+	params.RegisterBool(cmdProject, "confirm", false, i18n.ConfirmDeleteProject)
+	params.RegisterBool(cmdService, "confirm", false, i18n.ConfirmDeleteService)
 
 	cmd.AddCommand(cmdProject, cmdService)
 	return cmd
