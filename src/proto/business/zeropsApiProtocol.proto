@@ -29,6 +29,11 @@ message Error {
     bytes meta = 3;
 }
 
+message ErrorNull {
+    Error value = 1;
+    bool valid = 2;
+}
+
 enum ErrorCode {
     NO_ERROR = 0;
     INTERNAL_SERVER_ERROR = 1;
@@ -340,6 +345,33 @@ message Timestamp {
 // REQUEST OBJECTS
 //
 
+message DeleteProjectRequest {
+    string id = 1;
+
+}
+
+message PutProjectStartRequest {
+    string id = 1;
+
+}
+
+message PutProjectStopRequest {
+    string id = 1;
+
+}
+
+message PostProjectImportRequest {
+    string clientId = 1;
+    string yaml = 2;
+
+}
+
+message PostServiceStackImportRequest {
+    string projectId = 1;
+    string yaml = 2;
+
+}
+
 message GetProcessRequest {
     string id = 1;
 
@@ -412,6 +444,164 @@ message PutAppVersionDeployRequest {
 // RESPONSE OBJECTS
 //
 
+message PostServiceStackImportResponse {
+    Error error = 1;
+    PostServiceStackImportResponseDto output = 2;
+}
+
+message PostServiceStackImportResponseDto {
+    string projectId = 1;
+    string projectName = 2;
+    repeated ProjectImportServiceStack serviceStacks = 3;
+
+}
+
+message DeleteProjectResponse {
+    Error error = 1;
+    DeleteProjectResponseDto output = 2;
+}
+
+message DeleteProjectResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
+message PutProjectStartResponse {
+    Error error = 1;
+    PutProjectStartResponseDto output = 2;
+}
+
+message PutProjectStartResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
+
+message PutProjectStopResponse {
+    Error error = 1;
+    PutProjectStopResponseDto output = 2;
+}
+
+message PutProjectStopResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
+
+message PutServiceStackRestartResponse {
+    Error error = 1;
+    PutServiceStackRestartResponseDto output = 2;
+}
+
+message PutServiceStackRestartResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
+message PostProjectImportResponse {
+    Error error = 1;
+    PostProjectImportResponseDto output = 2;
+}
+
+message PostProjectImportResponseDto {
+    string projectId = 1;
+    string projectName = 2;
+    repeated ProjectImportServiceStack serviceStacks = 3;
+
+}
+
+message ProjectImportServiceStack {
+    string id = 1;
+    string name = 2;
+    ErrorNull error = 3;
+    repeated Process processes = 4;
+
+}
+
+message Process {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
 
 message GetProcessResponse {
     Error error = 1;
