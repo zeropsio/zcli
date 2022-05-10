@@ -21,7 +21,7 @@ func deployCmd() *cobra.Command {
 		SilenceUsage: true,
 		Args:         cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(cmd.Context())
 			regSignals(cancel)
 
 			storage, err := createCliStorage()
@@ -29,7 +29,7 @@ func deployCmd() *cobra.Command {
 				return err
 			}
 
-			region, err := createRegionRetriever()
+			region, err := createRegionRetriever(ctx)
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ func deployCmd() *cobra.Command {
 			}
 			defer closeFunc()
 
-			httpClient := httpClient.New(httpClient.Config{
+			httpClient := httpClient.New(ctx, httpClient.Config{
 				HttpTimeout: time.Minute * 15,
 			})
 

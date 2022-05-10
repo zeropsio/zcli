@@ -5,10 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
 type failResponse struct {
 	Error *failResponseError `json:"error"`
+}
+
+func (f failResponse) IsUnauthenticated() bool {
+	code := f.Error.ErrorCode
+	return code == userNotFound || code == incorrectUserCredentials
 }
 
 type failResponseError struct {
@@ -43,6 +50,13 @@ func parseRestApiError(body []byte) error {
 
 		return errors.New(strings.Join(errorList, ", "))
 	} else {
-		return errors.New(errorResponse.Error.Message)
+		err := errors.New(errorResponse.Error.Message)
+		if errorResponse.IsUnauthenticated() {
+			return i18n.AddHintChangeRegion(err)
+		}
+		return err
 	}
 }
+
+const userNotFound = "userNotFound"
+const incorrectUserCredentials = "incorrectUserCredentials"
