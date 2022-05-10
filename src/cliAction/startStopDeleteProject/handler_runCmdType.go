@@ -15,11 +15,11 @@ func (h *Handler) Run(ctx context.Context, config RunConfig, actionType string) 
 	}
 
 	if actionType == constants.Start {
-		return h.RunStart(ctx, config, projectId)
+		return h.RunStart(ctx, projectId)
 	} else if actionType == constants.Stop {
-		return h.RunStop(ctx, config, projectId)
+		return h.RunStop(ctx, projectId)
 	} else {
-		return h.RunDelete(ctx, config, projectId, actionType)
+		return h.RunDelete(ctx, config, projectId)
 	}
 
 }
