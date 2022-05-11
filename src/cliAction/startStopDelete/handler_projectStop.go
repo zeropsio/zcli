@@ -1,4 +1,4 @@
-package startStopDeleteProject
+package startStopDelete
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/zerops-io/zcli/src/proto/business"
 )
 
-func (h *Handler) RunStop(ctx context.Context, projectId string) error {
+func (h *Handler) ProjectStop(ctx context.Context, projectId string) error {
 
 	stopProjectResponse, err := h.apiGrpcClient.PutProjectStop(ctx, &business.PutProjectStopRequest{
 		Id: projectId,
@@ -27,7 +27,7 @@ func (h *Handler) RunStop(ctx context.Context, projectId string) error {
 		return err
 	}
 
-	fmt.Println(i18n.StopProcessSuccess)
+	fmt.Println(i18n.StopProjectSuccess)
 
 	return nil
 }

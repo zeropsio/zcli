@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/cliAction/startStopDeleteProject"
+	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
@@ -58,15 +58,15 @@ func projectDeleteCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return startStopDeleteProject.New(
-				startStopDeleteProject.Config{},
+			return startStopDelete.New(
+				startStopDelete.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, startStopDeleteProject.RunConfig{
+			).Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				Confirm:     params.GetBool(cmd, "confirm"),
-			}, constants.Delete)
+			}, constants.Project, constants.Delete)
 		},
 	}
 	params.RegisterBool(cmd, "confirm", false, i18n.ConfirmDeleteProject)

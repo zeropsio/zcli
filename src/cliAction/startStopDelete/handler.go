@@ -1,4 +1,4 @@
-package startStopDeleteProject
+package startStopDelete
 
 import (
 	"github.com/zerops-io/zcli/src/proto/business"

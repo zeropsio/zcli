@@ -1,4 +1,4 @@
-package startStopDeleteProject
+package startStopDelete
 
 import (
 	"context"

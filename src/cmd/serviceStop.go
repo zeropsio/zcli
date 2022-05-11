@@ -8,7 +8,7 @@ import (
 
 	"github.com/zerops-io/zcli/src/constants"
 
-	"github.com/zerops-io/zcli/src/cliAction/startStopDeleteProject"
+	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
@@ -60,15 +60,15 @@ func serviceStopCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return startStopDeleteProject.New(
-				startStopDeleteProject.Config{},
+			return startStopDelete.New(
+				startStopDelete.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, startStopDeleteProject.RunConfig{
+			).Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				ServiceName: args[1],
-			}, constants.Stop)
+			}, constants.Service, constants.Stop)
 		},
 	}
 	return cmdStop

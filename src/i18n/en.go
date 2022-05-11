@@ -70,19 +70,25 @@ const (
 	ProjectsWithSameName = "there are multiple projects with the same name"
 	ProjectNameIsEmpty   = "project name must be filled"
 
-	// start project
-	StartProjectProcessInit = "starting the project"
-	StartProcessSuccess     = "project started successfully"
-
-	// stop project
-	StopProjectProcessInit = "stopping the project"
-	StopProcessSuccess     = "project stopped successfully"
-
-	// delete project
-	ConfirmDelete            = "Please confirm you want to delete the project (y/n): "
-	CanceledByUser           = "delete project command canceled by user"
+	// project
+	StartProjectProcessInit  = "starting the project"
+	StartProjectSuccess      = "project started successfully"
+	StopProjectProcessInit   = "stopping the project"
+	StopProjectSuccess       = "project stopped successfully"
+	DeleteProjectConfirm     = "Please confirm you want to delete the project (y/n): "
+	DelProjectCanceledByUser = "delete project command canceled by user"
 	DeleteProjectProcessInit = "going to delete the project"
-	DeleteProcessSuccess     = "project deleted successfully"
+	DeleteProjectSuccess     = "project deleted successfully"
+
+	// service
+	StartServiceProcessInit  = "starting the service"
+	StartServiceSuccess      = "service started successfully"
+	StopServiceProcessInit   = "stopping the service"
+	StopServiceSuccess       = "project stopped successfully"
+	DeleteServiceConfirm     = "Please confirm you want to delete the service (y/n): "
+	DelServiceCanceledByUser = "delete service command canceled by user"
+	DeleteServiceProcessInit = "going to delete the service"
+	DeleteServiceSuccess     = "service deleted successfully"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"

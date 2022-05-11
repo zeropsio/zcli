@@ -1,22 +1,22 @@
-package startStopDeleteProject
+package startStopDelete
 
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
 )
 
-func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId string) error {
+func (h *Handler) ProjectDelete(ctx context.Context, projectId string, config RunConfig) error {
 
 	if !config.Confirm {
 		// run confirm dialogue
-		shouldDelete := askForConfirmation()
+		shouldDelete := askForConfirmation(constants.Project)
 		if !shouldDelete {
-			fmt.Println(i18n.CanceledByUser)
+			fmt.Println(i18n.DelProjectCanceledByUser)
 			return nil
 		}
 	}
@@ -37,27 +37,7 @@ func (h *Handler) RunDelete(ctx context.Context, config RunConfig, projectId str
 		return err
 	}
 
-	fmt.Println(i18n.DeleteProcessSuccess)
+	fmt.Println(i18n.DeleteProjectSuccess)
 
 	return nil
-}
-
-func askForConfirmation() bool {
-	fmt.Print(i18n.ConfirmDelete)
-	var response string
-
-	_, err := fmt.Scan(&response)
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-
-	resp := strings.ToLower(response)
-	if resp == "y" || resp == "yes" {
-		return true
-	} else if resp == "n" || resp == "no" {
-		return false
-	} else {
-		return askForConfirmation()
-	}
 }

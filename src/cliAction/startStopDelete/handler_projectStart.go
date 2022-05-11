@@ -1,4 +1,4 @@
-package startStopDeleteProject
+package startStopDelete
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
-func (h *Handler) RunStart(ctx context.Context, projectId string) error {
+func (h *Handler) ProjectStart(ctx context.Context, projectId string) error {
 
 	startProjectResponse, err := h.apiGrpcClient.PutProjectStart(ctx, &business.PutProjectStartRequest{
 		Id: projectId,
@@ -28,7 +28,7 @@ func (h *Handler) RunStart(ctx context.Context, projectId string) error {
 		return err
 	}
 
-	fmt.Println(i18n.StartProcessSuccess)
+	fmt.Println(i18n.StartProjectSuccess)
 
 	return nil
 }
