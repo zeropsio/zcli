@@ -6,6 +6,9 @@ import (
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
 func (h *Handler) ServiceDelete(ctx context.Context, serviceId string, config RunConfig) error {
@@ -19,9 +22,19 @@ func (h *Handler) ServiceDelete(ctx context.Context, serviceId string, config Ru
 		}
 	}
 
+	deleteServiceResponse, err := h.apiGrpcClient.DeleteServiceStack(ctx, &business.DeleteServiceStackRequest{
+		Id: serviceId,
+	})
+	if err := proto.BusinessError(deleteServiceResponse, err); err != nil {
+		return err
+	}
 	fmt.Println(i18n.DeleteServiceProcessInit)
-	// todo call api
-	fmt.Println(serviceId)
+	processId := deleteServiceResponse.GetOutput().GetId()
+
+	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println(i18n.DeleteServiceSuccess)
 

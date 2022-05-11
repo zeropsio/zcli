@@ -119,12 +119,12 @@ func (h *Handler) ImportService(ctx context.Context, config RunConfig) error {
 
 	//provádět opakované dotazy na seznam procesů pomocí gRPC API /process/search
 	// aplikovat filtr na seznam ID procesů vrácených v serviceStacks[].processes[].id
-	// deployProcessId := deployResponse.GetOutput().GetId()
+	// processId := deployResponse.GetOutput().GetId()
 
-	// err = h.checkProcess(ctx, deployProcessId)
-	// if err != nil {
-	// 	return err
-	// }
+	//err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
+	//if err != nil {
+	//	return err
+	//}
 
 	// fmt.Println(i18n.BuildDeploySuccess)
 

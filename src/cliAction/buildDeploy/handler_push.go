@@ -11,6 +11,7 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
 func (h *Handler) Push(ctx context.Context, config RunConfig) error {
@@ -99,7 +100,7 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 
 	deployProcessId := deployResponse.GetOutput().GetId()
 
-	err = h.checkProcess(ctx, deployProcessId)
+	err = processChecker.CheckProcess(ctx, deployProcessId, h.apiGrpcClient)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,6 @@ package startStopDelete
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
@@ -25,9 +24,7 @@ func (h *Handler) getServiceId(ctx context.Context, config RunConfig, projectId 
 	}
 
 	id := response.GetOutput().GetId()
-	fmt.Println(id)
 
-	// TODO check response
 	if len(id) == 0 {
 		return "", errors.New(i18n.ServiceNotFound)
 	}

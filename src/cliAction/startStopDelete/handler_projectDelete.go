@@ -8,6 +8,7 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
 func (h *Handler) ProjectDelete(ctx context.Context, projectId string, config RunConfig) error {
@@ -32,7 +33,7 @@ func (h *Handler) ProjectDelete(ctx context.Context, projectId string, config Ru
 
 	processId := deleteProjectResponse.GetOutput().GetId()
 
-	err = h.checkProcess(ctx, processId)
+	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
 	if err != nil {
 		return err
 	}
