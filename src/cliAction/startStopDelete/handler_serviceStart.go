@@ -7,13 +7,12 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 )
 
-func (h *Handler) ServiceStart(ctx context.Context, projectId string, config RunConfig) error {
-
-	serviceName := config.ServiceName
-	fmt.Println(serviceName, projectId)
+func (h *Handler) ServiceStart(ctx context.Context, serviceId string) error {
 
 	fmt.Println(i18n.StartServiceProcessInit)
+
 	// todo call api
+	fmt.Println(serviceId)
 
 	fmt.Println(i18n.StartServiceSuccess)
 

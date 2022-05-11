@@ -55,22 +55,17 @@ const (
 	// region
 	RegionNotFound = "region not found"
 
-	// import project
+	// import
 	ImportYamlEmpty     = "config file import.yml is empty"
 	ImportYamlTooLarge  = "max. size of import.yml is 10 KB"
 	ImportYamlFound     = "import.yml found"
 	ImportYamlNotFound  = "import.yml not found"
 	ImportYamlCorrupted = "import yaml corrupted"
 
-	// import service
-	ImportServiceFailed = "import service failed"
-
-	// find project by name
-	ProjectNotFound      = "project not found"
-	ProjectsWithSameName = "there are multiple projects with the same name"
-	ProjectNameIsEmpty   = "project name must be filled"
-
 	// project
+	ProjectNotFound          = "project not found"
+	ProjectsWithSameName     = "there are multiple projects with the same name"
+	ProjectNameIsEmpty       = "project name must be filled"
 	StartProjectProcessInit  = "starting the project"
 	StartProjectSuccess      = "project started successfully"
 	StopProjectProcessInit   = "stopping the project"
@@ -81,6 +76,8 @@ const (
 	DeleteProjectSuccess     = "project deleted successfully"
 
 	// service
+	ServiceNotFound          = "service not found"
+	ServiceNameIsEmpty       = "service name must be filled"
 	StartServiceProcessInit  = "starting the service"
 	StartServiceSuccess      = "service started successfully"
 	StopServiceProcessInit   = "stopping the service"
@@ -89,6 +86,7 @@ const (
 	DelServiceCanceledByUser = "delete service command canceled by user"
 	DeleteServiceProcessInit = "going to delete the service"
 	DeleteServiceSuccess     = "service deleted successfully"
+	ImportServiceFailed      = "import service failed"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"

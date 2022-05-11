@@ -23,11 +23,17 @@ func (h *Handler) Run(ctx context.Context, config RunConfig, parentCmd string, a
 			return h.ProjectDelete(ctx, projectId, config)
 		}
 	}
+
+	serviceId, err := h.getServiceId(ctx, config, projectId)
+	if err != nil {
+		return err
+	}
+
 	if actionType == constants.Start {
-		return h.ServiceStart(ctx, projectId, config)
+		return h.ServiceStart(ctx, serviceId)
 	} else if actionType == constants.Stop {
-		return h.ServiceStop(ctx, projectId, config)
+		return h.ServiceStop(ctx, serviceId)
 	} else {
-		return h.ServiceDelete(ctx, projectId, config)
+		return h.ServiceDelete(ctx, serviceId, config)
 	}
 }
