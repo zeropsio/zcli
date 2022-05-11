@@ -5,22 +5,25 @@ option go_package = "github.com/zerops-io/zcli/src/protocol/business";
 package zeropsApiProtocol;
 
 service zeropsApiProtocol {
-    rpc PutAppVersionDeploy( PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
-    rpc PutAppVersionBuildAndDeploy( PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
-    rpc PostAppVersion( PostAppVersionRequest) returns (PostAppVersionResponse);
-    rpc GetProjectsByName( GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
-    rpc GetProcess( GetProcessRequest) returns (GetProcessResponse);
-    rpc PostPublicHttpRouting( PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
-    rpc GetServiceStack( GetServiceStackRequest) returns (GetServiceStackResponse);
-    rpc GetServiceStackByName( GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
-    rpc GetUserInfo( GetUserInfoRequest) returns (GetUserInfoResponse);
-    rpc PostVpnRequest( PostVpnRequestRequest) returns (PostVpnRequestResponse);
+    rpc PutAppVersionDeploy(PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);
+    rpc PutAppVersionBuildAndDeploy(PutAppVersionBuildAndDeployRequest) returns (PutAppVersionBuildAndDeployResponse);
+    rpc PostAppVersion(PostAppVersionRequest) returns (PostAppVersionResponse);
     rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
+    rpc GetProjectsByName(GetProjectsByNameRequest) returns (GetProjectsByNameResponse);
     rpc PutProjectStart(PutProjectStartRequest) returns (PutProjectStartResponse);
     rpc PutProjectStop(PutProjectStopRequest) returns (PutProjectStopResponse);
     rpc PostProjectImport(PostProjectImportRequest) returns (PostProjectImportResponse);
+    rpc GetProcess(GetProcessRequest) returns (GetProcessResponse);
+    rpc PostPublicHttpRouting(PostPublicHttpRoutingRequest) returns (PostPublicHttpRoutingResponse);
+    rpc GetServiceStack(GetServiceStackRequest) returns (GetServiceStackResponse);
+    rpc DeleteServiceStack(DeleteServiceStackRequest) returns (DeleteServiceStackResponse);
+    rpc PutServiceStackStop(PutServiceStackStopRequest) returns (PutServiceStackStopResponse);
+    rpc PutServiceStackStart(PutServiceStackStartRequest) returns (PutServiceStackStartResponse);
+    rpc PutServiceStackRestart(PutServiceStackRestartRequest) returns (PutServiceStackRestartResponse);
+    rpc GetServiceStackByName(GetServiceStackByNameRequest) returns (GetServiceStackByNameResponse);
     rpc PostServiceStackImport(PostServiceStackImportRequest) returns (PostServiceStackImportResponse);
-
+    rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc PostVpnRequest(PostVpnRequestRequest) returns (PostVpnRequestResponse);
 }
 
 message Error {
@@ -359,7 +362,27 @@ message Timestamp {
 // REQUEST OBJECTS
 //
 
+message PutServiceStackStartRequest {
+    string id = 1;
+
+}
+
+message PutServiceStackStopRequest {
+    string id = 1;
+
+}
+
+message PutServiceStackRestartRequest {
+    string id = 1;
+
+}
+
 message DeleteProjectRequest {
+    string id = 1;
+
+}
+
+message DeleteServiceStackRequest {
     string id = 1;
 
 }
@@ -458,6 +481,58 @@ message PutAppVersionDeployRequest {
 // RESPONSE OBJECTS
 //
 
+message PutServiceStackStartResponse {
+    Error error = 1;
+    PutServiceStackStartResponseDto output = 2;
+}
+
+message PutServiceStackStartResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
+message PutServiceStackStopResponse {
+    Error error = 1;
+    PutServiceStackStopResponseDto output = 2;
+}
+
+message PutServiceStackStopResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
 message PostServiceStackImportResponse {
     Error error = 1;
     PostServiceStackImportResponseDto output = 2;
@@ -476,6 +551,32 @@ message DeleteProjectResponse {
 }
 
 message DeleteProjectResponseDto {
+    string id = 1;
+    string clientId = 2;
+    string projectId = 3;
+    StringNull serviceStackId = 4;
+    ProjectLightJsonObject project = 5;
+    repeated ServiceStackLightJsonObject serviceStacks = 6;
+    ProcessStatus status = 7;
+    int32 sequence = 8;
+    UserJsonObject createdByUser = 9;
+    UserJsonObjectNull canceledByUser = 10;
+    string actionName = 11;
+    Timestamp created = 12;
+    Timestamp lastUpdate = 13;
+    TimestampNull started = 14;
+    TimestampNull finished = 15;
+    bool createdBySystem = 16;
+    AppVersionJsonObjectNull appVersion = 17;
+
+}
+
+message DeleteServiceStackResponse {
+    Error error = 1;
+    DeleteServiceStackResponseDto output = 2;
+}
+
+message DeleteServiceStackResponseDto {
     string id = 1;
     string clientId = 2;
     string projectId = 3;
