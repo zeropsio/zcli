@@ -23,7 +23,6 @@ func ExecuteCmd() error {
 		Use: "zcli",
 	}
 
-	rootCmd.AddCommand(importCmd())
 	rootCmd.AddCommand(deployCmd())
 	rootCmd.AddCommand(pushCmd())
 	rootCmd.AddCommand(vpnCmd())
@@ -31,9 +30,8 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(logCmd())
 	rootCmd.AddCommand(daemonCmd())
 	rootCmd.AddCommand(versionCmd())
-	rootCmd.AddCommand(startCmd())
-	rootCmd.AddCommand(stopCmd())
-	rootCmd.AddCommand(deleteCmd())
+	rootCmd.AddCommand(projectCmd())
+	rootCmd.AddCommand(serviceCmd())
 
 	err := params.InitViper()
 	if err != nil {
