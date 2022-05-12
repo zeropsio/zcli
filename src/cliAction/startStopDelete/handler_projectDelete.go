@@ -22,14 +22,14 @@ func (h *Handler) ProjectDelete(ctx context.Context, projectId string, config Ru
 		}
 	}
 
+	fmt.Println(i18n.DeleteProjectProcessInit)
+
 	deleteProjectResponse, err := h.apiGrpcClient.DeleteProject(ctx, &business.DeleteProjectRequest{
 		Id: projectId,
 	})
 	if err := proto.BusinessError(deleteProjectResponse, err); err != nil {
 		return err
 	}
-
-	fmt.Println(i18n.DeleteProjectProcessInit)
 
 	processId := deleteProjectResponse.GetOutput().GetId()
 
@@ -38,7 +38,7 @@ func (h *Handler) ProjectDelete(ctx context.Context, projectId string, config Ru
 		return err
 	}
 
-	fmt.Println(i18n.DeleteProjectSuccess)
+	fmt.Println("✓ " + i18n.DeleteProjectSuccess)
 
 	return nil
 }

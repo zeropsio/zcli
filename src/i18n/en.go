@@ -74,6 +74,7 @@ const (
 	DelProjectCanceledByUser = "delete project command canceled by user"
 	DeleteProjectProcessInit = "going to delete the project"
 	DeleteProjectSuccess     = "project deleted successfully"
+	ProjectImportSuccess     = "project imported successfully"
 
 	// service
 	ServiceNotFound          = "service not found"
@@ -87,6 +88,7 @@ const (
 	DeleteServiceProcessInit = "going to delete the service"
 	DeleteServiceSuccess     = "service deleted successfully"
 	ImportServiceFailed      = "import service failed"
+	ServiceImportSuccess     = "service imported successfully"
 
 	// deploy
 	BuildDeployProjectNameMissing      = "project name must be filled"

@@ -41,7 +41,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	//		return err
 	//	}
 
-	fmt.Println(i18n.BuildDeploySuccess)
+	fmt.Println("✓ " + i18n.ProjectImportSuccess)
 
 	return nil
 }

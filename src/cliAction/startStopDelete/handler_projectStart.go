@@ -12,14 +12,14 @@ import (
 
 func (h *Handler) ProjectStart(ctx context.Context, projectId string) error {
 
+	fmt.Println(i18n.StartProjectProcessInit)
+
 	startProjectResponse, err := h.apiGrpcClient.PutProjectStart(ctx, &business.PutProjectStartRequest{
 		Id: projectId,
 	})
 	if err := proto.BusinessError(startProjectResponse, err); err != nil {
 		return err
 	}
-
-	fmt.Println(i18n.StartProjectProcessInit)
 
 	processId := startProjectResponse.GetOutput().GetId()
 
@@ -28,7 +28,7 @@ func (h *Handler) ProjectStart(ctx context.Context, projectId string) error {
 		return err
 	}
 
-	fmt.Println(i18n.StartProjectSuccess)
+	fmt.Println("✓ " + i18n.StartProjectSuccess)
 
 	return nil
 }

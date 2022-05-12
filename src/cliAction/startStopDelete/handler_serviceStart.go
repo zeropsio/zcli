@@ -12,13 +12,15 @@ import (
 
 func (h *Handler) ServiceStart(ctx context.Context, serviceId string) error {
 
+	fmt.Println(i18n.StartServiceProcessInit)
+
 	startServiceResponse, err := h.apiGrpcClient.PutServiceStackStart(ctx, &business.PutServiceStackStartRequest{
 		Id: serviceId,
 	})
 	if err := proto.BusinessError(startServiceResponse, err); err != nil {
 		return err
 	}
-	fmt.Println(i18n.StartServiceProcessInit)
+
 	processId := startServiceResponse.GetOutput().GetId()
 
 	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
@@ -26,7 +28,7 @@ func (h *Handler) ServiceStart(ctx context.Context, serviceId string) error {
 		return err
 	}
 
-	fmt.Println(i18n.StartServiceSuccess)
+	fmt.Println("✓ " + i18n.StartServiceSuccess)
 
 	return nil
 }

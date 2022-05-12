@@ -22,13 +22,15 @@ func (h *Handler) ServiceDelete(ctx context.Context, serviceId string, config Ru
 		}
 	}
 
+	fmt.Println(i18n.DeleteServiceProcessInit)
+
 	deleteServiceResponse, err := h.apiGrpcClient.DeleteServiceStack(ctx, &business.DeleteServiceStackRequest{
 		Id: serviceId,
 	})
 	if err := proto.BusinessError(deleteServiceResponse, err); err != nil {
 		return err
 	}
-	fmt.Println(i18n.DeleteServiceProcessInit)
+
 	processId := deleteServiceResponse.GetOutput().GetId()
 
 	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
@@ -36,7 +38,7 @@ func (h *Handler) ServiceDelete(ctx context.Context, serviceId string, config Ru
 		return err
 	}
 
-	fmt.Println(i18n.DeleteServiceSuccess)
+	fmt.Println("✓ " + i18n.DeleteServiceSuccess)
 
 	return nil
 }
