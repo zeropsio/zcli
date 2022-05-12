@@ -55,6 +55,11 @@ const (
 	// region
 	RegionNotFound = "region not found"
 
+	//client ID
+	MultipleClientIds  = "you have assigned multiple client IDs, please use the --clientId flag"
+	AvailableClientIds = "your client IDs are: "
+	MissingClientId    = "no clientId found four your account"
+
 	// import
 	ImportYamlEmpty     = "config file import.yml is empty"
 	ImportYamlTooLarge  = "max. size of import.yml is 10 KB"
