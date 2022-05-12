@@ -12,7 +12,7 @@ import (
 )
 
 func CheckProcess(ctx context.Context, processId string, apiGrpcClient business.ZeropsApiProtocolClient) error {
-	sp := spinner.New(spinner.CharSets[33], 100*time.Millisecond)
+	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond) // 33, 32, 14
 	sp.Start()
 	for {
 		select {
