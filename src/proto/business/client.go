@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
+
+	"github.com/zerops-io/zcli/src/proto/unary"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
@@ -42,11 +43,7 @@ func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token
 		grpcApiAddress,
 		grpc.WithPerRPCCredentials(h.createBearerCredentials(token)),
 		grpc.WithTransportCredentials(tlsCreds),
-		grpc.WithChainUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-			timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*5)
-			defer cancel()
-			return invoker(timeoutCtx, method, req, reply, cc, opts...)
-		}),
+		grpc.WithChainUnaryInterceptor(unary.TimeoutInterceptor, unary.SupportInterceptor(IsInternal)),
 	)
 
 	if err != nil {

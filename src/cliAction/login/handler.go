@@ -158,7 +158,11 @@ func (h *Handler) loginWithToken(ctx context.Context, token string) error {
 	defer closeFunc()
 
 	resp, err := grpcApiClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
+
 	if err := proto.BusinessError(resp, err); err != nil {
+		if proto.IsUnauthenticated(err) {
+			return i18n.AddHintChangeRegion(err)
+		}
 		return err
 	}
 

@@ -20,7 +20,7 @@ func daemonRunCmd() *cobra.Command {
 }
 
 func daemonRun(cmd *cobra.Command, args []string) error {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(cmd.Context())
 	regSignals(cancel)
 
 	if err := prepareEnvironment(); err != nil {

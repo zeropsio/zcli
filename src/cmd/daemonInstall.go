@@ -16,7 +16,7 @@ func daemonInstallCmd() *cobra.Command {
 		Short:        i18n.CmdDaemonInstall,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(cmd.Context())
 			regSignals(cancel)
 
 			installer, err := daemonInstaller.New(daemonInstaller.Config{})

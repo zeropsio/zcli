@@ -19,7 +19,7 @@ func loginCmd() *cobra.Command {
 		Short:        i18n.CmdLogin,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(cmd.Context())
 			regSignals(cancel)
 
 			storage, err := createCliStorage()
@@ -27,11 +27,11 @@ func loginCmd() *cobra.Command {
 				return err
 			}
 
-			client := httpClient.New(httpClient.Config{
+			client := httpClient.New(ctx, httpClient.Config{
 				HttpTimeout: time.Second * 5,
 			})
 
-			region, err := createRegionRetriever()
+			region, err := createRegionRetriever(ctx)
 			if err != nil {
 				return err
 			}

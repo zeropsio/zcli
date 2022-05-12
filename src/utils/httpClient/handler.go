@@ -2,9 +2,14 @@ package httpClient
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/zerops-io/zcli/src/utils/uuid"
+
+	"github.com/zerops-io/zcli/src/support"
 )
 
 type Config struct {
@@ -17,12 +22,18 @@ type Response struct {
 }
 
 type Handler struct {
-	config Config
+	config    Config
+	supportID string
 }
 
-func New(config Config) *Handler {
+func New(ctx context.Context, config Config) *Handler {
+	supportID, ok := support.GetID(ctx)
+	if !ok {
+		supportID = uuid.GetShort()
+	}
 	return &Handler{
-		config: config,
+		config:    config,
+		supportID: supportID,
 	}
 }
 
@@ -60,6 +71,7 @@ func (h *Handler) do(method string, url string, data []byte, options ...Option) 
 	cfg := &optionConfig{
 		headers: map[string]string{
 			"Content-Type": "application/json",
+			support.Key:    h.supportID,
 		},
 	}
 	for _, o := range options {

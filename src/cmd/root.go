@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/zerops-io/zcli/src/support"
 
 	"github.com/spf13/cobra"
 	paramsPackage "github.com/zerops-io/zcli/src/utils/params"
@@ -30,13 +33,15 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(logCmd())
 	rootCmd.AddCommand(daemonCmd())
 	rootCmd.AddCommand(versionCmd())
+	rootCmd.AddCommand(regionList())
 
 	err := params.InitViper()
 	if err != nil {
 		return err
 	}
 
-	err = rootCmd.Execute()
+	ctx := support.Context(context.Background())
+	err = rootCmd.ExecuteContext(ctx)
 	if err != nil {
 		return err
 	}

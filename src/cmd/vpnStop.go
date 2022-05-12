@@ -18,7 +18,7 @@ func vpnStopCmd() *cobra.Command {
 		Short:        i18n.CmdVpnStop,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(cmd.Context())
 			regSignals(cancel)
 
 			daemonClient, daemonCloseFunc, err := daemon.CreateClient(ctx)
