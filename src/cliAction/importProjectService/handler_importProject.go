@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -39,24 +40,59 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	fmt.Println("RESPONSE", res)
-	// ProjectId     string                       `protobuf:"bytes,1,opt,name=projectId,proto3" json:"projectId,omitempty"`
-	//	ProjectName   string                       `protobuf:"bytes,2,opt,name=projectName,proto3" json:"projectName,omitempty"`
-	//	ServiceStacks
-	serviceStacksData := res.GetOutput().GetServiceStacks()
-	fmt.Println(serviceStacksData)
-	//ProjectImportServiceStack:
-	//Id        string     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	//	Name      string     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	//	Error     *ErrorNull `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
-	//	Processes []*Process `protobuf:"bytes,4,rep,name=processes,proto3" json:"processes,omitempty"`
+	if res.GetError() != nil {
+		fmt.Println("response errors: ", res.GetError().GetMessage())
+		// todo confirm if only print or return this error
+		//return errors.New(res.GetError().GetMessage())
+	}
 
-	// processId := deployResponse.GetOutput().GetId()
+	fmt.Println(i18n.ProjectImportSuccess)
 
-	// err = processChecker.CheckProcess(ctx, deployProcessId, h.apiGrpcClient)
+	servicesData := res.GetOutput().GetServiceStacks()
+	// check errors for each, if error, get service name and value and get error meta
+	var serviceErrors []*business.Error
+	var serviceNames []string
+	var processData [][]string
+	// todo this is only for development and  will be delete and the above array used
+	var processIds []string
+
+	for _, service := range servicesData {
+		serviceErr := service.GetError().GetValue()
+		if serviceErr != nil {
+			fmt.Println("service " + service.GetName() + " returned error " + serviceErr.GetMessage() + ". \n " + string(serviceErr.GetMeta()))
+			serviceErrors = append(serviceErrors, serviceErr)
+		}
+
+		serviceNames = append(serviceNames, service.GetName())
+		processes := service.GetProcesses()
+
+		for _, process := range processes {
+			processData = append(processData, []string{service.GetName(), process.GetId(), process.GetActionName()})
+			processIds = append(processIds, process.GetId())
+		}
+	}
+
+	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(len(serviceNames)))
+	fmt.Println(processData)
+	// TODO replace this with concurrent version
+	//for _, pId := range processIds {
+	//	err = processChecker.CheckProcess(ctx, pId, h.apiGrpcClient)
 	//	if err != nil {
 	//		return err
 	//	}
+	//}
+	//provádět opakované dotazy na seznam procesů pomocí gRPC API /process/search
+	//aplikovat filtr na seznam ID procesů vrácených v serviceStacks[].processes[].id
+	//dokud nejsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED
+
+	//pokud se proces poprvé změnil do stavu RUNNING zobrazit informaci o spuštění příslušného procesu.
+	//Informace bude obsahovat název stacku a název procesu.
+	//
+	//pokud se proces poprvé změnil do stavu FINISHED, FAILED nebo CANCELED zobrazit informaci o dokončení příslušného procesu.
+	//Informace bude obsahovat název stacku, název procesu a stav procesu.
+	//
+	//
+	//pokud jsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED zobrazit informaci o dokončení importu stacků a ukončit algoritmus.
 
 	fmt.Println(constants.Success + i18n.ProjectImportSuccess)
 

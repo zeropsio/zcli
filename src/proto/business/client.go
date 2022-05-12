@@ -43,7 +43,7 @@ func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token
 		grpc.WithPerRPCCredentials(h.createBearerCredentials(token)),
 		grpc.WithTransportCredentials(tlsCreds),
 		grpc.WithChainUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-			timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+			timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*20)
 			defer cancel()
 			return invoker(timeoutCtx, method, req, reply, cc, opts...)
 		}),
