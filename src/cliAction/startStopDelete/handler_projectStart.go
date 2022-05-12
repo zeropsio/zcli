@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
@@ -28,7 +29,7 @@ func (h *Handler) ProjectStart(ctx context.Context, projectId string) error {
 		return err
 	}
 
-	fmt.Println("✓ " + i18n.StartProjectSuccess)
+	fmt.Println(constants.Success + i18n.StartProjectSuccess)
 
 	return nil
 }

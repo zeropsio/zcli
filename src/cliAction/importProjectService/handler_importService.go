@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 )
 
@@ -126,7 +127,7 @@ func (h *Handler) ImportService(ctx context.Context, config RunConfig) error {
 	//	return err
 	//}
 
-	fmt.Println("✓ " + i18n.ServiceImportSuccess)
+	fmt.Println(constants.Success + i18n.ServiceImportSuccess)
 
 	return nil
 }

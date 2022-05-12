@@ -6,4 +6,5 @@ const (
 	Delete  = "delete"
 	Project = "project"
 	Service = "service"
+	Success = "✓ "
 )

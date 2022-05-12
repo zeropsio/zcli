@@ -38,7 +38,7 @@ func (h *Handler) ProjectDelete(ctx context.Context, projectId string, config Ru
 		return err
 	}
 
-	fmt.Println("✓ " + i18n.DeleteProjectSuccess)
+	fmt.Println(constants.Success + i18n.DeleteProjectSuccess)
 
 	return nil
 }

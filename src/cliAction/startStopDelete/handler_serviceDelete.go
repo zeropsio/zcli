@@ -38,7 +38,7 @@ func (h *Handler) ServiceDelete(ctx context.Context, serviceId string, config Ru
 		return err
 	}
 
-	fmt.Println("✓ " + i18n.DeleteServiceSuccess)
+	fmt.Println(constants.Success + i18n.DeleteServiceSuccess)
 
 	return nil
 }

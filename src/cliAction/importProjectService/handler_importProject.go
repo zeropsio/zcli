@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	// "github.com/zerops-io/zcli/src/proto"
 	// "github.com/zerops-io/zcli/src/proto/business"
@@ -41,7 +42,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	//		return err
 	//	}
 
-	fmt.Println("✓ " + i18n.ProjectImportSuccess)
+	fmt.Println(constants.Success + i18n.ProjectImportSuccess)
 
 	return nil
 }

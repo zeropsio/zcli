@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
@@ -26,7 +27,7 @@ func (h *Handler) ServiceStop(ctx context.Context, serviceId string) error {
 		return err
 	}
 
-	fmt.Println("✓ " + i18n.StopServiceSuccess)
+	fmt.Println(constants.Success + i18n.StopServiceSuccess)
 
 	return nil
 }
