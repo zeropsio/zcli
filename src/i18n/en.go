@@ -80,6 +80,7 @@ const (
 	DelProjectCanceledByUser = "delete project command canceled by user"
 	DeleteProjectProcessInit = "going to delete the project"
 	DeleteProjectSuccess     = "project deleted successfully"
+	ProjectCreateSuccess     = "project created successfully"
 	ProjectImportSuccess     = "project imported successfully"
 
 	// service

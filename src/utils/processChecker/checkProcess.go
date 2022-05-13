@@ -3,6 +3,7 @@ package processChecker
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -38,6 +39,46 @@ func CheckProcess(ctx context.Context, processId string, apiGrpcClient business.
 				processStatus == business.ProcessStatus_PROCESS_STATUS_PENDING) {
 				sp.Stop()
 				return fmt.Errorf(i18n.ProcessInvalidState, getProcessResponse.GetOutput().GetId())
+			}
+			time.Sleep(time.Second)
+		}
+	}
+}
+
+func CheckProcesses(ctx context.Context, processId string, name string, apiGrpcClient business.ZeropsApiProtocolClient, wg *sync.WaitGroup) {
+	defer wg.Done()
+	isRunning := false
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			getProcessResponse, err := apiGrpcClient.GetProcess(ctx, &business.GetProcessRequest{
+				Id: processId,
+			})
+			if err := proto.BusinessError(getProcessResponse, err); err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			processStatus := getProcessResponse.GetOutput().GetStatus()
+
+			if processStatus == business.ProcessStatus_PROCESS_STATUS_FINISHED {
+				fmt.Println(name + " finished")
+				return
+			}
+			if processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING {
+				if !isRunning {
+					fmt.Println(name + " is now running...")
+					isRunning = true
+				}
+			}
+
+			if !(processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING ||
+				processStatus == business.ProcessStatus_PROCESS_STATUS_PENDING) {
+				fmt.Errorf(i18n.ProcessInvalidState, getProcessResponse.GetOutput().GetId())
+				return
 			}
 			time.Sleep(time.Second)
 		}

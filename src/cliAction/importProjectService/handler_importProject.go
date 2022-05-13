@@ -6,11 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
@@ -46,15 +51,18 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		//return errors.New(res.GetError().GetMessage())
 	}
 
-	fmt.Println(i18n.ProjectImportSuccess)
+	fmt.Println(constants.Success + i18n.ProjectCreateSuccess)
 
 	servicesData := res.GetOutput().GetServiceStacks()
 	// check errors for each, if error, get service name and value and get error meta
-	var serviceErrors []*business.Error
-	var serviceNames []string
-	var processData [][]string
-	// todo this is only for development and  will be delete and the above array used
-	var processIds []string
+	var (
+		serviceErrors []*business.Error
+		serviceNames  []string
+		processData   [][]string
+		// todo this is only for development and  will be delete and the above array used
+		processIds []string
+		waitGroup  = sync.WaitGroup{}
+	)
 
 	for _, service := range servicesData {
 		serviceErr := service.GetError().GetValue()
@@ -74,13 +82,16 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(len(serviceNames)))
 	fmt.Println(processData)
-	// TODO replace this with concurrent version
-	//for _, pId := range processIds {
-	//	err = processChecker.CheckProcess(ctx, pId, h.apiGrpcClient)
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
+
+	waitGroup.Add(len(processIds))
+	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond) // 33, 32, 14
+	sp.Start()
+	for _, p := range processData {
+		action := strings.Split(p[2], ".")[1]
+		go processChecker.CheckProcesses(ctx, p[1], p[0]+" "+action, h.apiGrpcClient, &waitGroup)
+	}
+	waitGroup.Wait()
+	sp.Stop()
 	//provádět opakované dotazy na seznam procesů pomocí gRPC API /process/search
 	//aplikovat filtr na seznam ID procesů vrácených v serviceStacks[].processes[].id
 	//dokud nejsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED
