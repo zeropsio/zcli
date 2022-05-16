@@ -2,15 +2,17 @@ package business
 
 import (
 	"context"
-	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
+	"google.golang.org/grpc/security/advancedtls"
 
 	"github.com/zerops-io/zcli/src/proto/unary"
-
 	"golang.org/x/oauth2"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
@@ -33,7 +35,6 @@ func New(
 }
 
 func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token string) (_ ZeropsApiProtocolClient, closeFunc func(), err error) {
-
 	tlsCreds, err := h.createTLSCredentials()
 	if err != nil {
 		return nil, nil, err
@@ -56,12 +57,25 @@ func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token
 
 }
 
+const serverNamePrefix = "zbusinessapi"
+
+func verifyPeerServerName(p *advancedtls.VerificationFuncParams) (*advancedtls.VerificationResults, error) {
+	if p.Leaf == nil {
+		return nil, fmt.Errorf("missing leaf certificate")
+	}
+	for _, name := range p.Leaf.DNSNames {
+		if !strings.HasPrefix(name, serverNamePrefix) {
+			return &advancedtls.VerificationResults{}, nil
+		}
+	}
+	return nil, fmt.Errorf("certificate is valid for prefix %s, got %s", serverNamePrefix, p.Leaf.DNSNames)
+}
+
 func (h *Handler) createBearerCredentials(token string) credentials.PerRPCCredentials {
 	return oauth.NewOauthAccess(&oauth2.Token{AccessToken: token, TokenType: "Bearer"})
 }
 
 func (h *Handler) createTLSCredentials() (credentials.TransportCredentials, error) {
-
 	resp, err := http.Get(h.config.CaCertificateUrl)
 	if err != nil {
 		return nil, fmt.Errorf("get caCertificate => %s", err.Error())
@@ -76,9 +90,12 @@ func (h *Handler) createTLSCredentials() (credentials.TransportCredentials, erro
 	if !certPool.AppendCertsFromPEM(caCertBytes) {
 		return nil, fmt.Errorf("failed to add server CA certificate")
 	}
-	config := &tls.Config{
-		RootCAs:    certPool,
-		ServerName: "zbusinessapi-runtime-1-2",
-	}
-	return credentials.NewTLS(config), nil
+
+	return advancedtls.NewClientCreds(&advancedtls.ClientOptions{
+		RootOptions: advancedtls.RootCertificateOptions{
+			RootCACerts: certPool,
+		},
+		VerifyPeer: verifyPeerServerName,
+		VType:      advancedtls.CertVerification,
+	})
 }

@@ -3,3 +3,5 @@ zcli.config.yml
 zcli.data
 tools/npm/node_modules
 .vscode
+*zerops.yml
+*import.yml
