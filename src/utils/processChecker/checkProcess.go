@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
@@ -58,26 +59,34 @@ func CheckProcesses(ctx context.Context, processId string, name string, apiGrpcC
 				Id: processId,
 			})
 			if err := proto.BusinessError(getProcessResponse, err); err != nil {
+				fmt.Println("")
+				fmt.Println(name + ":")
 				fmt.Println(err)
 				return
 			}
 
 			processStatus := getProcessResponse.GetOutput().GetStatus()
 
-			if processStatus == business.ProcessStatus_PROCESS_STATUS_FINISHED {
-				fmt.Println(name + " finished")
-				return
-			}
 			if processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING {
 				if !isRunning {
-					fmt.Println(name + " is now running...")
+					fmt.Println("")
+					fmt.Println(name + " process is running")
 					isRunning = true
 				}
 			}
 
+			if processStatus == business.ProcessStatus_PROCESS_STATUS_FINISHED {
+				fmt.Println("")
+				fmt.Println(constants.Success + name + " process finished")
+				return
+			}
+
 			if !(processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING ||
 				processStatus == business.ProcessStatus_PROCESS_STATUS_PENDING) {
-				fmt.Errorf(i18n.ProcessInvalidState, getProcessResponse.GetOutput().GetId())
+				fmt.Println("")
+				fmt.Print(name + ": ")
+				processErr := fmt.Errorf(i18n.ProcessInvalidState, getProcessResponse.GetOutput().GetId())
+				fmt.Println(processErr)
 				return
 			}
 			time.Sleep(time.Second)

@@ -21,7 +21,7 @@ import (
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	// todo replace with more relevant message /==> checking yaml/
-	fmt.Println("start checking")
+	fmt.Println("checking yaml")
 
 	importYamlContent, err := getImportYamlContent(config)
 	if err != nil {
@@ -32,6 +32,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return errors.New(i18n.ImportYamlCorrupted)
 	}
 
+	fmt.Println("yaml ok")
 	clientId, err := h.getClientId(ctx, config)
 	if err != nil {
 		return err
@@ -81,6 +82,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 
 	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(len(serviceNames)))
+	fmt.Println(i18n.QueuedProcesses + strconv.Itoa(len(processData)))
 	fmt.Println(processData)
 
 	waitGroup.Add(len(processIds))

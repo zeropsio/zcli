@@ -66,7 +66,8 @@ const (
 	ImportYamlFound     = "import.yml found"
 	ImportYamlNotFound  = "import.yml not found"
 	ImportYamlCorrupted = "import yaml corrupted"
-	ServiceStackCount   = "number of services to be created: "
+	ServiceStackCount   = "number of services to be added: "
+	QueuedProcesses     = "queued processes: "
 
 	// project
 	ProjectNotFound          = "project not found"
