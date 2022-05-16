@@ -1,12 +1,10 @@
 package importProjectService
 
 import (
-	// "bytes"
 	"context"
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,10 +17,7 @@ import (
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
-
-	// todo replace with more relevant message /==> checking yaml/
-	fmt.Println("checking yaml")
-
+	fmt.Println(i18n.YamlCheck)
 	importYamlContent, err := getImportYamlContent(config)
 	if err != nil {
 		return err
@@ -32,7 +27,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return errors.New(i18n.ImportYamlCorrupted)
 	}
 
-	fmt.Println("yaml ok")
+	fmt.Println(constants.Success + i18n.ImportYamlOk)
 	clientId, err := h.getClientId(ctx, config)
 	if err != nil {
 		return err
@@ -46,8 +41,9 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	if res.GetError() != nil {
-		fmt.Println("response errors: ", res.GetError().GetMessage())
+	if res.GetError().GetMessage() != "" {
+		fmt.Println(res.GetError().GetMessage())
+		fmt.Println(res.GetError().GetMeta())
 		// todo confirm if only print or return this error
 		//return errors.New(res.GetError().GetMessage())
 	}
@@ -60,9 +56,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		serviceErrors []*business.Error
 		serviceNames  []string
 		processData   [][]string
-		// todo this is only for development and  will be delete and the above array used
-		processIds []string
-		waitGroup  = sync.WaitGroup{}
+		waitGroup     = sync.WaitGroup{}
 	)
 
 	for _, service := range servicesData {
@@ -76,24 +70,22 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		processes := service.GetProcesses()
 
 		for _, process := range processes {
-			processData = append(processData, []string{service.GetName(), process.GetId(), process.GetActionName()})
-			processIds = append(processIds, process.GetId())
+			processData = append(processData, []string{process.GetId(), service.GetName(), process.GetActionName()})
 		}
 	}
 
 	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(len(serviceNames)))
 	fmt.Println(i18n.QueuedProcesses + strconv.Itoa(len(processData)))
-	fmt.Println(processData)
+	//fmt.Println(processData)
 
-	waitGroup.Add(len(processIds))
-	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond) // 33, 32, 14
+	waitGroup.Add(len(processData))
+	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
 	sp.Start()
-	for _, p := range processData {
-		action := strings.Split(p[2], ".")[1]
-		go processChecker.CheckProcesses(ctx, p[1], p[0]+" "+action, h.apiGrpcClient, &waitGroup)
+	for _, processItem := range processData {
+		go processChecker.CheckMultiple(ctx, processItem, h.apiGrpcClient, &waitGroup, sp)
 	}
 	waitGroup.Wait()
-	sp.Stop()
+	//sp.Stop()
 	//provádět opakované dotazy na seznam procesů pomocí gRPC API /process/search
 	//aplikovat filtr na seznam ID procesů vrácených v serviceStacks[].processes[].id
 	//dokud nejsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED
@@ -107,7 +99,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	//
 	//pokud jsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED zobrazit informaci o dokončení importu stacků a ukončit algoritmus.
 
-	fmt.Println(constants.Success + i18n.ProjectImportSuccess)
+	fmt.Println("\n" + constants.Success + i18n.ProjectImportSuccess)
 
 	return nil
 }

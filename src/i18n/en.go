@@ -39,7 +39,11 @@ const (
 	ConfirmDeleteService = "confirm to delete the service"
 
 	// process
-	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"
+	ProcessInvalidState        = "last command has finished with error, identifier for communication with our support: %s"
+	ProcessInvalidStateProcess = "process finished with error, identifier for communication with our support: %s"
+	QueuedProcesses            = "queued processes: "
+	ProcessStart               = " process started"
+	ProcessEnd                 = " process finished"
 
 	// zipClient
 	ZipClientWorkingDirectory = "working directory: %s"
@@ -61,25 +65,26 @@ const (
 	MissingClientId    = "no clientId found four your account"
 
 	// import
-	ImportYamlEmpty     = "config file import.yml is empty"
-	ImportYamlTooLarge  = "max. size of import.yml is 10 KB"
-	ImportYamlFound     = "import.yml found"
-	ImportYamlNotFound  = "import.yml not found"
+	YamlCheck           = "yaml file check started"
+	ImportYamlOk        = "yaml file ok"
+	ImportYamlEmpty     = "config file import yaml is empty"
+	ImportYamlTooLarge  = "max. size of import yaml is 10 KB"
+	ImportYamlFound     = "import yaml found"
+	ImportYamlNotFound  = "import yaml not found"
 	ImportYamlCorrupted = "import yaml corrupted"
 	ServiceStackCount   = "number of services to be added: "
-	QueuedProcesses     = "queued processes: "
 
 	// project
 	ProjectNotFound          = "project not found"
-	ProjectsWithSameName     = "there are multiple projects with the same name"
+	ProjectsWithSameName     = "found multiple projects with the same name"
 	ProjectNameIsEmpty       = "project name must be filled"
-	StartProjectProcessInit  = "starting the project"
+	StartProjectProcessInit  = "start project command initialized"
 	StartProjectSuccess      = "project started successfully"
-	StopProjectProcessInit   = "stopping the project"
+	StopProjectProcessInit   = "stop project command initialized"
 	StopProjectSuccess       = "project stopped successfully"
 	DeleteProjectConfirm     = "Please confirm you want to delete the project (y/n): "
 	DelProjectCanceledByUser = "delete project command canceled by user"
-	DeleteProjectProcessInit = "going to delete the project"
+	DeleteProjectProcessInit = "delete project command initialized"
 	DeleteProjectSuccess     = "project deleted successfully"
 	ProjectCreateSuccess     = "project created successfully"
 	ProjectImportSuccess     = "project imported successfully"
@@ -87,15 +92,15 @@ const (
 	// service
 	ServiceNotFound          = "service not found"
 	ServiceNameIsEmpty       = "service name must be filled"
-	StartServiceProcessInit  = "starting the service"
+	StartServiceProcessInit  = "start service command initialized"
 	StartServiceSuccess      = "service started successfully"
-	StopServiceProcessInit   = "stopping the service"
+	StopServiceProcessInit   = "stop service command initialized"
 	StopServiceSuccess       = "project stopped successfully"
 	DeleteServiceConfirm     = "Please confirm you want to delete the service (y/n): "
 	DelServiceCanceledByUser = "delete service command canceled by user"
-	DeleteServiceProcessInit = "going to delete the service"
+	DeleteServiceProcessInit = "delete service command initialized"
 	DeleteServiceSuccess     = "service deleted successfully"
-	ImportServiceFailed      = "import service failed"
+	ImportServiceFailed      = "import service command failed"
 	ServiceImportSuccess     = "service imported successfully"
 
 	// deploy
@@ -125,7 +130,7 @@ const (
 	VpnStartProjectsWithSameName       = "there are multiple projects with same name"
 	VpnStartDaemonIsUnavailable        = "daemon is currently unavailable, did you install it?"
 	VpnStartInstallDaemonPrompt        = "is it ok if we are going to install daemon for you?"
-	VpnStartTerminatedByUser           = "when you will be ready, try `/path/to/zcli daemon install`"
+	VpnStartTerminatedByUser           = "when you are ready, try `/path/to/zcli daemon install`"
 	VpnStartUserIsUnableToWriteYorN    = "type 'y' or 'n' please"
 	VpnStartWireguardUtunError         = "we weren't able to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
