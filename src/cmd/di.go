@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"time"
 
 	"github.com/zerops-io/zcli/src/prolongVpn"
@@ -57,7 +58,7 @@ func createDaemonStorage() (*daemonStorage.Handler, error) {
 	return &daemonStorage.Handler{Handler: s}, err
 }
 
-func createRegionRetriever() (*region.Handler, error) {
+func createRegionRetriever(ctx context.Context) (*region.Handler, error) {
 	filepath, err := constants.CliRegionData()
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func createRegionRetriever() (*region.Handler, error) {
 	s, err := storage.New[region.Data](
 		storage.Config{FilePath: filepath},
 	)
-	return region.New(httpClient.New(httpClient.Config{HttpTimeout: time.Second * 5}), s), err
+	return region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Second * 5}), s), err
 }
 
 func createVpn(

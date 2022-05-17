@@ -31,7 +31,7 @@ func serviceDeleteCmd() *cobra.Command {
 				return err
 			}
 
-			region, err := createRegionRetriever()
+			region, err := createRegionRetriever(ctx)
 			if err != nil {
 				return err
 			}
@@ -54,7 +54,7 @@ func serviceDeleteCmd() *cobra.Command {
 			}
 			defer closeFunc()
 
-			client := httpClient.New(httpClient.Config{
+			client := httpClient.New(ctx, httpClient.Config{
 				HttpTimeout: time.Minute * 15,
 			})
 

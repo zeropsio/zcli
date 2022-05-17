@@ -1,5 +1,7 @@
 package i18n
 
+import "fmt"
+
 const (
 	// cmd
 	CmdDeployDesc    = "deploy your application into Zerops"
@@ -16,6 +18,8 @@ const (
 	CmdDaemonInstall = "install daemon"
 	CmdDaemonRemove  = "remove daemon"
 	CmdVersion       = "version"
+	CmdRegion        = "region commands group"
+	CmdRegionList    = "list available regions"
 	CmdProject       = "project commands group"
 	CmdService       = "service commands group"
 	CmdProjectStart  = "run process to start the project and wait until finished"
@@ -171,4 +175,10 @@ const (
 	// generic
 	GrpcApiTimeout    = "zerops api didn't response within assigned time, try it again later"
 	GrpcVpnApiTimeout = "zerops vpn server didn't response within assigned time, try it again later"
+
+	HintChangeRegion = "hint: try changing your region (you can list available regions using `zcli region list`)"
 )
+
+func AddHintChangeRegion(err error) error {
+	return fmt.Errorf("%w\n%s", err, HintChangeRegion)
+}
