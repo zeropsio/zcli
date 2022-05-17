@@ -21,7 +21,7 @@ import (
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	if config.ProjectName == "" {
-		return errors.New(i18n.VpnStartProjectNameIsEmpty)
+		return errors.New(i18n.ProjectNameIsEmpty)
 	}
 
 	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
@@ -41,10 +41,10 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	projects := projectsResponse.GetOutput().GetProjects()
 	if len(projects) == 0 {
-		return errors.New(i18n.VpnStartProjectNotFound)
+		return errors.New(i18n.ProjectNotFound)
 	}
 	if len(projects) > 1 {
-		return errors.New(i18n.VpnStartProjectsWithSameName)
+		return errors.New(i18n.ProjectsWithSameName)
 	}
 	project := projects[0]
 

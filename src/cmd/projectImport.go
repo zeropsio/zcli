@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/cliAction/importProjectService"
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
@@ -15,7 +16,6 @@ import (
 
 func projectImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		// TODO ask how to define voluntary client id var
 		Use:          "import [pathToImportYaml]  --clientId=<string>",
 		Short:        i18n.CmdProjectImport,
 		Args:         cobra.MinimumNArgs(1),
@@ -63,13 +63,11 @@ func projectImportCmd() *cobra.Command {
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, importProjectService.RunConfig{
-				// 				ZipFilePath:    params.GetString(cmd, "zipFilePath"),
-				WorkingDir: params.GetString(cmd, "workingDir"),
-				// 				VersionName:    params.GetString(cmd, "versionName"),
+			).Import(ctx, importProjectService.RunConfig{
+				WorkingDir:     params.GetString(cmd, "workingDir"),
 				ImportYamlPath: &args[0],
 				ClientId:       params.GetString(cmd, "clientId"),
-			})
+			}, constants.Project)
 		},
 	}
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/cliAction/importProjectService"
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
@@ -61,14 +62,14 @@ func serviceImportCmd() *cobra.Command {
 				client,
 				zip,
 				apiGrpcClient,
-			).ImportService(ctx, importProjectService.RunConfig{
+			).Import(ctx, importProjectService.RunConfig{
 				WorkingDir:     params.GetString(cmd, "workingDir"),
 				ProjectName:    args[0],
 				ImportYamlPath: &args[1],
-			})
+			}, constants.Service)
 		},
 	}
-
+	// todo review the working dir logic and flag info
 	params.RegisterString(cmdImport, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmdImport, "importYamlPath", "", i18n.ImportYamlLocation)
 	params.RegisterString(cmdImport, "clientId", "", i18n.ClientId)

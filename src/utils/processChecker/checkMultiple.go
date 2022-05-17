@@ -20,6 +20,7 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 	isRunning := false
 
 	s := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
+	s.HideCursor = true
 	defer wg.Done()
 
 	for {
@@ -39,12 +40,12 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 
 			if processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING {
 				if !isRunning {
-					// stop create project progress indicator
+					// stop initial progress indicator that waits for first running process
 					if sp.Active() {
 						sp.Stop()
 					}
 					clearLine()
-					fmt.Printf("%s %s %s \n", constants.Starting, name, i18n.ProcessStart)
+					fmt.Printf("%s%s %s \n", constants.Starting, name, i18n.ProcessStart)
 					isRunning = true
 					// start current service progress indicator
 					s.Start()

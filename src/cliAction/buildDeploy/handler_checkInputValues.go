@@ -13,11 +13,11 @@ import (
 
 func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*business.GetServiceStackByNameResponseDto, error) {
 	if config.ProjectName == "" {
-		return nil, errors.New(i18n.BuildDeployProjectNameMissing)
+		return nil, errors.New(i18n.ProjectNameIsEmpty)
 	}
 
 	if config.ServiceStackName == "" {
-		return nil, errors.New(i18n.BuildDeployServiceStackNameMissing)
+		return nil, errors.New(i18n.ServiceNameIsEmpty)
 	}
 
 	projectsResponse, err := h.apiGrpcClient.GetProjectsByName(ctx, &business.GetProjectsByNameRequest{
@@ -29,10 +29,10 @@ func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*busi
 
 	projects := projectsResponse.GetOutput().GetProjects()
 	if len(projects) == 0 {
-		return nil, errors.New(i18n.BuildDeployProjectNotFound)
+		return nil, errors.New(i18n.ProjectNotFound)
 	}
 	if len(projects) > 1 {
-		return nil, errors.New(i18n.BuildDeployProjectsWithSameName)
+		return nil, errors.New(i18n.ProjectsWithSameName)
 	}
 	project := projects[0]
 

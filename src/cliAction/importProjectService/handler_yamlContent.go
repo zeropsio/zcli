@@ -7,10 +7,13 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 )
 
 func getImportYamlContent(config RunConfig) ([]byte, error) {
+	fmt.Println(i18n.YamlCheck)
+
 	workingDir, err := filepath.Abs(config.WorkingDir)
 	if err != nil {
 		return nil, err
@@ -33,8 +36,8 @@ func getImportYamlContent(config RunConfig) ([]byte, error) {
 	if importYamlStat.Size() == 0 {
 		return nil, errors.New(i18n.ImportYamlEmpty)
 	}
-	// TODO ask if the size is ok for this yaml (might be larger than zerops.yaml)
-	if importYamlStat.Size() > 10*1024 {
+
+	if importYamlStat.Size() > 100*1024 {
 		return nil, errors.New(i18n.ImportYamlTooLarge)
 	}
 
@@ -43,5 +46,10 @@ func getImportYamlContent(config RunConfig) ([]byte, error) {
 		return nil, err
 	}
 
+	if len(yamlContent) == 0 {
+		return nil, errors.New(i18n.ImportYamlCorrupted)
+	}
+
+	fmt.Println(constants.Success + i18n.ImportYamlOk)
 	return yamlContent, nil
 }
