@@ -44,7 +44,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	if res.GetError().GetMessage() != "" {
 		fmt.Println(res.GetError().GetMessage())
 		fmt.Println(res.GetError().GetMeta())
-		// todo confirm if only print or return this error
+		// TODO confirm if only print or return this error
 		//return errors.New(res.GetError().GetMessage())
 	}
 
@@ -76,7 +76,6 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(len(serviceNames)))
 	fmt.Println(i18n.QueuedProcesses + strconv.Itoa(len(processData)))
-	//fmt.Println(processData)
 
 	waitGroup.Add(len(processData))
 	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
@@ -85,20 +84,8 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		go processChecker.CheckMultiple(ctx, processItem, h.apiGrpcClient, &waitGroup, sp)
 	}
 	waitGroup.Wait()
-	//sp.Stop()
-	//provádět opakované dotazy na seznam procesů pomocí gRPC API /process/search
-	//aplikovat filtr na seznam ID procesů vrácených v serviceStacks[].processes[].id
-	//dokud nejsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED
 
-	//pokud se proces poprvé změnil do stavu RUNNING zobrazit informaci o spuštění příslušného procesu.
-	//Informace bude obsahovat název stacku a název procesu.
-	//
-	//pokud se proces poprvé změnil do stavu FINISHED, FAILED nebo CANCELED zobrazit informaci o dokončení příslušného procesu.
-	//Informace bude obsahovat název stacku, název procesu a stav procesu.
-	//
-	//
-	//pokud jsou všechny vrácené procesy ve stavu FINISHED, FAILED nebo CANCELED zobrazit informaci o dokončení importu stacků a ukončit algoritmus.
-
+	// TODO check if any errors appeared, if so, change the msg bellow
 	fmt.Println("\n" + constants.Success + i18n.ProjectImportSuccess)
 
 	return nil

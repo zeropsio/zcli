@@ -16,16 +16,13 @@ func getImportYamlContent(config RunConfig) ([]byte, error) {
 		return nil, err
 	}
 
-	//	fmt.Println("working dir: ", workingDir)
-
+	// todo test if this makes sense
 	if config.ImportYamlPath == nil {
 		// todo add to dict
 		return nil, errors.New("no path to yaml")
 	}
 
 	importYamlPath := path.Join(workingDir, *config.ImportYamlPath)
-	// todo add to dict
-	fmt.Println("PATH ", importYamlPath)
 
 	importYamlStat, err := os.Stat(importYamlPath)
 	if err != nil {

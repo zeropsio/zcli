@@ -40,10 +40,10 @@ const (
 
 	// process
 	ProcessInvalidState        = "last command has finished with error, identifier for communication with our support: %s"
-	ProcessInvalidStateProcess = "process finished with error, identifier for communication with our support: %s"
+	ProcessInvalidStateProcess = "process finished with error, identifier for communication with our support:"
 	QueuedProcesses            = "queued processes: "
-	ProcessStart               = " process started"
-	ProcessEnd                 = " process finished"
+	ProcessStart               = "process started"
+	ProcessEnd                 = "process finished"
 
 	// zipClient
 	ZipClientWorkingDirectory = "working directory: %s"
