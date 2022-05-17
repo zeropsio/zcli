@@ -64,7 +64,7 @@ func verifyPeerServerName(p *advancedtls.VerificationFuncParams) (*advancedtls.V
 		return nil, fmt.Errorf("missing leaf certificate")
 	}
 	for _, name := range p.Leaf.DNSNames {
-		if !strings.HasPrefix(name, serverNamePrefix) {
+		if strings.HasPrefix(name, serverNamePrefix) {
 			return &advancedtls.VerificationResults{}, nil
 		}
 	}
