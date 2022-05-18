@@ -28,6 +28,9 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	userId := userInfoResponse.GetOutput().GetId()
 
 	project, err := projectService.GetProject(ctx, h.apiGrpcClient, config.ProjectName)
+	if err != nil {
+		return err
+	}
 
 	err = h.tryStartVpn(ctx, project, userId, config)
 	if err != nil {

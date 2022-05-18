@@ -9,7 +9,7 @@ import (
 // return number of services and process data [](process Id, service name, action name)
 func parseServiceData(servicesData []*business.ProjectImportServiceStack) (int, [][]string) {
 	var (
-		serviceNames []string
+		serviceNames = make([]string, 0, len(servicesData))
 		processData  [][]string
 	)
 
