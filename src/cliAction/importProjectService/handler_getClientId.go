@@ -3,6 +3,7 @@ package importProjectService
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
@@ -33,7 +34,7 @@ func (h *Handler) getClientId(ctx context.Context, config RunConfig) (string, er
 			out = append(out, client.ClientId)
 		}
 		idList := strings.Join(out, ",")
-		errMsg := i18n.MultipleClientIds + "\n" + i18n.AvailableClientIds + idList
+		errMsg := fmt.Sprintf("%s\n%s%s", i18n.MultipleClientIds, i18n.AvailableClientIds, idList)
 
 		return "", errors.New(errMsg)
 	}

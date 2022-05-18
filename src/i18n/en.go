@@ -66,7 +66,7 @@ const (
 	//client ID
 	MultipleClientIds  = "you have assigned multiple client IDs, please use the --clientId flag"
 	AvailableClientIds = "your client IDs are: "
-	MissingClientId    = "no clientId found four your account"
+	MissingClientId    = "no client ID found four your account"
 
 	// import
 	YamlCheck           = "yaml file check started"

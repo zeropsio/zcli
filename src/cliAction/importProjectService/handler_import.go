@@ -32,38 +32,19 @@ func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd string
 		return err
 	}
 
-	var (
-		serviceErrors []*business.Error // TODO do we need to collect them or just to print??
-		serviceNames  []string
-		processData   [][]string
-		waitGroup     = sync.WaitGroup{}
-	)
+	serviceCount, processData := parseServiceData(servicesData)
 
-	for _, service := range servicesData {
-		serviceErr := service.GetError().GetValue()
-		if serviceErr != nil {
-			fmt.Println("service " + service.GetName() + " returned error " + serviceErr.GetMessage() + ". \n " + string(serviceErr.GetMeta()))
-			serviceErrors = append(serviceErrors, serviceErr)
-		}
-
-		serviceNames = append(serviceNames, service.GetName())
-		processes := service.GetProcesses()
-
-		for _, process := range processes {
-			processData = append(processData, []string{process.GetId(), service.GetName(), process.GetActionName()})
-		}
-	}
-
-	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(len(serviceNames)))
+	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(serviceCount))
 	fmt.Println(i18n.QueuedProcesses + strconv.Itoa(len(processData)))
 
-	waitGroup.Add(len(processData))
+	var wg sync.WaitGroup
+	wg.Add(len(processData))
 	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
 	sp.Start()
 	for _, processItem := range processData {
-		go processChecker.CheckMultiple(ctx, processItem, h.apiGrpcClient, &waitGroup, sp)
+		go processChecker.CheckMultiple(ctx, processItem, h.apiGrpcClient, &wg, sp)
 	}
-	waitGroup.Wait()
+	wg.Wait()
 
 	if parentCmd == constants.Project {
 		fmt.Println(constants.Success + i18n.ProjectImportSuccess)
