@@ -86,7 +86,7 @@ const (
 	StartProjectSuccess      = "project started successfully"
 	StopProjectProcessInit   = "stop project command initialized"
 	StopProjectSuccess       = "project stopped successfully"
-	DeleteProjectConfirm     = "Please confirm you want to delete the project (y/n): "
+	DeleteProjectConfirm     = "Please confirm that you would like to delete the project (y/n): "
 	DelProjectCanceledByUser = "delete project command canceled by user"
 	DeleteProjectProcessInit = "delete project command initialized"
 	DeleteProjectSuccess     = "project deleted successfully"
@@ -100,11 +100,11 @@ const (
 	StartServiceSuccess      = "service started successfully"
 	StopServiceProcessInit   = "stop service command initialized"
 	StopServiceSuccess       = "project stopped successfully"
-	DeleteServiceConfirm     = "Please confirm you want to delete the service (y/n): "
+	DeleteServiceConfirm     = "Please confirm that you would like to delete the service (y/n): "
 	DelServiceCanceledByUser = "delete service command canceled by user"
 	DeleteServiceProcessInit = "delete service command initialized"
 	DeleteServiceSuccess     = "service deleted successfully"
-	ServiceImportSuccess     = "service(s) imported successfully"
+	ServiceImportSuccess     = "service(s) import finished"
 
 	// deploy
 	BuildDeployServiceStatus         = "service status: %s"
@@ -125,12 +125,12 @@ const (
 	VpnStartInterfaceAssignFailed      = "interface name assign failed"
 	VpnStartWireguardInterfaceNotfound = "wireguard interface not found"
 	VpnStartDaemonIsUnavailable        = "daemon is currently unavailable, did you install it?"
-	VpnStartInstallDaemonPrompt        = "is it ok if we are going to install daemon for you?"
+	VpnStartInstallDaemonPrompt        = "is it ok to install zerops daemon for you?"
 	VpnStartTerminatedByUser           = "when you are ready, try `/path/to/zcli daemon install`"
 	VpnStartUserIsUnableToWriteYorN    = "type 'y' or 'n' please"
-	VpnStartWireguardUtunError         = "we weren't able to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
+	VpnStartWireguardUtunError         = "we failed to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
-	VpnStartTunnelIsNotAlive           = "we weren't able to establish zerops vpn"
+	VpnStartTunnelIsNotAlive           = "we failed to establish zerops vpn"
 	VpnStartExpectedProjectName        = "expected project name as a positional argument"
 
 	// vpn status
@@ -142,7 +142,7 @@ const (
 	VpnStatusDnsStatusSetInactive    = "dns is set but it isn't working properly, try `/path/to/zcli vpn start` command"
 	VpnStatusDnsStatusUnset          = "dns isn't set, try `/path/to/zcli vpn start` command"
 	VpnStatusAdditionalInfo          = "additional info:"
-	VpnStatusDnsCheckError           = "we weren't able to check that dns working correctly"
+	VpnStatusDnsCheckError           = "we failed to check that dns is working correctly"
 	VpnStatusDnsNoCheckFunction      = "there is no function for dns check"
 
 	// vpn stop
@@ -153,7 +153,7 @@ const (
 
 	// daemon
 	DaemonInstallerDesc = "zerops daemon"
-	DaemonElevated      = "operation continues in the new window"
+	DaemonElevated      = "operation continues in a new window"
 
 	// daemon install
 	DaemonInstallSuccess                 = "zerops daemon has been installed"
@@ -165,10 +165,10 @@ const (
 	DaemonRemoveSuccess            = "zerops daemon has been removed"
 
 	// generic
-	GrpcApiTimeout    = "zerops api didn't response within assigned time, try it again later"
-	GrpcVpnApiTimeout = "zerops vpn server didn't response within assigned time, try it again later"
+	GrpcApiTimeout    = "zerops api didn't respond within assigned time, try it again later"
+	GrpcVpnApiTimeout = "zerops vpn server didn't respond within assigned time, try it again later"
 
-	HintChangeRegion = "hint: try changing your region (you can list available regions using `zcli region list`)"
+	HintChangeRegion = "hint: try to change your region (you can list available regions using `zcli region list`)"
 )
 
 func AddHintChangeRegion(err error) error {
