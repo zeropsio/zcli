@@ -11,7 +11,7 @@ type Config struct {
 
 type RunConfig struct {
 	WorkingDir     string
-	ImportYamlPath *string
+	ImportYamlPath string
 	ClientId       string
 	ProjectName    string
 }

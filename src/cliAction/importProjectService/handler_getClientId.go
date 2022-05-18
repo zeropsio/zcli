@@ -34,9 +34,9 @@ func (h *Handler) getClientId(ctx context.Context, config RunConfig) (string, er
 			out = append(out, client.ClientId)
 		}
 		idList := strings.Join(out, ",")
-		errMsg := fmt.Sprintf("%s\n%s%s", i18n.MultipleClientIds, i18n.AvailableClientIds, idList)
+		errMsg := fmt.Errorf("%s\n%s%s", i18n.MultipleClientIds, i18n.AvailableClientIds, idList)
 
-		return "", errors.New(errMsg)
+		return "", errMsg
 	}
 
 	return clients[0].ClientId, nil

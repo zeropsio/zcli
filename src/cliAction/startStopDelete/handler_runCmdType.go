@@ -2,15 +2,14 @@ package startStopDelete
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/utils/projectService"
 )
 
-func (h *Handler) Run(ctx context.Context, config RunConfig, parentCmd string, actionType string) error {
-	projectId, err := h.getProjectId(ctx, config)
+func (h *Handler) Run(ctx context.Context, config RunConfig, parentCmd constants.ParentCmd, actionType string) error {
+	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectName)
 	if err != nil {
-		fmt.Println("error ", err)
 		return err
 	}
 
@@ -24,7 +23,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig, parentCmd string, a
 		}
 	}
 
-	serviceId, err := h.getServiceId(ctx, config, projectId)
+	serviceId, err := projectService.GetServiceId(ctx, h.apiGrpcClient, projectId, config.ServiceName)
 	if err != nil {
 		return err
 	}

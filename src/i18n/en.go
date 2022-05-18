@@ -77,6 +77,7 @@ const (
 	ImportYamlNotFound  = "import yaml not found"
 	ImportYamlCorrupted = "import yaml corrupted"
 	ServiceStackCount   = "number of services to be added: "
+	CoreServices        = "core services to be activated"
 
 	// project
 	ProjectNotFound          = "project not found"
@@ -154,6 +155,7 @@ const (
 	// daemon
 	DaemonInstallerDesc = "zerops daemon"
 	DaemonElevated      = "operation continues in a new window"
+	PathNotFound        = "path not found"
 
 	// daemon install
 	DaemonInstallSuccess                 = "zerops daemon has been installed"

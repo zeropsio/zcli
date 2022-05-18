@@ -14,7 +14,7 @@ import (
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
-func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd string) error {
+func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd constants.ParentCmd) error {
 
 	importYamlContent, err := getImportYamlContent(config)
 	if err != nil {
@@ -24,9 +24,9 @@ func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd string
 	var servicesData []*business.ProjectImportServiceStack
 
 	if parentCmd == constants.Project {
-		servicesData, err = sendProjectRequest(ctx, config, h, string(importYamlContent))
+		servicesData, err = h.sendProjectRequest(ctx, config, string(importYamlContent))
 	} else {
-		servicesData, err = sendServiceRequest(ctx, config, h, string(importYamlContent))
+		servicesData, err = h.sendServiceRequest(ctx, config, string(importYamlContent))
 	}
 	if err != nil {
 		return err
@@ -37,10 +37,15 @@ func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd string
 	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(serviceCount))
 	fmt.Println(i18n.QueuedProcesses + strconv.Itoa(len(processData)))
 
+	if parentCmd == constants.Project {
+		fmt.Println(i18n.CoreServices)
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(len(processData))
 	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
 	sp.Start()
+
 	for _, processItem := range processData {
 		go processChecker.CheckMultiple(ctx, processItem, h.apiGrpcClient, &wg, sp)
 	}

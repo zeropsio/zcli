@@ -2,14 +2,14 @@ package importProjectService
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/projectService"
 )
 
-func sendServiceRequest(ctx context.Context, config RunConfig, h *Handler, yamlContent string) ([]*business.ProjectImportServiceStack, error) {
-	projectId, err := h.getProjectId(ctx, config)
+func (h *Handler) sendServiceRequest(ctx context.Context, config RunConfig, yamlContent string) ([]*business.ProjectImportServiceStack, error) {
+	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectName)
 	if err != nil {
 		return nil, err
 	}
@@ -20,13 +20,6 @@ func sendServiceRequest(ctx context.Context, config RunConfig, h *Handler, yamlC
 	})
 	if err := proto.BusinessError(res, err); err != nil {
 		return nil, err
-	}
-
-	if res.GetError().GetMessage() != "" {
-		fmt.Println(res.GetError().GetMessage())
-		fmt.Println(res.GetError().GetMeta())
-		// TODO confirm if only print or return this error
-		//return errors.New(res.GetError().GetMessage())
 	}
 
 	return res.GetOutput().GetServiceStacks(), nil

@@ -65,11 +65,11 @@ func serviceImportCmd() *cobra.Command {
 			).Import(ctx, importProjectService.RunConfig{
 				WorkingDir:     params.GetString(cmd, "workingDir"),
 				ProjectName:    args[0],
-				ImportYamlPath: &args[1],
+				ImportYamlPath: args[1],
 			}, constants.Service)
 		},
 	}
-	// todo review the working dir logic and flag info
+
 	params.RegisterString(cmdImport, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmdImport, "importYamlPath", "", i18n.ImportYamlLocation)
 	params.RegisterString(cmdImport, "clientId", "", i18n.ClientId)

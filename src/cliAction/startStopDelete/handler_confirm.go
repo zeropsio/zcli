@@ -8,7 +8,7 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 )
 
-func askForConfirmation(parent string) bool {
+func askForConfirmation(parent constants.ParentCmd) bool {
 	if parent == constants.Project {
 		fmt.Print(i18n.DeleteProjectConfirm)
 	} else {

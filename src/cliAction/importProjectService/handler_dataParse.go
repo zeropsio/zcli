@@ -9,9 +9,8 @@ import (
 // return number of services and process data [](process Id, service name, action name)
 func parseServiceData(servicesData []*business.ProjectImportServiceStack) (int, [][]string) {
 	var (
-		serviceErrors []*business.Error // TODO do we need to collect them or just to print??
-		serviceNames  []string
-		processData   [][]string
+		serviceNames []string
+		processData  [][]string
 	)
 
 	for _, service := range servicesData {
@@ -19,10 +18,9 @@ func parseServiceData(servicesData []*business.ProjectImportServiceStack) (int, 
 		if serviceErr != nil {
 			meta := ""
 			if len(serviceErr.GetMeta()) > 0 {
-				meta = fmt.Sprintf("\n%v", serviceErr.GetMeta())
+				meta = fmt.Sprintf("\n%s", string(serviceErr.GetMeta()))
 			}
 			fmt.Printf("service %s returned error %s%s", service.GetName(), serviceErr.GetMessage(), meta)
-			serviceErrors = append(serviceErrors, serviceErr)
 		}
 
 		serviceNames = append(serviceNames, service.GetName())

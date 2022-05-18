@@ -4,8 +4,13 @@ const (
 	Start    = "start"
 	Stop     = "stop"
 	Delete   = "delete"
-	Project  = "project"
-	Service  = "service"
 	Success  = "✓ "
 	Starting = "→ "
+)
+
+type ParentCmd int
+
+const (
+	Service ParentCmd = iota
+	Project
 )

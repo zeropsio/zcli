@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/daemonServer"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/vpn"
 )
 
@@ -27,7 +28,7 @@ func createDaemonGrpcServer(vpn *vpn.Handler) (*daemonServer.Handler, error) {
 func prepareEnvironment() error {
 	path, found := os.LookupEnv("PATH")
 	if !found {
-		return errors.New("path not found") //FIXME: i18n
+		return errors.New(i18n.PathNotFound)
 	}
 	path = strings.Join(append(strings.Split(path, ";"), constants.WireguardPath), ";")
 	err := os.Setenv("PATH", path)

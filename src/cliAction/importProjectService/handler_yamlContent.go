@@ -19,25 +19,24 @@ func getImportYamlContent(config RunConfig) ([]byte, error) {
 		return nil, err
 	}
 
-	importYamlPath := path.Join(workingDir, *config.ImportYamlPath)
+	importYamlPath := path.Join(workingDir, config.ImportYamlPath)
 
-	importYamlStat, err := os.Stat(importYamlPath)
+	fileInfo, err := os.Stat(importYamlPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			if config.ImportYamlPath != nil {
-				return nil, errors.New(i18n.ImportYamlNotFound)
-			}
-		}
-		return nil, nil
+		return nil, err
+	}
+
+	if fileInfo.IsDir() {
+		return nil, errors.New(i18n.ImportYamlNotFound)
 	}
 
 	fmt.Printf("%s: %s\n", i18n.ImportYamlFound, importYamlPath)
 
-	if importYamlStat.Size() == 0 {
+	if fileInfo.Size() == 0 {
 		return nil, errors.New(i18n.ImportYamlEmpty)
 	}
 
-	if importYamlStat.Size() > 100*1024 {
+	if fileInfo.Size() > 100*1024 {
 		return nil, errors.New(i18n.ImportYamlTooLarge)
 	}
 

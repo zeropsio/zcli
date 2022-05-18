@@ -9,6 +9,7 @@ import (
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zerops-io/zcli/src/utils/projectService"
 
 	"github.com/zerops-io/zcli/src/daemonInstaller"
 
@@ -20,33 +21,13 @@ import (
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
-	if config.ProjectName == "" {
-		return errors.New(i18n.ProjectNameIsEmpty)
-	}
-
 	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
 	if err := proto.BusinessError(userInfoResponse, err); err != nil {
 		return err
 	}
 	userId := userInfoResponse.GetOutput().GetId()
 
-	projectsResponse, err := h.apiGrpcClient.GetProjectsByName(ctx, &business.GetProjectsByNameRequest{
-		Name: config.ProjectName,
-	})
-	if err := proto.BusinessError(projectsResponse, err); err != nil {
-		return err
-	}
-
-	projectsResponse.GetOutput().GetProjects()
-
-	projects := projectsResponse.GetOutput().GetProjects()
-	if len(projects) == 0 {
-		return errors.New(i18n.ProjectNotFound)
-	}
-	if len(projects) > 1 {
-		return errors.New(i18n.ProjectsWithSameName)
-	}
-	project := projects[0]
+	project, err := projectService.GetProject(ctx, h.apiGrpcClient, config.ProjectName)
 
 	err = h.tryStartVpn(ctx, project, userId, config)
 	if err != nil {
