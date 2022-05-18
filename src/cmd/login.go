@@ -28,7 +28,7 @@ func loginCmd() *cobra.Command {
 			}
 
 			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Second * 5,
+				HttpTimeout: time.Second * 60,
 			})
 
 			region, err := createRegionRetriever(ctx)

@@ -17,7 +17,7 @@ import (
 )
 
 func TimeoutInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
 	return invoker(timeoutCtx, method, req, reply, cc, opts...)
 }
