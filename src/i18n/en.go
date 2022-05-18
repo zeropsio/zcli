@@ -20,16 +20,34 @@ const (
 	CmdVersion       = "version"
 	CmdRegion        = "region commands group"
 	CmdRegionList    = "list available regions"
+	CmdProject       = "project commands group"
+	CmdService       = "service commands group"
+	CmdProjectStart  = "run process to start the project and wait until finished"
+	CmdProjectStop   = "run process to stop the project and wait until finished"
+	CmdProjectDelete = "run process to delete the project and wait until finished"
+	CmdProjectImport = "create project in Zerops and add service(s)"
+	CmdServiceImport = "create one or more services for given project"
+	CmdServiceStart  = "run process to start the service and wait until finished"
+	CmdServiceStop   = "run process to stop the service and wait until finished"
+	CmdServiceDelete = "run process to delete the service and wait until finished"
 
 	// flags description
-	BuildVersionName   = "custom version name"
-	SourceName         = "zerops.yml source service"
-	BuildWorkingDir    = "working dir, all files path are relative to this directory"
-	BuildZipFilePath   = "save final zip file"
-	ZeropsYamlLocation = "zerops yaml location relative to working directory"
+	BuildVersionName     = "custom version name"
+	SourceName           = "zerops.yml source service"
+	BuildWorkingDir      = "working dir, all files path are relative to this directory"
+	BuildZipFilePath     = "save final zip file"
+	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
+	ImportYamlLocation   = "import yaml location relative to working directory"
+	ClientId             = "client ID"
+	ConfirmDeleteProject = "confirm to delete the project"
+	ConfirmDeleteService = "confirm to delete the service"
 
 	// process
-	ProcessInvalidState = "last command has finished with error, identifier for communication with our support: %s"
+	ProcessInvalidState        = "last command has finished with error, identifier for communication with our support: %s"
+	ProcessInvalidStateProcess = "process finished with error, identifier for communication with our support:"
+	QueuedProcesses            = "queued processes: "
+	ProcessStart               = "process started"
+	ProcessEnd                 = "process finished"
 
 	// zipClient
 	ZipClientWorkingDirectory = "working directory: %s"
@@ -45,38 +63,74 @@ const (
 	// region
 	RegionNotFound = "region not found"
 
+	//client ID
+	MultipleClientIds  = "you have assigned multiple client IDs, please use the --clientId flag"
+	AvailableClientIds = "your client IDs are: "
+	MissingClientId    = "no client ID found four your account"
+
+	// import
+	YamlCheck           = "yaml file check started"
+	ImportYamlOk        = "yaml file ok"
+	ImportYamlEmpty     = "config file import yaml is empty"
+	ImportYamlTooLarge  = "max. size of import yaml is 100 KB"
+	ImportYamlFound     = "import yaml found"
+	ImportYamlNotFound  = "import yaml not found"
+	ImportYamlCorrupted = "import yaml corrupted"
+	ServiceStackCount   = "number of services to be added: "
+
+	// project
+	ProjectNotFound          = "project not found"
+	ProjectsWithSameName     = "found multiple projects with the same name"
+	ProjectNameIsEmpty       = "project name must be filled"
+	StartProjectProcessInit  = "start project command initialized"
+	StartProjectSuccess      = "project started successfully"
+	StopProjectProcessInit   = "stop project command initialized"
+	StopProjectSuccess       = "project stopped successfully"
+	DeleteProjectConfirm     = "Please confirm that you would like to delete the project (y/n): "
+	DelProjectCanceledByUser = "delete project command canceled by user"
+	DeleteProjectProcessInit = "delete project command initialized"
+	DeleteProjectSuccess     = "project deleted successfully"
+	ProjectCreateSuccess     = "project created successfully"
+	ProjectImportSuccess     = "project import finished"
+
+	// service
+	ServiceNotFound          = "service not found"
+	ServiceNameIsEmpty       = "service name must be filled"
+	StartServiceProcessInit  = "start service command initialized"
+	StartServiceSuccess      = "service started successfully"
+	StopServiceProcessInit   = "stop service command initialized"
+	StopServiceSuccess       = "project stopped successfully"
+	DeleteServiceConfirm     = "Please confirm that you would like to delete the service (y/n): "
+	DelServiceCanceledByUser = "delete service command canceled by user"
+	DeleteServiceProcessInit = "delete service command initialized"
+	DeleteServiceSuccess     = "service deleted successfully"
+	ServiceImportSuccess     = "service(s) import finished"
+
 	// deploy
-	BuildDeployProjectNameMissing      = "project name must be filled"
-	BuildDeployServiceStackNameMissing = "service name must be filled"
-	BuildDeployProjectNotFound         = "project not found"
-	BuildDeployProjectsWithSameName    = "there are multiple projects with same name"
-	BuildDeployServiceStatus           = "service status: %s"
-	BuildDeployCreatingPackageStart    = "creating package"
-	BuildDeployCreatingPackageDone     = "package created"
-	BuildDeployPackageSavedInto        = "package file saved into: %s"
-	BuildDeployUploadingPackageStart   = "uploading package"
-	BuildDeployUploadingPackageDone    = "package uploaded"
-	BuildDeployUploadPackageFailed     = "package upload failed"
-	BuildDeployDeployingStart          = "deploying service"
-	BuildDeployZeropsYamlEmpty         = "config file zerops.yml is empty"
-	BuildDeployZeropsYamlTooLarge      = "max. size of zerops.yml is 10 KB"
-	BuildDeployZeropsYamlFound         = "zerops.yml found"
-	BuildDeployZeropsYamlNotFound      = "zerops.yml not found"
-	BuildDeploySuccess                 = "service deployed"
+	BuildDeployServiceStatus         = "service status: %s"
+	BuildDeployCreatingPackageStart  = "creating package"
+	BuildDeployCreatingPackageDone   = "package created"
+	BuildDeployPackageSavedInto      = "package file saved into: %s"
+	BuildDeployUploadingPackageStart = "uploading package"
+	BuildDeployUploadingPackageDone  = "package uploaded"
+	BuildDeployUploadPackageFailed   = "package upload failed"
+	BuildDeployDeployingStart        = "deploying service"
+	BuildDeployZeropsYamlEmpty       = "config file zerops.yml is empty"
+	BuildDeployZeropsYamlTooLarge    = "max. size of zerops.yml is 10 KB"
+	BuildDeployZeropsYamlFound       = "zerops.yml found"
+	BuildDeployZeropsYamlNotFound    = "zerops.yml not found"
+	BuildDeploySuccess               = "service deployed"
 
 	// vpn start
-	VpnStartProjectNameIsEmpty         = "project name must be filled"
-	VpnStartProjectNotFound            = "project not found"
 	VpnStartInterfaceAssignFailed      = "interface name assign failed"
 	VpnStartWireguardInterfaceNotfound = "wireguard interface not found"
-	VpnStartProjectsWithSameName       = "there are multiple projects with same name"
 	VpnStartDaemonIsUnavailable        = "daemon is currently unavailable, did you install it?"
-	VpnStartInstallDaemonPrompt        = "is it ok if we are going to install daemon for you?"
-	VpnStartTerminatedByUser           = "when you will be ready, try `/path/to/zcli daemon install`"
+	VpnStartInstallDaemonPrompt        = "is it ok to install zerops daemon for you?"
+	VpnStartTerminatedByUser           = "when you are ready, try `/path/to/zcli daemon install`"
 	VpnStartUserIsUnableToWriteYorN    = "type 'y' or 'n' please"
-	VpnStartWireguardUtunError         = "we weren't able to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
+	VpnStartWireguardUtunError         = "we failed to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
-	VpnStartTunnelIsNotAlive           = "we weren't able to establish zerops vpn"
+	VpnStartTunnelIsNotAlive           = "we failed to establish zerops vpn"
 	VpnStartExpectedProjectName        = "expected project name as a positional argument"
 
 	// vpn status
@@ -88,7 +142,7 @@ const (
 	VpnStatusDnsStatusSetInactive    = "dns is set but it isn't working properly, try `/path/to/zcli vpn start` command"
 	VpnStatusDnsStatusUnset          = "dns isn't set, try `/path/to/zcli vpn start` command"
 	VpnStatusAdditionalInfo          = "additional info:"
-	VpnStatusDnsCheckError           = "we weren't able to check that dns working correctly"
+	VpnStatusDnsCheckError           = "we failed to check that dns is working correctly"
 	VpnStatusDnsNoCheckFunction      = "there is no function for dns check"
 
 	// vpn stop
@@ -99,7 +153,7 @@ const (
 
 	// daemon
 	DaemonInstallerDesc = "zerops daemon"
-	DaemonElevated      = "operation continues in the new window"
+	DaemonElevated      = "operation continues in a new window"
 
 	// daemon install
 	DaemonInstallSuccess                 = "zerops daemon has been installed"
@@ -111,10 +165,10 @@ const (
 	DaemonRemoveSuccess            = "zerops daemon has been removed"
 
 	// generic
-	GrpcApiTimeout    = "zerops api didn't response within assigned time, try it again later"
-	GrpcVpnApiTimeout = "zerops vpn server didn't response within assigned time, try it again later"
+	GrpcApiTimeout    = "zerops api didn't respond within assigned time, try it again later"
+	GrpcVpnApiTimeout = "zerops vpn server didn't respond within assigned time, try it again later"
 
-	HintChangeRegion = "hint: try changing your region (you can list available regions using `zcli region list`)"
+	HintChangeRegion = "hint: try to change your region (you can list available regions using `zcli region list`)"
 )
 
 func AddHintChangeRegion(err error) error {

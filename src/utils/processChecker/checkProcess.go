@@ -1,23 +1,26 @@
-package buildDeploy
+package processChecker
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/briandowns/spinner"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
-
-	"github.com/zerops-io/zcli/src/i18n"
 )
 
-func (h *Handler) checkProcess(ctx context.Context, processId string) error {
+func CheckProcess(ctx context.Context, processId string, apiGrpcClient business.ZeropsApiProtocolClient) error {
+	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
+	sp.Start()
 	for {
 		select {
 		case <-ctx.Done():
+			sp.Stop()
 			return nil
 		default:
-			getProcessResponse, err := h.apiGrpcClient.GetProcess(ctx, &business.GetProcessRequest{
+			getProcessResponse, err := apiGrpcClient.GetProcess(ctx, &business.GetProcessRequest{
 				Id: processId,
 			})
 			if err := proto.BusinessError(getProcessResponse, err); err != nil {
@@ -27,11 +30,13 @@ func (h *Handler) checkProcess(ctx context.Context, processId string) error {
 			processStatus := getProcessResponse.GetOutput().GetStatus()
 
 			if processStatus == business.ProcessStatus_PROCESS_STATUS_FINISHED {
+				sp.Stop()
 				return nil
 			}
 
 			if !(processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING ||
 				processStatus == business.ProcessStatus_PROCESS_STATUS_PENDING) {
+				sp.Stop()
 				return fmt.Errorf(i18n.ProcessInvalidState, getProcessResponse.GetOutput().GetId())
 			}
 			time.Sleep(time.Second)

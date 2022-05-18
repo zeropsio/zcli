@@ -6,7 +6,9 @@ import (
 
 	"github.com/zerops-io/zcli/src/proto/business"
 
-	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
+	"github.com/zerops-io/zcli/src/constants"
+
+	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
@@ -14,14 +16,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func deployCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "deploy projectName serviceName pathToFileOrDir [pathToFileOrDir]",
-		Short:        i18n.CmdDeployDesc,
+func serviceStartCmd() *cobra.Command {
+	cmdStart := &cobra.Command{
+		Use:          "start [projectName] [serviceName]",
+		Short:        i18n.CmdServiceStart,
+		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
-		Args:         cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(cmd.Context())
+			ctx, cancel := context.WithCancel(context.Background())
 			regSignals(cancel)
 
 			storage, err := createCliStorage()
@@ -58,27 +60,16 @@ func deployCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return buildDeploy.New(
-				buildDeploy.Config{},
+			return startStopDelete.New(
+				startStopDelete.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Deploy(ctx, buildDeploy.RunConfig{
-				ZipFilePath:      params.GetString(cmd, "zipFilePath"),
-				WorkingDir:       params.GetString(cmd, "workingDir"),
-				VersionName:      params.GetString(cmd, "versionName"),
-				ZeropsYamlPath:   params.GetStringP(cmd, "zeropsYamlPath"),
-				ProjectName:      args[0],
-				ServiceStackName: args[1],
-				PathsForPacking:  args[2:],
-			})
+			).Run(ctx, startStopDelete.RunConfig{
+				ProjectName: args[0],
+				ServiceName: args[1],
+			}, constants.Service, constants.Start)
 		},
 	}
-
-	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
-	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
-	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
-	params.RegisterString(cmd, "zeropsYamlPath", "./", i18n.ZeropsYamlLocation)
-
-	return cmd
+	return cmdStart
 }

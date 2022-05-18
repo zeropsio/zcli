@@ -1,9 +1,8 @@
 package vpnproxy
 
 import (
-	"time"
-
 	"net"
+	"time"
 )
 
 func FromProtoIP(m *IP) net.IP {
