@@ -1,23 +1,27 @@
-package buildDeploy
+package processChecker
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/briandowns/spinner"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
-
-	"github.com/zerops-io/zcli/src/i18n"
 )
 
-func (h *Handler) checkProcess(ctx context.Context, processId string) error {
+func CheckProcess(ctx context.Context, processId string, apiGrpcClient business.ZeropsApiProtocolClient) error {
+	sp := spinner.New(spinner.CharSets[32], 100*time.Millisecond)
+	sp.Start()
+	defer sp.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			getProcessResponse, err := h.apiGrpcClient.GetProcess(ctx, &business.GetProcessRequest{
+			getProcessResponse, err := apiGrpcClient.GetProcess(ctx, &business.GetProcessRequest{
 				Id: processId,
 			})
 			if err := proto.BusinessError(getProcessResponse, err); err != nil {

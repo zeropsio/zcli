@@ -5,3 +5,4 @@ tools/npm/node_modules
 .vscode
 *zerops.yml
 *import.yml
+*.DS_Store

@@ -66,7 +66,7 @@ func createRegionRetriever(ctx context.Context) (*region.Handler, error) {
 	s, err := storage.New[region.Data](
 		storage.Config{FilePath: filepath},
 	)
-	return region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Second * 5}), s), err
+	return region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}), s), err
 }
 
 func createVpn(
@@ -78,7 +78,7 @@ func createVpn(
 		vpn.Config{
 			VpnCheckInterval:   time.Second * 3,
 			VpnCheckRetryCount: 3,
-			VpnCheckTimeout:    time.Second * 3,
+			VpnCheckTimeout:    time.Second * 60,
 		},
 		logger,
 		storage,
