@@ -17,6 +17,9 @@ type CmdType struct {
 
 func (h *Handler) getCmdType(parentCmd constants.ParentCmd, childCmd constants.ChildCmd) (string, string, CB) {
 	var messages = map[constants.ParentCmd]map[constants.ChildCmd]CmdType{}
+	messages[constants.Project] = make(map[constants.ChildCmd]CmdType)
+	messages[constants.Service] = make(map[constants.ChildCmd]CmdType)
+
 	messages[constants.Project][constants.Start] = CmdType{
 		StartMsg:  i18n.ProjectStartProcessInit,
 		FinishMsg: i18n.ProjectStartSuccess,
