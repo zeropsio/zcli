@@ -1,11 +1,16 @@
 package constants
 
 const (
-	Start    = "start"
-	Stop     = "stop"
-	Delete   = "delete"
 	Success  = "✓ "
 	Starting = "→ "
+)
+
+type ChildCmd int
+
+const (
+	Start ChildCmd = iota
+	Stop
+	Delete
 )
 
 type ParentCmd int

@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/proto/business"
-
 	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/proto/business"
 
 	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -68,7 +67,10 @@ func serviceStartCmd() *cobra.Command {
 			).Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				ServiceName: args[1],
-			}, constants.Service, constants.Start)
+				ParentCmd:   constants.Service,
+				ChildCmd:    constants.Start,
+				Confirm:     true,
+			})
 		},
 	}
 	return cmdStart

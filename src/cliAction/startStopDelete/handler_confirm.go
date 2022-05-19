@@ -10,9 +10,9 @@ import (
 
 func askForConfirmation(parent constants.ParentCmd) bool {
 	if parent == constants.Project {
-		fmt.Print(i18n.DeleteProjectConfirm)
+		fmt.Print(i18n.ProjectDeleteConfirm)
 	} else {
-		fmt.Print(i18n.DeleteServiceConfirm)
+		fmt.Print(i18n.ServiceDeleteConfirm)
 	}
 
 	var response string
@@ -31,4 +31,15 @@ func askForConfirmation(parent constants.ParentCmd) bool {
 	} else {
 		return askForConfirmation(parent)
 	}
+}
+
+func GetConfirm(config RunConfig) string {
+	if !config.Confirm {
+		// run confirm dialogue
+		shouldDelete := askForConfirmation(config.ParentCmd)
+		if !shouldDelete {
+			return i18n.DeleteCanceledByUser
+		}
+	}
+	return ""
 }

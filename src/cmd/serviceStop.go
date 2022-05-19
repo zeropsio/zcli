@@ -68,7 +68,10 @@ func serviceStopCmd() *cobra.Command {
 			).Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				ServiceName: args[1],
-			}, constants.Service, constants.Stop)
+				ParentCmd:   constants.Service,
+				ChildCmd:    constants.Stop,
+				Confirm:     true,
+			})
 		},
 	}
 	return cmdStop

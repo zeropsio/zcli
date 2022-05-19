@@ -69,7 +69,9 @@ func serviceDeleteCmd() *cobra.Command {
 				ProjectName: args[0],
 				ServiceName: args[1],
 				Confirm:     params.GetBool(cmd, "confirm"),
-			}, constants.Service, constants.Delete)
+				ParentCmd:   constants.Service,
+				ChildCmd:    constants.Delete,
+			})
 		},
 	}
 

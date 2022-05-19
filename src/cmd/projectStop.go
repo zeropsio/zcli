@@ -65,7 +65,10 @@ func projectStopCmd() *cobra.Command {
 				apiGrpcClient,
 			).Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
-			}, constants.Project, constants.Stop)
+				ParentCmd:   constants.Project,
+				ChildCmd:    constants.Stop,
+				Confirm:     true,
+			})
 		},
 	}
 	return cmdStop

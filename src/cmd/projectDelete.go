@@ -66,7 +66,9 @@ func projectDeleteCmd() *cobra.Command {
 			).Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				Confirm:     params.GetBool(cmd, "confirm"),
-			}, constants.Project, constants.Delete)
+				ParentCmd:   constants.Project,
+				ChildCmd:    constants.Delete,
+			})
 		},
 	}
 	params.RegisterBool(cmd, "confirm", false, i18n.ConfirmDeleteProject)

@@ -50,7 +50,7 @@ func GrpcError[T errorCode, R response[T]](
 	options ...HandleGrpcErrorOption,
 ) error {
 	config := handleGrpcErrorConfig{
-		customTimeoutMessage: i18n.GrpcVpnApiTimeout,
+		customTimeoutMessage: i18n.GrpcApiTimeout,
 	}
 	for _, o := range options {
 		o(&config)

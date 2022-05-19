@@ -1,6 +1,7 @@
 package startStopDelete
 
 import (
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
@@ -13,6 +14,8 @@ type RunConfig struct {
 	ProjectName string
 	ServiceName string
 	Confirm     bool
+	ParentCmd   constants.ParentCmd
+	ChildCmd    constants.ChildCmd
 }
 
 type Handler struct {
