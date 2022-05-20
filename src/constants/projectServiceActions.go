@@ -16,6 +16,6 @@ const (
 type ParentCmd int
 
 const (
-	Service ParentCmd = iota
-	Project
+	Project ParentCmd = iota
+	Service
 )

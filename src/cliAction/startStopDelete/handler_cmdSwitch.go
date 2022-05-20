@@ -16,41 +16,40 @@ type CmdType struct {
 }
 
 func (h *Handler) getCmdType(parentCmd constants.ParentCmd, childCmd constants.ChildCmd) (string, string, CB) {
-	var messages = map[constants.ParentCmd]map[constants.ChildCmd]CmdType{}
-	messages[constants.Project] = make(map[constants.ChildCmd]CmdType)
-	messages[constants.Service] = make(map[constants.ChildCmd]CmdType)
+	switcher := make([][]CmdType, 2)
+	switcher[constants.Project] = make([]CmdType, 3)
+	switcher[constants.Service] = make([]CmdType, 3)
 
-	messages[constants.Project][constants.Start] = CmdType{
+	switcher[constants.Project][constants.Start] = CmdType{
 		StartMsg:  i18n.ProjectStartProcessInit,
 		FinishMsg: i18n.ProjectStartSuccess,
 		Callback:  ProjectStart,
 	}
-	messages[constants.Project][constants.Stop] = CmdType{
+	switcher[constants.Project][constants.Stop] = CmdType{
 		StartMsg:  i18n.ProjectStopProcessInit,
 		FinishMsg: i18n.ProjectStopSuccess,
 		Callback:  ProjectStop,
 	}
-	messages[constants.Project][constants.Delete] = CmdType{
+	switcher[constants.Project][constants.Delete] = CmdType{
 		StartMsg:  i18n.ProjectDeleteProcessInit,
 		FinishMsg: i18n.ProjectDeleteSuccess,
 		Callback:  ProjectDelete,
 	}
-	messages[constants.Service][constants.Start] = CmdType{
+	switcher[constants.Service][constants.Start] = CmdType{
 		StartMsg:  i18n.ServiceStartProcessInit,
 		FinishMsg: i18n.ServiceStartSuccess,
 		Callback:  ServiceStart,
 	}
-	messages[constants.Service][constants.Stop] = CmdType{
+	switcher[constants.Service][constants.Stop] = CmdType{
 		StartMsg:  i18n.ServiceStopProcessInit,
 		FinishMsg: i18n.ServiceStopSuccess,
 		Callback:  ServiceStop,
 	}
-	messages[constants.Service][constants.Delete] = CmdType{
+	switcher[constants.Service][constants.Delete] = CmdType{
 		StartMsg:  i18n.ServiceDeleteProcessInit,
 		FinishMsg: i18n.ServiceDeleteSuccess,
 		Callback:  ServiceDelete,
 	}
-
-	selected := messages[parentCmd][childCmd]
+	selected := switcher[parentCmd][childCmd]
 	return selected.StartMsg, selected.FinishMsg, selected.Callback
 }
