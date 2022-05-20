@@ -43,6 +43,7 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 					// stop initial progress indicator that waits for first running process
 					if sp.Active() {
 						sp.Stop()
+						fmt.Println(i18n.ReadyToImportServices)
 					}
 					clearLine()
 					fmt.Printf("%s%s %s \n", constants.Starting, name, i18n.ProcessStart)

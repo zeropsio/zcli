@@ -1,6 +1,7 @@
 package importProjectService
 
 import (
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/zipClient"
@@ -14,6 +15,7 @@ type RunConfig struct {
 	ImportYamlPath string
 	ClientId       string
 	ProjectName    string
+	ParentCmd      constants.ParentCmd
 }
 
 type Handler struct {

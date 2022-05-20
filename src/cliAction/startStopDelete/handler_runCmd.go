@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 	"github.com/zerops-io/zcli/src/utils/projectService"
 )
@@ -32,21 +33,21 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 func (h *Handler) runCmd(ctx context.Context, config RunConfig, projectId string, serviceId string) error {
 
-	startMsg, finishMsg, callback := h.getCmdType(config.ParentCmd, config.ChildCmd)
+	startMsg, finishMsg, execute := h.getCmdProps(config.ParentCmd, config.ChildCmd)
 	msg := GetConfirm(config)
 	if len(msg) > 0 {
 		fmt.Println(msg)
 		return nil
 	}
-	fmt.Println(startMsg)
+	fmt.Println(startMsg + i18n.ProcessInit)
 
-	processId, err := callback(ctx, h, projectId, serviceId)
+	processId, err := execute(ctx, h, projectId, serviceId)
 	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(constants.Success + finishMsg)
+	fmt.Println(constants.Success + finishMsg + i18n.Success)
 
 	return nil
 }

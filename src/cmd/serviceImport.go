@@ -66,7 +66,8 @@ func serviceImportCmd() *cobra.Command {
 				WorkingDir:     params.GetString(cmd, "workingDir"),
 				ProjectName:    args[0],
 				ImportYamlPath: args[1],
-			}, constants.Service)
+				ParentCmd:      constants.Service,
+			})
 		},
 	}
 

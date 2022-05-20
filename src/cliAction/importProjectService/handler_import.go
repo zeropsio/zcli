@@ -14,7 +14,7 @@ import (
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
-func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd constants.ParentCmd) error {
+func (h *Handler) Import(ctx context.Context, config RunConfig) error {
 
 	importYamlContent, err := getImportYamlContent(config)
 	if err != nil {
@@ -22,8 +22,9 @@ func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd consta
 	}
 
 	var servicesData []*business.ProjectImportServiceStack
+	isProjectCmd := config.ParentCmd == constants.Project
 
-	if parentCmd == constants.Project {
+	if isProjectCmd {
 		servicesData, err = h.sendProjectRequest(ctx, config, string(importYamlContent))
 	} else {
 		servicesData, err = h.sendServiceRequest(ctx, config, string(importYamlContent))
@@ -37,7 +38,7 @@ func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd consta
 	fmt.Println(i18n.ServiceStackCount + strconv.Itoa(serviceCount))
 	fmt.Println(i18n.QueuedProcesses + strconv.Itoa(len(processData)))
 
-	if parentCmd == constants.Project {
+	if isProjectCmd {
 		fmt.Println(i18n.CoreServices)
 	}
 
@@ -51,10 +52,10 @@ func (h *Handler) Import(ctx context.Context, config RunConfig, parentCmd consta
 	}
 	wg.Wait()
 
-	if parentCmd == constants.Project {
-		fmt.Println(constants.Success + i18n.ProjectImportSuccess)
+	if isProjectCmd {
+		fmt.Println(constants.Success + i18n.ProjectImported)
 	} else {
-		fmt.Println(constants.Success + i18n.ServiceImportSuccess)
+		fmt.Println(constants.Success + i18n.ServiceImported)
 	}
 
 	return nil

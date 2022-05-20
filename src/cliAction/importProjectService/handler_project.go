@@ -24,7 +24,7 @@ func (h *Handler) sendProjectRequest(ctx context.Context, config RunConfig, yaml
 		return nil, err
 	}
 
-	fmt.Println(constants.Success + i18n.ProjectCreateSuccess)
+	fmt.Println(constants.Success + i18n.ProjectCreated + i18n.Success)
 
 	return res.GetOutput().GetServiceStacks(), nil
 }
