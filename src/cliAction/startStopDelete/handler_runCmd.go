@@ -42,6 +42,10 @@ func (h *Handler) runCmd(ctx context.Context, config RunConfig, projectId string
 	fmt.Println(startMsg + i18n.ProcessInit)
 
 	processId, err := execute(ctx, h, projectId, serviceId)
+	if err != nil {
+		return err
+	}
+
 	err = processChecker.CheckProcess(ctx, processId, h.apiGrpcClient)
 	if err != nil {
 		return err
