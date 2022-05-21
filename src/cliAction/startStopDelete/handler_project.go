@@ -7,7 +7,7 @@ import (
 	"github.com/zerops-io/zcli/src/proto/business"
 )
 
-func ProjectStart(ctx context.Context, h *Handler, projectId string, _ string) (string, error) {
+func (h *Handler) ProjectStart(ctx context.Context, projectId string, _ string) (string, error) {
 	startProjectResponse, err := h.apiGrpcClient.PutProjectStart(ctx, &business.PutProjectStartRequest{
 		Id: projectId,
 	})
@@ -18,7 +18,7 @@ func ProjectStart(ctx context.Context, h *Handler, projectId string, _ string) (
 	return startProjectResponse.GetOutput().GetId(), nil
 }
 
-func ProjectStop(ctx context.Context, h *Handler, projectId string, _ string) (string, error) {
+func (h *Handler) ProjectStop(ctx context.Context, projectId string, _ string) (string, error) {
 	stopProjectResponse, err := h.apiGrpcClient.PutProjectStop(ctx, &business.PutProjectStopRequest{
 		Id: projectId,
 	})
@@ -29,7 +29,7 @@ func ProjectStop(ctx context.Context, h *Handler, projectId string, _ string) (s
 	return stopProjectResponse.GetOutput().GetId(), nil
 }
 
-func ProjectDelete(ctx context.Context, h *Handler, projectId string, _ string) (string, error) {
+func (h *Handler) ProjectDelete(ctx context.Context, projectId string, _ string) (string, error) {
 	deleteProjectResponse, err := h.apiGrpcClient.DeleteProject(ctx, &business.DeleteProjectRequest{
 		Id: projectId,
 	})

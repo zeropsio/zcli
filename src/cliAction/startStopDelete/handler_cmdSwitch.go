@@ -7,7 +7,7 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 )
 
-type Method func(ctx context.Context, h *Handler, projectId string, serviceId string) (string, error)
+type Method func(ctx context.Context, projectId string, serviceId string) (string, error)
 
 type CmdType struct {
 	Start   string
@@ -23,32 +23,32 @@ func (h *Handler) getCmdProps(parentCmd constants.ParentCmd, childCmd constants.
 	switcher[constants.Project][constants.Start] = CmdType{
 		Start:   i18n.ProjectStart,
 		Finish:  i18n.ProjectStarted,
-		Execute: ProjectStart,
+		Execute: h.ProjectStart,
 	}
 	switcher[constants.Project][constants.Stop] = CmdType{
 		Start:   i18n.ProjectStop,
 		Finish:  i18n.ProjectStopped,
-		Execute: ProjectStop,
+		Execute: h.ProjectStop,
 	}
 	switcher[constants.Project][constants.Delete] = CmdType{
 		Start:   i18n.ProjectDelete,
 		Finish:  i18n.ProjectDeleted,
-		Execute: ProjectDelete,
+		Execute: h.ProjectDelete,
 	}
 	switcher[constants.Service][constants.Start] = CmdType{
 		Start:   i18n.ServiceStart,
 		Finish:  i18n.ServiceStarted,
-		Execute: ServiceStart,
+		Execute: h.ServiceStart,
 	}
 	switcher[constants.Service][constants.Stop] = CmdType{
 		Start:   i18n.ServiceStop,
 		Finish:  i18n.ServiceStopped,
-		Execute: ServiceStop,
+		Execute: h.ServiceStop,
 	}
 	switcher[constants.Service][constants.Delete] = CmdType{
 		Start:   i18n.ServiceDelete,
 		Finish:  i18n.ServiceDeleted,
-		Execute: ServiceDelete,
+		Execute: h.ServiceDelete,
 	}
 	selected := switcher[parentCmd][childCmd]
 	return selected.Start, selected.Finish, selected.Execute

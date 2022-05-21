@@ -7,7 +7,7 @@ import (
 	"github.com/zerops-io/zcli/src/proto/business"
 )
 
-func ServiceStart(ctx context.Context, h *Handler, _ string, serviceId string) (string, error) {
+func (h *Handler) ServiceStart(ctx context.Context, _ string, serviceId string) (string, error) {
 	startServiceResponse, err := h.apiGrpcClient.PutServiceStackStart(ctx, &business.PutServiceStackStartRequest{
 		Id: serviceId,
 	})
@@ -18,7 +18,7 @@ func ServiceStart(ctx context.Context, h *Handler, _ string, serviceId string) (
 	return startServiceResponse.GetOutput().GetId(), nil
 }
 
-func ServiceStop(ctx context.Context, h *Handler, _ string, serviceId string) (string, error) {
+func (h *Handler) ServiceStop(ctx context.Context, _ string, serviceId string) (string, error) {
 	stopServiceResponse, err := h.apiGrpcClient.PutServiceStackStop(ctx, &business.PutServiceStackStopRequest{
 		Id: serviceId,
 	})
@@ -29,7 +29,7 @@ func ServiceStop(ctx context.Context, h *Handler, _ string, serviceId string) (s
 	return stopServiceResponse.GetOutput().GetId(), nil
 }
 
-func ServiceDelete(ctx context.Context, h *Handler, _ string, serviceId string) (string, error) {
+func (h *Handler) ServiceDelete(ctx context.Context, _ string, serviceId string) (string, error) {
 	deleteServiceResponse, err := h.apiGrpcClient.DeleteServiceStack(ctx, &business.DeleteServiceStackRequest{
 		Id: serviceId,
 	})
