@@ -73,9 +73,9 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 }
 
 // clear process indicator leftover when interrupted by another process
-// TODO check if it works on windows, might be needed to add more spaces, tested on Mac
 func clearLine() {
-	_, _ = fmt.Fprint(os.Stdout, "\r \r")
+	// 6 spaces equals max number of | chars in spinner to work for Windows
+	_, _ = fmt.Fprint(os.Stdout, "\r      \r")
 }
 
 func getProcessData(process []string) (string, string) {

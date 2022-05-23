@@ -53,6 +53,7 @@ func (h *Handler) getSwitcher() [][]CmdType {
 	return switcher
 }
 
+// get start msg, stop msg and grpc method
 func (h *Handler) getCmdProps(parentCmd constants.ParentCmd, childCmd constants.ChildCmd) (string, string, Method) {
 	selected := h.getSwitcher()[parentCmd][childCmd]
 	return selected.Start, selected.Finish, selected.Execute
