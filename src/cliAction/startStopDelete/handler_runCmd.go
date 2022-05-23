@@ -34,7 +34,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 func (h *Handler) runCmd(ctx context.Context, config RunConfig, projectId string, serviceId string) error {
 
 	startMsg, finishMsg, execute := config.getCmdProps()
-	msg := getConfirm(config)
+	msg := config.getConfirm()
 	if len(msg) > 0 {
 		fmt.Println(msg)
 		return nil

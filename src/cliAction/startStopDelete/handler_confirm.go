@@ -33,10 +33,10 @@ func askForConfirmation(parent constants.ParentCmd) bool {
 	}
 }
 
-func getConfirm(config RunConfig) string {
-	if !config.Confirm {
+func (c RunConfig) getConfirm() string {
+	if !c.Confirm {
 		// run confirm dialogue
-		shouldDelete := askForConfirmation(config.ParentCmd)
+		shouldDelete := askForConfirmation(c.ParentCmd)
 		if !shouldDelete {
 			return i18n.DeleteCanceledByUser
 		}
