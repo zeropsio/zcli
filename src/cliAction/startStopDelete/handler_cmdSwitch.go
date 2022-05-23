@@ -15,7 +15,7 @@ type CmdType struct {
 	Execute Method
 }
 
-func (h *Handler) getCmdProps(parentCmd constants.ParentCmd, childCmd constants.ChildCmd) (string, string, Method) {
+func (h *Handler) getSwitcher() [][]CmdType {
 	switcher := make([][]CmdType, 2)
 	switcher[constants.Project] = make([]CmdType, 3)
 	switcher[constants.Service] = make([]CmdType, 3)
@@ -50,6 +50,10 @@ func (h *Handler) getCmdProps(parentCmd constants.ParentCmd, childCmd constants.
 		Finish:  i18n.ServiceDeleted,
 		Execute: h.ServiceDelete,
 	}
-	selected := switcher[parentCmd][childCmd]
+	return switcher
+}
+
+func (h *Handler) getCmdProps(parentCmd constants.ParentCmd, childCmd constants.ChildCmd) (string, string, Method) {
+	selected := h.getSwitcher()[parentCmd][childCmd]
 	return selected.Start, selected.Finish, selected.Execute
 }
