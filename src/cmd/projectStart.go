@@ -60,16 +60,24 @@ func projectStartCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return startStopDelete.New(
+			handler := startStopDelete.New(
 				startStopDelete.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, startStopDelete.RunConfig{
+			)
+
+			cmdData := startStopDelete.CmdType{
+				Start:   i18n.ProjectStart,
+				Finish:  i18n.ProjectStarted,
+				Execute: handler.ProjectStart,
+			}
+
+			return handler.Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				ParentCmd:   constants.Project,
-				ChildCmd:    constants.Start,
 				Confirm:     true,
+				CmdData:     cmdData,
 			})
 		},
 	}

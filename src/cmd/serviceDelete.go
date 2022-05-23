@@ -60,17 +60,25 @@ func serviceDeleteCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return startStopDelete.New(
+			handler := startStopDelete.New(
 				startStopDelete.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, startStopDelete.RunConfig{
+			)
+
+			cmdData := startStopDelete.CmdType{
+				Start:   i18n.ServiceDelete,
+				Finish:  i18n.ServiceDeleted,
+				Execute: handler.ServiceDelete,
+			}
+
+			return handler.Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				ServiceName: args[1],
 				Confirm:     params.GetBool(cmd, "confirm"),
 				ParentCmd:   constants.Service,
-				ChildCmd:    constants.Delete,
+				CmdData:     cmdData,
 			})
 		},
 	}

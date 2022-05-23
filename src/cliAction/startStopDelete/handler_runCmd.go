@@ -33,8 +33,8 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 func (h *Handler) runCmd(ctx context.Context, config RunConfig, projectId string, serviceId string) error {
 
-	startMsg, finishMsg, execute := h.getCmdProps(config.ParentCmd, config.ChildCmd)
-	msg := GetConfirm(config)
+	startMsg, finishMsg, execute := config.getCmdProps()
+	msg := getConfirm(config)
 	if len(msg) > 0 {
 		fmt.Println(msg)
 		return nil

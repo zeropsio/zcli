@@ -33,7 +33,7 @@ func askForConfirmation(parent constants.ParentCmd) bool {
 	}
 }
 
-func GetConfirm(config RunConfig) string {
+func getConfirm(config RunConfig) string {
 	if !config.Confirm {
 		// run confirm dialogue
 		shouldDelete := askForConfirmation(config.ParentCmd)
