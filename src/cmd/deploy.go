@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
@@ -65,7 +66,7 @@ func deployCmd() *cobra.Command {
 				apiGrpcClient,
 			).Deploy(ctx, buildDeploy.RunConfig{
 				ZipFilePath:      params.GetString(cmd, "zipFilePath"),
-				WorkingDir:       params.GetString(cmd, "workingDir"),
+				WorkingDir:       constants.WorkingDir,
 				VersionName:      params.GetString(cmd, "versionName"),
 				ZeropsYamlPath:   params.GetStringP(cmd, "zeropsYamlPath"),
 				ProjectName:      args[0],
@@ -75,7 +76,6 @@ func deployCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "zeropsYamlPath", "./", i18n.ZeropsYamlLocation)

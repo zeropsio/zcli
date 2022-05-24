@@ -63,7 +63,7 @@ func serviceImportCmd() *cobra.Command {
 				zip,
 				apiGrpcClient,
 			).Import(ctx, importProjectService.RunConfig{
-				WorkingDir:     params.GetString(cmd, "workingDir"),
+				WorkingDir:     constants.WorkingDir,
 				ProjectName:    args[0],
 				ImportYamlPath: args[1],
 				ParentCmd:      constants.Service,
@@ -71,7 +71,6 @@ func serviceImportCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmdImport, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmdImport, "importYamlPath", "", i18n.ImportYamlLocation)
 	params.RegisterString(cmdImport, "clientId", "", i18n.ClientId)
 

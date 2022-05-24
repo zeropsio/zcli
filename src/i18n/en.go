@@ -34,7 +34,6 @@ const (
 	// flags description
 	BuildVersionName     = "custom version name"
 	SourceName           = "zerops.yml source service"
-	BuildWorkingDir      = "working dir, all files path are relative to this directory"
 	BuildZipFilePath     = "save final zip file"
 	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
 	ImportYamlLocation   = "import yaml location relative to working directory"
@@ -86,6 +85,7 @@ const (
 	// project + service
 	ProjectNotFound      = "project not found"
 	ProjectsWithSameName = "found multiple projects with the same name"
+	AvailableProjectIds  = "available project IDs are: "
 	ProjectNameIsEmpty   = "project name must be filled"
 	ProjectDeleteConfirm = "Please confirm that you would like to delete the project (y/n): "
 	ServiceNotFound      = "service not found"

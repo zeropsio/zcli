@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
@@ -66,7 +67,7 @@ func pushCmd() *cobra.Command {
 				apiGrpcClient,
 			).Push(ctx, buildDeploy.RunConfig{
 				ZipFilePath:      params.GetString(cmd, "zipFilePath"),
-				WorkingDir:       params.GetString(cmd, "workingDir"),
+				WorkingDir:       constants.WorkingDir,
 				VersionName:      params.GetString(cmd, "versionName"),
 				SourceName:       params.GetString(cmd, "source"),
 				ProjectName:      args[0],
@@ -75,7 +76,6 @@ func pushCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "source", "", i18n.SourceName)
