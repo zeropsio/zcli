@@ -58,15 +58,25 @@ func projectDeleteCmd() *cobra.Command {
 
 			zip := zipClient.New(zipClient.Config{})
 
-			return startStopDelete.New(
+			handler := startStopDelete.New(
 				startStopDelete.Config{},
 				client,
 				zip,
 				apiGrpcClient,
-			).Run(ctx, startStopDelete.RunConfig{
+			)
+
+			cmdData := startStopDelete.CmdType{
+				Start:   i18n.ProjectDelete,
+				Finish:  i18n.ProjectDeleted,
+				Execute: handler.ProjectDelete,
+			}
+
+			return handler.Run(ctx, startStopDelete.RunConfig{
 				ProjectName: args[0],
 				Confirm:     params.GetBool(cmd, "confirm"),
-			}, constants.Project, constants.Delete)
+				ParentCmd:   constants.Project,
+				CmdData:     cmdData,
+			})
 		},
 	}
 	params.RegisterBool(cmd, "confirm", false, i18n.ConfirmDeleteProject)
