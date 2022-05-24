@@ -15,7 +15,7 @@ import (
 
 func vpnStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "start projectName",
+		Use:          "start [projectNameOrId]",
 		Short:        i18n.CmdVpnStart,
 		SilenceUsage: true,
 		Args:         CustomMessageArgs(cobra.ExactArgs(1), i18n.VpnStartExpectedProjectName),
@@ -64,7 +64,7 @@ func vpnStartCmd() *cobra.Command {
 				apiGrpcClient,
 				installer,
 			).Run(ctx, startVpn.RunConfig{
-				ProjectName:      args[0],
+				ProjectNameOrId:  args[0],
 				Token:            token,
 				Mtu:              params.GetUint32("mtu"),
 				CaCertificateUrl: caCertUrl,

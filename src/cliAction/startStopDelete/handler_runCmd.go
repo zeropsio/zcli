@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
-	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectName)
+	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId)
 	if err != nil {
 		return err
 	}

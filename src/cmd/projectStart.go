@@ -18,7 +18,7 @@ import (
 
 func projectStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "start [projectName]",
+		Use:          "start [projectNameOrId]",
 		Short:        i18n.CmdProjectStart,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
@@ -74,10 +74,10 @@ func projectStartCmd() *cobra.Command {
 			}
 
 			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectName: args[0],
-				ParentCmd:   constants.Project,
-				Confirm:     true,
-				CmdData:     cmdData,
+				ProjectNameOrId: args[0],
+				ParentCmd:       constants.Project,
+				Confirm:         true,
+				CmdData:         cmdData,
 			})
 		},
 	}

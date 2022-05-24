@@ -86,7 +86,7 @@ const (
 	ProjectNotFound      = "project not found"
 	ProjectsWithSameName = "found multiple projects with the same name"
 	AvailableProjectIds  = "available project IDs are: "
-	ProjectNameIsEmpty   = "project name must be filled"
+	ProjectNameOrIdEmpty = "project name or ID must be filled"
 	ProjectDeleteConfirm = "Please confirm that you would like to delete the project (y/n): "
 	ServiceNotFound      = "service not found"
 	ServiceNameIsEmpty   = "service name must be filled"
@@ -134,7 +134,7 @@ const (
 	VpnStartWireguardUtunError         = "we failed to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
 	VpnStartTunnelIsNotAlive           = "we failed to establish zerops vpn"
-	VpnStartExpectedProjectName        = "expected project name as a positional argument"
+	VpnStartExpectedProjectName        = "expected project name or ID as a positional argument"
 
 	// vpn status
 	VpnStatusDaemonIsUnavailable     = "daemon is currently unavailable, did you install it?"

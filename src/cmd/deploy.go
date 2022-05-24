@@ -17,7 +17,7 @@ import (
 
 func deployCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "deploy projectName serviceName pathToFileOrDir [pathToFileOrDir]",
+		Use:          "deploy [projectNameOrId] [serviceName] [space separated files or directories] --versionName=<string>",
 		Short:        i18n.CmdDeployDesc,
 		SilenceUsage: true,
 		Args:         cobra.MinimumNArgs(3),
@@ -69,13 +69,14 @@ func deployCmd() *cobra.Command {
 				WorkingDir:       constants.WorkingDir,
 				VersionName:      params.GetString(cmd, "versionName"),
 				ZeropsYamlPath:   params.GetStringP(cmd, "zeropsYamlPath"),
-				ProjectName:      args[0],
+				ProjectNameOrId:  args[0],
 				ServiceStackName: args[1],
 				PathsForPacking:  args[2:],
 			})
 		},
 	}
 
+	// TODO review flags
 	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "zeropsYamlPath", "./", i18n.ZeropsYamlLocation)

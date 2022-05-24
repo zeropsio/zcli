@@ -18,7 +18,7 @@ import (
 
 func serviceDeleteCmd() *cobra.Command {
 	cmdDelete := &cobra.Command{
-		Use:          "delete [projectName] [serviceName] --confirm",
+		Use:          "delete [projectNameOrId] [serviceName] --confirm",
 		Short:        i18n.CmdServiceDelete,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -74,11 +74,11 @@ func serviceDeleteCmd() *cobra.Command {
 			}
 
 			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectName: args[0],
-				ServiceName: args[1],
-				Confirm:     params.GetBool(cmd, "confirm"),
-				ParentCmd:   constants.Service,
-				CmdData:     cmdData,
+				ProjectNameOrId: args[0],
+				ServiceName:     args[1],
+				Confirm:         params.GetBool(cmd, "confirm"),
+				ParentCmd:       constants.Service,
+				CmdData:         cmdData,
 			})
 		},
 	}
