@@ -35,8 +35,9 @@ const (
 	BuildVersionName     = "custom version name"
 	SourceName           = "zerops.yml source service"
 	BuildWorkingDir      = "working dir, all files path are relative to this directory"
-	BuildZipFilePath     = "save final zip file"
+	BuildArchiveFilePath = "path (including file name) where the final tar.gz archive file should be saved (if not set, archive won't be saved)"
 	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
+	DeployGitFolder      = "whether `.git` folder should also be deployed during `zcli push` command"
 	ImportYamlLocation   = "import yaml location relative to working directory"
 	ClientId             = "client ID"
 	ConfirmDeleteProject = "confirm to delete the project"
@@ -49,11 +50,12 @@ const (
 	ProcessStart               = "process started"
 	ProcessEnd                 = "process finished"
 
-	// zipClient
-	ZipClientWorkingDirectory = "working directory: %s"
-	ZipClientMaxOneTilde      = "only one ~(tilde) is allowed"
-	ZipClientPackingDirectory = "packing directory: %s"
-	ZipClientPackingFile      = "packing file: %s"
+	// archiveClient
+	ArchClientWorkingDirectory  = "working directory: %s"
+	ArchClientMaxOneTilde       = "only one ~(tilde) is allowed"
+	ArchClientPackingDirectory  = "packing directory: %s"
+	ArchClientPackingFile       = "packing file: %s"
+	ArchClientFileAlreadyExists = "file [%s] already exists"
 
 	// login
 	LoginParamsMissing = "either login with password or token must be passed"
@@ -63,7 +65,7 @@ const (
 	// region
 	RegionNotFound = "region not found"
 
-	//client ID
+	// client ID
 	MultipleClientIds  = "you have assigned multiple client IDs, please use the --clientId flag"
 	AvailableClientIds = "your client IDs are: "
 	MissingClientId    = "no client ID found four your account"

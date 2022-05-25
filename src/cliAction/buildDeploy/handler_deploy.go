@@ -1,11 +1,11 @@
 package buildDeploy
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -26,18 +26,19 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployCreatingPackageStart)
 
-	files, err := h.zipClient.FindFilesByRules(config.WorkingDir, config.PathsForPacking)
+	files, err := h.archClient.FindFilesByRules(config.WorkingDir, config.PathsForPacking)
 	if err != nil {
 		return err
 	}
 
-	packageBuf := &bytes.Buffer{}
-	err = h.zipClient.ZipFiles(packageBuf, files)
-	if err != nil {
-		return err
-	}
+	reader, writer := io.Pipe()
+	defer reader.Close()
 
-	err = h.savePackage(config, packageBuf)
+	tarErrChan := make(chan error, 1)
+
+	go h.archClient.TarFiles(writer, files, tarErrChan)
+
+	r, err := h.savePackage(config, reader)
 	if err != nil {
 		return err
 	}
@@ -52,9 +53,19 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	err = h.packageUpload(appVersion, packageBuf)
-	if err != nil {
-		return err
+	if err := h.packageUpload(appVersion, r); err != nil {
+		// if an error occurred while packing the app, return that error
+		select {
+		case err := <-tarErrChan:
+			return err
+		default:
+			return err
+		}
+	}
+
+	// wait for packing and saving to finish (should already be done after the package upload has finished)
+	if tarErr := <-tarErrChan; tarErr != nil {
+		return tarErr
 	}
 
 	fmt.Println(i18n.BuildDeployDeployingStart)

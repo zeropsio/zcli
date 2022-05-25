@@ -1,11 +1,11 @@
 package buildDeploy
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/zerops-io/zcli/src/constants"
@@ -27,7 +27,7 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployCreatingPackageStart)
 
-	files, err := h.zipClient.FindGitFiles(config.WorkingDir)
+	files, err := h.archClient.FindGitFiles(config.WorkingDir)
 	if err != nil {
 		return err
 	}
@@ -62,15 +62,14 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	packageBuf := &bytes.Buffer{}
-	err = h.zipClient.ZipFiles(packageBuf, files)
-	if err != nil {
-		return err
-	}
+	reader, writer := io.Pipe()
+	defer reader.Close()
 
-	fmt.Println(i18n.BuildDeployCreatingPackageDone)
+	tarErrChan := make(chan error, 1)
 
-	err = h.savePackage(config, packageBuf)
+	go h.archClient.TarFiles(writer, files, tarErrChan)
+
+	r, err := h.savePackage(config, reader)
 	if err != nil {
 		return err
 	}
@@ -80,9 +79,25 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	err = h.packageUpload(appVersion, packageBuf)
-	if err != nil {
-		return err
+	if err := h.packageUpload(appVersion, r); err != nil {
+		// if an error occurred while packing the app, return that error
+		select {
+		case err := <-tarErrChan:
+			return err
+		default:
+			return err
+		}
+	}
+
+	// wait for packing and saving to finish (should already be done after the package upload has finished)
+	if tarErr := <-tarErrChan; tarErr != nil {
+		return tarErr
+	}
+
+	fmt.Println(i18n.BuildDeployCreatingPackageDone)
+
+	if config.ArchiveFilePath != "" {
+		fmt.Printf(i18n.BuildDeployPackageSavedInto+"\n", config.ArchiveFilePath)
 	}
 
 	fmt.Println(i18n.BuildDeployDeployingStart)

@@ -3,6 +3,7 @@ package httpClient
 import (
 	"bytes"
 	"context"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -55,6 +56,10 @@ type optionConfig struct {
 	headers map[string]string
 }
 
+func (h *Handler) PutStream(url string, body io.Reader, options ...Option) (Response, error) {
+	return h.doStream("PUT", url, body, options...)
+}
+
 func (h *Handler) Put(url string, data []byte, options ...Option) (Response, error) {
 	return h.do("PUT", url, data, options...)
 }
@@ -68,6 +73,10 @@ func (h *Handler) Get(url string, options ...Option) (Response, error) {
 }
 
 func (h *Handler) do(method string, url string, data []byte, options ...Option) (Response, error) {
+	return h.doStream(method, url, bytes.NewReader(data), options...)
+}
+
+func (h *Handler) doStream(method string, url string, body io.Reader, options ...Option) (Response, error) {
 	cfg := &optionConfig{
 		headers: map[string]string{
 			"Content-Type": "application/json",
@@ -79,7 +88,7 @@ func (h *Handler) do(method string, url string, data []byte, options ...Option) 
 	}
 
 	client := &http.Client{Timeout: h.config.HttpTimeout}
-	req, err := http.NewRequest(method, url, bytes.NewReader(data))
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return Response{}, err
 	}

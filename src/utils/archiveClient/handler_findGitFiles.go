@@ -1,27 +1,28 @@
-package zipClient
+package archiveClient
 
 import (
 	"bufio"
 	"bytes"
 	"io"
+	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 )
 
 func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
-
 	workingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return nil, err
 	}
+	workingDir += string(os.PathSeparator)
 
 	createFile := func(filePath string) File {
 		return File{
-			SourcePath:  path.Join(workingDir, filePath),
-			ArchivePath: filePath,
+			SourcePath:  filePath,
+			ArchivePath: strings.TrimPrefix(filePath, workingDir),
 		}
 	}
 
@@ -60,7 +61,7 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 		createCmd("git", "ls-files", "--exclude-standard"),
 		func(path string) error {
 			if _, exists := excludedFiles[path]; !exists {
-				res = append(res, createFile(path))
+				res = append(res, createFile(filepath.Join(workingDir, path)))
 			}
 			return nil
 		},
@@ -73,7 +74,7 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 		createCmd("git", "ls-files", "--others", "--exclude-standard"),
 		func(path string) error {
 			if _, exists := excludedFiles[path]; !exists {
-				res = append(res, createFile(path))
+				res = append(res, createFile(filepath.Join(workingDir, path)))
 			}
 			return nil
 		},
@@ -81,11 +82,25 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 		return nil, err
 	}
 
+	res = h.fixMissingDirPath(res, createFile, make(map[string]struct{}))
+
+	// add .git dir to allow git commands inside build.prepare and build.build commands
+	if h.config.DeployGitFolder {
+		if err := h.listFiles(
+			createCmd("find", ".git/"),
+			func(path string) error {
+				res = append(res, createFile(filepath.Join(workingDir, path)))
+				return nil
+			},
+		); err != nil {
+			return nil, err
+		}
+	}
+
 	return
 }
 
 func (h *Handler) listFiles(cmd *exec.Cmd, fn func(path string) error) error {
-
 	output, err := cmdRunner.Run(cmd)
 	if err != nil {
 		return err

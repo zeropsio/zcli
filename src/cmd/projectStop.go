@@ -9,7 +9,6 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/zipClient"
 
 	"github.com/spf13/cobra"
 )
@@ -56,14 +55,7 @@ func projectStopCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			zip := zipClient.New(zipClient.Config{})
-
-			handler := startStopDelete.New(
-				startStopDelete.Config{},
-				client,
-				zip,
-				apiGrpcClient,
-			)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient)
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ProjectStop,

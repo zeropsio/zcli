@@ -4,7 +4,6 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/zipClient"
 )
 
 type Config struct {
@@ -21,20 +20,13 @@ type RunConfig struct {
 type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
-	zipClient     *zipClient.Handler
 	apiGrpcClient business.ZeropsApiProtocolClient
 }
 
-func New(
-	config Config,
-	httpClient *httpClient.Handler,
-	zipClient *zipClient.Handler,
-	apiGrpcClient business.ZeropsApiProtocolClient,
-) *Handler {
+func New(config Config, httpClient *httpClient.Handler, apiGrpcClient business.ZeropsApiProtocolClient) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,
-		zipClient:     zipClient,
 		apiGrpcClient: apiGrpcClient,
 	}
 }

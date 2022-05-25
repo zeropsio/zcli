@@ -1,9 +1,9 @@
 package buildDeploy
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/zerops-io/zcli/src/proto/business"
@@ -12,10 +12,10 @@ import (
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )
 
-func (h *Handler) packageUpload(appVersion *business.PostAppVersionResponseDto, buff *bytes.Buffer) error {
+func (h *Handler) packageUpload(appVersion *business.PostAppVersionResponseDto, reader io.Reader) error {
 	fmt.Println(i18n.BuildDeployUploadingPackageStart)
 
-	cephResponse, err := h.httpClient.Put(appVersion.GetUploadUrl(), buff.Bytes(), httpClient.ContentType("application/zip"))
+	cephResponse, err := h.httpClient.PutStream(appVersion.GetUploadUrl(), reader, httpClient.ContentType("application/gzip"))
 	if err != nil {
 		return err
 	}

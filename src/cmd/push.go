@@ -9,8 +9,8 @@ import (
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
 
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/utils/archiveClient"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/zipClient"
 
 	"github.com/spf13/cobra"
 )
@@ -57,15 +57,17 @@ func pushCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			zip := zipClient.New(zipClient.Config{})
+			arch := archiveClient.New(archiveClient.Config{
+				DeployGitFolder: params.GetBool(cmd, "deployGitFolder"),
+			})
 
 			return buildDeploy.New(
 				buildDeploy.Config{},
 				client,
-				zip,
+				arch,
 				apiGrpcClient,
 			).Push(ctx, buildDeploy.RunConfig{
-				ZipFilePath:      params.GetString(cmd, "zipFilePath"),
+				ArchiveFilePath:  params.GetString(cmd, "archiveFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
 				SourceName:       params.GetString(cmd, "source"),
@@ -76,9 +78,10 @@ func pushCmd() *cobra.Command {
 	}
 
 	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
-	params.RegisterString(cmd, "zipFilePath", "", i18n.BuildZipFilePath)
+	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "source", "", i18n.SourceName)
+	params.RegisterBool(cmd, "deployGitFolder", false, i18n.ZeropsYamlLocation)
 
 	return cmd
 }
