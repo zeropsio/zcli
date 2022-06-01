@@ -1,4 +1,4 @@
-package zipClient
+package archiveClient
 
 import (
 	"testing"
@@ -42,8 +42,13 @@ var testErrorResponseDataProvider = []struct {
 			"test/var/www/dir/subDir/file3.1.txt",
 		},
 		output: []string{
+			"test/",
+			"test/var/",
+			"test/var/www/",
 			"test/var/www/file1.1.txt",
+			"test/var/www/dir/",
 			"test/var/www/dir/file2.1.txt",
+			"test/var/www/dir/subDir/",
 			"test/var/www/dir/subDir/file3.1.txt",
 		},
 	},
@@ -86,6 +91,7 @@ var testErrorResponseDataProvider = []struct {
 		},
 		output: []string{
 			"file2.1.txt",
+			"subDir/",
 			"subDir/file3.1.txt",
 			"file3.1.txt",
 		},
@@ -110,9 +116,9 @@ var testErrorResponseDataProvider = []struct {
 		},
 	},
 
-	//////////////////////
+	// ////////////////////
 	// with working dir
-	/////////////////////
+	// ///////////////////
 
 	{
 		name:       "all",
@@ -141,7 +147,9 @@ var testErrorResponseDataProvider = []struct {
 		},
 		output: []string{
 			"file1.1.txt",
+			"dir/",
 			"dir/file2.1.txt",
+			"dir/subDir/",
 			"dir/subDir/file3.1.txt",
 		},
 	},
@@ -184,6 +192,7 @@ var testErrorResponseDataProvider = []struct {
 		},
 		output: []string{
 			"file2.1.txt",
+			"subDir/",
 			"subDir/file3.1.txt",
 			"file3.1.txt",
 		},
@@ -215,9 +224,9 @@ func TestValidation(t *testing.T) {
 		t.Run(test.name+" in "+test.workingDir, func(t *testing.T) {
 			RegisterTestingT(t)
 
-			ziper := New(Config{})
+			archiver := New(Config{})
 
-			files, err := ziper.FindFilesByRules(test.workingDir, test.input)
+			files, err := archiver.FindFilesByRules(test.workingDir, test.input)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			output := func() (res []string) {

@@ -1,6 +1,7 @@
-package zipClient
+package archiveClient
 
 type Config struct {
+	DeployGitFolder bool
 }
 
 type Handler struct {

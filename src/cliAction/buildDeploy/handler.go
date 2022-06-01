@@ -2,8 +2,8 @@ package buildDeploy
 
 import (
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/archiveClient"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/zipClient"
 )
 
 const zeropsYamlFileName = "zerops.yml"
@@ -17,7 +17,7 @@ type RunConfig struct {
 	ServiceStackName string
 	PathsForPacking  []string
 	WorkingDir       string
-	ZipFilePath      string
+	ArchiveFilePath  string
 	VersionName      string
 	ZeropsYamlPath   *string
 }
@@ -25,20 +25,20 @@ type RunConfig struct {
 type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
-	zipClient     *zipClient.Handler
+	archClient    *archiveClient.Handler
 	apiGrpcClient business.ZeropsApiProtocolClient
 }
 
 func New(
 	config Config,
 	httpClient *httpClient.Handler,
-	zipClient *zipClient.Handler,
+	archClient *archiveClient.Handler,
 	apiGrpcClient business.ZeropsApiProtocolClient,
 ) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,
-		zipClient:     zipClient,
+		archClient:    archClient,
 		apiGrpcClient: apiGrpcClient,
 	}
 }
