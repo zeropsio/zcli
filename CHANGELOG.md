@@ -13,3 +13,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix an error with incorrect certificate server name.
 - New commands `zcli project` and `zcli service`, both with subcommands `import`, `start`, `stop` and `delete` for full project and services management.
 - Increase timeout values.
+- Enable usage of project ID instead of project name.

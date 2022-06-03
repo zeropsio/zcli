@@ -20,11 +20,11 @@ type CmdType struct {
 }
 
 type RunConfig struct {
-	ProjectName string
-	ServiceName string
-	Confirm     bool
-	ParentCmd   constants.ParentCmd
-	CmdData     CmdType
+	ProjectNameOrId string
+	ServiceName     string
+	Confirm         bool
+	ParentCmd       constants.ParentCmd
+	CmdData         CmdType
 }
 
 func (c *RunConfig) getCmdProps() (string, string, Method) {

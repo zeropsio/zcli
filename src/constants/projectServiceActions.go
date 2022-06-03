@@ -1,8 +1,9 @@
 package constants
 
 const (
-	Success  = "✓ "
-	Starting = "→ "
+	Success    = "✓ "
+	Starting   = "→ "
+	WorkingDir = "./"
 )
 
 type ParentCmd int

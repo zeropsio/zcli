@@ -16,7 +16,7 @@ import (
 
 func deployCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "deploy projectName serviceName pathToFileOrDir [pathToFileOrDir]",
+		Use:          "deploy [projectNameOrId] [serviceName] [pathToFileOrDir]",
 		Short:        i18n.CmdDeployDesc,
 		SilenceUsage: true,
 		Args:         cobra.MinimumNArgs(3),
@@ -68,7 +68,7 @@ func deployCmd() *cobra.Command {
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
 				ZeropsYamlPath:   params.GetStringP(cmd, "zeropsYamlPath"),
-				ProjectName:      args[0],
+				ProjectNameOrId:  args[0],
 				ServiceStackName: args[1],
 				PathsForPacking:  args[2:],
 			})

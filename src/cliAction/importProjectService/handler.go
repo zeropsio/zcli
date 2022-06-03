@@ -10,11 +10,11 @@ type Config struct {
 }
 
 type RunConfig struct {
-	WorkingDir     string
-	ImportYamlPath string
-	ClientId       string
-	ProjectName    string
-	ParentCmd      constants.ParentCmd
+	WorkingDir      string
+	ImportYamlPath  string
+	ClientId        string
+	ProjectNameOrId string
+	ParentCmd       constants.ParentCmd
 }
 
 type Handler struct {

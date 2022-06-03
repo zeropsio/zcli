@@ -17,7 +17,7 @@ import (
 
 func pushCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "push projectName serviceName",
+		Use:          "push [projectNameOrId] [serviceName]",
 		Short:        i18n.CmdPushDesc,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -71,7 +71,7 @@ func pushCmd() *cobra.Command {
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
 				SourceName:       params.GetString(cmd, "source"),
-				ProjectName:      args[0],
+				ProjectNameOrId:  args[0],
 				ServiceStackName: args[1],
 			})
 		},

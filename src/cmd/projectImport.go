@@ -8,6 +8,7 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/archiveClient"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 
 	"github.com/spf13/cobra"
@@ -64,7 +65,6 @@ func projectImportCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "importYamlPath", "", i18n.ImportYamlLocation)
 	params.RegisterString(cmd, "clientId", "", i18n.ClientId)
 

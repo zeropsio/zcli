@@ -12,7 +12,7 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ProjectName      string
+	ProjectNameOrId  string
 	SourceName       string
 	ServiceStackName string
 	PathsForPacking  []string

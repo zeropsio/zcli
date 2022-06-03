@@ -9,7 +9,7 @@ import (
 )
 
 func (h *Handler) sendServiceRequest(ctx context.Context, config RunConfig, yamlContent string) ([]*business.ProjectImportServiceStack, error) {
-	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectName)
+	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId)
 	if err != nil {
 		return nil, err
 	}

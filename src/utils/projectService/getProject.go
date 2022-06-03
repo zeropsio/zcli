@@ -3,40 +3,83 @@ package projectService
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
 )
 
-func GetProject(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectName string) (*business.Project, error) {
+func GetProject(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectNameOrId string) (*business.Project, error) {
 
-	if projectName == "" {
-		return nil, errors.New(i18n.ProjectNameIsEmpty)
+	if projectNameOrId == "" {
+		return nil, errors.New(i18n.ProjectNameOrIdEmpty)
 	}
 
+	projects, err := getByName(ctx, apiGrpcClient, projectNameOrId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(projects) > 1 {
+		return nil, getProjectSameNameErr(projects)
+	}
+
+	if len(projects) == 0 {
+		projects, err = getById(ctx, apiGrpcClient, projectNameOrId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	project := projects[0]
+	return project, nil
+}
+
+func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectNameOrId string) (string, error) {
+	project, err := GetProject(ctx, apiGrpcClient, projectNameOrId)
+	if err != nil {
+		return "", err
+	}
+	return project.GetId(), nil
+}
+
+// return project IDs hint for projects with the same name
+func getProjectSameNameErr(projects []*business.Project) error {
+	var out []string
+
+	for _, project := range projects {
+		out = append(out, project.GetId())
+	}
+	idList := strings.Join(out, ",")
+	errMsg := fmt.Errorf("%s\n%s%s", i18n.ProjectsWithSameName, i18n.AvailableProjectIds, idList)
+
+	return errMsg
+}
+
+func getByName(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectName string) ([]*business.Project, error) {
 	projectsResponse, err := apiGrpcClient.GetProjectsByName(ctx, &business.GetProjectsByNameRequest{
 		Name: projectName,
 	})
 	if err := proto.BusinessError(projectsResponse, err); err != nil {
 		return nil, err
 	}
-
 	projects := projectsResponse.GetOutput().GetProjects()
-	if len(projects) == 0 {
-		return nil, errors.New(i18n.ProjectNotFound)
-	}
-	if len(projects) > 1 {
-		return nil, errors.New(i18n.ProjectsWithSameName)
-	}
-	project := projects[0]
-	return project, nil
+	return projects, nil
 }
 
-func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectName string) (string, error) {
-	project, err := GetProject(ctx, apiGrpcClient, projectName)
-	if err != nil {
-		return "", err
-	}
-	return project.GetId(), nil
+// TODO from zdk
+func getById(_ context.Context, _ business.ZeropsApiProtocolClient, _ string) ([]*business.Project, error) {
+	//	projectsResponse, err := apiGrpcClient.GetProjectsById(ctx, &business.GetProjectsByNameRequest{
+	//		Id: projectId,
+	//	})
+	//	if err := proto.BusinessError(projectsResponse, err); err != nil {
+	//		return nil, err
+	//	}
+	//	projects := projectsResponse.GetOutput().GetProjects()
+	//	if len(projects) == 0 {
+	return nil, errors.New(i18n.ProjectNotFound)
+	//}
+	//	return projects, nil
 }

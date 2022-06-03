@@ -17,7 +17,7 @@ import (
 
 func serviceStopCmd() *cobra.Command {
 	cmdStop := &cobra.Command{
-		Use:          "stop [projectName] [serviceName]",
+		Use:          "stop [projectNameOrId] [serviceName]",
 		Short:        i18n.CmdServiceStop,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -66,11 +66,11 @@ func serviceStopCmd() *cobra.Command {
 			}
 
 			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectName: args[0],
-				ServiceName: args[1],
-				ParentCmd:   constants.Service,
-				Confirm:     true,
-				CmdData:     cmdData,
+				ProjectNameOrId: args[0],
+				ServiceName:     args[1],
+				ParentCmd:       constants.Service,
+				Confirm:         true,
+				CmdData:         cmdData,
 			})
 		},
 	}

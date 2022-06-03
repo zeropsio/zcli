@@ -14,7 +14,7 @@ import (
 
 func serviceImportCmd() *cobra.Command {
 	cmdImport := &cobra.Command{
-		Use:          "import [projectName] [path to import.yml]",
+		Use:          "import [projectNameOrId] [path to import.yml]",
 		Short:        i18n.CmdServiceImport,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -63,7 +63,6 @@ func serviceImportCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmdImport, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmdImport, "importYamlPath", "", i18n.ImportYamlLocation)
 	params.RegisterString(cmdImport, "clientId", "", i18n.ClientId)
 

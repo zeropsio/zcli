@@ -11,7 +11,7 @@ type Config struct {
 }
 
 type RunConfig struct {
-	ProjectName      string
+	ProjectNameOrId  string
 	Token            string
 	Mtu              uint32
 	CaCertificateUrl string
