@@ -17,7 +17,7 @@ import (
 
 func serviceStopCmd() *cobra.Command {
 	cmdStop := &cobra.Command{
-		Use:          "stop [projectNameOrId] [serviceName]",
+		Use:          "stop projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceStop,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,

@@ -16,7 +16,7 @@ import (
 
 func serviceStartCmd() *cobra.Command {
 	cmdStart := &cobra.Command{
-		Use:          "start [projectNameOrId] [serviceName]",
+		Use:          "start projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceStart,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,

@@ -17,7 +17,7 @@ import (
 
 func serviceDeleteCmd() *cobra.Command {
 	cmdDelete := &cobra.Command{
-		Use:          "delete [projectNameOrId] [serviceName] --confirm",
+		Use:          "delete projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceDelete,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,

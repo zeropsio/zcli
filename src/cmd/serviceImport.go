@@ -14,7 +14,7 @@ import (
 
 func serviceImportCmd() *cobra.Command {
 	cmdImport := &cobra.Command{
-		Use:          "import [projectNameOrId] [path to import.yml]",
+		Use:          "import projectNameOrId pathToImportFile [flags]",
 		Short:        i18n.CmdServiceImport,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -55,16 +55,13 @@ func serviceImportCmd() *cobra.Command {
 			})
 
 			return importProjectService.New(importProjectService.Config{}, client, apiGrpcClient).Import(ctx, importProjectService.RunConfig{
-				WorkingDir:     params.GetString(cmd, "workingDir"),
-				ProjectName:    args[0],
-				ImportYamlPath: args[1],
-				ParentCmd:      constants.Service,
+				WorkingDir:      constants.WorkingDir,
+				ProjectNameOrId: args[0],
+				ImportYamlPath:  args[1],
+				ParentCmd:       constants.Service,
 			})
 		},
 	}
-
-	params.RegisterString(cmdImport, "importYamlPath", "", i18n.ImportYamlLocation)
-	params.RegisterString(cmdImport, "clientId", "", i18n.ClientId)
 
 	return cmdImport
 }

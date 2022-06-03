@@ -17,7 +17,7 @@ import (
 
 func projectStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "start [projectNameOrId]",
+		Use:          "start projectNameOrId [flags]",
 		Short:        i18n.CmdProjectStart,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,

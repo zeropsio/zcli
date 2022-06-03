@@ -16,7 +16,7 @@ import (
 
 func deployCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "deploy [projectNameOrId] [serviceName] [pathToFileOrDir]",
+		Use:          "deploy projectNameOrId serviceName pathToFileOrDir [pathToFileOrDir] [flags]",
 		Short:        i18n.CmdDeployDesc,
 		SilenceUsage: true,
 		Args:         cobra.MinimumNArgs(3),

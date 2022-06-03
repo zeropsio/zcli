@@ -15,7 +15,7 @@ import (
 
 func projectStopCmd() *cobra.Command {
 	cmdStop := &cobra.Command{
-		Use:          "stop [projectNameOrId]",
+		Use:          "stop projectNameOrId [flags]",
 		Short:        i18n.CmdProjectStop,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,

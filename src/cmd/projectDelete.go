@@ -15,7 +15,7 @@ import (
 
 func projectDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "delete [projectNameOrId] --confirm",
+		Use:          "delete projectNameOrId [flags]",
 		Short:        i18n.CmdProjectDelete,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
