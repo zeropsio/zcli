@@ -26,14 +26,18 @@ func GetProject(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolCli
 		return nil, getProjectSameNameErr(projects)
 	}
 
-	if len(projects) == 0 {
-		projects, err = getById(ctx, apiGrpcClient, projectNameOrId)
-		if err != nil {
-			return nil, err
-		}
+	if len(projects) == 1 {
+		return projects[0], nil
 	}
 
-	project := projects[0]
+	project, err := getById(ctx, apiGrpcClient, projectNameOrId)
+	if err != nil {
+		return nil, err
+	}
+	if project == nil {
+		return nil, errors.New(i18n.ProjectNotFound)
+	}
+
 	return project, nil
 }
 
@@ -67,19 +71,4 @@ func getByName(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClie
 	}
 	projects := projectsResponse.GetOutput().GetProjects()
 	return projects, nil
-}
-
-// TODO from zdk
-func getById(_ context.Context, _ business.ZeropsApiProtocolClient, _ string) ([]*business.Project, error) {
-	//	projectsResponse, err := apiGrpcClient.GetProjectsById(ctx, &business.GetProjectsByNameRequest{
-	//		Id: projectId,
-	//	})
-	//	if err := proto.BusinessError(projectsResponse, err); err != nil {
-	//		return nil, err
-	//	}
-	//	projects := projectsResponse.GetOutput().GetProjects()
-	//	if len(projects) == 0 {
-	return nil, errors.New(i18n.ProjectNotFound)
-	//}
-	//	return projects, nil
 }
