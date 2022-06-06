@@ -63,6 +63,7 @@ func vpnStartCmd() *cobra.Command {
 				},
 				apiGrpcClient,
 				installer,
+				token,
 			).Run(ctx, startVpn.RunConfig{
 				ProjectNameOrId:  args[0],
 				Token:            token,

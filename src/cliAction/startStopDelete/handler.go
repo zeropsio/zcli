@@ -36,12 +36,14 @@ type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
 	apiGrpcClient business.ZeropsApiProtocolClient
+	token         string
 }
 
-func New(config Config, httpClient *httpClient.Handler, apiGrpcClient business.ZeropsApiProtocolClient) *Handler {
+func New(config Config, httpClient *httpClient.Handler, apiGrpcClient business.ZeropsApiProtocolClient, token string) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,
 		apiGrpcClient: apiGrpcClient,
+		token:         token,
 	}
 }

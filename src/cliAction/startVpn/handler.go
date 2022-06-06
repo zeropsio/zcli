@@ -21,16 +21,19 @@ type Handler struct {
 	config          Config
 	apiGrpcClient   business.ZeropsApiProtocolClient
 	daemonInstaller *daemonInstaller.Handler
+	token           string
 }
 
 func New(
 	config Config,
 	apiGrpcClient business.ZeropsApiProtocolClient,
 	daemonInstaller *daemonInstaller.Handler,
+	token string,
 ) *Handler {
 	return &Handler{
 		config:          config,
 		apiGrpcClient:   apiGrpcClient,
 		daemonInstaller: daemonInstaller,
+		token:           token,
 	}
 }

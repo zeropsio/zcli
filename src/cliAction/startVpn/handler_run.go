@@ -27,7 +27,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 	userId := userInfoResponse.GetOutput().GetId()
 
-	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId)
+	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId, h.token)
 	if err != nil {
 		return err
 	}

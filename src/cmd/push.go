@@ -29,6 +29,7 @@ func pushCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -46,7 +47,7 @@ func pushCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -66,6 +67,7 @@ func pushCmd() *cobra.Command {
 				client,
 				arch,
 				apiGrpcClient,
+				token,
 			).Push(ctx, buildDeploy.RunConfig{
 				ArchiveFilePath:  params.GetString(cmd, "archiveFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),

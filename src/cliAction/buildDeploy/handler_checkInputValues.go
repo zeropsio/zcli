@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*business.GetServiceStackByNameResponseDto, error) {
-	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId)
+	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId, h.token)
 	if err != nil {
 		return nil, err
 	}

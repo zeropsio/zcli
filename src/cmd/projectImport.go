@@ -27,6 +27,7 @@ func projectImportCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -44,7 +45,7 @@ func projectImportCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -55,7 +56,7 @@ func projectImportCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			return importProjectService.New(importProjectService.Config{}, client, apiGrpcClient).Import(ctx, importProjectService.RunConfig{
+			return importProjectService.New(importProjectService.Config{}, client, apiGrpcClient, token).Import(ctx, importProjectService.RunConfig{
 				WorkingDir:     constants.WorkingDir,
 				ImportYamlPath: args[0],
 				ClientId:       params.GetString(cmd, "clientId"),

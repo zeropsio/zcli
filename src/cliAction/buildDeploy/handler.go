@@ -27,6 +27,7 @@ type Handler struct {
 	httpClient    *httpClient.Handler
 	archClient    *archiveClient.Handler
 	apiGrpcClient business.ZeropsApiProtocolClient
+	token         string
 }
 
 func New(
@@ -34,11 +35,13 @@ func New(
 	httpClient *httpClient.Handler,
 	archClient *archiveClient.Handler,
 	apiGrpcClient business.ZeropsApiProtocolClient,
+	token string,
 ) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,
 		archClient:    archClient,
 		apiGrpcClient: apiGrpcClient,
+		token:         token,
 	}
 }

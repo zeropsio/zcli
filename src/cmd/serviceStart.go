@@ -28,6 +28,7 @@ func serviceStartCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -45,7 +46,7 @@ func serviceStartCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -56,7 +57,7 @@ func serviceStartCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, token)
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ServiceStart,

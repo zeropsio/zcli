@@ -7,21 +7,20 @@ import (
 	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/sdk"
 	"github.com/zeropsio/zerops-go/sdkBase"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-func getById(ctx context.Context, _ business.ZeropsApiProtocolClient, projectId string) (string, error) {
+func getById(ctx context.Context, token, projectId string) (string, error) {
 	zdk := sdk.New(
 		// FIXME remove custom url for production
 		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint("https://demo.devel.zerops.io")),
 		http.DefaultClient,
 	)
 
-	authorizedSdk := sdk.AuthorizeSdk(zdk, GetToken())
+	authorizedSdk := sdk.AuthorizeSdk(zdk, token)
 	projectResponse, err := authorizedSdk.GetProject(ctx, path.ProjectId{Id: uuid.ProjectId(projectId)})
 	if err != nil {
 		return "", err
@@ -39,9 +38,4 @@ func getById(ctx context.Context, _ business.ZeropsApiProtocolClient, projectId 
 	}
 
 	return string(project.Id), nil
-}
-
-// TODO
-func GetToken() string {
-	return "8WQeLDbHQAGqZMvySvvnxQacsLuQowRCiRW9abqdKJPQ"
 }
