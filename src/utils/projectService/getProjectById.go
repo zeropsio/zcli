@@ -2,11 +2,11 @@ package projectService
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+	"strings"
 
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/sdk"
@@ -14,38 +14,34 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-func getById(ctx context.Context, _ business.ZeropsApiProtocolClient, projectId string) (*business.Project, error) {
+func getById(ctx context.Context, _ business.ZeropsApiProtocolClient, projectId string) (string, error) {
 	zdk := sdk.New(
-		sdkBase.DefaultConfig(),
+		// FIXME remove custom url for production
+		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint("https://demo.devel.zerops.io")),
 		http.DefaultClient,
 	)
 
-	authorizedSdk := sdk.AuthorizeSdk(zdk, "B7PUuq3LTZKo8c3gv1TUCwlS1SXUA7TyKl0gnyKxVFNQ")
+	authorizedSdk := sdk.AuthorizeSdk(zdk, GetToken())
 	projectResponse, err := authorizedSdk.GetProject(ctx, path.ProjectId{Id: uuid.ProjectId(projectId)})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	project, err := projectResponse.Output()
-	if err != nil {
-		return nil, err
+	if err != nil { // FIXME try to parse meta data
+		if strings.Contains(err.Error(), "Invalid user input") {
+			return "", fmt.Errorf("%s", i18n.ProjectIdInvalid)
+		}
+		if strings.Contains(err.Error(), "Project not found") {
+			return "", fmt.Errorf("%s. %s", i18n.ProjectNotFound, i18n.ProjectWrongId)
+		}
+		return "", err
 	}
-	fmt.Println(project)
 
-	bp := &business.Project{}
-	err = RecastType(project, bp)
-	if err != nil {
-		log.Panic("Error recasting u1 to u2", err)
-	}
-
-	return bp, nil
+	return string(project.Id), nil
 }
 
-// RecastType func converts types from one struct to another
-func RecastType(a, b interface{}) error {
-	js, err := json.Marshal(a)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(js, b)
+// TODO
+func GetToken() string {
+	return "8WQeLDbHQAGqZMvySvvnxQacsLuQowRCiRW9abqdKJPQ"
 }

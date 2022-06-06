@@ -38,7 +38,6 @@ const (
 	BuildArchiveFilePath = "path (including file name) where the final tar.gz archive file should be saved (if not set, archive won't be saved)"
 	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
 	DeployGitFolder      = "whether `.git` folder should also be deployed during `zcli push` command"
-	ImportYamlLocation   = "import yaml location relative to working directory"
 	ClientId             = "client ID"
 	ConfirmDeleteProject = "confirm to delete the project"
 	ConfirmDeleteService = "confirm to delete the service"
@@ -87,6 +86,8 @@ const (
 
 	// project + service
 	ProjectNotFound      = "project not found"
+	ProjectIdInvalid     = "project ID invalid"
+	ProjectWrongId       = "Please, provide correct project ID."
 	ProjectsWithSameName = "found multiple projects with the same name"
 	AvailableProjectIds  = "available project IDs are: "
 	ProjectNameOrIdEmpty = "project name or ID must be filled"
