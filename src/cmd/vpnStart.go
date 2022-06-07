@@ -16,7 +16,7 @@ import (
 
 func vpnStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "start [projectNameOrId]",
+		Use:          "start projectNameOrId",
 		Short:        i18n.CmdVpnStart,
 		SilenceUsage: true,
 		Args:         CustomMessageArgs(cobra.ExactArgs(1), i18n.VpnStartExpectedProjectName),
