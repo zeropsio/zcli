@@ -51,12 +51,12 @@ func getByName(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClie
 
 // return project IDs hint for projects with the same name
 func getProjectSameNameErr(projects []*business.Project) error {
-	var out []string
-
-	for _, project := range projects {
-		out = append(out, project.GetId())
+	out := make([]string, len(projects))
+	for i, p := range projects {
+		out[i] = p.GetId()
 	}
-	idList := strings.Join(out, ",")
+
+	idList := strings.Join(out, ", ")
 	errMsg := fmt.Errorf("%s\n%s%s", i18n.ProjectsWithSameName, i18n.AvailableProjectIds, idList)
 
 	return errMsg
