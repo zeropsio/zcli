@@ -27,7 +27,7 @@ func getById(ctx context.Context, sdkConfig sdkConfig.Config, projectId string) 
 	}
 
 	project, err := projectResponse.Output()
-	if err != nil { // FIXME try to parse meta data
+	if err != nil { // TODO try to parse meta data
 		if strings.Contains(err.Error(), "Invalid user input") {
 			return "", fmt.Errorf("%s", i18n.ProjectIdInvalid)
 		}
