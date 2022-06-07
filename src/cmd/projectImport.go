@@ -9,6 +9,7 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/spf13/cobra"
 )
@@ -56,7 +57,9 @@ func projectImportCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			return importProjectService.New(importProjectService.Config{}, client, apiGrpcClient, token).Import(ctx, importProjectService.RunConfig{
+			return importProjectService.New(
+				importProjectService.Config{}, client, apiGrpcClient, sdkConfig.Config{},
+			).Import(ctx, importProjectService.RunConfig{
 				WorkingDir:     constants.WorkingDir,
 				ImportYamlPath: args[0],
 				ClientId:       params.GetString(cmd, "clientId"),

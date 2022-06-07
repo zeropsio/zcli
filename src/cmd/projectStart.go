@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/constants"
 
@@ -58,7 +59,7 @@ func projectStartCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, token)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ProjectStart,

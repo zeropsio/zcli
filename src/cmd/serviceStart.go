@@ -6,6 +6,7 @@ import (
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -57,7 +58,7 @@ func serviceStartCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, token)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ServiceStart,

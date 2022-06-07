@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/daemonInstaller"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -63,10 +64,9 @@ func vpnStartCmd() *cobra.Command {
 				},
 				apiGrpcClient,
 				installer,
-				token,
+				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
 			).Run(ctx, startVpn.RunConfig{
 				ProjectNameOrId:  args[0],
-				Token:            token,
 				Mtu:              params.GetUint32("mtu"),
 				CaCertificateUrl: caCertUrl,
 			})

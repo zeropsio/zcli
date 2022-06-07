@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -64,7 +65,7 @@ func deployCmd() *cobra.Command {
 				client,
 				arch,
 				apiGrpcClient,
-				token,
+				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
 			).Deploy(ctx, buildDeploy.RunConfig{
 				ArchiveFilePath:  params.GetString(cmd, "archiveFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),

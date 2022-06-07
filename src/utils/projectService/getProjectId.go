@@ -9,9 +9,10 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
-func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectNameOrId string, token string) (string, error) {
+func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectNameOrId string, sdkConfig sdkConfig.Config) (string, error) {
 	if projectNameOrId == "" {
 		return "", errors.New(i18n.ProjectNameOrIdEmpty)
 	}
@@ -29,7 +30,7 @@ func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolC
 		return projects[0].GetId(), nil
 	}
 
-	projectId, err := getById(ctx, token, projectNameOrId)
+	projectId, err := getById(ctx, sdkConfig, projectNameOrId)
 	if err != nil {
 		return "", err
 	}

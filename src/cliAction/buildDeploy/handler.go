@@ -4,6 +4,7 @@ import (
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/archiveClient"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
 const zeropsYamlFileName = "zerops.yml"
@@ -27,7 +28,7 @@ type Handler struct {
 	httpClient    *httpClient.Handler
 	archClient    *archiveClient.Handler
 	apiGrpcClient business.ZeropsApiProtocolClient
-	token         string
+	sdkConfig     sdkConfig.Config
 }
 
 func New(
@@ -35,13 +36,13 @@ func New(
 	httpClient *httpClient.Handler,
 	archClient *archiveClient.Handler,
 	apiGrpcClient business.ZeropsApiProtocolClient,
-	token string,
+	sdkConfig sdkConfig.Config,
 ) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,
 		archClient:    archClient,
 		apiGrpcClient: apiGrpcClient,
-		token:         token,
+		sdkConfig:     sdkConfig,
 	}
 }
