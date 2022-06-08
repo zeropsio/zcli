@@ -86,7 +86,7 @@ const (
 
 	// project + service
 	ProjectNotFound      = "project not found"
-	ProjectIdInvalid     = "project ID invalid"
+	ProjectIdInvalid     = "project ID invalid, value should have 22 characters"
 	ProjectWrongId       = "Please, provide correct project ID."
 	ProjectsWithSameName = "found multiple projects with the same name"
 	AvailableProjectIds  = "available project IDs are: "
