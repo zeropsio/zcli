@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
@@ -17,7 +18,7 @@ import (
 func getById(ctx context.Context, sdkConfig sdkConfig.Config, projectId string) (string, error) {
 	zdk := sdk.New(
 		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(sdkConfig.RegionUrl)),
-		http.DefaultClient,
+		&http.Client{Timeout: 1 * time.Minute},
 	)
 
 	authorizedSdk := sdk.AuthorizeSdk(zdk, sdkConfig.Token)
