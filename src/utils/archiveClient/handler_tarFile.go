@@ -11,9 +11,9 @@ import (
 func tarFile(archive *tar.Writer, file File, info os.FileInfo) error {
 	archivePath := file.ArchivePath
 	if info.IsDir() {
-		archivePath = strings.TrimSuffix(archivePath, string(os.PathSeparator)) + string(os.PathSeparator)
+		archivePath = strings.TrimSuffix(archivePath, "/") + "/"
 	}
-	archivePath = strings.TrimPrefix(archivePath, string(os.PathSeparator))
+	archivePath = strings.TrimPrefix(archivePath, "/")
 
 	link := ""
 	// FileInfoHeader does not read content of linked file to extract link path from, we must do that ourselves

@@ -20,9 +20,10 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 	workingDir += string(os.PathSeparator)
 
 	createFile := func(filePath string) File {
+		filePath = filepath.FromSlash(filePath)
 		return File{
 			SourcePath:  filePath,
-			ArchivePath: strings.TrimPrefix(filePath, workingDir),
+			ArchivePath: filepath.ToSlash(strings.TrimPrefix(filePath, workingDir)),
 		}
 	}
 

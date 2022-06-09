@@ -8,8 +8,8 @@ import (
 )
 
 type File struct {
-	SourcePath  string
-	ArchivePath string
+	SourcePath  string // full path to the file using os.PathSeparator
+	ArchivePath string // path to the file in archive using / as separator
 }
 
 func (h *Handler) TarFiles(w io.WriteCloser, files []File, errChan chan<- error) {
