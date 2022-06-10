@@ -13,6 +13,7 @@ func (h Handler) fixMissingDirPath(files []File, createFile func(filePath string
 	fixedFiles := make([]File, 0, len(files)+50)
 
 	for _, file := range files {
+		// filepath.Dir calls Clean, which replaces all / with os.PathSeparator (same as calling filepath.FromSlash)
 		dirPath := filepath.Dir(file.ArchivePath)
 		if dirPath == "." {
 			fixedFiles = append(fixedFiles, file)
@@ -32,7 +33,7 @@ func (h Handler) fixMissingDirPath(files []File, createFile func(filePath string
 		}
 
 		// path must start with valid source path prefix (createFile must strip it from File.ArchivePath if necessary)
-		path := strings.TrimSuffix(file.SourcePath, file.ArchivePath)
+		path := strings.TrimSuffix(file.SourcePath, filepath.FromSlash(file.ArchivePath))
 
 		// split path into separate folders, to correctly create every folder
 		paths := strings.Split(dirPath, string(os.PathSeparator))

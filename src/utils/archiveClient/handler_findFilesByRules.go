@@ -31,9 +31,10 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) ([]File,
 		}
 
 		return func(filePath string) File {
+			filePath = filepath.FromSlash(filePath)
 			return File{
 				SourcePath:  filePath,
-				ArchivePath: trimmer(filePath),
+				ArchivePath: filepath.ToSlash(trimmer(filePath)),
 			}
 		}
 	}
