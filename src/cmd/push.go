@@ -84,7 +84,7 @@ func pushCmd() *cobra.Command {
 	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "source", "", i18n.SourceName)
-	params.RegisterBool(cmd, "deployGitFolder", false, i18n.ZeropsYamlLocation)
+	params.RegisterBool(cmd, "deployGitFolder", false, i18n.DeployGitFolder)
 
 	return cmd
 }
