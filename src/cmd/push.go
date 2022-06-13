@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/archiveClient"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
 func pushCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "push projectName serviceName",
+		Use:          "push projectNameOrId serviceName",
 		Short:        i18n.CmdPushDesc,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -26,6 +28,7 @@ func pushCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -43,7 +46,7 @@ func pushCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -63,12 +66,13 @@ func pushCmd() *cobra.Command {
 				client,
 				arch,
 				apiGrpcClient,
+				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
 			).Push(ctx, buildDeploy.RunConfig{
 				ArchiveFilePath:  params.GetString(cmd, "archiveFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
 				SourceName:       params.GetString(cmd, "source"),
-				ProjectName:      args[0],
+				ProjectNameOrId:  args[0],
 				ServiceStackName: args[1],
 			})
 		},
@@ -77,8 +81,7 @@ func pushCmd() *cobra.Command {
 	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
-	params.RegisterString(cmd, "source", "", i18n.SourceName)
-	params.RegisterBool(cmd, "deployGitFolder", false, i18n.ZeropsYamlLocation)
+	params.RegisterBool(cmd, "deployGitFolder", false, i18n.DeployGitFolder)
 
 	return cmd
 }

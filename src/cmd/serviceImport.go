@@ -10,11 +10,12 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
 func serviceImportCmd() *cobra.Command {
 	cmdImport := &cobra.Command{
-		Use:          "import [projectName] [path to import.yml]",
+		Use:          "import projectNameOrId pathToImportFile [flags]",
 		Short:        i18n.CmdServiceImport,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -26,6 +27,7 @@ func serviceImportCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -43,7 +45,7 @@ func serviceImportCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -54,18 +56,16 @@ func serviceImportCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			return importProjectService.New(importProjectService.Config{}, client, apiGrpcClient).Import(ctx, importProjectService.RunConfig{
-				WorkingDir:     params.GetString(cmd, "workingDir"),
-				ProjectName:    args[0],
-				ImportYamlPath: args[1],
-				ParentCmd:      constants.Service,
+			return importProjectService.New(
+				importProjectService.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
+			).Import(ctx, importProjectService.RunConfig{
+				WorkingDir:      constants.WorkingDir,
+				ProjectNameOrId: args[0],
+				ImportYamlPath:  args[1],
+				ParentCmd:       constants.Service,
 			})
 		},
 	}
-
-	params.RegisterString(cmdImport, "workingDir", "./", i18n.BuildWorkingDir)
-	params.RegisterString(cmdImport, "importYamlPath", "", i18n.ImportYamlLocation)
-	params.RegisterString(cmdImport, "clientId", "", i18n.ClientId)
 
 	return cmdImport
 }

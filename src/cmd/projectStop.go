@@ -9,13 +9,14 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/spf13/cobra"
 )
 
 func projectStopCmd() *cobra.Command {
 	cmdStop := &cobra.Command{
-		Use:          "stop [projectName]",
+		Use:          "stop projectNameOrId [flags]",
 		Short:        i18n.CmdProjectStop,
 		Args:         cobra.MinimumNArgs(1),
 		SilenceUsage: true,
@@ -27,6 +28,7 @@ func projectStopCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -44,7 +46,7 @@ func projectStopCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -55,7 +57,7 @@ func projectStopCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ProjectStop,
@@ -64,10 +66,10 @@ func projectStopCmd() *cobra.Command {
 			}
 
 			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectName: args[0],
-				ParentCmd:   constants.Project,
-				Confirm:     true,
-				CmdData:     cmdData,
+				ProjectNameOrId: args[0],
+				ParentCmd:       constants.Project,
+				Confirm:         true,
+				CmdData:         cmdData,
 			})
 		},
 	}
