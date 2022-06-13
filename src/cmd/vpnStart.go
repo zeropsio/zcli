@@ -67,6 +67,7 @@ func vpnStartCmd() *cobra.Command {
 				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
 			).Run(ctx, startVpn.RunConfig{
 				ProjectNameOrId:  args[0],
+				Token:            token,
 				Mtu:              params.GetUint32("mtu"),
 				CaCertificateUrl: caCertUrl,
 			})
