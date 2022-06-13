@@ -28,6 +28,7 @@ func vpnStartCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -40,7 +41,6 @@ func vpnStartCmd() *cobra.Command {
 			}
 
 			caCertUrl := reg.CaCertificateUrl
-			token := getToken(storage)
 			apiClientFactory := business.New(business.Config{CaCertificateUrl: caCertUrl})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,

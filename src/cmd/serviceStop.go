@@ -59,7 +59,12 @@ func serviceStopCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
+			handler := startStopDelete.New(
+				startStopDelete.Config{},
+				client,
+				apiGrpcClient,
+				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
+			)
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ServiceStop,
