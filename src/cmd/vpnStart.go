@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/daemonInstaller"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -15,7 +16,7 @@ import (
 
 func vpnStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "start projectName",
+		Use:          "start projectNameOrId",
 		Short:        i18n.CmdVpnStart,
 		SilenceUsage: true,
 		Args:         CustomMessageArgs(cobra.ExactArgs(1), i18n.VpnStartExpectedProjectName),
@@ -63,9 +64,9 @@ func vpnStartCmd() *cobra.Command {
 				},
 				apiGrpcClient,
 				installer,
+				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
 			).Run(ctx, startVpn.RunConfig{
-				ProjectName:      args[0],
-				Token:            token,
+				ProjectNameOrId:  args[0],
 				Mtu:              params.GetUint32("mtu"),
 				CaCertificateUrl: caCertUrl,
 			})

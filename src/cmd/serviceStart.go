@@ -6,6 +6,7 @@ import (
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
 	"github.com/zerops-io/zcli/src/i18n"
@@ -16,7 +17,7 @@ import (
 
 func serviceStartCmd() *cobra.Command {
 	cmdStart := &cobra.Command{
-		Use:          "start [projectName] [serviceName]",
+		Use:          "start projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceStart,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -28,6 +29,7 @@ func serviceStartCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -45,7 +47,7 @@ func serviceStartCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -56,7 +58,7 @@ func serviceStartCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ServiceStart,
@@ -65,11 +67,11 @@ func serviceStartCmd() *cobra.Command {
 			}
 
 			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectName: args[0],
-				ServiceName: args[1],
-				ParentCmd:   constants.Service,
-				Confirm:     true,
-				CmdData:     cmdData,
+				ProjectNameOrId: args[0],
+				ServiceName:     args[1],
+				ParentCmd:       constants.Service,
+				Confirm:         true,
+				CmdData:         cmdData,
 			})
 		},
 	}

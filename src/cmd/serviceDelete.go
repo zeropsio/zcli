@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 
 	"github.com/zerops-io/zcli/src/constants"
 
@@ -17,7 +18,7 @@ import (
 
 func serviceDeleteCmd() *cobra.Command {
 	cmdDelete := &cobra.Command{
-		Use:          "delete [projectName] [serviceName] --confirm",
+		Use:          "delete projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceDelete,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -29,6 +30,7 @@ func serviceDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -46,7 +48,7 @@ func serviceDeleteCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -57,7 +59,7 @@ func serviceDeleteCmd() *cobra.Command {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient)
+			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
 
 			cmdData := startStopDelete.CmdType{
 				Start:   i18n.ServiceDelete,
@@ -66,11 +68,11 @@ func serviceDeleteCmd() *cobra.Command {
 			}
 
 			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectName: args[0],
-				ServiceName: args[1],
-				Confirm:     params.GetBool(cmd, "confirm"),
-				ParentCmd:   constants.Service,
-				CmdData:     cmdData,
+				ProjectNameOrId: args[0],
+				ServiceName:     args[1],
+				Confirm:         params.GetBool(cmd, "confirm"),
+				ParentCmd:       constants.Service,
+				CmdData:         cmdData,
 			})
 		},
 	}

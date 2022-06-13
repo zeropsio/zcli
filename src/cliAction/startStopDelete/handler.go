@@ -6,6 +6,7 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
 type Config struct {
@@ -20,11 +21,11 @@ type CmdType struct {
 }
 
 type RunConfig struct {
-	ProjectName string
-	ServiceName string
-	Confirm     bool
-	ParentCmd   constants.ParentCmd
-	CmdData     CmdType
+	ProjectNameOrId string
+	ServiceName     string
+	Confirm         bool
+	ParentCmd       constants.ParentCmd
+	CmdData         CmdType
 }
 
 func (c *RunConfig) getCmdProps() (string, string, Method) {
@@ -36,12 +37,14 @@ type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
 	apiGrpcClient business.ZeropsApiProtocolClient
+	sdkConfig     sdkConfig.Config
 }
 
-func New(config Config, httpClient *httpClient.Handler, apiGrpcClient business.ZeropsApiProtocolClient) *Handler {
+func New(config Config, httpClient *httpClient.Handler, apiGrpcClient business.ZeropsApiProtocolClient, sdkConfig sdkConfig.Config) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,
 		apiGrpcClient: apiGrpcClient,
+		sdkConfig:     sdkConfig,
 	}
 }

@@ -38,7 +38,6 @@ const (
 	BuildArchiveFilePath = "path (including file name) where the final tar.gz archive file should be saved (if not set, archive won't be saved)"
 	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
 	DeployGitFolder      = "whether `.git` folder should also be deployed during `zcli push` command"
-	ImportYamlLocation   = "import yaml location relative to working directory"
 	ClientId             = "client ID"
 	ConfirmDeleteProject = "confirm to delete the project"
 	ConfirmDeleteService = "confirm to delete the service"
@@ -87,8 +86,11 @@ const (
 
 	// project + service
 	ProjectNotFound      = "project not found"
+	ProjectIdInvalid     = "project ID invalid, value should have 22 characters"
+	ProjectWrongId       = "Please, provide correct project ID."
 	ProjectsWithSameName = "found multiple projects with the same name"
-	ProjectNameIsEmpty   = "project name must be filled"
+	AvailableProjectIds  = "available project IDs are: "
+	ProjectNameOrIdEmpty = "project name or ID must be filled"
 	ProjectDeleteConfirm = "Please confirm that you would like to delete the project (y/n): "
 	ServiceNotFound      = "service not found"
 	ServiceNameIsEmpty   = "service name must be filled"
@@ -136,7 +138,7 @@ const (
 	VpnStartWireguardUtunError         = "we failed to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
 	VpnStartTunnelIsNotAlive           = "we failed to establish zerops vpn"
-	VpnStartExpectedProjectName        = "expected project name as a positional argument"
+	VpnStartExpectedProjectName        = "expected project name or ID as a positional argument"
 
 	// vpn status
 	VpnStatusDaemonIsUnavailable     = "daemon is currently unavailable, did you install it?"

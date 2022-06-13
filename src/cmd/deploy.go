@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
+
 	"github.com/zerops-io/zcli/src/cliAction/buildDeploy"
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/archiveClient"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )
 
 func deployCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "deploy projectName serviceName pathToFileOrDir [pathToFileOrDir]",
+		Use:          "deploy projectNameOrId serviceName pathToFileOrDir [pathToFileOrDir] [flags]",
 		Short:        i18n.CmdDeployDesc,
 		SilenceUsage: true,
 		Args:         cobra.MinimumNArgs(3),
@@ -26,6 +28,7 @@ func deployCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			token := getToken(storage)
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {
@@ -43,7 +46,7 @@ func deployCmd() *cobra.Command {
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
 				ctx,
 				reg.GrpcApiAddress,
-				getToken(storage),
+				token,
 			)
 			if err != nil {
 				return err
@@ -61,12 +64,13 @@ func deployCmd() *cobra.Command {
 				client,
 				arch,
 				apiGrpcClient,
+				sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress},
 			).Deploy(ctx, buildDeploy.RunConfig{
 				ArchiveFilePath:  params.GetString(cmd, "archiveFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
 				ZeropsYamlPath:   params.GetStringP(cmd, "zeropsYamlPath"),
-				ProjectName:      args[0],
+				ProjectNameOrId:  args[0],
 				ServiceStackName: args[1],
 				PathsForPacking:  args[2:],
 			})
