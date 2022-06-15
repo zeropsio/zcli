@@ -16,7 +16,7 @@ import (
 
 func pushCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "push projectNameOrId serviceName",
+		Use:          "push projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdPushDesc,
 		Args:         cobra.MinimumNArgs(2),
 		SilenceUsage: true,
@@ -81,6 +81,7 @@ func pushCmd() *cobra.Command {
 	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
+	params.RegisterString(cmd, "source", "", i18n.SourceName)
 	params.RegisterBool(cmd, "deployGitFolder", false, i18n.DeployGitFolder)
 
 	return cmd

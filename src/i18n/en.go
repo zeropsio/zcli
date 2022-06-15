@@ -33,7 +33,7 @@ const (
 
 	// flags description
 	BuildVersionName     = "custom version name"
-	SourceName           = "zerops.yml source service"
+	SourceName           = "override zerops.yml service name"
 	BuildWorkingDir      = "working dir, all files path are relative to this directory"
 	BuildArchiveFilePath = "path (including file name) where the final tar.gz archive file should be saved (if not set, archive won't be saved)"
 	ZeropsYamlLocation   = "zerops yaml location relative to working directory"
