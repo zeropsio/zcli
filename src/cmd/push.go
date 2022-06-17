@@ -84,5 +84,13 @@ func pushCmd() *cobra.Command {
 	params.RegisterString(cmd, "source", "", i18n.SourceName)
 	params.RegisterBool(cmd, "deployGitFolder", false, i18n.DeployGitFolder)
 
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		err := command.Flags().MarkHidden("source")
+		if err != nil {
+			return
+		}
+		command.Parent().HelpFunc()(command, strings)
+	})
+
 	return cmd
 }

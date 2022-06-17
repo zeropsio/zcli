@@ -66,11 +66,19 @@ func loginCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmd, "zeropsLogin", "", "zerops account login")
+	params.RegisterString(cmd, "zeropsLogin", "", "zerops account email")
 	params.RegisterString(cmd, "zeropsPassword", "", "zerops account password")
 	params.RegisterString(cmd, "zeropsToken", "", "zerops account token")
 	params.RegisterString(cmd, "region", "", "zerops region")
 	params.RegisterString(cmd, "regionURL", "https://api.app.zerops.io/api/rest/public/region/zcli", "zerops region file url")
+
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		err := command.Flags().MarkHidden("regionURL")
+		if err != nil {
+			return
+		}
+		command.Parent().HelpFunc()(command, strings)
+	})
 
 	return cmd
 }
