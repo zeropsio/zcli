@@ -45,6 +45,13 @@ func regionList() *cobra.Command {
 		},
 	}
 	params.RegisterString(listCmd, "regionURL", "", "zerops region")
+	listCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		err := command.Flags().MarkHidden("regionURL")
+		if err != nil {
+			return
+		}
+		command.Parent().HelpFunc()(command, strings)
+	})
 	cmd.AddCommand(listCmd)
 
 	return cmd

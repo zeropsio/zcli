@@ -23,7 +23,8 @@ func ExecuteCmd() error {
 	params = paramsPackage.New()
 
 	rootCmd := &cobra.Command{
-		Use: "zcli",
+		Use:               "zcli",
+		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
 	}
 
 	rootCmd.AddCommand(deployCmd())
