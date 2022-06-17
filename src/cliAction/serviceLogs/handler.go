@@ -1,9 +1,6 @@
-package startStopDelete
+package serviceLogs
 
 import (
-	"context"
-
-	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
@@ -12,25 +9,15 @@ import (
 type Config struct {
 }
 
-type Method func(ctx context.Context, projectId string, serviceId string) (string, error)
-
-type CmdType struct {
-	Start   string // message for cmd start
-	Finish  string // message for cmd end
-	Execute Method
-}
-
 type RunConfig struct {
 	ProjectNameOrId string
 	ServiceName     string
-	Confirm         bool
-	ParentCmd       constants.ParentCmd
-	CmdData         CmdType
-}
-
-func (c *RunConfig) getCmdProps() (string, string, Method) {
-	cd := c.CmdData
-	return cd.Start, cd.Finish, cd.Execute
+	Limit           string
+	MinSeverity     string
+	MsgType         string
+	Format          string
+	FormatTemplate  string
+	Follow          bool
 }
 
 type Handler struct {
