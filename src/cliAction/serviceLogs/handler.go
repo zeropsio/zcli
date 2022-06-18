@@ -9,15 +9,18 @@ import (
 type Config struct {
 }
 
+type Levels map[string]string
+
 type RunConfig struct {
 	ProjectNameOrId string
 	ServiceName     string
-	Limit           string
+	Limit           uint32
 	MinSeverity     string
 	MsgType         string
 	Format          string
 	FormatTemplate  string
 	Follow          bool
+	Levels          Levels
 }
 
 type Handler struct {

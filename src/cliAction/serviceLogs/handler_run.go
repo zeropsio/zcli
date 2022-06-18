@@ -27,11 +27,18 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 }
 
 func (h *Handler) runCmd(_ context.Context, config RunConfig, serviceId string) error {
-
 	fmt.Printf("service ID %v \n", serviceId)
 	// TODO 1. check inout values
-	fmt.Printf("%v \n", config)
-	// TODO 2. implement logic
+	limit, err := h.getLimit(config)
+	if err != nil {
+		return err
+	}
+	fmt.Println("limit", limit)
+	sev, err := h.getMinSeverity(config)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("severity", sev)
 
 	return nil
 }
