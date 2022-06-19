@@ -22,9 +22,8 @@ func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 	ms := config.MinSeverity
 
 	for key, val := range config.Levels {
-		if ms == key || ms == val {
-			intVal, _ = strconv.Atoi(val)
-			return intVal, nil
+		if ms == val[0] || ms == val[1] {
+			return key, nil
 		}
 	}
 	intVal, err = strconv.Atoi(ms)

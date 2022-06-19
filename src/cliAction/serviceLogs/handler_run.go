@@ -28,7 +28,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 func (h *Handler) runCmd(_ context.Context, config RunConfig, serviceId string) error {
 	fmt.Printf("service ID %v \n", serviceId)
-	// TODO 1. check inout values
+	// TODO 1. check input values
 	limit, err := h.getLimit(config)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (h *Handler) runCmd(_ context.Context, config RunConfig, serviceId string) 
 	fmt.Println("limit", limit)
 	sev, err := h.getMinSeverity(config)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	fmt.Println("severity", sev)
 

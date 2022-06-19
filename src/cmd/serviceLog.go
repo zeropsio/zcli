@@ -60,16 +60,7 @@ func serviceLogCmd() *cobra.Command {
 
 			handler := serviceLogs.New(serviceLogs.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
 
-			severityLevelMap := serviceLogs.Levels{
-				"EMERGENCY":     "0",
-				"ALERT":         "1",
-				"CRITICAL":      "2",
-				"ERROR":         "3",
-				"WARNING":       "4",
-				"NOTICE":        "5",
-				"INFORMATIONAL": "6",
-				"DEBUG":         "7",
-			}
+			severityLevel := serviceLogs.Levels{{"EMERGENCY", "0"}, {"ALERT", "1"}, {"CRITICAL", "2"}, {"ERROR", "3"}, {"WARNING", "4"}, {"NOTICE", "5"}, {"INFORMATIONAL", "6"}, {"DEBUG", "7"}}
 
 			return handler.Run(ctx, serviceLogs.RunConfig{
 				ProjectNameOrId: args[0],
@@ -80,7 +71,7 @@ func serviceLogCmd() *cobra.Command {
 				Format:          params.GetString(cmd, "format"),
 				FormatTemplate:  params.GetString(cmd, "formatTemplate"),
 				Follow:          params.GetBool(cmd, "follow"),
-				Levels:          severityLevelMap,
+				Levels:          severityLevel,
 			})
 		},
 	}

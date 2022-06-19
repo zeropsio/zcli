@@ -9,7 +9,7 @@ import (
 type Config struct {
 }
 
-type Levels map[string]string
+type Levels [8][2]string
 
 type RunConfig struct {
 	ProjectNameOrId string
