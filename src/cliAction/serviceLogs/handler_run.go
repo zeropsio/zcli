@@ -40,5 +40,16 @@ func (h *Handler) runCmd(_ context.Context, config RunConfig, serviceId string) 
 	}
 	fmt.Println("severity", sev)
 
+	facility, err := h.getFacility(config)
+	if err != nil {
+		return err
+	}
+	fmt.Println("facility", facility)
+	format, formatTemplate, err := h.getFormat(config)
+	if err != nil {
+		return err
+	}
+	fmt.Println("template", format, formatTemplate)
+
 	return nil
 }
