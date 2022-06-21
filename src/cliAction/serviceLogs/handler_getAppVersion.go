@@ -1,0 +1,78 @@
+package serviceLogs
+
+import (
+	"context"
+	"fmt"
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/utils/projectService"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/sdk"
+	"github.com/zeropsio/zerops-go/sdkBase"
+	"github.com/zeropsio/zerops-go/types"
+	"net/http"
+	"time"
+)
+
+func (h *Handler) getAppVersionServiceId(ctx context.Context, sdkConfig sdkConfig.Config, serviceId string) (string, error) {
+	zdk := sdk.New(
+		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(sdkConfig.RegionUrl)),
+		&http.Client{Timeout: 1 * time.Minute},
+	)
+
+	authorizedSdk := sdk.AuthorizeSdk(zdk, sdkConfig.Token)
+	clientId, err := projectService.GetClientId(ctx, h.apiGrpcClient)
+	if err != nil {
+		return "", err
+	}
+
+	var searchData []body.EsSearchItem
+	searchData = append(searchData, body.EsSearchItem{
+		Name:     "clientId",
+		Operator: "eq",
+		Value:    types.String(clientId),
+	})
+	searchData = append(searchData, body.EsSearchItem{
+		Name:     "serviceStackId",
+		Operator: "eq",
+		Value:    types.String(serviceId),
+	})
+	searchData = append(searchData, body.EsSearchItem{
+		Name:     "build.serviceStackName",
+		Operator: "ne",
+		Value:    "",
+	})
+	var sortData []body.EsSortItem
+	sortData = append(sortData, body.EsSortItem{
+		Name:      "sequence",
+		Ascending: types.NewBoolNull(false),
+	})
+
+	response, err := authorizedSdk.PostAppVersionSearch(ctx, body.EsFilter{
+		Search: searchData,
+		Sort:   sortData,
+		Limit:  types.NewIntNull(1),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	resOutput, err := response.Output()
+	if err != nil { // TODO parse meta data
+		return "", err
+	}
+
+	if len(resOutput.Items) == 0 {
+		return "", fmt.Errorf("%s", i18n.LogNoBuildFound)
+	}
+
+	app := resOutput.Items[0]
+	status := app.Status
+	if status == UPLOADING || app.Build == nil {
+		return "", fmt.Errorf("%s", i18n.LogBuildStatusUploading)
+	}
+
+	id, _ := app.Build.ServiceStackId.Get()
+
+	return string(id), nil
+}

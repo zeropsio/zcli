@@ -3,7 +3,7 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
-
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/projectService"
 )
 
@@ -12,44 +12,52 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	if err != nil {
 		return err
 	}
-	var serviceId string
 
-	serviceId, err = projectService.GetServiceId(ctx, h.apiGrpcClient, projectId, config.ServiceName)
+	limit, minSeverity, facility, format, formatTemplate, err := h.checkInputValues(config)
+	if err != nil {
+		return err
+	}
+	serviceName, source, containerIndex, err := h.getNameSourceContainerId(config)
 	if err != nil {
 		return err
 	}
 
-	err = h.runCmd(ctx, config, serviceId)
-	if err != nil {
-		return err
+	mode := RESPONSE
+	if config.Follow {
+		mode = STREAM
 	}
-	return nil
-}
+	fmt.Println(limit, minSeverity, facility, format, formatTemplate, serviceName, source, containerIndex, mode)
 
-func (h *Handler) runCmd(_ context.Context, config RunConfig, serviceId string) error {
-	fmt.Printf("service ID %v \n", serviceId)
-	// TODO 1. check input values
-	limit, err := h.getLimit(config)
+	service, err := projectService.GetServiceStack(ctx, h.apiGrpcClient, projectId, serviceName)
 	if err != nil {
 		return err
 	}
-	fmt.Println("limit", limit)
-	sev, err := h.getMinSeverity(config)
-	if err != nil {
-		return err
-	}
-	fmt.Println("severity", sev)
 
-	facility, err := h.getFacility(config)
-	if err != nil {
-		return err
+	serviceTypeCategory := service.GetServiceStackTypeInfo().GetServiceStackTypeCategory().String()
+	fmt.Println("service category", serviceTypeCategory)
+	if serviceTypeCategory != USER {
+		return fmt.Errorf("%s", i18n.LogRuntimeOnly)
 	}
-	fmt.Println("facility", facility)
-	format, formatTemplate, err := h.getFormat(config)
-	if err != nil {
-		return err
+	serviceId := service.GetId()
+	if containerIndex > 0 {
+		fmt.Println(containerIndex)
+		containerId, err := h.getContainerId(ctx, h.sdkConfig, serviceId, containerIndex)
+		if err != nil {
+			return err
+		}
+		fmt.Println(containerId)
 	}
-	fmt.Println("template", format, formatTemplate)
+
+	logServiceId := serviceId
+	fmt.Println("source", source)
+	if source == BUILD {
+		logServiceId, err = h.getAppVersionServiceId(ctx, h.sdkConfig, serviceId)
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Println("log service id ", logServiceId)
+	// TODO get logs
 
 	return nil
 }

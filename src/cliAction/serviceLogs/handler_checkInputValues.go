@@ -3,10 +3,30 @@ package serviceLogs
 import (
 	"fmt"
 	"github.com/zerops-io/zcli/src/i18n"
+	"html/template"
 	"strconv"
 )
 
-//(limit int, severity int, msgType string, format string, formatTemplate string, err error)
+func (h *Handler) checkInputValues(config RunConfig) (intLimit int, severity int, facility int, format, formatTemplate string, err error) {
+	limit, err := h.getLimit(config)
+	if err != nil {
+		return 0, 0, 0, "", "", err
+	}
+	severity, err = h.getMinSeverity(config)
+	if err != nil {
+		return 0, 0, 0, "", "", err
+	}
+	facility, err = h.getFacility(config)
+	if err != nil {
+		return 0, 0, 0, "", "", err
+	}
+	format, formatTemplate, err = h.getFormat(config)
+	if err != nil {
+		return 0, 0, 0, "", "", err
+	}
+	return int(limit), severity, facility, format, formatTemplate, err
+}
+
 func (h *Handler) getLimit(config RunConfig) (limit uint32, err error) {
 	limit = config.Limit
 
@@ -33,12 +53,13 @@ func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 	return 1, fmt.Errorf("%s %s", i18n.LogMinSeverityInvalid, i18n.LogMinSeverityNumLimitErr)
 }
 
+// getFacility returns facility number based on msgType
 func (h *Handler) getFacility(config RunConfig) (int, error) {
 	mt := config.MsgType
-	if mt == "APPLICATION" {
+	if mt == APPLICATION {
 		return 16, nil
 	}
-	if mt == "WEBSERVER" {
+	if mt == WEBSERVER {
 		return 17, nil
 	}
 	return 16, fmt.Errorf("%s", i18n.LogMsgTypeInvalid)
@@ -46,28 +67,32 @@ func (h *Handler) getFacility(config RunConfig) (int, error) {
 
 func (h *Handler) getFormat(config RunConfig) (string, string, error) {
 	f, ft := config.Format, config.FormatTemplate
-	formatValid := f == "FULL" || f == "SHORT" || f == "JSON"
+	formatValid := f == FULL || f == SHORT || f == JSON
 	if !formatValid {
-		return "", "", fmt.Errorf("%s", i18n.LogFormatTemplateInvalid)
+		return "", "", fmt.Errorf("%s", i18n.LogFormatInvalid)
 	}
 	if ft == "" {
 		return f, ft, nil
 	}
-	if f != "FULL" {
+	if f != FULL {
 		return "", "", fmt.Errorf("%s", i18n.LogFormatTemplateMismatch)
 	}
-	template, err := h.createFormat(ft)
+	formatTemplate, err := h.checkFormat(ft)
 	if err != nil {
 		return "", "", err
 	}
-	return f, template, nil
+	return f, formatTemplate, nil
 }
 
-//IF the custom template fails to be created, return the error
-//     "Invalid --formatTemplate content. The custom template failed with following error: {error message returned by GoLang
-//   template}"
-func (h *Handler) createFormat(ft string) (string, error) {
-	// TODO see https://pkg.go.dev/text/template
-	// e.g. --formatTemplate="{{.timestamp}} {{.priority}} {{.facility}} {{.message}}"
+// e.g. --formatTemplate="{{.timestamp}} {{.priority}} {{.facility}} {{.message}}"
+func (h *Handler) checkFormat(ft string) (string, error) {
+	if err := validateTemplate(ft); err != nil {
+		return "", fmt.Errorf("%s %s", i18n.LogFormatTemplateInvalid, err)
+	}
 	return ft, nil
+}
+
+func validateTemplate(s string) error {
+	_, err := template.New("").Parse(s)
+	return err
 }

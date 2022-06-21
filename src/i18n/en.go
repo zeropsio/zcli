@@ -126,8 +126,16 @@ const (
 	LogMinSeverityInvalid        = "Invalid --minimumSeverity value."
 	LogMinSeverityStringLimitErr = "Allowed values are EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFORMATIONAL, DEBUG."
 	LogMinSeverityNumLimitErr    = "Allowed interval is <0;7>."
-	LogFormatTemplateInvalid     = "Invalid --format value. Allowed values are FULL, SHORT, JSON."
+	LogFormatInvalid             = "Invalid --format value. Allowed values are FULL, SHORT, JSON."
 	LogFormatTemplateMismatch    = "--formatTemplate cannot be used in combination with --format=SHORT or --format=JSON."
+	LogServiceNameInvalid        = "Invalid serviceName value. Multiple @ characters are not supported. See -h for help."
+	LogFormatTemplateInvalid     = "Invalid --formatTemplate content. The custom template failed with following error:"
+	LogSuffixInvalid             = "Invalid serviceName value. Use <serviceName>@<int> to  return log messages from the N-th runtime container only.\nUse <serviceName>@BUILD to return log messages from the last build if available."
+	LogRuntimeOnly               = "This command can be used on runtime services only."
+	LogNoContainerFound          = "No runtime container was found."
+	LogTooFewContainers          = "There are only %d runtime containers at the moment. Select a lower container index."
+	LogNoBuildFound              = "No build was found for this service."
+	LogBuildStatusUploading      = "Service status UPLOADING, need to wait for app version data."
 
 	// deploy
 	BuildDeployServiceStatus         = "service status: %s"
