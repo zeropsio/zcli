@@ -39,9 +39,10 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return fmt.Errorf("%s", i18n.LogRuntimeOnly)
 	}
 	serviceId := service.GetId()
+	containerId := ""
 	if containerIndex > 0 {
 		fmt.Println(containerIndex)
-		containerId, err := h.getContainerId(ctx, h.sdkConfig, serviceId, containerIndex)
+		containerId, err = h.getContainerId(ctx, h.sdkConfig, serviceId, containerIndex)
 		if err != nil {
 			return err
 		}
@@ -57,7 +58,18 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 	fmt.Println("log service id ", logServiceId)
-	// TODO get logs
+
+	method, url, expiration, err := h.getServiceLogData(ctx, h.sdkConfig, projectId)
+	if err != nil {
+		return err
+	}
+	fmt.Println(expiration)
+
+	query := makeQueryParams(limit, facility, minSeverity, logServiceId, containerId)
+	err = GetLogs(ctx, method, url+query)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -136,6 +136,7 @@ const (
 	LogTooFewContainers          = "There are only %d runtime containers at the moment. Select a lower container index."
 	LogNoBuildFound              = "No build was found for this service."
 	LogBuildStatusUploading      = "Service status UPLOADING, need to wait for app version data."
+	LogAccessFailed              = "Request for access to logs failed"
 
 	// deploy
 	BuildDeployServiceStatus         = "service status: %s"
