@@ -73,7 +73,7 @@ func parseResponseByFormat(body []byte, format string) error {
 	err = json.Unmarshal(body, &jsonData)
 
 	if format == "FULL" {
-		// TODO format data
+		// TODO format the data
 		fmt.Println(jsonData.Items)
 	} else if format == "SHORT" {
 		for _, o := range jsonData.Items {
@@ -109,12 +109,14 @@ func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId
 		desc = 0
 	}
 
-	if containerId != "" { // FIXME the params bellow should work but don't return any data
-		//"accessToken=8AFJnZjKSMe4UAh2pwIShg&limit=100&containerId=PfA02HAkTvSShzvrirmYew&desc=1"
-		return fmt.Sprintf("&limit=%d&desc=%d&containerId=%s",
-			//return fmt.Sprintf("&limit=%d&desc=1&facility=%d&serviceStackId=%s&containerId=%s&minimumSeverity=%d",
-			limit, desc, containerId)
+	if containerId != "" { // FIXME severity is broken on API side, debug level won't work (looks as reverse numbers used)
+		// FIXME serviceStackId can be probably removed
+		// example from UI "&limit=100&containerId=PfA02HAkTvSShzvrirmYew&desc=1"
+		return fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s&containerId=%s&minimumSeverity=%d",
+			limit, desc, facility, logServiceId, containerId, minSeverity)
 	}
-	return fmt.Sprintf("&limit=%d&desc=1&facility=%d&serviceStackId=%s&minimumSeverity=%d",
-		limit, facility, logServiceId, minSeverity)
+	// example from UI &serviceStackId=N05ZvyGUSjAyxBN6E8zBog&limit=6000&desc=0
+	return fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s&minimumSeverity=%d",
+		limit, desc, facility, logServiceId, minSeverity,
+	)
 }
