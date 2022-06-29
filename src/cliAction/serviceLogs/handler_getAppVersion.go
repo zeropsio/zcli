@@ -38,10 +38,11 @@ func (h *Handler) getAppVersionServiceId(ctx context.Context, sdkConfig sdkConfi
 		Value:    types.String(serviceId),
 	})
 	searchData = append(searchData, body.EsSearchItem{
-		Name:     "build.serviceStackName",
+		Name:     "build.serviceStackId",
 		Operator: "ne",
 		Value:    "",
 	})
+
 	var sortData []body.EsSortItem
 	sortData = append(sortData, body.EsSortItem{
 		Name:      "sequence",

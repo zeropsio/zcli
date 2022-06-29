@@ -63,7 +63,11 @@ func (h *Handler) getContainerId(ctx context.Context, sdkConfig sdkConfig.Config
 		return "", fmt.Errorf("%s", i18n.LogNoContainerFound)
 	}
 	if count < containerIndex {
-		msg := fmt.Sprintf(i18n.LogTooFewContainers, count)
+		verb, plural := "are", "s"
+		if count < 2 {
+			verb, plural = "is", ""
+		}
+		msg := fmt.Sprintf(i18n.LogTooFewContainers, verb, count, plural)
 		return "", fmt.Errorf("%s", msg)
 	}
 

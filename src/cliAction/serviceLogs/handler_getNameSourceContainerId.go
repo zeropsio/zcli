@@ -30,7 +30,7 @@ func (h *Handler) getNameSourceContainerId(config RunConfig) (serviceName, sourc
 		return sn, source, containerIndex, nil
 	}
 
-	if suffix != BUILD {
+	if strings.ToUpper(suffix) != BUILD {
 		return "", "", 0, fmt.Errorf("%s", i18n.LogSuffixInvalid)
 	}
 	source = BUILD

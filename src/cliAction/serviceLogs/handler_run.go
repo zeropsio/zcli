@@ -66,7 +66,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	fmt.Println(expiration)
 
 	query := makeQueryParams(limit, facility, minSeverity, logServiceId, containerId, mode)
-	err = GetLogs(ctx, method, url+query, format)
+	err = GetLogs(ctx, method, url+query, format, formatTemplate)
 	if err != nil {
 		return err
 	}

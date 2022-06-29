@@ -33,9 +33,11 @@ type Data struct {
 	StructuredData string `json:"structuredData"`
 	Tag            string `json:"tag"`
 	TlsPeer        string `json:"tlsPeer"`
+	AppName        string `json:"appName"`
+	Message        string `json:"message"`
 }
 
-func GetLogs(ctx context.Context, method, url, format string) error {
+func GetLogs(ctx context.Context, method, url, format, formatTemplate string) error {
 	c := http.Client{Timeout: time.Duration(1) * time.Minute}
 	fmt.Println("req: ", url)
 	req, err := http.NewRequest(method, url, nil)
@@ -52,32 +54,32 @@ func GetLogs(ctx context.Context, method, url, format string) error {
 
 	defer resp.Body.Close()
 
-	fmt.Println(resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
 		return err
 	}
 
-	err = parseResponseByFormat(body, format)
+	err = parseResponseByFormat(body, format, formatTemplate)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func parseResponseByFormat(body []byte, format string) error {
+func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 	var err error
 
 	var jsonData Response
 	err = json.Unmarshal(body, &jsonData)
 
 	if format == "FULL" {
-		// TODO format the data
-		fmt.Println(jsonData.Items)
+		for _, o := range jsonData.Items {
+			fmt.Printf(getFullFormat(o, formatTemplate, "5424"))
+		}
 	} else if format == "SHORT" {
 		for _, o := range jsonData.Items {
-			fmt.Printf("%s %s \n", o.Timestamp, o.Content)
+			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
 		}
 	} else {
 		for _, o := range jsonData.Items {
