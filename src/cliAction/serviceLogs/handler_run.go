@@ -13,18 +13,14 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	limit, minSeverity, facility, format, formatTemplate, err := h.checkInputValues(config)
+	inputs, err := h.checkInputValues(config)
+
 	if err != nil {
 		return err
 	}
 	serviceName, source, containerIndex, err := h.getNameSourceContainerId(config)
 	if err != nil {
 		return err
-	}
-
-	mode := RESPONSE
-	if config.Follow {
-		mode = STREAM // not yet implemented
 	}
 
 	service, err := projectService.GetServiceStack(ctx, h.apiGrpcClient, projectId, serviceName)
@@ -61,8 +57,8 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	query := makeQueryParams(limit, facility, minSeverity, logServiceId, containerId, mode)
-	err = getLogs(ctx, method, url+query, format, formatTemplate)
+	query := makeQueryParams(inputs.limit, inputs.facility, inputs.minSeverity, logServiceId, containerId)
+	err = getLogs(ctx, method, url+query, inputs.format, inputs.formatTemplate)
 	if err != nil {
 		return err
 	}

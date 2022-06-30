@@ -77,7 +77,7 @@ func serviceLogCmd() *cobra.Command {
 	}
 
 	params.RegisterUInt32(cmd, "limit", 100, i18n.LogLimit)
-	params.RegisterString(cmd, "minimumSeverity", "6", i18n.LogMinSeverity)
+	params.RegisterString(cmd, "minimumSeverity", "", i18n.LogMinSeverity)
 	params.RegisterString(cmd, "messageType", "APPLICATION", i18n.LogMsgType)
 	params.RegisterString(cmd, "format", "FULL", i18n.LogFormat)
 	params.RegisterString(cmd, "formatTemplate", "", i18n.LogFormatTemplate)

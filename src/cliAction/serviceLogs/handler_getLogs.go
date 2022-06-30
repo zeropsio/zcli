@@ -76,23 +76,26 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 		return err
 	}
 
+	logs := jsonData.Items
+	ascLogs := reverseLogs(logs)
+
 	if format == "FULL" {
 		if formatTemplate != "" {
-			if err = getFullWithTemplate(jsonData, formatTemplate); err != nil {
+			if err = getFullWithTemplate(ascLogs, formatTemplate); err != nil {
 				return err
 			}
 			return nil
 		} else {
 			// TODO get rfc from config when implemented as flag
-			getFullByRfc(jsonData, RFC5424)
+			getFullByRfc(ascLogs, RFC5424)
 			return nil
 		}
 	} else if format == "SHORT" {
-		for _, o := range jsonData.Items {
+		for _, o := range ascLogs {
 			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
 		}
 	} else {
-		for _, o := range jsonData.Items {
+		for _, o := range ascLogs {
 			val, err := json.Marshal(o)
 			if err != nil {
 				return err
@@ -102,6 +105,14 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 	}
 
 	return nil
+}
+
+// reverseLogs makes log order ASC to get the last logs of given limit
+func reverseLogs(data []Data) []Data {
+	for i, j := 0, len(data)-1; i < j; i, j = i+1, j-1 {
+		data[i], data[j] = data[j], data[i]
+	}
+	return data
 }
 
 func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateTime) {
@@ -116,18 +127,17 @@ func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateT
 	return method, HTTP + url, expiration
 }
 
-func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId, mode string) string {
-	var desc = 1
-	if mode == "RESPONSE" {
-		desc = 0
+func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId string) string {
+	query := fmt.Sprintf("&limit=%d&desc=1&facility=%d&serviceStackId=%s",
+		limit, facility, logServiceId)
+
+	if minSeverity != -1 {
+		query += fmt.Sprintf("&minimumSeverity=%d", minSeverity)
 	}
 
 	if containerId != "" {
-		return fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s&containerId=%s&minimumSeverity=%d",
-			limit, desc, facility, logServiceId, containerId, minSeverity)
+		query += fmt.Sprintf("&containerId=%s", containerId)
 	}
 
-	return fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s&minimumSeverity=%d",
-		limit, desc, facility, logServiceId, minSeverity,
-	)
+	return query
 }

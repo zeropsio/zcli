@@ -18,8 +18,8 @@ import (
 	"time"
 )
 
-func getFullByRfc(jsonData Response, RFC string) {
-	for _, data := range jsonData.Items {
+func getFullByRfc(logData []Data, RFC string) {
+	for _, data := range logData {
 		if RFC == RFC3164 {
 			fmt.Printf("<%d>%s %s %s: %s\n",
 				data.Priority,
@@ -43,8 +43,8 @@ func getFullByRfc(jsonData Response, RFC string) {
 }
 
 func rfc3164TimeFormat(timestamp string) string {
-	layOut := "2006-01-02T15:04:05.000000Z"
-	timeStamp, err := time.Parse(layOut, timestamp)
+	layout := "2006-01-02T15:04:05.000000Z"
+	timeStamp, err := time.Parse(layout, timestamp)
 	if err != nil {
 		fmt.Println(err)
 	}

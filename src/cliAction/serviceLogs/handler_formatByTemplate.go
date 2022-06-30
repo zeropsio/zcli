@@ -3,14 +3,15 @@ package serviceLogs
 import (
 	"bytes"
 	"fmt"
+	"github.com/zerops-io/zcli/src/i18n"
 	"text/template"
 )
 
-func getFullWithTemplate(jsonData Response, formatTemplate string) error {
-	for _, o := range jsonData.Items {
+func getFullWithTemplate(logData []Data, formatTemplate string) error {
+	for _, o := range logData {
 		err := formatDataByTemplate(o, formatTemplate)
 		if err != nil {
-			return err
+			return fmt.Errorf("%s %s", i18n.LogFormatTemplateInvalid, err)
 		}
 	}
 	return nil

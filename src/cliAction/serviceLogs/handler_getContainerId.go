@@ -31,8 +31,7 @@ func (h *Handler) getContainerId(ctx context.Context, sdkConfig sdkConfig.Config
 		Name:     "clientId",
 		Operator: "eq",
 		Value:    types.String(clientId),
-	})
-	searchData = append(searchData, body.EsSearchItem{
+	}, body.EsSearchItem{
 		Name:     "serviceStackId",
 		Operator: "eq",
 		Value:    types.String(serviceId),

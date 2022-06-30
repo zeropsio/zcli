@@ -31,13 +31,11 @@ func (h *Handler) getAppVersionServiceId(ctx context.Context, sdkConfig sdkConfi
 		Name:     "clientId",
 		Operator: "eq",
 		Value:    types.String(clientId),
-	})
-	searchData = append(searchData, body.EsSearchItem{
+	}, body.EsSearchItem{
 		Name:     "serviceStackId",
 		Operator: "eq",
 		Value:    types.String(serviceId),
-	})
-	searchData = append(searchData, body.EsSearchItem{
+	}, body.EsSearchItem{
 		Name:     "build.serviceStackId",
 		Operator: "ne",
 		Value:    "",

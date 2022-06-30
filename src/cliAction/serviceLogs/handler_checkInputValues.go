@@ -7,24 +7,39 @@ import (
 	"strconv"
 )
 
-func (h *Handler) checkInputValues(config RunConfig) (intLimit int, severity int, facility int, format, formatTemplate string, err error) {
+type InputValues struct {
+	limit          int
+	minSeverity    int
+	facility       int
+	format         string
+	formatTemplate string
+}
+
+func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, err error) {
 	limit, err := h.getLimit(config)
 	if err != nil {
-		return 0, 0, 0, "", "", err
+		return inputValues, err
 	}
-	severity, err = h.getMinSeverity(config)
+	severity, err := h.getMinSeverity(config)
 	if err != nil {
-		return 0, 0, 0, "", "", err
+		return inputValues, err
 	}
-	facility, err = h.getFacility(config)
+	facility, err := h.getFacility(config)
 	if err != nil {
-		return 0, 0, 0, "", "", err
+		return inputValues, err
 	}
-	format, formatTemplate, err = h.getFormat(config)
+	format, formatTemplate, err := h.getFormat(config)
 	if err != nil {
-		return 0, 0, 0, "", "", err
+		return inputValues, err
 	}
-	return int(limit), severity, facility, format, formatTemplate, err
+
+	return InputValues{
+		limit:          int(limit),
+		minSeverity:    severity,
+		facility:       facility,
+		format:         format,
+		formatTemplate: formatTemplate,
+	}, nil
 }
 
 func (h *Handler) getLimit(config RunConfig) (limit uint32, err error) {
@@ -40,6 +55,10 @@ func (h *Handler) getLimit(config RunConfig) (limit uint32, err error) {
 
 func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 	ms := config.MinSeverity
+	if ms == "" {
+		// -1 for min.severity not required by user, used to make query
+		return -1, nil
+	}
 
 	for key, val := range config.Levels {
 		if ms == val[0] || ms == val[1] {
