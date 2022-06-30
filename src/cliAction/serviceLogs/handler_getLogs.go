@@ -37,9 +37,9 @@ type Data struct {
 	Message        string `json:"message"`
 }
 
-func GetLogs(ctx context.Context, method, url, format, formatTemplate string) error {
+func getLogs(ctx context.Context, method, url, format, formatTemplate string) error {
 	c := http.Client{Timeout: time.Duration(1) * time.Minute}
-	fmt.Println("req: ", url)
+
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return err
@@ -72,10 +72,20 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 
 	var jsonData Response
 	err = json.Unmarshal(body, &jsonData)
+	if err != nil {
+		return err
+	}
 
 	if format == "FULL" {
-		for _, o := range jsonData.Items {
-			fmt.Printf(getFullFormat(o, formatTemplate, "5424"))
+		if formatTemplate != "" {
+			if err = getFullWithTemplate(jsonData, formatTemplate); err != nil {
+				return err
+			}
+			return nil
+		} else {
+			// TODO get rfc from config when implemented as flag
+			getFullByRfc(jsonData, RFC5424)
+			return nil
 		}
 	} else if format == "SHORT" {
 		for _, o := range jsonData.Items {
@@ -91,17 +101,18 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 		}
 	}
 
-	return err
+	return nil
 }
+
 func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateTime) {
 	outputUrl := string(resOutput.Url)
 	urlData := strings.Split(outputUrl, " ")
 	method, url := urlData[0], urlData[1]
 
-	accessToken := resOutput.AccessToken
+	// TODO enable token when websocket is used and return it
+	// accessToken := resOutput.AccessToken
 	expiration := resOutput.Expiration
 
-	fmt.Println(url, accessToken, expiration)
 	return method, HTTP + url, expiration
 }
 
@@ -111,13 +122,11 @@ func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId
 		desc = 0
 	}
 
-	if containerId != "" { // FIXME severity is broken on API side, debug level won't work (looks as reverse numbers used)
-		// FIXME serviceStackId can be probably removed
-		// example from UI "&limit=100&containerId=PfA02HAkTvSShzvrirmYew&desc=1"
+	if containerId != "" {
 		return fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s&containerId=%s&minimumSeverity=%d",
 			limit, desc, facility, logServiceId, containerId, minSeverity)
 	}
-	// example from UI &serviceStackId=N05ZvyGUSjAyxBN6E8zBog&limit=6000&desc=0
+
 	return fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s&minimumSeverity=%d",
 		limit, desc, facility, logServiceId, minSeverity,
 	)

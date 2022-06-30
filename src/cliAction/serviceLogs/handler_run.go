@@ -24,9 +24,8 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	mode := RESPONSE
 	if config.Follow {
-		mode = STREAM
+		mode = STREAM // not yet implemented
 	}
-	fmt.Println(limit, minSeverity, facility, format, formatTemplate, serviceName, source, containerIndex, mode)
 
 	service, err := projectService.GetServiceStack(ctx, h.apiGrpcClient, projectId, serviceName)
 	if err != nil {
@@ -34,39 +33,36 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 
 	serviceTypeCategory := service.GetServiceStackTypeInfo().GetServiceStackTypeCategory().String()
-	fmt.Println("service category", serviceTypeCategory)
+
 	if serviceTypeCategory != USER {
 		return fmt.Errorf("%s", i18n.LogRuntimeOnly)
 	}
 	serviceId := service.GetId()
 	containerId := ""
+	// defined by user, can be 1 or higher
 	if containerIndex > 0 {
-		fmt.Println(containerIndex)
 		containerId, err = h.getContainerId(ctx, h.sdkConfig, serviceId, containerIndex)
 		if err != nil {
 			return err
 		}
-		fmt.Println(containerId)
 	}
 
 	logServiceId := serviceId
-	fmt.Println("source", source)
 	if source == BUILD {
 		logServiceId, err = h.getAppVersionServiceId(ctx, h.sdkConfig, serviceId)
 		if err != nil {
 			return err
 		}
 	}
-	fmt.Println("log service id ", logServiceId)
 
-	method, url, expiration, err := h.getServiceLogData(ctx, h.sdkConfig, projectId)
+	// TODO when websocket is implemented, replace _ with expiration
+	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
 	if err != nil {
 		return err
 	}
-	fmt.Println(expiration)
 
 	query := makeQueryParams(limit, facility, minSeverity, logServiceId, containerId, mode)
-	err = GetLogs(ctx, method, url+query, format, formatTemplate)
+	err = getLogs(ctx, method, url+query, format, formatTemplate)
 	if err != nil {
 		return err
 	}

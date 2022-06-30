@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func (h *Handler) getServiceLogData(ctx context.Context, sdkConfig sdkConfig.Config, projectId string) (string, string, types.DateTime, error) {
+func (h *Handler) getServiceLogResData(ctx context.Context, sdkConfig sdkConfig.Config, projectId string) (string, string, types.DateTime, error) {
 	zdk := sdk.New(
 		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(sdkConfig.RegionUrl)),
 		&http.Client{Timeout: 1 * time.Minute},

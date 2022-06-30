@@ -18,31 +18,28 @@ import (
 	"time"
 )
 
-func getFullFormat(data Data, formatTemplate, RFC string) string {
-	if formatTemplate != "" {
-		// todo
-		fmt.Println(formatTemplate)
-	}
+func getFullByRfc(jsonData Response, RFC string) {
+	for _, data := range jsonData.Items {
+		if RFC == RFC3164 {
+			fmt.Printf("<%d>%s %s %s: %s\n",
+				data.Priority,
+				rfc3164TimeFormat(data.Timestamp),
+				data.Hostname,
+				data.Tag,
+				data.Message,
+			)
+		}
 
-	if RFC == RFC3164 {
-		return fmt.Sprintf("<%d>%s %s %s: %s\n",
+		fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
 			data.Priority,
-			rfc3164TimeFormat(data.Timestamp),
+			data.Timestamp,
 			data.Hostname,
-			data.Tag,
+			getVal(data.AppName),
+			getVal(data.ProcId),
+			getVal(data.MsgId),
 			data.Message,
 		)
 	}
-
-	return fmt.Sprintf("<%d>1 %v %s %s %s %s - %s\n",
-		data.Priority,
-		data.Timestamp,
-		data.Hostname,
-		getVal(data.AppName),
-		getVal(data.ProcId),
-		getVal(data.MsgId),
-		data.Message,
-	)
 }
 
 func rfc3164TimeFormat(timestamp string) string {
