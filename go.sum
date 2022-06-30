@@ -284,6 +284,8 @@ github.com/zeropsio/zerops-go v1.0.2-0.20220621101611-30245c7ea965 h1://tQ1CwdCP
 github.com/zeropsio/zerops-go v1.0.2-0.20220621101611-30245c7ea965/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
 github.com/zeropsio/zerops-go v1.0.2-0.20220621102234-8a98859f650a h1:O4yxrPLNblFwBUMGSB0CLC1Okt6hWX2lVbPmz6pDLKs=
 github.com/zeropsio/zerops-go v1.0.2-0.20220621102234-8a98859f650a/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
+github.com/zeropsio/zerops-go v1.0.2 h1:bpIoG+34H6koF9Piz8XhR1q1v9K10R601px1I8UZIS8=
+github.com/zeropsio/zerops-go v1.0.2/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=

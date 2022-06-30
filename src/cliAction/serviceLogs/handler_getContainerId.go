@@ -57,7 +57,6 @@ func (h *Handler) getContainerId(ctx context.Context, sdkConfig sdkConfig.Config
 	}
 	containers := resOutput.Items
 	count := len(containers)
-	fmt.Println("search container", count, containers)
 
 	if count == 0 {
 		return "", fmt.Errorf("%s", i18n.LogNoContainerFound)
