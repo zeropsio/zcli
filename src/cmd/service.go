@@ -8,6 +8,6 @@ import (
 func serviceCmd() *cobra.Command {
 	cmd := &cobra.Command{Use: "service", Short: i18n.CmdService}
 
-	cmd.AddCommand(serviceStartCmd(), serviceStopCmd(), serviceDeleteCmd(), serviceImportCmd())
+	cmd.AddCommand(serviceStartCmd(), serviceStopCmd(), serviceDeleteCmd(), serviceImportCmd(), serviceLogCmd())
 	return cmd
 }

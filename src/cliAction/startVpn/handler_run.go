@@ -62,7 +62,7 @@ func (h *Handler) tryStartVpn(ctx context.Context, projectId string, userId stri
 		return err
 	}
 	if !daemonInstalled {
-		fmt.Println(i18n.VpnStartDaemonIsUnavailable)
+		fmt.Println(i18n.VpnDaemonUnavailable)
 
 		line := liner.NewLiner()
 		defer line.Close()

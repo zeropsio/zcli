@@ -40,7 +40,7 @@ func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 	}
 
 	if !daemonInstalled {
-		fmt.Println(i18n.VpnStopDaemonIsUnavailable)
+		fmt.Println(i18n.VpnDaemonUnavailable)
 		return nil
 	}
 
