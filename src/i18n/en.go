@@ -127,7 +127,7 @@ const (
 	LogMinSeverityInvalid        = "Invalid --minimumSeverity value."
 	LogMinSeverityStringLimitErr = "Allowed values are EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFORMATIONAL, DEBUG."
 	LogMinSeverityNumLimitErr    = "Allowed interval is <0;7>."
-	LogFormatInvalid             = "Invalid --format value. Allowed values are FULL, SHORT, JSON."
+	LogFormatInvalid             = "Invalid --format value. Allowed values are FULL, SHORT, JSON, JSONSTREAM."
 	LogFormatTemplateMismatch    = "--formatTemplate cannot be used in combination with --format=SHORT or --format=JSON."
 	LogServiceNameInvalid        = "Invalid serviceName value. Multiple @ characters are not supported. See -h for help."
 	LogFormatTemplateInvalid     = "Invalid --formatTemplate content. The custom template failed with following error:"

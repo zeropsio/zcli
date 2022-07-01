@@ -79,7 +79,7 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 	logs := jsonData.Items
 	ascLogs := reverseLogs(logs)
 
-	if format == "FULL" {
+	if format == FULL {
 		if formatTemplate != "" {
 			if err = getFullWithTemplate(ascLogs, formatTemplate); err != nil {
 				return err
@@ -90,11 +90,11 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 			getFullByRfc(ascLogs, RFC5424)
 			return nil
 		}
-	} else if format == "SHORT" {
+	} else if format == SHORT {
 		for _, o := range ascLogs {
 			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
 		}
-	} else if format == "JSONSTREAM" {
+	} else if format == JSONSTREAM {
 		for _, o := range ascLogs {
 			val, err := json.Marshal(o)
 			if err != nil {
