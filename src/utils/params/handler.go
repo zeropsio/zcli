@@ -97,6 +97,9 @@ func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue u
 			v := h.viper.GetUint32(name)
 			return &v
 		}
+		if paramValue == 0 {
+			return &paramValue
+		}
 
 		return &defaultValue
 	}

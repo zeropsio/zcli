@@ -86,7 +86,7 @@ func (h *Handler) getFacility(config RunConfig) (int, error) {
 
 func (h *Handler) getFormat(config RunConfig) (string, string, error) {
 	f, ft := config.Format, config.FormatTemplate
-	formatValid := f == FULL || f == SHORT || f == JSON
+	formatValid := f == FULL || f == SHORT || f == JSON || f == JSONSTREAM
 	if !formatValid {
 		return "", "", fmt.Errorf("%s", i18n.LogFormatInvalid)
 	}

@@ -94,7 +94,7 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 		for _, o := range ascLogs {
 			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
 		}
-	} else {
+	} else if format == "JSONSTREAM" {
 		for _, o := range ascLogs {
 			val, err := json.Marshal(o)
 			if err != nil {
@@ -102,6 +102,12 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 			}
 			fmt.Println(string(val))
 		}
+	} else {
+		val, err := json.Marshal(ascLogs)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(val))
 	}
 
 	return nil
