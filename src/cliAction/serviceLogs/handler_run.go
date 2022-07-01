@@ -8,16 +8,16 @@ import (
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
+	inputs, err := h.checkInputValues(config)
+	if err != nil {
+		return err
+	}
+
 	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId, h.sdkConfig)
 	if err != nil {
 		return err
 	}
 
-	inputs, err := h.checkInputValues(config)
-
-	if err != nil {
-		return err
-	}
 	serviceName, source, containerIndex, err := h.getNameSourceContainerId(config)
 	if err != nil {
 		return err

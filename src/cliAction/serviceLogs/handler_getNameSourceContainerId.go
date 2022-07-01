@@ -15,8 +15,12 @@ func (h *Handler) getNameSourceContainerId(config RunConfig) (serviceName, sourc
 		return sn, source, 0, nil
 	}
 	split := strings.Split(sn, AT)
+	if len(split) > 2 {
+		return "", "", 0, fmt.Errorf("%s", i18n.LogServiceNameInvalid)
+	}
 	sn = split[0]
 	suffix := split[1]
+
 	if strings.Contains(suffix, AT) {
 		return "", "", 0, fmt.Errorf("%s", i18n.LogServiceNameInvalid)
 	}
@@ -27,6 +31,9 @@ func (h *Handler) getNameSourceContainerId(config RunConfig) (serviceName, sourc
 
 	containerIndex, err := strconv.Atoi(suffix)
 	if err == nil {
+		if containerIndex < 1 {
+			return "", "", 0, fmt.Errorf("%s", i18n.LogSuffixInvalid)
+		}
 		return sn, source, containerIndex, nil
 	}
 
