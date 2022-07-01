@@ -1,0 +1,18 @@
+package serviceLogs
+
+const BUILD = "BUILD"
+const RUNTIME = "RUNTIME"
+const RESPONSE = "RESPONSE"
+const STREAM = "STREAM"
+const USER = "SERVICE_STACK_TYPE_CATEGORY_USER"
+const APPLICATION = "APPLICATION"
+const WEBSERVER = "WEBSERVER"
+const FULL = "FULL"
+const SHORT = "SHORT"
+const JSON = "JSON"
+const JSONSTREAM = "JSONSTREAM"
+const AT = "@"
+const UPLOADING = "UPLOADING"
+const HTTP = "http://"
+const RFC5424 = "5424"
+const RFC3164 = "3164"
