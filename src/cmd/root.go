@@ -25,6 +25,7 @@ func ExecuteCmd() error {
 	rootCmd := &cobra.Command{
 		Use:               "zcli",
 		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
+		SilenceErrors:     true,
 	}
 
 	rootCmd.AddCommand(deployCmd())

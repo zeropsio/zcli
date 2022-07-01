@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
+
+	"github.com/zeropsio/zerops-go/errorCode"
+
+	"github.com/zeropsio/zerops-go/apiError"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
@@ -28,11 +31,8 @@ func getById(ctx context.Context, sdkConfig sdkConfig.Config, projectId string) 
 	}
 
 	project, err := projectResponse.Output()
-	if err != nil { // TODO parse meta data
-		if strings.Contains(err.Error(), "Invalid user input") {
-			return "", fmt.Errorf("%s", i18n.ProjectIdInvalid)
-		}
-		if strings.Contains(err.Error(), "Project not found") {
+	if err != nil {
+		if apiError.HasErrorCode(err, errorCode.ProjectNotFound) {
 			return "", fmt.Errorf("%s. %s", i18n.ProjectNotFound, i18n.ProjectWrongId)
 		}
 		return "", err
