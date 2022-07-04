@@ -17,7 +17,7 @@ func serviceImportCmd() *cobra.Command {
 	cmdImport := &cobra.Command{
 		Use:          "import projectNameOrId pathToImportFile [flags]",
 		Short:        i18n.CmdServiceImport,
-		Args:         cobra.MinimumNArgs(2),
+		Args:         ExactNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -27,7 +27,10 @@ func serviceImportCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

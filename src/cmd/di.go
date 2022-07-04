@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"time"
+
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/prolongVpn"
 
@@ -17,13 +20,15 @@ import (
 	"github.com/zerops-io/zcli/src/vpn"
 )
 
-func getToken(storage *cliStorage.Handler) string {
+func getToken(storage *cliStorage.Handler) (string, error) {
 	token := BuiltinToken
 	if storage.Data().Token != "" {
 		token = storage.Data().Token
 	}
-
-	return token
+	if token == "" {
+		return token, errors.New(i18n.UnauthenticatedUser)
+	}
+	return token, nil
 }
 
 func createLogger() (*logger.Handler, error) {

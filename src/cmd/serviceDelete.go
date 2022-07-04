@@ -20,7 +20,7 @@ func serviceDeleteCmd() *cobra.Command {
 	cmdDelete := &cobra.Command{
 		Use:          "delete projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceDelete,
-		Args:         cobra.MinimumNArgs(2),
+		Args:         ExactNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -30,7 +30,10 @@ func serviceDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

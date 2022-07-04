@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/business"
-	"strings"
 )
 
 func GetClientId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient) (string, error) {

@@ -3,6 +3,9 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 	"github.com/zeropsio/zerops-go/dto/input/path"
@@ -10,8 +13,6 @@ import (
 	"github.com/zeropsio/zerops-go/sdkBase"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
-	"net/http"
-	"time"
 )
 
 func (h *Handler) getServiceLogResData(ctx context.Context, sdkConfig sdkConfig.Config, projectId string) (string, string, types.DateTime, error) {

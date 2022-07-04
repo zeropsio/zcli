@@ -2,9 +2,10 @@ package serviceLogs
 
 import (
 	"fmt"
-	"github.com/zerops-io/zcli/src/i18n"
 	"html/template"
 	"strconv"
+
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
 type InputValues struct {

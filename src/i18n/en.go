@@ -34,6 +34,9 @@ const (
 	//CmdServiceLogFull = "Returns service runtime or build log to stdout with a streaming option. By default, the command returns the last 100 log messages from all service runtime containers and exits. Use --follow flag to continuously pool for new log messages.\n"
 	CmdServiceLogFull = "Returns service runtime or build log to stdout. By default, the command returns the last 100 log messages from all service runtime containers and exits.\n"
 
+	// use
+	LoginUse = "login {token | username password}"
+
 	// flags description
 	BuildVersionName     = "custom version name"
 	SourceName           = "override zerops.yml service name"
@@ -166,7 +169,6 @@ const (
 	VpnStartWireguardUtunError         = "we failed to start vpn, there is possibility that you have another vpn, if so, try to shut it down"
 	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
 	VpnStartTunnelIsNotAlive           = "we failed to establish zerops vpn"
-	VpnStartExpectedProjectName        = "expected project name or ID as a positional argument"
 
 	// vpn status
 	VpnStatusTunnelStatusActive      = "wireguard tunnel is working properly"
@@ -199,6 +201,10 @@ const (
 	DaemonRemoveSuccess            = "zerops daemon has been removed"
 
 	// generic
+	UnauthenticatedUser = `unauthenticated user, login before proceeding with this command
+zcli login {token | username password}
+more info: https://docs.zerops.io/documentation/cli/authorization.html`
+
 	GrpcApiTimeout    = "zerops api didn't respond within assigned time, try it again later"
 	GrpcVpnApiTimeout = "zerops vpn server didn't respond within assigned time, try it again later"
 

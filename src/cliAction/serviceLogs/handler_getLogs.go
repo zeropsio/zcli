@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/types"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/zeropsio/zerops-go/dto/output"
+	"github.com/zeropsio/zerops-go/types"
 )
 
 type Response struct {
