@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"context"
-	"github.com/zerops-io/zcli/src/cliAction/serviceLogs"
 	"time"
+
+	"github.com/zerops-io/zcli/src/cliAction/serviceLogs"
 
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
@@ -19,7 +20,7 @@ func serviceLogCmd() *cobra.Command {
 		Use:          "log projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceLog,
 		Long:         i18n.CmdServiceLogFull + i18n.ServiceLogAdditional,
-		Args:         cobra.MinimumNArgs(2),
+		Args:         ExactNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -29,7 +30,10 @@ func serviceLogCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

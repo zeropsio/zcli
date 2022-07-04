@@ -1,17 +1,35 @@
 package cmd
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
-func CustomMessageArgs(fn cobra.PositionalArgs, customMessage string) cobra.PositionalArgs {
+func MinimumNArgs(num int) cobra.PositionalArgs {
+	return customPositionalArgs(cobra.MinimumNArgs(num))
+}
+
+func ExactNArgs(num int) cobra.PositionalArgs {
+	return customPositionalArgs(cobra.ExactArgs(num))
+}
+
+func customPositionalArgs(fn cobra.PositionalArgs) cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := fn(cmd, args)
 		if err != nil {
-			return errors.New(customMessage)
+			return fmt.Errorf("%w\nUsage: %s", err, buildUsage(cmd))
 		}
 		return nil
 	}
+}
+
+func buildUsage(cmd *cobra.Command) string {
+	parent := cmd.Parent()
+	var parentUsage string
+	if parent != nil {
+		parentUsage = buildUsage(parent)
+		parentUsage += " "
+	}
+	return parentUsage + cmd.Use
 }

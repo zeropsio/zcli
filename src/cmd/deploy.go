@@ -19,7 +19,7 @@ func deployCmd() *cobra.Command {
 		Use:          "deploy projectNameOrId serviceName pathToFileOrDir [pathToFileOrDir] [flags]",
 		Short:        i18n.CmdDeployDesc,
 		SilenceUsage: true,
-		Args:         cobra.MinimumNArgs(3),
+		Args:         MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(cmd.Context())
 			regSignals(cancel)
@@ -28,7 +28,10 @@ func deployCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

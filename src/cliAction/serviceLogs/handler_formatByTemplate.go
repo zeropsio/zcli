@@ -3,8 +3,9 @@ package serviceLogs
 import (
 	"bytes"
 	"fmt"
-	"github.com/zerops-io/zcli/src/i18n"
 	"text/template"
+
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
 func getFullWithTemplate(logData []Data, formatTemplate string) error {

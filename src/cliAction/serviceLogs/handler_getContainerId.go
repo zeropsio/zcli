@@ -3,6 +3,9 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/projectService"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
@@ -10,8 +13,6 @@ import (
 	"github.com/zeropsio/zerops-go/sdk"
 	"github.com/zeropsio/zerops-go/sdkBase"
 	"github.com/zeropsio/zerops-go/types"
-	"net/http"
-	"time"
 )
 
 func (h *Handler) getContainerId(ctx context.Context, sdkConfig sdkConfig.Config, serviceId string, containerIndex int) (string, error) {

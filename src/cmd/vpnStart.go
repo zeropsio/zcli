@@ -19,7 +19,7 @@ func vpnStartCmd() *cobra.Command {
 		Use:          "start projectNameOrId",
 		Short:        i18n.CmdVpnStart,
 		SilenceUsage: true,
-		Args:         CustomMessageArgs(cobra.ExactArgs(1), i18n.VpnStartExpectedProjectName),
+		Args:         ExactNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(cmd.Context())
 			regSignals(cancel)
@@ -28,7 +28,10 @@ func vpnStartCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

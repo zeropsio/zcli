@@ -18,7 +18,7 @@ func pushCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "push projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdPushDesc,
-		Args:         cobra.MinimumNArgs(2),
+		Args:         ExactNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(cmd.Context())
@@ -28,7 +28,10 @@ func pushCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

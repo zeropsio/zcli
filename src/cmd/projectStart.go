@@ -20,7 +20,7 @@ func projectStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "start projectNameOrId [flags]",
 		Short:        i18n.CmdProjectStart,
-		Args:         cobra.MinimumNArgs(1),
+		Args:         ExactNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -30,7 +30,10 @@ func projectStartCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

@@ -18,7 +18,7 @@ func projectDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "delete projectNameOrId [flags]",
 		Short:        i18n.CmdProjectDelete,
-		Args:         cobra.MinimumNArgs(1),
+		Args:         ExactNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -28,7 +28,10 @@ func projectDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			token := getToken(storage)
+			token, err := getToken(storage)
+			if err != nil {
+				return err
+			}
 
 			region, err := createRegionRetriever(ctx)
 			if err != nil {

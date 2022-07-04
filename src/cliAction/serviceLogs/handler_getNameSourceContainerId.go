@@ -2,9 +2,10 @@ package serviceLogs
 
 import (
 	"fmt"
-	"github.com/zerops-io/zcli/src/i18n"
 	"strconv"
 	"strings"
+
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
 func (h *Handler) getNameSourceContainerId(config RunConfig) (serviceName, source string, containerId int, err error) {
