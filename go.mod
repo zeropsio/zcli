@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/briandowns/spinner v1.18.1
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
 	github.com/judwhite/go-svc v1.2.1
@@ -14,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
-	github.com/zeropsio/zerops-go v1.0.2
+	github.com/zeropsio/zerops-go v1.0.3
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a
 	google.golang.org/grpc v1.46.2

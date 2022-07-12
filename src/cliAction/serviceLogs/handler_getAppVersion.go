@@ -58,7 +58,7 @@ func (h *Handler) getAppVersionServiceId(ctx context.Context, sdkConfig sdkConfi
 	}
 
 	resOutput, err := response.Output()
-	if err != nil { // TODO parse meta data
+	if err != nil {
 		return "", err
 	}
 

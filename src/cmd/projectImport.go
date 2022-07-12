@@ -16,9 +16,9 @@ import (
 
 func projectImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "import projectNameOrId pathToImportFile [flags]",
+		Use:          "import pathToImportFile [flags]",
 		Short:        i18n.CmdProjectImport,
-		Args:         ExactNArgs(2),
+		Args:         ExactNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())

@@ -1,8 +1,8 @@
 package proto
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/proto/vpnproxy"
@@ -16,6 +16,23 @@ type HandleGrpcErrorOption func(*handleGrpcErrorConfig)
 
 type handleGrpcErrorConfig struct {
 	customTimeoutMessage string
+}
+
+type Error struct {
+	Message string
+	Meta    interface{}
+}
+
+func (e Error) Error() string {
+	return e.Message
+}
+
+func (e Error) GetMessage() string {
+	return e.Message
+}
+
+func (e Error) GetMeta() interface{} {
+	return e.Meta
 }
 
 type errorCode interface {
@@ -62,11 +79,10 @@ func GrpcError[T errorCode, R response[T]](
 
 	noErrorCode := 0
 	if resp.GetError().GetCodeInt() != noErrorCode {
-		err := resp.GetError()
-		if len(err.GetMeta()) == 0 {
-			return fmt.Errorf("%s [%s]", err.GetMessage(), string(err.GetMeta()))
+		return Error{
+			Meta:    json.RawMessage(resp.GetError().GetMeta()),
+			Message: resp.GetError().GetMessage(),
 		}
-		return fmt.Errorf("%s", err.GetMessage())
 	}
 
 	return nil
