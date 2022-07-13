@@ -31,7 +31,12 @@ func SetDns(dnsServer *dnsServer.Handler, dnsIp net.IP, clientIp net.IP, vpnNetw
 		return nil
 
 	case LocalDnsManagementSystemdResolve:
-		_, err = cmdRunner.Run(exec.Command("systemd-resolve", "--set-dns="+dnsIp.String(), `--set-domain=zerops`, "--interface="+vpnInterfaceName))
+		// resolvectl is multi-binary and behaves differently
+		// based on first command argument it receives (name of the command)
+		// systemd-resolve is only a symlink to resolvectl
+		cmd := exec.Command("resolvectl", "--set-dns="+dnsIp.String(), `--set-domain=zerops`, "--interface="+vpnInterfaceName)
+		cmd.Args[0] = "systemd-resolve"
+		_, err = cmdRunner.Run(cmd)
 		if err != nil {
 			return err
 		}

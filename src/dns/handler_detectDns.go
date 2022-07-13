@@ -38,16 +38,12 @@ func DetectDns() (LocalDnsManagement, error) {
 	}
 
 	if resolvExists {
-		valid, err := isValidSystemdResolve(constants.ResolvFilePath)
+		ok, err := isSystemdResolve()
 		if err != nil {
 			return "", err
 		}
-
-		if valid {
-			_, err := cmdRunner.Run(exec.Command("pidof", "systemd-resolved"))
-			if err == nil {
-				return LocalDnsManagementSystemdResolve, nil
-			}
+		if ok {
+			return LocalDnsManagementSystemdResolve, nil
 		}
 	}
 
@@ -63,10 +59,11 @@ func DetectDns() (LocalDnsManagement, error) {
 	if runtime.GOOS == "windows" {
 		return LocalDnsManagementWindows, nil
 	}
+
 	return LocalDnsManagementUnknown, nil
 }
 
-func isValidSystemdResolve(filePath string) (bool, error) {
+func isValidSystemdResolveResolveConf(filePath string) (bool, error) {
 	lines, err := utils.ReadLines(filePath)
 	if err != nil {
 		return false, err
@@ -86,4 +83,28 @@ func isValidSystemdResolve(filePath string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func isSystemdResolve() (bool, error) {
+
+	// resolve.conf is valid for systemd-resolve
+	validSystemd, err := isValidSystemdResolveResolveConf(constants.ResolvFilePath)
+	if err != nil {
+		return false, err
+	}
+	if !validSystemd {
+		return false, nil
+	}
+
+	// systemd-resolved unit is running
+	if _, err := cmdRunner.Run(exec.Command("pidof", "systemd-resolved")); err != nil {
+		return false, nil
+	}
+
+	// resolvectl binary exists in PATH
+	if _, err := exec.LookPath("resolvectl"); err != nil {
+		return false, nil
+	}
+
+	return true, nil
 }

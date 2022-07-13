@@ -22,7 +22,7 @@ func TestIsValidSystemdResolve(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			RegisterTestingT(t)
 
-			result, err := isValidSystemdResolve(test.filePath)
+			result, err := isValidSystemdResolveResolveConf(test.filePath)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(result).To(Equal(test.expected))
 		})
