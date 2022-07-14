@@ -281,12 +281,6 @@ github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-github.com/zeropsio/zerops-go v1.0.2-0.20220621101611-30245c7ea965 h1://tQ1CwdCPPXCgaIfh6FACo1nrdP5UI0yojhjkSohjo=
-github.com/zeropsio/zerops-go v1.0.2-0.20220621101611-30245c7ea965/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
-github.com/zeropsio/zerops-go v1.0.2-0.20220621102234-8a98859f650a h1:O4yxrPLNblFwBUMGSB0CLC1Okt6hWX2lVbPmz6pDLKs=
-github.com/zeropsio/zerops-go v1.0.2-0.20220621102234-8a98859f650a/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
-github.com/zeropsio/zerops-go v1.0.2 h1:bpIoG+34H6koF9Piz8XhR1q1v9K10R601px1I8UZIS8=
-github.com/zeropsio/zerops-go v1.0.2/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
 github.com/zeropsio/zerops-go v1.0.3 h1:1fe6HNARSVuQmE1eoKgEZzxzUfKsJYQmUOV5JF6/dvA=
 github.com/zeropsio/zerops-go v1.0.3/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
