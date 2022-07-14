@@ -52,7 +52,7 @@ const (
 	LogMsgType           = "Select either APPLICATION or WEBSERVER log messages to be returned. Default value = APPLICATION."
 	LogFollow            = "If set, zCLI will continuously poll for new log messages. By default, the command will exit once there are no more logs to display.\nTo exit from this mode, use Control-C."
 	LogFormat            = "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects."
-	LogFormatTemplate    = "Set a custom log format. Cannot be used in combination with --format=SHORT, --format=JSON or --format=JSONSTREAM.\nExample: --formatTemplate=\"{{.Timestamp}} {{.Priority}} {{.Facility}} {{.Message}}\".\nSupports standard GoLang template format and functions."
+	LogFormatTemplate    = "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.Timestamp}} {{.Severity}} {{.Facility}} {{.Message}}\".\nSupports standard GoLang template format and functions."
 	LogMsgTypeInvalid    = "Invalid --messageType value. Allowed values are APPLICATION, WEBSERVER."
 
 	// process
@@ -99,7 +99,6 @@ const (
 
 	// project + service
 	ProjectNotFound              = "project not found"
-	ProjectIdInvalid             = "project ID invalid, value should have 22 characters"
 	ProjectWrongId               = "Please, provide correct project ID."
 	ProjectsWithSameName         = "found multiple projects with the same name"
 	AvailableProjectIds          = "available project IDs are: "
@@ -131,7 +130,7 @@ const (
 	LogMinSeverityStringLimitErr = "Allowed values are EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFORMATIONAL, DEBUG."
 	LogMinSeverityNumLimitErr    = "Allowed interval is <0;7>."
 	LogFormatInvalid             = "Invalid --format value. Allowed values are FULL, SHORT, JSON, JSONSTREAM."
-	LogFormatTemplateMismatch    = "--formatTemplate cannot be used in combination with --format=SHORT, --format=JSON or --format=JSONSTREAM."
+	LogFormatTemplateMismatch    = "--formatTemplate can be used only in combination with --format=FULL."
 	LogServiceNameInvalid        = "Invalid serviceName value. Multiple @ characters are not supported. See -h for help."
 	LogFormatTemplateInvalid     = "Invalid --formatTemplate content. The custom template failed with following error:"
 	LogSuffixInvalid             = "Invalid serviceName value. Use <serviceName>@<int> to  return log messages from the N-th runtime container only.\nUse <serviceName>@BUILD to return log messages from the last build if available."

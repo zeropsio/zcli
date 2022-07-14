@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
+	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
 )
@@ -62,7 +63,7 @@ func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 	}
 
 	for key, val := range config.Levels {
-		if ms == val[0] || ms == val[1] {
+		if strings.ToUpper(ms) == val[0] || ms == val[1] {
 			return key, nil
 		}
 	}
@@ -75,7 +76,7 @@ func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 
 // getFacility returns facility number based on msgType
 func (h *Handler) getFacility(config RunConfig) (int, error) {
-	mt := config.MsgType
+	mt := strings.ToUpper(config.MsgType)
 	if mt == APPLICATION {
 		return 16, nil
 	}
@@ -86,7 +87,7 @@ func (h *Handler) getFacility(config RunConfig) (int, error) {
 }
 
 func (h *Handler) getFormat(config RunConfig) (string, string, error) {
-	f, ft := config.Format, config.FormatTemplate
+	f, ft := strings.ToUpper(config.Format), config.FormatTemplate
 	formatValid := f == FULL || f == SHORT || f == JSON || f == JSONSTREAM
 	if !formatValid {
 		return "", "", fmt.Errorf("%s", i18n.LogFormatInvalid)
