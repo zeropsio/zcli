@@ -16,6 +16,7 @@ func daemonRunCmd() *cobra.Command {
 		RunE:         run,
 	}
 
+	cmd.PersistentFlags().BoolP("help", "h", false, helpText(i18n.DaemonRunHelp))
 	return cmd
 }
 

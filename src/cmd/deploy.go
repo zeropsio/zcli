@@ -18,6 +18,7 @@ func deployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "deploy projectNameOrId serviceName pathToFileOrDir [pathToFileOrDir] [flags]",
 		Short:        i18n.CmdDeployDesc,
+		Long:         i18n.CmdDeployDesc + "\n\n" + i18n.DeployDescLong + "\n\n" + i18n.DeployHintPush,
 		SilenceUsage: true,
 		Args:         MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -84,6 +85,8 @@ func deployCmd() *cobra.Command {
 	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "zeropsYamlPath", "./", i18n.ZeropsYamlLocation)
+
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.DisplayHelp+i18n.DeployHelp))
 
 	return cmd
 }

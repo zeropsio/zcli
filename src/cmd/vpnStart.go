@@ -18,6 +18,7 @@ func vpnStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "start projectNameOrId",
 		Short:        i18n.CmdVpnStart,
+		Long:         i18n.VpnStartLong,
 		SilenceUsage: true,
 		Args:         ExactNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -77,7 +78,8 @@ func vpnStartCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterUInt32(cmd, "mtu", 1420, "vpn interface MTU")
+	params.RegisterUInt32(cmd, "mtu", 1420, i18n.MtuDesc)
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.VpnStartHelp))
 
 	return cmd
 }

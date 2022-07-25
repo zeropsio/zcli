@@ -48,5 +48,6 @@ func daemonRemoveCmd() *cobra.Command {
 		},
 	}
 
+	cmd.PersistentFlags().BoolP("help", "h", false, helpText(i18n.DaemonRemoveHelp))
 	return cmd
 }

@@ -76,5 +76,7 @@ func projectStopCmd() *cobra.Command {
 			})
 		},
 	}
+
+	cmdStop.Flags().BoolP("help", "h", false, helpText(i18n.ProjectStopHelp))
 	return cmdStop
 }

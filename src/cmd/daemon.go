@@ -17,5 +17,7 @@ func daemonCmd() *cobra.Command {
 	cmd.AddCommand(daemonInstallCmd())
 	cmd.AddCommand(daemonRemoveCmd())
 
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
+
 	return cmd
 }

@@ -77,6 +77,7 @@ func projectDeleteCmd() *cobra.Command {
 		},
 	}
 	params.RegisterBool(cmd, "confirm", false, i18n.ConfirmDeleteProject)
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ProjectDeleteHelp))
 
 	return cmd
 }

@@ -81,5 +81,7 @@ func serviceDeleteCmd() *cobra.Command {
 	}
 
 	params.RegisterBool(cmdDelete, "confirm", false, i18n.ConfirmDeleteService)
+	cmdDelete.Flags().BoolP("help", "h", false, helpText(i18n.ServiceDeleteHelp))
+
 	return cmdDelete
 }

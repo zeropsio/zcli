@@ -69,6 +69,7 @@ func serviceImportCmd() *cobra.Command {
 			})
 		},
 	}
+	cmdImport.Flags().BoolP("help", "h", false, helpText(i18n.ServiceImportHelp))
 
 	return cmdImport
 }

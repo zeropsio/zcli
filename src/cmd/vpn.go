@@ -17,5 +17,6 @@ func vpnCmd() *cobra.Command {
 	cmd.AddCommand(vpnStopCmd())
 	cmd.AddCommand(vpnStatusCmd())
 
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
 	return cmd
 }

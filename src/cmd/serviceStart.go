@@ -78,5 +78,6 @@ func serviceStartCmd() *cobra.Command {
 			})
 		},
 	}
+	cmdStart.Flags().BoolP("help", "h", false, helpText(i18n.ServiceStartHelp))
 	return cmdStart
 }

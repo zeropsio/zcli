@@ -14,6 +14,7 @@ func logCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(logShowCmd())
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
 
 	return cmd
 }

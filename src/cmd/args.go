@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/spf13/cobra"
 )
@@ -32,4 +33,8 @@ func buildUsage(cmd *cobra.Command) string {
 		parentUsage += " "
 	}
 	return parentUsage + cmd.Use
+}
+
+func helpText(add string) string {
+	return i18n.DisplayHelp + add
 }
