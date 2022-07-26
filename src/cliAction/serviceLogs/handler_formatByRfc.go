@@ -20,8 +20,8 @@ import (
 )
 
 func getFullByRfc(logData []Data, RFC string) {
-	for _, data := range logData {
-		if RFC == RFC3164 {
+	if RFC == RFC3164 {
+		for _, data := range logData {
 			fmt.Printf("<%d>%s %s %s: %s\n",
 				data.Priority,
 				rfc3164TimeFormat(fixTimestamp(data.Timestamp)),
@@ -30,16 +30,18 @@ func getFullByRfc(logData []Data, RFC string) {
 				data.Message,
 			)
 		}
-
-		fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
-			data.Priority,
-			fixTimestamp(data.Timestamp),
-			data.Hostname,
-			getVal(data.AppName),
-			getVal(data.ProcId),
-			getVal(data.MsgId),
-			data.Message,
-		)
+	} else {
+		for _, data := range logData {
+			fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
+				data.Priority,
+				fixTimestamp(data.Timestamp),
+				data.Hostname,
+				getVal(data.AppName),
+				getVal(data.ProcId),
+				getVal(data.MsgId),
+				data.Message,
+			)
+		}
 	}
 }
 
