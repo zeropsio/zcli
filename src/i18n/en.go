@@ -85,7 +85,7 @@ const (
 	LogMsgTypeFlag        = "Select either APPLICATION or WEBSERVER log messages to be returned. Default value = APPLICATION."
 	LogFollowFlag         = "If set, zCLI will continuously poll for new log messages. By default, the command will exit\nonce there are no more logs to display. To exit from this mode, use Control-C."
 	LogFormatFlag         = "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects."
-	LogFormatTemplateFlag = "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.Timestamp}} {{.Severity}} {{.Facility}} {{.Message}}\".\nSupports standard GoLang template format and functions."
+	LogFormatTemplateFlag = "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.timestamp}} {{.severity}} {{.facility}} {{.message}}\".\nSupports standard GoLang template format and functions."
 	MtuFlag               = "Sets a custom MTU for VPN interface. Default value is 1420."
 
 	// process
