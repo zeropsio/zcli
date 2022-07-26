@@ -19,6 +19,6 @@ func versionCmd() *cobra.Command {
 			fmt.Printf("zcli version %s (%s) %s/%s\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 		},
 	}
-
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.VersionHelp))
 	return cmd
 }

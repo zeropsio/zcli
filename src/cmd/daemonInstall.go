@@ -32,5 +32,6 @@ func daemonInstallCmd() *cobra.Command {
 		},
 	}
 
+	cmd.PersistentFlags().BoolP("help", "h", false, helpText(i18n.DaemonInstallHelp))
 	return cmd
 }

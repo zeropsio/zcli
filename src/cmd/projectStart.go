@@ -78,5 +78,7 @@ func projectStartCmd() *cobra.Command {
 			})
 		},
 	}
+
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ProjectStartHelp))
 	return cmd
 }

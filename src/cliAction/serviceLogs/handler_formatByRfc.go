@@ -15,31 +15,49 @@ package serviceLogs
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
 func getFullByRfc(logData []Data, RFC string) {
-	for _, data := range logData {
-		if RFC == RFC3164 {
+	if RFC == RFC3164 {
+		for _, data := range logData {
 			fmt.Printf("<%d>%s %s %s: %s\n",
 				data.Priority,
-				rfc3164TimeFormat(data.Timestamp),
+				rfc3164TimeFormat(fixTimestamp(data.Timestamp)),
 				data.Hostname,
 				data.Tag,
 				data.Message,
 			)
 		}
-
-		fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
-			data.Priority,
-			data.Timestamp,
-			data.Hostname,
-			getVal(data.AppName),
-			getVal(data.ProcId),
-			getVal(data.MsgId),
-			data.Message,
-		)
+	} else {
+		for _, data := range logData {
+			fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
+				data.Priority,
+				fixTimestamp(data.Timestamp),
+				data.Hostname,
+				getVal(data.AppName),
+				getVal(data.ProcId),
+				getVal(data.MsgId),
+				data.Message,
+			)
+		}
 	}
+}
+
+// add missing 0 to have the same length for all timestamps
+func fixTimestamp(timestamp string) string {
+	missing := 27 - len(timestamp)
+	if missing == 0 {
+		return timestamp
+	}
+	splitVal := strings.Split(timestamp, ".")
+	millis := strings.Split(splitVal[1], "Z")[0]
+
+	for len(millis) < 6 {
+		millis += "0"
+	}
+	return fmt.Sprintf("%s.%sZ", splitVal[0], millis)
 }
 
 func rfc3164TimeFormat(timestamp string) string {

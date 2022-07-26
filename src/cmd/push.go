@@ -18,6 +18,7 @@ func pushCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "push projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdPushDesc,
+		Long:         i18n.CmdPushDesc + "\n\n" + i18n.PushDescLong,
 		Args:         ExactNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -85,7 +86,9 @@ func pushCmd() *cobra.Command {
 	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "source", "", i18n.SourceName)
-	params.RegisterBool(cmd, "deployGitFolder", false, i18n.DeployGitFolder)
+	params.RegisterBool(cmd, "deployGitFolder", false, i18n.UploadGitFolder)
+
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.PushHelp))
 
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
 		err := command.Flags().MarkHidden("source")

@@ -60,5 +60,6 @@ func logShowCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.LogShowHelp))
 	return cmd
 }

@@ -33,6 +33,6 @@ func vpnStopCmd() *cobra.Command {
 			).Run(ctx, stopVpn.RunConfig{})
 		},
 	}
-
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.VpnStopHelp))
 	return cmd
 }

@@ -18,6 +18,7 @@ func projectImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "import pathToImportFile [flags]",
 		Short:        i18n.CmdProjectImport,
+		Long:         i18n.ProjectImportLong,
 		Args:         ExactNArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -72,6 +73,7 @@ func projectImportCmd() *cobra.Command {
 	}
 
 	params.RegisterString(cmd, "clientId", "", i18n.ClientId)
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ProjectImportHelp))
 
 	return cmd
 }

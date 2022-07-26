@@ -15,7 +15,7 @@ import (
 
 func loginCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "login {token | username password}",
+		Use:          "login token [flags]\n  OR\n  zcli login username password [flags]",
 		Short:        i18n.CmdLogin,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -66,12 +66,13 @@ func loginCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterString(cmd, "zeropsLogin", "", "zerops account email")
-	params.RegisterString(cmd, "zeropsPassword", "", "zerops account password")
-	params.RegisterString(cmd, "zeropsToken", "", "zerops account token")
-	params.RegisterString(cmd, "region", "", "zerops region")
-	params.RegisterString(cmd, "regionURL", "https://api.app.zerops.io/api/rest/public/region/zcli", "zerops region file url")
+	params.RegisterString(cmd, "zeropsLogin", "", i18n.ZeropsLoginFlag)
+	params.RegisterString(cmd, "zeropsPassword", "", i18n.ZeropsPwdFlag)
+	params.RegisterString(cmd, "zeropsToken", "", i18n.ZeropsTokenFlag)
+	params.RegisterString(cmd, "region", "", i18n.RegionFlag)
+	params.RegisterString(cmd, "regionURL", "https://api.app.zerops.io/api/rest/public/region/zcli", i18n.RegionUrlFlag)
 
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.LoginHelp))
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
 		err := command.Flags().MarkHidden("regionURL")
 		if err != nil {

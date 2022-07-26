@@ -33,6 +33,6 @@ func vpnStatusCmd() *cobra.Command {
 			).Run(ctx, statusVpn.RunConfig{})
 		},
 	}
-
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.VpnStatusHelp))
 	return cmd
 }

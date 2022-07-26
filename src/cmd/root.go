@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/zerops-io/zcli/src/i18n"
 	"os"
 	"os/signal"
 	"syscall"
@@ -38,6 +39,8 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(regionList())
 	rootCmd.AddCommand(projectCmd())
 	rootCmd.AddCommand(serviceCmd())
+
+	rootCmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
 
 	err := params.InitViper()
 	if err != nil {

@@ -19,7 +19,7 @@ func serviceLogCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "log projectNameOrId serviceName [flags]",
 		Short:        i18n.CmdServiceLog,
-		Long:         i18n.CmdServiceLogFull + i18n.ServiceLogAdditional,
+		Long:         i18n.CmdServiceLogLong + i18n.ServiceLogAdditional,
 		Args:         ExactNArgs(2),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -80,12 +80,14 @@ func serviceLogCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterUInt32(cmd, "limit", 100, i18n.LogLimit)
-	params.RegisterString(cmd, "minimumSeverity", "", i18n.LogMinSeverity)
-	params.RegisterString(cmd, "messageType", "APPLICATION", i18n.LogMsgType)
-	params.RegisterString(cmd, "format", "FULL", i18n.LogFormat)
-	params.RegisterString(cmd, "formatTemplate", "", i18n.LogFormatTemplate)
-	params.RegisterBool(cmd, "follow", false, i18n.LogFollow)
+	params.RegisterUInt32(cmd, "limit", 100, i18n.LogLimitFlag)
+	params.RegisterString(cmd, "minimumSeverity", "", i18n.LogMinSeverityFlag)
+	params.RegisterString(cmd, "messageType", "APPLICATION", i18n.LogMsgTypeFlag)
+	params.RegisterString(cmd, "format", "FULL", i18n.LogFormatFlag)
+	params.RegisterString(cmd, "formatTemplate", "", i18n.LogFormatTemplateFlag)
+	params.RegisterBool(cmd, "follow", false, i18n.LogFollowFlag)
+
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ServiceLogHelp))
 
 	// TODO remove when websocket is enabled
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
