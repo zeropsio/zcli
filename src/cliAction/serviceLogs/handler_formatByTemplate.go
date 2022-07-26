@@ -42,11 +42,12 @@ func templateFix(template string) string {
 	out := repl.Replace(template)
 	tokens := strings.Split(out, " ")
 
-	var keys []string
-	for _, val := range tokens {
+	keys := make([]string, len(tokens))
+
+	for i, val := range tokens {
 		titleStr := cases.Title(language.Und, cases.NoLower).String(val)
 		item := fmt.Sprintf("{{.%s}}", titleStr)
-		keys = append(keys, item)
+		keys[i] = item
 	}
 
 	return strings.Join(keys, " ")
