@@ -82,7 +82,7 @@ func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 
 	if format == FULL {
 		if formatTemplate != "" {
-			if err = getFullWithTemplate(ascLogs, templateFix(formatTemplate)); err != nil {
+			if err = getFullWithTemplate(ascLogs, formatTemplate); err != nil {
 				return err
 			}
 			return nil

@@ -166,6 +166,7 @@ const (
 	LogFormatTemplateMismatch    = "--formatTemplate can be used only in combination with --format=FULL."
 	LogServiceNameInvalid        = "Invalid serviceName value. Multiple @ characters are not supported. See -h for help."
 	LogFormatTemplateInvalid     = "Invalid --formatTemplate content. The custom template failed with following error:"
+	LogFormatTemplateNoSpace     = "Template items must be split by a (single) space."
 	LogSuffixInvalid             = "Invalid serviceName value. Use <serviceName>@<int> to  return log messages from the N-th runtime container only.\nUse <serviceName>@BUILD to return log messages from the last build if available."
 	LogRuntimeOnly               = "This command can be used on runtime services only."
 	LogNoContainerFound          = "No runtime container was found."
