@@ -15,6 +15,7 @@ package serviceLogs
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -23,7 +24,7 @@ func getFullByRfc(logData []Data, RFC string) {
 		if RFC == RFC3164 {
 			fmt.Printf("<%d>%s %s %s: %s\n",
 				data.Priority,
-				rfc3164TimeFormat(data.Timestamp),
+				rfc3164TimeFormat(fixTimestamp(data.Timestamp)),
 				data.Hostname,
 				data.Tag,
 				data.Message,
@@ -32,7 +33,7 @@ func getFullByRfc(logData []Data, RFC string) {
 
 		fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
 			data.Priority,
-			data.Timestamp,
+			fixTimestamp(data.Timestamp),
 			data.Hostname,
 			getVal(data.AppName),
 			getVal(data.ProcId),
@@ -40,6 +41,21 @@ func getFullByRfc(logData []Data, RFC string) {
 			data.Message,
 		)
 	}
+}
+
+// add missing 0 to have the same length for all timestamps
+func fixTimestamp(timestamp string) string {
+	missing := 27 - len(timestamp)
+	if missing == 0 {
+		return timestamp
+	}
+	splitVal := strings.Split(timestamp, ".")
+	millis := strings.Split(splitVal[1], "Z")[0]
+
+	for len(millis) < 6 {
+		millis += "0"
+	}
+	return fmt.Sprintf("%s.%sZ", splitVal[0], millis)
 }
 
 func rfc3164TimeFormat(timestamp string) string {
