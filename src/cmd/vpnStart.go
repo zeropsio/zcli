@@ -78,7 +78,7 @@ func vpnStartCmd() *cobra.Command {
 		},
 	}
 
-	params.RegisterUInt32(cmd, "mtu", 1420, i18n.MtuDesc)
+	params.RegisterUInt32(cmd, "mtu", 1420, i18n.MtuFlag)
 	cmd.Flags().BoolP("help", "h", false, helpText(i18n.VpnStartHelp))
 
 	return cmd
