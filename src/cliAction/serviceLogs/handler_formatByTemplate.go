@@ -3,6 +3,9 @@ package serviceLogs
 import (
 	"bytes"
 	"fmt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"strings"
 	"text/template"
 
 	"github.com/zerops-io/zcli/src/i18n"
@@ -31,4 +34,20 @@ func formatDataByTemplate(data Data, formatTemplate string) error {
 
 	fmt.Println(b.String())
 	return nil
+}
+
+// change lowercase first letters to uppercase to match the struct
+func templateFix(template string) string {
+	repl := strings.NewReplacer("{", "", "}", "", ".", "")
+	out := repl.Replace(template)
+	tokens := strings.Split(out, " ")
+
+	var keys []string
+	for _, val := range tokens {
+		titleStr := cases.Title(language.Und, cases.NoLower).String(val)
+		item := fmt.Sprintf("{{.%s}}", titleStr)
+		keys = append(keys, item)
+	}
+
+	return strings.Join(keys, " ")
 }
