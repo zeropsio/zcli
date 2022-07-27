@@ -18,6 +18,7 @@ require (
 	github.com/zeropsio/zerops-go v1.0.3
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a
+	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.46.2
 	google.golang.org/grpc/security/advancedtls v0.0.0-20220516211522-d9b952b17060
 	google.golang.org/protobuf v1.28.0
@@ -46,7 +47,6 @@ require (
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220516155154-20f960328961 // indirect
-	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f // indirect
 	google.golang.org/appengine v1.6.7 // indirect
