@@ -6,18 +6,30 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/processChecker"
+	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/sdk"
+	"github.com/zeropsio/zerops-go/sdkBase"
+	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/stringId"
 )
 
 func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 	serviceStack, err := h.checkInputValues(ctx, config)
+	if err != nil {
+		return err
+	}
+
+	configContent, err := h.getValidConfigContent(ctx, config, serviceStack.ServiceStackTypeId, serviceStack.Name)
 	if err != nil {
 		return err
 	}
@@ -37,11 +49,6 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 	go h.archClient.TarFiles(writer, files, tarErrChan)
 
 	r, err := h.savePackage(config, reader)
-	if err != nil {
-		return err
-	}
-
-	configContent, err := getConfigContent(config)
 	if err != nil {
 		return err
 	}
@@ -88,7 +95,12 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 	return nil
 }
 
-func getConfigContent(config RunConfig) (*zBusinessZeropsApiProtocol.StringNull, error) {
+func (h *Handler) getValidConfigContent(
+	ctx context.Context,
+	config RunConfig,
+	serviceStackTypeId string,
+	serviceStackName string,
+) (*zBusinessZeropsApiProtocol.StringNull, error) {
 	workingDir, err := filepath.Abs(config.WorkingDir)
 	if err != nil {
 		return nil, err
@@ -121,6 +133,29 @@ func getConfigContent(config RunConfig) (*zBusinessZeropsApiProtocol.StringNull,
 
 	yamlContent, err := os.ReadFile(zeropsYamlPath)
 	if err != nil {
+		return nil, err
+	}
+
+	zdk := sdk.New(
+		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(h.sdkConfig.RegionUrl)),
+		&http.Client{Timeout: 1 * time.Minute},
+	)
+	id, err := stringId.NewServiceStackTypeIdFromString(serviceStackTypeId)
+	if err != nil {
+		return nil, err
+	}
+
+	authorizedSdk := sdk.AuthorizeSdk(zdk, h.sdkConfig.Token)
+	resp, err := authorizedSdk.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
+		Name:               types.NewString(serviceStackName),
+		ServiceStackTypeId: id,
+		ZeropsYaml:         types.NewText(string(yamlContent)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = resp.Output(); err != nil {
 		return nil, err
 	}
 
