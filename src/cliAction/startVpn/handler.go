@@ -2,7 +2,7 @@ package startVpn
 
 import (
 	"github.com/zerops-io/zcli/src/daemonInstaller"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
@@ -20,14 +20,14 @@ type RunConfig struct {
 
 type Handler struct {
 	config          Config
-	apiGrpcClient   business.ZeropsApiProtocolClient
+	apiGrpcClient   zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient
 	daemonInstaller *daemonInstaller.Handler
 	sdkConfig       sdkConfig.Config
 }
 
 func New(
 	config Config,
-	apiGrpcClient business.ZeropsApiProtocolClient,
+	apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient,
 	daemonInstaller *daemonInstaller.Handler,
 	sdkConfig sdkConfig.Config,
 ) *Handler {

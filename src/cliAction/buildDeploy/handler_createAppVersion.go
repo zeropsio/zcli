@@ -4,20 +4,20 @@ import (
 	"context"
 
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
-func (h *Handler) createAppVersion(ctx context.Context, config RunConfig, serviceStack *business.GetServiceStackByNameResponseDto) (*business.PostAppVersionResponseDto, error) {
-	appVersionResponse, err := h.apiGrpcClient.PostAppVersion(ctx, &business.PostAppVersionRequest{
+func (h *Handler) createAppVersion(ctx context.Context, config RunConfig, serviceStack *zBusinessZeropsApiProtocol.GetServiceStackByNameResponseDto) (*zBusinessZeropsApiProtocol.PostAppVersionResponseDto, error) {
+	appVersionResponse, err := h.apiGrpcClient.PostAppVersion(ctx, &zBusinessZeropsApiProtocol.PostAppVersionRequest{
 		ServiceStackId: serviceStack.GetId(),
-		Name: func() *business.StringNull {
+		Name: func() *zBusinessZeropsApiProtocol.StringNull {
 			if config.VersionName != "" {
-				return &business.StringNull{
+				return &zBusinessZeropsApiProtocol.StringNull{
 					Value: config.VersionName,
 					Valid: true,
 				}
 			}
-			return &business.StringNull{}
+			return &zBusinessZeropsApiProtocol.StringNull{}
 		}(),
 	})
 	if err := proto.BusinessError(appVersionResponse, err); err != nil {

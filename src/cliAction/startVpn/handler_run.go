@@ -6,22 +6,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
-	"github.com/zerops-io/zcli/src/proto/daemon"
-	"github.com/zerops-io/zcli/src/utils/projectService"
-
-	"github.com/zerops-io/zcli/src/daemonInstaller"
-
 	"github.com/peterh/liner"
 
+	"github.com/zerops-io/zcli/src/daemonInstaller"
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils"
+	"github.com/zerops-io/zcli/src/utils/projectService"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
-	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
+	userInfoResponse, err := h.apiGrpcClient.GetUserInfo(ctx, &zBusinessZeropsApiProtocol.GetUserInfoRequest{})
 	if err := proto.BusinessError(userInfoResponse, err); err != nil {
 		return err
 	}

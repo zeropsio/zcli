@@ -13,8 +13,8 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/nettools"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/proto/vpnproxy"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 func (h *Handler) startVpn(
@@ -47,7 +47,7 @@ func (h *Handler) startVpn(
 		return err
 	}
 
-	apiClientFactory := business.New(business.Config{CaCertificateUrl: caCertificateUrl})
+	apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{CaCertificateUrl: caCertificateUrl})
 	apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(ctx, grpcApiAddress, token)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (h *Handler) startVpn(
 
 	h.logger.Debug("vpn request start")
 
-	apiVpnRequestResponse, err := apiGrpcClient.PostVpnRequest(ctx, &business.PostVpnRequestRequest{
+	apiVpnRequestResponse, err := apiGrpcClient.PostVpnRequest(ctx, &zBusinessZeropsApiProtocol.PostVpnRequestRequest{
 		Id:              projectId,
 		ClientPublicKey: publicKey,
 	})
@@ -168,7 +168,7 @@ func (h *Handler) startVpn(
 	data.CaCertificateUrl = caCertificateUrl
 	data.VpnStarted = true
 	data.InterfaceName = ifName
-	data.Expiry = business.FromProtoTimestamp(expiry)
+	data.Expiry = zBusinessZeropsApiProtocol.FromProtoTimestamp(expiry)
 	data.PublicKey = publicKey
 	data.PrivateKey = privateKey
 

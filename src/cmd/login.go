@@ -4,12 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/spf13/cobra"
 
 	"github.com/zerops-io/zcli/src/cliAction/login"
-
-	"github.com/spf13/cobra"
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )
 
@@ -44,7 +43,7 @@ func loginCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := business.New(business.Config{
+			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 

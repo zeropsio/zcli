@@ -2,7 +2,7 @@ package importProjectService
 
 import (
 	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
@@ -21,11 +21,11 @@ type RunConfig struct {
 type Handler struct {
 	config        Config
 	httpClient    *httpClient.Handler
-	apiGrpcClient business.ZeropsApiProtocolClient
+	apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient
 	sdkConfig     sdkConfig.Config
 }
 
-func New(config Config, httpClient *httpClient.Handler, apiGrpcClient business.ZeropsApiProtocolClient, sdkConfig sdkConfig.Config) *Handler {
+func New(config Config, httpClient *httpClient.Handler, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, sdkConfig sdkConfig.Config) *Handler {
 	return &Handler{
 		config:        config,
 		httpClient:    httpClient,

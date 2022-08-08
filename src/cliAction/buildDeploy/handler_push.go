@@ -11,7 +11,7 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
@@ -102,10 +102,10 @@ func (h *Handler) Push(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployDeployingStart)
 
-	deployResponse, err := h.apiGrpcClient.PutAppVersionBuildAndDeploy(ctx, &business.PutAppVersionBuildAndDeployRequest{
+	deployResponse, err := h.apiGrpcClient.PutAppVersionBuildAndDeploy(ctx, &zBusinessZeropsApiProtocol.PutAppVersionBuildAndDeployRequest{
 		Id:                 appVersion.GetId(),
 		BuildConfigContent: base64.StdEncoding.EncodeToString(buildConfigContent),
-		Source: &business.StringNull{
+		Source: &zBusinessZeropsApiProtocol.StringNull{
 			Value: config.SourceName,
 			Valid: true,
 		},

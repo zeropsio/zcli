@@ -1,4 +1,5 @@
 .idea
+include/
 zcli.config.yml
 zcli.data
 tools/npm/node_modules

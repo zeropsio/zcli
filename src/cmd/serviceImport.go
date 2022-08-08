@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zerops-io/zcli/src/cliAction/importProjectService"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
@@ -42,7 +43,7 @@ func serviceImportCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := business.New(business.Config{
+			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(

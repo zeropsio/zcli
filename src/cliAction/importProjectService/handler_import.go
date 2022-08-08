@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
@@ -21,7 +22,7 @@ func (h *Handler) Import(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	var servicesData []*business.ProjectImportServiceStack
+	var servicesData []*zBusinessZeropsApiProtocol.ProjectImportServiceStack
 	isProjectCmd := config.ParentCmd == constants.Project
 
 	if isProjectCmd {
