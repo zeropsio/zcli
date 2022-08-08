@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/proto/business"
-	"github.com/zerops-io/zcli/src/utils/projectService"
-
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zerops-io/zcli/src/utils/projectService"
 )
 
-func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*business.GetServiceStackByNameResponseDto, error) {
+func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*zBusinessZeropsApiProtocol.GetServiceStackByNameResponseDto, error) {
 	projectId, err := projectService.GetProjectId(ctx, h.apiGrpcClient, config.ProjectNameOrId, h.sdkConfig)
 	if err != nil {
 		return nil, err

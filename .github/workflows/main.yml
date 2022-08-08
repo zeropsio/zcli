@@ -67,6 +67,3 @@ jobs:
     - name: Lint
       if: ${{ matrix.runLint }}
       run: env ${{ matrix.osEnv }} gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
-
-
-

@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
-func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business.ZeropsApiProtocolClient, wg *sync.WaitGroup, sp *spinner.Spinner) {
+func CheckMultiple(ctx context.Context, process []string, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, wg *sync.WaitGroup, sp *spinner.Spinner) {
 	processId, name := getProcessData(process)
 	isRunning := false
 
@@ -28,7 +29,7 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 		case <-ctx.Done():
 			return
 		default:
-			getProcessResponse, err := apiGrpcClient.GetProcess(ctx, &business.GetProcessRequest{
+			getProcessResponse, err := apiGrpcClient.GetProcess(ctx, &zBusinessZeropsApiProtocol.GetProcessRequest{
 				Id: processId,
 			})
 			if err := proto.BusinessError(getProcessResponse, err); err != nil {
@@ -38,7 +39,7 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 
 			processStatus := getProcessResponse.GetOutput().GetStatus()
 
-			if processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING {
+			if processStatus == zBusinessZeropsApiProtocol.ProcessStatus_PROCESS_STATUS_RUNNING {
 				if !isRunning {
 					// stop initial progress indicator that waits for first running process
 					if sp.Active() {
@@ -53,15 +54,15 @@ func CheckMultiple(ctx context.Context, process []string, apiGrpcClient business
 				}
 			}
 
-			if processStatus == business.ProcessStatus_PROCESS_STATUS_FINISHED {
+			if processStatus == zBusinessZeropsApiProtocol.ProcessStatus_PROCESS_STATUS_FINISHED {
 				s.Stop()
 				clearLine()
 				fmt.Printf("%s%s %s\n", constants.Success, name, i18n.ProcessEnd)
 				return
 			}
 
-			if !(processStatus == business.ProcessStatus_PROCESS_STATUS_RUNNING ||
-				processStatus == business.ProcessStatus_PROCESS_STATUS_PENDING) {
+			if !(processStatus == zBusinessZeropsApiProtocol.ProcessStatus_PROCESS_STATUS_RUNNING ||
+				processStatus == zBusinessZeropsApiProtocol.ProcessStatus_PROCESS_STATUS_PENDING) {
 				s.Stop()
 				clearLine()
 				fmt.Printf("! %s %s %s\n", name, i18n.ProcessInvalidStateProcess, processId)

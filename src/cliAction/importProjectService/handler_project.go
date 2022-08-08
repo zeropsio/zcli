@@ -7,16 +7,16 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
-func (h *Handler) sendProjectRequest(ctx context.Context, config RunConfig, yamlContent string) ([]*business.ProjectImportServiceStack, error) {
+func (h *Handler) sendProjectRequest(ctx context.Context, config RunConfig, yamlContent string) ([]*zBusinessZeropsApiProtocol.ProjectImportServiceStack, error) {
 	clientId, err := h.getClientId(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := h.apiGrpcClient.PostProjectImport(ctx, &business.PostProjectImportRequest{
+	res, err := h.apiGrpcClient.PostProjectImport(ctx, &zBusinessZeropsApiProtocol.PostProjectImportRequest{
 		ClientId: clientId,
 		Yaml:     yamlContent,
 	})

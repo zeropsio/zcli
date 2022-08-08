@@ -6,8 +6,8 @@ import (
 
 	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
 	"github.com/zerops-io/zcli/src/proto/vpnproxy"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/logger"
 )
 
@@ -55,14 +55,14 @@ func (h *Handler) prolong(ctx context.Context) error {
 		h.log.Debug("prolong threshold not met")
 		return nil
 	}
-	apiClientFactory := business.New(business.Config{CaCertificateUrl: data.CaCertificateUrl})
+	apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{CaCertificateUrl: data.CaCertificateUrl})
 	apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(ctx, data.GrpcApiAddress, data.Token)
 	if err != nil {
 		return err
 	}
 	defer closeFunc()
 
-	businessResp, err := apiGrpcClient.PostVpnRequest(ctx, &business.PostVpnRequestRequest{
+	businessResp, err := apiGrpcClient.PostVpnRequest(ctx, &zBusinessZeropsApiProtocol.PostVpnRequestRequest{
 		Id:              data.ProjectId,
 		ClientPublicKey: data.PublicKey,
 	})
@@ -84,7 +84,7 @@ func (h *Handler) prolong(ctx context.Context) error {
 		return err
 	}
 
-	data.Expiry = business.FromProtoTimestamp(expiry)
+	data.Expiry = zBusinessZeropsApiProtocol.FromProtoTimestamp(expiry)
 
 	return h.storage.Save(data)
 }

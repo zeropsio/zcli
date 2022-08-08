@@ -3,11 +3,11 @@ package importProjectService
 import (
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 // return number of services and process data [](process Id, service name, action name)
-func parseServiceData(servicesData []*business.ProjectImportServiceStack) (int, [][]string) {
+func parseServiceData(servicesData []*zBusinessZeropsApiProtocol.ProjectImportServiceStack) (int, [][]string) {
 	var (
 		serviceNames = make([]string, 0, len(servicesData))
 		processData  [][]string

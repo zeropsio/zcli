@@ -1,4 +1,4 @@
-package business
+package zBusinessZeropsApiProtocol
 
 import (
 	"time"

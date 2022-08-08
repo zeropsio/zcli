@@ -13,7 +13,7 @@ import (
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/processChecker"
 )
 
@@ -70,7 +70,7 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 
 	fmt.Println(i18n.BuildDeployDeployingStart)
 
-	deployResponse, err := h.apiGrpcClient.PutAppVersionDeploy(ctx, &business.PutAppVersionDeployRequest{
+	deployResponse, err := h.apiGrpcClient.PutAppVersionDeploy(ctx, &zBusinessZeropsApiProtocol.PutAppVersionDeployRequest{
 		Id:            appVersion.GetId(),
 		ConfigContent: configContent,
 	})
@@ -90,7 +90,7 @@ func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
 	return nil
 }
 
-func getConfigContent(config RunConfig) (*business.StringNull, error) {
+func getConfigContent(config RunConfig) (*zBusinessZeropsApiProtocol.StringNull, error) {
 	workingDir, err := filepath.Abs(config.WorkingDir)
 	if err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ func getConfigContent(config RunConfig) (*business.StringNull, error) {
 		return nil, err
 	}
 
-	return &business.StringNull{
+	return &zBusinessZeropsApiProtocol.StringNull{
 		Value: base64.StdEncoding.EncodeToString(yamlContent),
 		Valid: true,
 	}, nil

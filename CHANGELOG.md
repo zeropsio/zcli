@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.12.0] - 2022-08-08
+
+### Changed
+- Updated protobufs to the latest version (**!!!breaking change!!! previous zCLI versions are not compatible and will not work**)
+- Updated `protoc-gen` from GitHub to `protoc-gen-go` and `protoc-gen-go-grpc` from GoLang.org
+
 ## [v0.11.4] - 2022-07-26
 - Enable lowercase formatTemplate values, fix length of timestamps.
 

@@ -6,13 +6,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/zerops-io/zcli/src/proto/business"
-
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )
 
-func (h *Handler) packageUpload(appVersion *business.PostAppVersionResponseDto, reader io.Reader) error {
+func (h *Handler) packageUpload(appVersion *zBusinessZeropsApiProtocol.PostAppVersionResponseDto, reader io.Reader) error {
 	fmt.Println(i18n.BuildDeployUploadingPackageStart)
 
 	cephResponse, err := h.httpClient.PutStream(appVersion.GetUploadUrl(), reader, httpClient.ContentType("application/gzip"))

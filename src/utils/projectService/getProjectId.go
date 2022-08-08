@@ -8,11 +8,11 @@ import (
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
-func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectNameOrId string, sdkConfig sdkConfig.Config) (string, error) {
+func GetProjectId(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, projectNameOrId string, sdkConfig sdkConfig.Config) (string, error) {
 	if projectNameOrId == "" {
 		return "", errors.New(i18n.ProjectNameOrIdEmpty)
 	}
@@ -38,8 +38,8 @@ func GetProjectId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolC
 	return projectId, nil
 }
 
-func getByName(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectName string) ([]*business.Project, error) {
-	projectsResponse, err := apiGrpcClient.GetProjectsByName(ctx, &business.GetProjectsByNameRequest{
+func getByName(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, projectName string) ([]*zBusinessZeropsApiProtocol.Project, error) {
+	projectsResponse, err := apiGrpcClient.GetProjectsByName(ctx, &zBusinessZeropsApiProtocol.GetProjectsByNameRequest{
 		Name: projectName,
 	})
 	if err := proto.BusinessError(projectsResponse, err); err != nil {
@@ -50,7 +50,7 @@ func getByName(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClie
 }
 
 // return project IDs hint for projects with the same name
-func getProjectSameNameErr(projects []*business.Project) error {
+func getProjectSameNameErr(projects []*zBusinessZeropsApiProtocol.Project) error {
 	out := make([]string, len(projects))
 	for i, p := range projects {
 		out[i] = p.GetId()

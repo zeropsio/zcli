@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/zerops-io/zcli/src/proto/business"
-	"github.com/zerops-io/zcli/src/proto/vpnproxy"
-
-	"github.com/zerops-io/zcli/src/i18n"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto/vpnproxy"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 type HandleGrpcErrorOption func(*handleGrpcErrorConfig)
@@ -45,12 +45,12 @@ type response[E errorCode] interface {
 	GetError() E
 }
 
-func BusinessError[R response[*business.Error]](
+func BusinessError[R response[*zBusinessZeropsApiProtocol.Error]](
 	resp R,
 	err error,
 	options ...HandleGrpcErrorOption,
 ) error {
-	return GrpcError[*business.Error](resp, err, options...)
+	return GrpcError[*zBusinessZeropsApiProtocol.Error](resp, err, options...)
 }
 
 func VpnError[R response[*vpnproxy.Error]](

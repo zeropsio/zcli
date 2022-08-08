@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
-	"github.com/zerops-io/zcli/src/proto/daemon"
-
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto"
+	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 )
 
@@ -31,14 +30,14 @@ type Handler struct {
 	config               Config
 	storage              *cliStorage.Handler
 	httpClient           *httpClient.Handler
-	grpcApiClientFactory *business.Handler
+	grpcApiClientFactory *zBusinessZeropsApiProtocol.Handler
 }
 
 func New(
 	config Config,
 	storage *cliStorage.Handler,
 	httpClient *httpClient.Handler,
-	grpcApiClientFactory *business.Handler,
+	grpcApiClientFactory *zBusinessZeropsApiProtocol.Handler,
 ) *Handler {
 	return &Handler{
 		config:               config,
@@ -157,7 +156,7 @@ func (h *Handler) loginWithToken(ctx context.Context, token string) error {
 	}
 	defer closeFunc()
 
-	resp, err := grpcApiClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
+	resp, err := grpcApiClient.GetUserInfo(ctx, &zBusinessZeropsApiProtocol.GetUserInfoRequest{})
 
 	if err := proto.BusinessError(resp, err); err != nil {
 		if proto.IsUnauthenticated(err) {

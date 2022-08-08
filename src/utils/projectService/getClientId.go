@@ -8,12 +8,11 @@ import (
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
-func GetClientId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient) (string, error) {
-
-	res, err := apiGrpcClient.GetUserInfo(ctx, &business.GetUserInfoRequest{})
+func GetClientId(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient) (string, error) {
+	res, err := apiGrpcClient.GetUserInfo(ctx, &zBusinessZeropsApiProtocol.GetUserInfoRequest{})
 	if err := proto.BusinessError(res, err); err != nil {
 		return "", err
 	}

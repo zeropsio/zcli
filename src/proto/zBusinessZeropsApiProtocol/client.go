@@ -1,4 +1,4 @@
-package business
+package zBusinessZeropsApiProtocol
 
 import (
 	"context"
@@ -8,14 +8,13 @@ import (
 	"net/http"
 	"strings"
 
-	"google.golang.org/grpc/security/advancedtls"
-
-	"github.com/zerops-io/zcli/src/proto/unary"
 	"golang.org/x/oauth2"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
+	"google.golang.org/grpc/security/advancedtls"
+
+	"github.com/zerops-io/zcli/src/proto/unary"
 )
 
 type Config struct {
@@ -34,7 +33,7 @@ func New(
 	}
 }
 
-func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token string) (_ ZeropsApiProtocolClient, closeFunc func(), err error) {
+func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token string) (_ ZBusinessZeropsApiProtocolClient, closeFunc func(), err error) {
 	tlsCreds, err := h.createTLSCredentials()
 	if err != nil {
 		return nil, nil, err
@@ -53,7 +52,7 @@ func (h *Handler) CreateClient(ctx context.Context, grpcApiAddress string, token
 
 	closeFunc = func() { _ = connection.Close() }
 
-	return NewZeropsApiProtocolClient(connection), closeFunc, nil
+	return NewZBusinessZeropsApiProtocolClient(connection), closeFunc, nil
 
 }
 

@@ -6,16 +6,15 @@ import (
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/business"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
-func GetServiceStack(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectId string, serviceName string) (*business.GetServiceStackByNameResponseDto, error) {
-
+func GetServiceStack(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, projectId string, serviceName string) (*zBusinessZeropsApiProtocol.GetServiceStackByNameResponseDto, error) {
 	if serviceName == "" {
 		return nil, errors.New(i18n.ServiceNameIsEmpty)
 	}
 
-	response, err := apiGrpcClient.GetServiceStackByName(ctx, &business.GetServiceStackByNameRequest{
+	response, err := apiGrpcClient.GetServiceStackByName(ctx, &zBusinessZeropsApiProtocol.GetServiceStackByNameRequest{
 		ProjectId: projectId,
 		Name:      serviceName,
 	})
@@ -26,7 +25,7 @@ func GetServiceStack(ctx context.Context, apiGrpcClient business.ZeropsApiProtoc
 	return response.GetOutput(), nil
 }
 
-func GetServiceId(ctx context.Context, apiGrpcClient business.ZeropsApiProtocolClient, projectId string, serviceName string) (string, error) {
+func GetServiceId(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, projectId string, serviceName string) (string, error) {
 	service, err := GetServiceStack(ctx, apiGrpcClient, projectId, serviceName)
 	if err != nil {
 		return "", err

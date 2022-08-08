@@ -4,16 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/zerops-io/zcli/src/proto/business"
-	"github.com/zerops-io/zcli/src/utils/sdkConfig"
-
-	"github.com/zerops-io/zcli/src/constants"
+	"github.com/spf13/cobra"
 
 	"github.com/zerops-io/zcli/src/cliAction/startStopDelete"
+	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
-
-	"github.com/spf13/cobra"
+	"github.com/zerops-io/zcli/src/utils/sdkConfig"
 )
 
 func serviceStopCmd() *cobra.Command {
@@ -45,7 +43,7 @@ func serviceStopCmd() *cobra.Command {
 				return err
 			}
 
-			apiClientFactory := business.New(business.Config{
+			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
 				CaCertificateUrl: reg.CaCertificateUrl,
 			})
 			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
