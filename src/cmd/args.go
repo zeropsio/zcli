@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/spf13/cobra"
