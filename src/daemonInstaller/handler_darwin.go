@@ -30,6 +30,8 @@ func newDaemon(name, description string, dependencies []string) (daemon, error) 
 	}, nil
 }
 
+const defaultPath = "/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+
 func (daemon *darwinRecord) Install() error {
 	if daemon.IsInstalled() {
 		return ErrAlreadyInstalled
@@ -60,6 +62,11 @@ func (daemon *darwinRecord) Install() error {
 	logDir := filepath.Dir(constants.LogFilePath)
 	daemonStorageDir := filepath.Dir(constants.DaemonStorageFilePath)
 
+	userPath, ok := os.LookupEnv("PATH")
+	if !ok {
+		userPath = defaultPath
+	}
+
 	templ, err := template.New("propertyList").Parse(propertyList)
 	if err != nil {
 		return err
@@ -71,11 +78,13 @@ func (daemon *darwinRecord) Install() error {
 			Name       string
 			LogFile    string
 			WorkingDir string
+			PathEnv    string
 		}{
 			BinaryPath: path.Join(constants.DaemonInstallDir, daemon.name),
 			Name:       daemon.name,
 			LogFile:    constants.LogFilePath,
 			WorkingDir: daemonStorageDir,
+			PathEnv:    userPath,
 		},
 	); err != nil {
 		return err
@@ -182,7 +191,7 @@ var propertyList = `<?xml version="1.0" encoding="UTF-8"?>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <string>{{.PathEnv}}</string>
 		<key>HOME</key>
         <string>/etc</string>
     </dict>

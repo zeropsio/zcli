@@ -3,10 +3,11 @@ package serviceLogs
 import (
 	"bytes"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"strings"
 	"text/template"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/zerops-io/zcli/src/i18n"
 )

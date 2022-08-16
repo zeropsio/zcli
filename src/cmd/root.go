@@ -3,10 +3,11 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/zerops-io/zcli/src/i18n"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/zerops-io/zcli/src/i18n"
 
 	"github.com/zerops-io/zcli/src/support"
 
