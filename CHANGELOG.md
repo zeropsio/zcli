@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.12.3] - 2022-08-16
+
+### Added
+- New set of S3 management `bucket` commands with ability to `create` and `delete` buckets
+  - via `Zerops API`:
+    - `zcli bucket zerops create projectNameOrId serviceName bucketName [flags]`
+    - `zcli bucket zerops delete projectNameOrId serviceName bucketName [flags]`
+  - via `S3 API`.
+    - `zcli bucket s3 create serviceName bucketName [flags]`
+    - `zcli bucket s3 delete serviceName bucketName [flags]`
+
 ## [v0.12.2] - 2022-08-16
 
 ### Fixed

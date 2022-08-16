@@ -7,11 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/zerops-io/zcli/src/i18n"
-
-	"github.com/zerops-io/zcli/src/support"
-
 	"github.com/spf13/cobra"
+
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/support"
 	paramsPackage "github.com/zerops-io/zcli/src/utils/params"
 )
 
@@ -40,6 +39,7 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(regionList())
 	rootCmd.AddCommand(projectCmd())
 	rootCmd.AddCommand(serviceCmd())
+	rootCmd.AddCommand(bucketCmd())
 
 	rootCmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
 
