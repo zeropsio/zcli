@@ -24,6 +24,7 @@ DNS = {{.DnsServers}}
 PublicKey = {{.ServerPublicKey}}
 AllowedIPs = {{.AllowedIPs}}
 Endpoint = {{.ServerAddress}}
+PersistentKeepalive = 25
 `
 
 func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, response *vpnproxy.StartVpnResponse) error {
