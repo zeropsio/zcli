@@ -17,6 +17,7 @@ type Data struct {
 	GrpcApiAddress   string `json:"grpcApiAddress"`
 	VpnApiAddress    string `json:"vpnApiAddress"`
 	CaCertificateUrl string `json:"caCertificateUrl"`
+	S3StorageAddress string `json:"s3StorageAddress"`
 }
 
 type Handler struct {

@@ -27,6 +27,8 @@ const (
 	VpnStartHelp      = "the vpn start command."
 	VpnStopHelp       = "the vpn stop command."
 	VpnStatusHelp     = "the vpn status command."
+	BucketCreateHelp  = "the bucket create command."
+	BucketDeleteHelp  = "the bucket delete command."
 
 	// cmd short
 	CmdDeployDesc    = "Deploys your application to Zerops."
@@ -56,12 +58,17 @@ const (
 	CmdServiceStop   = "Stops the Zerops service."
 	CmdServiceDelete = "Deletes the Zerops service."
 	CmdServiceLog    = "Get service runtime or build log to stdout."
+	CmdBucket        = "S3 storage management"
+	CmdBucketZerops  = "Management via Zerops API"
+	CmdBucketS3      = "Management directly via S3 API"
+	CmdBucketCreate  = "Creates a bucket in an existing object storage."
+	CmdBucketDelete  = "Deletes a bucket from an existing object storage."
 
 	// cmd long
 	ProjectImportLong = "Creates a new project with one or more services according to the definition in the import YAML file."
 	DeployDescLong    = "pathToFileOrDir defines a path to one or more directories and/or files relative to the working\ndirectory. The working directory is by default the current directory and can be changed\nusing the --workingDir flag. zCLI deploys selected directories and/or files to Zerops."
 	PushDescLong      = "The command triggers the build pipeline defined in zerops.yml. Zerops.yml must be in the working\ndirectory. The working directory is by default the current directory and can be changed\nusing the --workingDir flag. zCLI uploads all files and subdirectories of the working\ndirectory to Zerops and starts the build pipeline. Files found in the .gitignore\nfile will be ignored.\n\nIf you just want to deploy your application to Zerops, use the zcli deploy command instead."
-	//CmdServiceLogFull = "Returns service runtime or build log to stdout with a streaming option. By default, the command returns the last 100 log messages from all service runtime containers and exits. Use --follow flag to continuously pool for new log messages.\n"
+	// CmdServiceLogFull = "Returns service runtime or build log to stdout with a streaming option. By default, the command returns the last 100 log messages from all service runtime containers and exits. Use --follow flag to continuously pool for new log messages.\n"
 	CmdServiceLogLong    = "Returns service runtime or build log to stdout. By default, the command returns the last 100\nlog messages from all service runtime containers and exits.\n"
 	ServiceLogAdditional = "\nUse the <serviceName> alone in the command to return log messages from all runtime containers.\nSet <serviceName>@1 to return log messages from the first runtime container only.\nSet <serviceName>@build to return log messages from the last build if available."
 	VpnStartLong         = "Starts a VPN session in the selected Zerops project. You can't be connected to multiple projects\nat the same time. If the previous VPN session is active, it will be stopped automatically\nand a new VPN session will start.\n"
@@ -234,6 +241,27 @@ const (
 	// daemon remove
 	DaemonRemoveStopVpnUnavailable = "zerops daemon isn't running, vpn couldn't be removed"
 	DaemonRemoveSuccess            = "zerops daemon has been removed"
+
+	// S3
+	BucketGenericXAmzAcl              = "Defines one of predefined grants, known as canned ACLs.\nValid values are: private, public-read, public-read-write, authenticated-read."
+	BucketGenericXAmzAclInvalid       = "Invalid --x-amz-acl value. Allowed values are: private, public-read, public-read-write, authenticated-read."
+	BucketGenericOnlyForObjectStorage = "This command can be used on object storage services only."
+	BucketGenericBucketNamePrefixed   = "Bucket names are prefixed by object storage service ID to make the bucket names unique.\nLearn more about bucket naming conventions at https://docs.zerops.io/documentation/services/storage/s3.html#used-technology"
+
+	BucketCreated                 = "Bucket created"
+	BucketCreateCreatingDirect    = "Creating bucket %s directly on S3 API.\n"
+	BucketCreateCreatingZeropsApi = "Creating bucket %s using Zerops API.\n"
+
+	BucketDeleted                 = "Bucket deleted"
+	BucketDeleteDeletingDirect    = "Deleting bucket %s directly on S3 API.\n"
+	BucketDeleteDeletingZeropsApi = "Deleting bucket %s using Zerops API.\n"
+
+	BucketS3AccessKeyId         = "When using direct S3 API the accessKeyId to the Zerops object storage is required.\nAutomatically filled if the {serviceName}_accessKeyId environment variable exists."
+	BucketS3SecretAccessKey     = "When using direct S3 API the secretAccessKey to the Zerops object storage is required.\nAutomatically filled if the {serviceName}_secretAccessKey environment variable exists."
+	BucketS3FlagBothMandatory   = "If you are specifying accessKeyId or secretAccessKey, both flags are mandatory."
+	BucketS3EnvBothMandatory    = "If you are using env for accessKeyId or secretAccessKey, both env variables must be set."
+	BucketS3RequestFailed       = "S3 API request failed: %s"
+	BucketS3BucketAlreadyExists = "The bucket name already exists under a different object storage user. Set a different bucket name."
 
 	// generic
 	UnauthenticatedUser = `unauthenticated user, login before proceeding with this command

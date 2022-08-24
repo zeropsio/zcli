@@ -86,7 +86,7 @@ func deployCmd() *cobra.Command {
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
 	params.RegisterString(cmd, "zeropsYamlPath", "./", i18n.ZeropsYamlLocation)
 
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.DisplayHelp+i18n.DeployHelp))
+	cmd.Flags().BoolP("help", "h", false, helpText(i18n.DeployHelp))
 
 	return cmd
 }

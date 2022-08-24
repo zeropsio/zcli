@@ -4,21 +4,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [v0.12.4] - 2022-08-24
+
+### Fixed
+- Return correct error messages when project not found by name or ID.
+
+### Added
+- New set of S3 management `bucket` commands with ability to `create` and `delete` buckets
+  - via `Zerops API`:
+    - `zcli bucket zerops create projectNameOrId serviceName bucketName [flags]`
+    - `zcli bucket zerops delete projectNameOrId serviceName bucketName [flags]`
+  - via `S3 API`:
+    - `zcli bucket s3 create serviceName bucketName [flags]`
+    - `zcli bucket s3 delete serviceName bucketName [flags]`
+
+## [v0.12.3] - 2022-08-22
+
+### Added
+- PersistentKeepalive for windows VPN clients
+
 ## [v0.12.2] - 2022-08-16
 
 ### Fixed
-- Inherit the `PATH` variable from the user on `daemon install` on `darwin` platform
+- Inherit the `PATH` variable from the user on `daemon install` on `darwin` platform.
 
 ## [v0.12.1] - 2022-08-09
 
 ### Fixed
-- Added missing default URL for region list command
+- Added missing default URL for region list command.
 
 ## [v0.12.0] - 2022-08-08
 
 ### Changed
-- Updated protobufs to the latest version (**!!!breaking change!!! previous zCLI versions are not compatible and will not work**)
-- Updated `protoc-gen` from GitHub to `protoc-gen-go` and `protoc-gen-go-grpc` from GoLang.org
+- Updated protobufs to the latest version (**!!!breaking change!!! previous zCLI versions are not compatible and will not work**).
+- Updated `protoc-gen` from GitHub to `protoc-gen-go` and `protoc-gen-go-grpc` from GoLang.org.
 
 ## [v0.11.4] - 2022-07-26
 - Enable lowercase formatTemplate values, fix length of timestamps.

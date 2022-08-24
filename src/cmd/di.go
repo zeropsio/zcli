@@ -5,14 +5,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/zerops-io/zcli/src/i18n"
-
-	"github.com/zerops-io/zcli/src/prolongVpn"
-
 	"github.com/zerops-io/zcli/src/cliStorage"
 	"github.com/zerops-io/zcli/src/constants"
 	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/dnsServer"
+	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zerops-io/zcli/src/prolongVpn"
 	"github.com/zerops-io/zcli/src/region"
 	"github.com/zerops-io/zcli/src/utils/httpClient"
 	"github.com/zerops-io/zcli/src/utils/logger"

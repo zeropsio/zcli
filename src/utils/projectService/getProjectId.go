@@ -30,6 +30,10 @@ func GetProjectId(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.
 		return projects[0].GetId(), nil
 	}
 
+	if len(projectNameOrId) != 22 {
+		return "", errors.New(i18n.ProjectNotFound)
+	}
+
 	projectId, err := getById(ctx, sdkConfig, projectNameOrId)
 	if err != nil {
 		return "", err
