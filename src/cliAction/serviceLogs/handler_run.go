@@ -52,16 +52,24 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 
-	// TODO when websocket is implemented, replace _ with expiration
-	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
+	method, url, expiration, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
 	if err != nil {
 		return err
 	}
 
-	query := makeQueryParams(inputs.limit, inputs.facility, inputs.minSeverity, logServiceId, containerId)
-	err = getLogs(ctx, method, url+query, inputs.format, inputs.formatTemplate)
-	if err != nil {
-		return err
+	query := makeQueryParams(inputs, logServiceId, containerId)
+
+	if inputs.mode == RESPONSE {
+		err = getLogs(ctx, method, HTTP+url+query, inputs.format, inputs.formatTemplate)
+		if err != nil {
+			return err
+		}
+	}
+	if inputs.mode == STREAM {
+		err := getLogStream(ctx, expiration, inputs.format, serviceId, WSS+url+query)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

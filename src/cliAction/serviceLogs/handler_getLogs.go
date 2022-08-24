@@ -127,19 +127,17 @@ func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateT
 	urlData := strings.Split(outputUrl, " ")
 	method, url := urlData[0], urlData[1]
 
-	// TODO enable token when websocket is used and return it
-	// accessToken := resOutput.AccessToken
 	expiration := resOutput.Expiration
 
-	return method, HTTP + url, expiration
+	return method, url, expiration
 }
 
-func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId string) string {
-	query := fmt.Sprintf("&limit=%d&desc=1&facility=%d&serviceStackId=%s",
-		limit, facility, logServiceId)
+func makeQueryParams(inputs InputValues, logServiceId, containerId string) string {
+	query := fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s",
+		inputs.limit, getDesc(inputs.mode), inputs.facility, logServiceId)
 
-	if minSeverity != -1 {
-		query += fmt.Sprintf("&minimumSeverity=%d", minSeverity)
+	if inputs.minSeverity != -1 {
+		query += fmt.Sprintf("&minimumSeverity=%d", inputs.minSeverity)
 	}
 
 	if containerId != "" {
@@ -147,4 +145,11 @@ func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId
 	}
 
 	return query
+}
+
+func getDesc(mode string) int {
+	if mode == RESPONSE {
+		return 1
+	}
+	return 0
 }
