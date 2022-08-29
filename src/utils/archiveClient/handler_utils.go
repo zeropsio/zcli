@@ -21,7 +21,7 @@ func (h Handler) fixMissingDirPath(files []File, createFile func(filePath string
 		}
 
 		dirPath += string(os.PathSeparator)
-		if dirPath == file.ArchivePath {
+		if dirPath == filepath.FromSlash(file.ArchivePath) {
 			createdPaths[dirPath] = struct{}{}
 			fixedFiles = append(fixedFiles, file)
 			continue
@@ -38,6 +38,9 @@ func (h Handler) fixMissingDirPath(files []File, createFile func(filePath string
 		// split path into separate folders, to correctly create every folder
 		paths := strings.Split(dirPath, string(os.PathSeparator))
 		for _, p := range paths {
+			if p == "" {
+				continue // if paths ends with PathSeparator, last element will be an empty string, no need to do anything
+			}
 			path = filepath.Join(path, p) + string(os.PathSeparator)
 			if _, ok := createdPaths[path]; ok {
 				continue

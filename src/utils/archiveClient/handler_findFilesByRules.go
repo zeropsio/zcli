@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -21,20 +20,12 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) ([]File,
 
 	// resulting function returns File from provided path
 	// if file shouldn't be included in the result, File.ArchivePath will be empty
-	getCreateFile := func(dirPath string, parts []string) func(string) File {
-		trimmer := func(filePath string) string {
-			filePath = strings.TrimPrefix(filePath, path.Join(dirPath, parts[0]))
-			if filePath == "" {
-				return ""
-			}
-			return strings.TrimPrefix(filePath, string(os.PathSeparator))
-		}
-
+	getCreateFile := func(trimPath string) func(string) File {
 		return func(filePath string) File {
 			filePath = filepath.FromSlash(filePath)
 			return File{
 				SourcePath:  filePath,
-				ArchivePath: filepath.ToSlash(trimmer(filePath)),
+				ArchivePath: filepath.ToSlash(strings.TrimPrefix(strings.TrimPrefix(filePath, trimPath), string(os.PathSeparator))),
 			}
 		}
 	}
@@ -52,7 +43,7 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) ([]File,
 			}
 		}
 
-		source := path.Join(workingDir, path.Join(parts...))
+		source := filepath.Join(workingDir, parts[0], parts[1])
 		source, err := filepath.Abs(source)
 		if err != nil {
 			return nil, err
@@ -70,7 +61,11 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) ([]File,
 			fmt.Printf(i18n.ArchClientPackingFile+"\n", source)
 		}
 
-		createFile := getCreateFile(workingDir, parts)
+		trimPath, err := filepath.Abs(filepath.Join(workingDir, parts[0]))
+		if err != nil {
+			return nil, err
+		}
+		createFile := getCreateFile(trimPath)
 
 		files := make([]File, 0, 100)
 		err = filepath.Walk(source, func(filePath string, info os.FileInfo, err error) error {

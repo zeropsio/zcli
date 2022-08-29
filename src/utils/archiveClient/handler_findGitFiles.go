@@ -23,7 +23,7 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 		filePath = filepath.FromSlash(filePath)
 		return File{
 			SourcePath:  filePath,
-			ArchivePath: filepath.ToSlash(strings.TrimPrefix(filePath, workingDir)),
+			ArchivePath: filepath.ToSlash(strings.TrimPrefix(strings.TrimPrefix(filePath, workingDir), string(os.PathSeparator))),
 		}
 	}
 
@@ -114,8 +114,7 @@ func (h *Handler) listFiles(cmd *exec.Cmd, fn func(path string) error) error {
 
 		if err == io.EOF {
 			if line != "" {
-				err := fn(line)
-				if err != nil {
+				if err := fn(line); err != nil {
 					return err
 				}
 			}
@@ -125,8 +124,7 @@ func (h *Handler) listFiles(cmd *exec.Cmd, fn func(path string) error) error {
 			return err
 		}
 
-		err = fn(line)
-		if err != nil {
+		if err = fn(line); err != nil {
 			return err
 		}
 	}
