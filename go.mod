@@ -29,6 +29,7 @@ require (
 	cloud.google.com/go/compute v1.6.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect

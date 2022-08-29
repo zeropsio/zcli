@@ -66,7 +66,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 	if inputs.mode == STREAM {
-		err := getLogStream(ctx, expiration, inputs.format, serviceId, WSS+url+query)
+		err := getLogStream(ctx, expiration, inputs.format, serviceId, url, query)
 		if err != nil {
 			return err
 		}
