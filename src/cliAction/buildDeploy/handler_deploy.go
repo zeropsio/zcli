@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/zerops-io/zcli/src/constants"
@@ -18,7 +17,6 @@ import (
 )
 
 func (h *Handler) Deploy(ctx context.Context, config RunConfig) error {
-
 	serviceStack, err := h.checkInputValues(ctx, config)
 	if err != nil {
 		return err
@@ -97,10 +95,10 @@ func getConfigContent(config RunConfig) (*zBusinessZeropsApiProtocol.StringNull,
 	}
 
 	if config.ZeropsYamlPath != nil {
-		workingDir = path.Join(workingDir, *config.ZeropsYamlPath)
+		workingDir = filepath.Join(workingDir, *config.ZeropsYamlPath)
 	}
 
-	zeropsYamlPath := path.Join(workingDir, zeropsYamlFileName)
+	zeropsYamlPath := filepath.Join(workingDir, zeropsYamlFileName)
 
 	zeropsYamlStat, err := os.Stat(zeropsYamlPath)
 	if err != nil {
