@@ -183,6 +183,7 @@ const (
 	LogBuildStatusUploading      = "Service status UPLOADING, need to wait for app version data."
 	LogAccessFailed              = "Request for access to logs failed."
 	LogMsgTypeInvalid            = "Invalid --messageType value. Allowed values are APPLICATION, WEBSERVER."
+	LogReadingFailed             = "Log reading failed."
 
 	// deploy
 	DeployHintPush                   = "To build your application in Zerops, use the zcli push command instead."

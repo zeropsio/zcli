@@ -3,6 +3,7 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/projectService"
@@ -60,13 +61,19 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	query := makeQueryParams(inputs, logServiceId, containerId)
 
 	if inputs.mode == RESPONSE {
-		err = getLogs(ctx, method, HTTP+url+query, inputs.format, inputs.formatTemplate)
+		err = getLogs(ctx, method, HTTP+url+query, inputs.format, inputs.formatTemplate, inputs.mode)
 		if err != nil {
 			return err
 		}
 	}
 	if inputs.mode == STREAM {
-		err := getLogStream(ctx, expiration, inputs.format, serviceId, url, query)
+		// TODO extract to a func prepareStreamUrl
+		urlSplit := strings.Split(url, "?")
+		url = urlSplit[0]
+		token := urlSplit[1]
+		url = url + "/stream?" + token
+		fmt.Println("url fixed is", url)
+		err := getLogStream(ctx, expiration, inputs.format, url, query, inputs.mode)
 		if err != nil {
 			return err
 		}

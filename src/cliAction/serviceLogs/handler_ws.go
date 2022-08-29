@@ -7,7 +7,6 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/types"
 	"log"
-	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -17,53 +16,43 @@ import (
 var done chan interface{}
 var interrupt chan os.Signal
 
-func getLogStream(ctx context.Context, expiration types.DateTime, format, serviceId, uri, path string) error {
+func getLogStream(ctx context.Context, expiration types.DateTime, format, uri, path, mode string) error {
+	// TODO move this validation to the beginning
 	if format == JSON {
 		return fmt.Errorf("%s", i18n.LogFormatStreamMismatch)
 	}
-
-	fmt.Printf("stream with:\n expiration %s\n for serviceId %s\n in format %s\n url is %s\n", expiration, serviceId, format, uri+path)
-	// todo add websocket
-	// compare expiration time with time now
-	u := url.URL{Scheme: "wss", Host: uri + path, Path: ""}
-	log.Printf("connecting to %s", u.String())
-	err := listenWS(ctx, u)
-	if err != nil {
+	fmt.Printf("expiration: %s\n", expiration)
+	// todo compare expiration time with time now
+	url := WSS + uri + path
+	if err := listenWS(ctx, url, format, mode); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func listenWS(_ context.Context, url url.URL) error {
+func listenWS(_ context.Context, url, format, mode string) error {
 	done = make(chan interface{})    // Channel to indicate that the receiverHandler is done
 	interrupt = make(chan os.Signal) // Channel to listen for interrupt signal to terminate gracefully
 
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
-	urlFixed1 := strings.ReplaceAll(url.String(), "%2F", "/")
-	urlFixed := strings.ReplaceAll(urlFixed1, "%3F", "?")
-	conn, _, err := websocket.DefaultDialer.Dial(urlFixed, nil)
+
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
-		return fmt.Errorf("error connecting to Websocket Server: %v", err)
+		return fmt.Errorf("%s %s\n", i18n.LogReadingFailed, err.Error())
 	}
 	defer conn.Close()
-	go func() {
-		err := receiveHandler(conn)
-		if err != nil {
-			fmt.Println("problem kamo ", err)
-		}
-	}()
 
-	// Our main loop for the client
-	// We send our relevant packets here
+	go receiveHandler(conn, format, mode)
+
+	// main loop
 	for {
-		fmt.Println("Hi")
 		select {
 		case <-interrupt:
-			// We received a SIGINT (Ctrl + C). Terminate gracefully...
-			log.Println("Received SIGINT interrupt signal. Closing all pending connections")
+			// received a SIGINT (Ctrl + C). Terminate gracefully...
+			log.Println("Received SIGINT interrupt signal. Closing all pending connections...")
 
-			// Close our websocket connection
+			// Close the  websocket connection
 			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("Error during closing websocket:", err)
@@ -74,21 +63,30 @@ func listenWS(_ context.Context, url url.URL) error {
 			case <-done:
 				log.Println("Receiver Channel Closed! Exiting....")
 			case <-time.After(time.Duration(1) * time.Second):
-				log.Println("Timeout in closing receiving channel. Exiting....")
+				log.Println("Receiver Channel Closed! Exiting....")
 			}
 			return nil
 		}
 	}
 }
 
-func receiveHandler(connection *websocket.Conn) error {
+func receiveHandler(connection *websocket.Conn, format, mode string) {
 	defer close(done)
+	defer close(interrupt)
 	for {
-		fmt.Println("hi")
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
-			return fmt.Errorf("Log reading failed. %s\n", err)
+			if !strings.Contains(string(msg), "use of closed network connection") {
+				errMsg := fmt.Errorf("%s %s\n", i18n.LogReadingFailed, err.Error())
+				fmt.Println(errMsg)
+			}
 		}
-		log.Println(msg)
+		if !strings.Contains(string(msg), "{\"items\":[]}") {
+			err := parseResponseByFormat(msg, format, "", mode)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+
+		}
 	}
 }
