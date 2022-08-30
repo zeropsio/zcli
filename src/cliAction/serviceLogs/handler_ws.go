@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/types"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -44,49 +43,52 @@ func listenWS(_ context.Context, url, format, mode string) error {
 	defer conn.Close()
 
 	go receiveHandler(conn, format, mode)
+	// TODO count expiration
+	expired := true
+	expired = false
 
 	// main loop
-	for {
+	for !expired {
 		select {
+		// received a SIGINT (Ctrl + C). Terminate gracefully...
 		case <-interrupt:
-			// received a SIGINT (Ctrl + C). Terminate gracefully...
-			log.Println("Received SIGINT interrupt signal. Closing all pending connections...")
-
+			//log.Println("Received SIGINT interrupt signal. Closing all pending connections...")
 			// Close the  websocket connection
 			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
-				log.Println("Error during closing websocket:", err)
-				return nil
+				return err
 			}
 
 			select {
 			case <-done:
-				log.Println("Receiver Channel Closed! Exiting....")
+				return nil
 			case <-time.After(time.Duration(1) * time.Second):
-				log.Println("Receiver Channel Closed! Exiting....")
+				return nil
 			}
-			return nil
 		}
 	}
+	return nil
 }
 
 func receiveHandler(connection *websocket.Conn, format, mode string) {
 	defer close(done)
-	defer close(interrupt)
+
 	for {
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
-			if !strings.Contains(string(msg), "use of closed network connection") {
+			finishedByUser := strings.Contains(err.Error(), "use of closed network connection")
+			if !finishedByUser {
 				errMsg := fmt.Errorf("%s %s\n", i18n.LogReadingFailed, err.Error())
 				fmt.Println(errMsg)
 			}
+			return
 		}
+
 		if !strings.Contains(string(msg), "{\"items\":[]}") {
 			err := parseResponseByFormat(msg, format, "", mode)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-
 		}
 	}
 }
