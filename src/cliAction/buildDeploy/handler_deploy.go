@@ -106,8 +106,8 @@ func (h *Handler) getValidConfigContent(
 		return nil, err
 	}
 
-	if config.ZeropsYamlPath != nil {
-		workingDir = filepath.Join(workingDir, *config.ZeropsYamlPath)
+	if config.ZeropsYamlPath != "" {
+		workingDir = filepath.Join(workingDir, config.ZeropsYamlPath)
 	}
 
 	zeropsYamlPath := filepath.Join(workingDir, zeropsYamlFileName)
@@ -115,7 +115,7 @@ func (h *Handler) getValidConfigContent(
 	zeropsYamlStat, err := os.Stat(zeropsYamlPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if config.ZeropsYamlPath != nil {
+			if config.ZeropsYamlPath != "" {
 				return nil, errors.New(i18n.BuildDeployZeropsYamlNotFound)
 			}
 		}

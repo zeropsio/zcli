@@ -20,7 +20,7 @@ type RunConfig struct {
 	WorkingDir       string
 	ArchiveFilePath  string
 	VersionName      string
-	ZeropsYamlPath   *string
+	ZeropsYamlPath   string
 }
 
 type Handler struct {
