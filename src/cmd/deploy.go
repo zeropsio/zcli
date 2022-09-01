@@ -73,7 +73,7 @@ func deployCmd() *cobra.Command {
 				ArchiveFilePath:  params.GetString(cmd, "archiveFilePath"),
 				WorkingDir:       params.GetString(cmd, "workingDir"),
 				VersionName:      params.GetString(cmd, "versionName"),
-				ZeropsYamlPath:   params.GetStringP(cmd, "zeropsYamlPath"),
+				ZeropsYamlPath:   params.GetString(cmd, "zeropsYamlPath"),
 				ProjectNameOrId:  args[0],
 				ServiceStackName: args[1],
 				PathsForPacking:  args[2:],
@@ -84,7 +84,7 @@ func deployCmd() *cobra.Command {
 	params.RegisterString(cmd, "workingDir", "./", i18n.BuildWorkingDir)
 	params.RegisterString(cmd, "archiveFilePath", "", i18n.BuildArchiveFilePath)
 	params.RegisterString(cmd, "versionName", "", i18n.BuildVersionName)
-	params.RegisterString(cmd, "zeropsYamlPath", "./", i18n.ZeropsYamlLocation)
+	params.RegisterString(cmd, "zeropsYamlPath", "", i18n.ZeropsYamlLocation)
 
 	cmd.Flags().BoolP("help", "h", false, helpText(i18n.DeployHelp))
 

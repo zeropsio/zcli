@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.12.6] - 2022-09-01
 
+### Fixed
+- `zerops.yml` file is optional for certain service types in `deploy` command
+
 ### Added
 - Validation of `zerops.yml` file into `deploy` command
 
