@@ -136,13 +136,29 @@ func (h *Handler) getValidConfigContent(
 		return nil, err
 	}
 
+	if err = h.validateZeropsYamlContent(ctx, serviceStackTypeId, serviceStackName, yamlContent); err != nil {
+		return nil, err
+	}
+
+	return &zBusinessZeropsApiProtocol.StringNull{
+		Value: base64.StdEncoding.EncodeToString(yamlContent),
+		Valid: true,
+	}, nil
+}
+
+func (h *Handler) validateZeropsYamlContent(
+	ctx context.Context,
+	serviceStackTypeId string,
+	serviceStackName string,
+	yamlContent []byte,
+) error {
 	zdk := sdk.New(
 		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(h.sdkConfig.RegionUrl)),
 		&http.Client{Timeout: 1 * time.Minute},
 	)
 	id, err := stringId.NewServiceStackTypeIdFromString(serviceStackTypeId)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	authorizedSdk := sdk.AuthorizeSdk(zdk, h.sdkConfig.Token)
@@ -152,15 +168,11 @@ func (h *Handler) getValidConfigContent(
 		ZeropsYaml:         types.NewText(string(yamlContent)),
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-
 	if _, err = resp.Output(); err != nil {
-		return nil, err
+		return err
 	}
 
-	return &zBusinessZeropsApiProtocol.StringNull{
-		Value: base64.StdEncoding.EncodeToString(yamlContent),
-		Valid: true,
-	}, nil
+	return nil
 }
