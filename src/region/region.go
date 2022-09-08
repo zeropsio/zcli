@@ -29,12 +29,22 @@ func New(client *httpClient.Handler, storage *storage.Handler[Data]) *Handler {
 	return &Handler{storage: storage, client: client}
 }
 
+// RetrieveFromURL retrieves the region from URL, if region is empty, returns a default region
 func (h *Handler) RetrieveFromURL(regionURL, region string) (Data, error) {
 	resp, err := h.client.Get(regionURL)
 	if err != nil {
 		return Data{}, err
 	}
 	reg, err := readRegion(region, resp.Body)
+	if err != nil {
+		return Data{}, err
+	}
+	return reg, nil
+}
+
+// RetrieveFromURLAndSave retrieves the region using RetrieveFromURL and stores it into the file
+func (h *Handler) RetrieveFromURLAndSave(regionURL, region string) (Data, error) {
+	reg, err := h.RetrieveFromURL(regionURL, region)
 	if err != nil {
 		return Data{}, err
 	}

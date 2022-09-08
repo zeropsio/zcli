@@ -256,6 +256,7 @@ const (
 	BucketDeleteDeletingDirect    = "Deleting bucket %s directly on S3 API.\n"
 	BucketDeleteDeletingZeropsApi = "Deleting bucket %s using Zerops API.\n"
 
+	BucketS3Region              = "When using direct S3 API choose one of Zerops regions.\nUse the \"zcli region list\" command to list all Zerops regions.\nAutomatically filled if the REGION environment variable exists or the user is logged in."
 	BucketS3AccessKeyId         = "When using direct S3 API the accessKeyId to the Zerops object storage is required.\nAutomatically filled if the {serviceName}_accessKeyId environment variable exists."
 	BucketS3SecretAccessKey     = "When using direct S3 API the secretAccessKey to the Zerops object storage is required.\nAutomatically filled if the {serviceName}_secretAccessKey environment variable exists."
 	BucketS3FlagBothMandatory   = "If you are specifying accessKeyId or secretAccessKey, both flags are mandatory."
