@@ -38,7 +38,7 @@ func loginCmd() *cobra.Command {
 			regionURL := params.GetString(cmd, "regionURL")
 			regionName := params.GetString(cmd, "region")
 
-			reg, err := region.RetrieveFromURL(regionURL, regionName)
+			reg, err := region.RetrieveFromURLAndSave(regionURL, regionName)
 			if err != nil {
 				return err
 			}
@@ -69,12 +69,11 @@ func loginCmd() *cobra.Command {
 	params.RegisterString(cmd, "zeropsPassword", "", i18n.ZeropsPwdFlag)
 	params.RegisterString(cmd, "zeropsToken", "", i18n.ZeropsTokenFlag)
 	params.RegisterString(cmd, "region", "", i18n.RegionFlag)
-	params.RegisterString(cmd, "regionURL", "https://api.app.zerops.io/api/rest/public/region/zcli", i18n.RegionUrlFlag)
+	params.RegisterString(cmd, "regionURL", defaultRegionUrl, i18n.RegionUrlFlag)
 
 	cmd.Flags().BoolP("help", "h", false, helpText(i18n.LoginHelp))
 	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		err := command.Flags().MarkHidden("regionURL")
-		if err != nil {
+		if err := command.Flags().MarkHidden("regionURL"); err != nil {
 			return
 		}
 		command.Parent().HelpFunc()(command, strings)

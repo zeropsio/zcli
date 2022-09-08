@@ -26,12 +26,7 @@ func bucketS3DeleteCmd() *cobra.Command {
 				return err
 			}
 
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
-			}
-
-			reg, err := region.RetrieveFromFile()
+			reg, err := getRegion(ctx, cmd)
 			if err != nil {
 				return err
 			}
@@ -55,7 +50,16 @@ func bucketS3DeleteCmd() *cobra.Command {
 	params.RegisterString(cmd, "x-amz-acl", "", i18n.BucketGenericXAmzAcl)
 	params.RegisterString(cmd, "accessKeyId", "", i18n.BucketS3AccessKeyId)
 	params.RegisterString(cmd, "secretAccessKey", "", i18n.BucketS3SecretAccessKey)
+	params.RegisterString(cmd, "region", "", i18n.BucketS3Region)
 
+	params.RegisterString(cmd, "regionURL", defaultRegionUrl, i18n.RegionUrlFlag)
 	cmd.Flags().BoolP("help", "h", false, helpText(i18n.BucketDeleteHelp))
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		if err := command.Flags().MarkHidden("regionURL"); err != nil {
+			return
+		}
+		command.Parent().HelpFunc()(command, strings)
+	})
+
 	return cmd
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/zerops-io/zcli/src/i18n"
 )
 
+const defaultRegionUrl = "https://api.app.zerops.io/api/rest/public/region/zcli"
+
 func regionList() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "region",
@@ -45,12 +47,11 @@ func regionList() *cobra.Command {
 			return nil
 		},
 	}
-	params.RegisterString(listCmd, "regionURL", "https://api.app.zerops.io/api/rest/public/region/zcli", "zerops region")
+	params.RegisterString(listCmd, "regionURL", defaultRegionUrl, "zerops region")
 	listCmd.Flags().BoolP("help", "h", false, helpText(i18n.RegionListHelp))
 
 	listCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		err := command.Flags().MarkHidden("regionURL")
-		if err != nil {
+		if err := command.Flags().MarkHidden("regionURL"); err != nil {
 			return
 		}
 		command.Parent().HelpFunc()(command, strings)
