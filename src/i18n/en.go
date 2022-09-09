@@ -226,9 +226,9 @@ const (
 	VpnStatusDnsStatusSetInactive    = "dns isn't set, try `/path/to/zcli vpn start` command"
 	VpnStatusAdditionalInfo          = "additional info:"
 	VpnStatusDnsCheckError           = "we failed to check that dns is working correctly"
-	VpnStatusDnsNoCheckFunction      = "there is no function for dns check"
 	VpnStatusDnsInterfaceNotFound    = "vpn interface not found"
 	VpnStatusWireguardNotAvailable   = "wireguard interface not available"
+	VpnStatusCheckInvalidAddress     = "invalid address"
 
 	// vpn stop
 	VpnStopSuccess                       = "vpn connection was closed"
@@ -281,7 +281,8 @@ more info: https://docs.zerops.io/documentation/cli/authorization.html`
 	GrpcApiTimeout    = "zerops api didn't respond within assigned time, try it again later"
 	GrpcVpnApiTimeout = "zerops vpn server didn't respond within assigned time, try it again later"
 
-	HintChangeRegion = "hint: try to change your region (you can list available regions using `zcli region list`)"
+	HintChangeRegion    = "hint: try to change your region (you can list available regions using `zcli region list`)"
+	InternalServerError = "internal server error"
 )
 
 func AddHintChangeRegion(err error) error {
