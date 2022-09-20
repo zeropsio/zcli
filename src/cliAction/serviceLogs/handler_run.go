@@ -3,6 +3,7 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/projectService"
@@ -52,17 +53,32 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 
-	// TODO when websocket is implemented, replace _ with expiration
 	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
 	if err != nil {
 		return err
 	}
 
-	query := makeQueryParams(inputs.limit, inputs.facility, inputs.minSeverity, logServiceId, containerId)
-	err = getLogs(ctx, method, url+query, inputs.format, inputs.formatTemplate)
-	if err != nil {
-		return err
+	query := makeQueryParams(inputs, logServiceId, containerId)
+
+	if inputs.mode == RESPONSE {
+		err = getLogs(ctx, method, HTTP+url+query, inputs.format, inputs.formatTemplate, inputs.mode)
+		if err != nil {
+			return err
+		}
+	}
+	if inputs.mode == STREAM {
+		wsUrl := getWsUrl(url)
+		err := h.getLogStream(ctx, inputs.format, wsUrl, query, inputs.mode)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func getWsUrl(apiUrl string) string {
+	urlSplit := strings.Split(apiUrl, "?")
+	url, token := urlSplit[0], urlSplit[1]
+	return url + "/stream?" + token
 }

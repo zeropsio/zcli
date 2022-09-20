@@ -171,6 +171,7 @@ const (
 	LogMinSeverityNumLimitErr    = "Allowed interval is <0;7>."
 	LogFormatInvalid             = "Invalid --format value. Allowed values are FULL, SHORT, JSON, JSONSTREAM."
 	LogFormatTemplateMismatch    = "--formatTemplate can be used only in combination with --format=FULL."
+	LogFormatStreamMismatch      = "--format=JSON cannot be used in combination with --follow. Use --format=JSONSTREAM instead."
 	LogServiceNameInvalid        = "Invalid serviceName value. Multiple @ characters are not supported. See -h for help."
 	LogFormatTemplateInvalid     = "Invalid --formatTemplate content. The custom template failed with following error:"
 	LogFormatTemplateNoSpace     = "Template items must be split by a (single) space."
@@ -182,6 +183,7 @@ const (
 	LogBuildStatusUploading      = "Service status UPLOADING, need to wait for app version data."
 	LogAccessFailed              = "Request for access to logs failed."
 	LogMsgTypeInvalid            = "Invalid --messageType value. Allowed values are APPLICATION, WEBSERVER."
+	LogReadingFailed             = "Log reading failed."
 
 	// deploy
 	DeployHintPush                   = "To build your application in Zerops, use the zcli push command instead."

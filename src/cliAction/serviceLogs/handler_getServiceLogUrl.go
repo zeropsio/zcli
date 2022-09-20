@@ -29,7 +29,7 @@ func (h *Handler) getServiceLogResData(ctx context.Context, sdkConfig sdkConfig.
 	}
 
 	resOutput, err := response.Output()
-	if err != nil { // TODO parse meta data
+	if err != nil {
 		return "", "", types.DateTime{}, fmt.Errorf("%s %v", i18n.LogAccessFailed, err)
 	}
 	method, url, expiration := getLogRequestData(resOutput)
