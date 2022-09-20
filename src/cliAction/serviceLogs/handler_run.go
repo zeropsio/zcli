@@ -53,7 +53,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 
-	method, url, expiration, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
+	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
 	if err != nil {
 		return err
 	}
@@ -67,17 +67,18 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 	if inputs.mode == STREAM {
-		// TODO extract to a func prepareStreamUrl
-		urlSplit := strings.Split(url, "?")
-		url = urlSplit[0]
-		token := urlSplit[1]
-		url = url + "/stream?" + token
-		fmt.Println("url fixed is", url)
-		err := getLogStream(ctx, expiration, inputs.format, url, query, inputs.mode)
+		wsUrl := getWsUrl(url)
+		err := h.getLogStream(ctx, inputs.format, wsUrl, query, inputs.mode)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func getWsUrl(apiUrl string) string {
+	urlSplit := strings.Split(apiUrl, "?")
+	url, token := urlSplit[0], urlSplit[1]
+	return url + "/stream?" + token
 }

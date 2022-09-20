@@ -129,6 +129,7 @@ func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateT
 	urlData := strings.Split(outputUrl, " ")
 	method, url := urlData[0], urlData[1]
 
+	// todo remove expiration if not used
 	expiration := resOutput.Expiration
 
 	return method, url, expiration

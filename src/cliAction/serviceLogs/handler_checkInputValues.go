@@ -39,6 +39,9 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 	mode := RESPONSE
 	if config.Follow {
 		mode = STREAM
+		if format == JSON {
+			return inputValues, fmt.Errorf("%s", i18n.LogFormatStreamMismatch)
+		}
 	}
 	return InputValues{
 		limit:          int(limit),
