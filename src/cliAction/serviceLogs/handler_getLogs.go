@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/types"
 )
 
 type Response struct {
@@ -124,15 +123,12 @@ func reverseLogs(data []Data) []Data {
 	return data
 }
 
-func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateTime) {
+func getLogRequestData(resOutput output.ProjectLog) (string, string) {
 	outputUrl := string(resOutput.Url)
 	urlData := strings.Split(outputUrl, " ")
 	method, url := urlData[0], urlData[1]
 
-	// todo remove expiration if not used
-	expiration := resOutput.Expiration
-
-	return method, url, expiration
+	return method, url
 }
 
 func makeQueryParams(inputs InputValues, logServiceId, containerId string) string {

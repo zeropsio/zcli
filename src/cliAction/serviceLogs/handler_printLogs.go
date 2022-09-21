@@ -6,7 +6,7 @@ import (
 )
 
 func (h *Handler) printLogs(ctx context.Context, inputs InputValues, containerId, logServiceId, projectId string) error {
-	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
+	method, url, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
 	if err != nil {
 		return err
 	}
