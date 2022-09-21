@@ -22,7 +22,7 @@ func (h *Handler) getLogStream(
 	ctx context.Context, inputs InputValues, uri, query, containerId, logServiceId, projectId string,
 ) error {
 	url := updateUri(uri, query)
-	fmt.Println(url)                       // todo remove after testing
+
 	interrupt = make(chan os.Signal, 1)    // Channel to listen for interrupt signal to terminate gracefully
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
 
@@ -41,7 +41,11 @@ func (h *Handler) getLogStream(
 		case <-ctx.Done():
 			return nil
 		case <-done:
-			// reconnect the websocket connection
+			// if interrupted by user
+			if ctx.Err() != nil {
+				return nil
+			}
+			// otherwise try to reconnect the websocket
 			err := h.writeLogs(ctx, inputs, containerId, logServiceId, projectId)
 			if err != nil {
 				return err
@@ -78,9 +82,10 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format, mode string
 	for {
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
-			// websocket close err (appears on expiration of token) - try to reconnect
+			// websocket close err (appears on expiration of token)
 			closeErr := strings.Contains(err.Error(), "websocket: close")
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || closeErr {
+				time.Sleep(time.Second * 5)
 				return
 			}
 			finishedByUser := strings.Contains(err.Error(), "use of closed network connection")
@@ -92,19 +97,17 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format, mode string
 		}
 
 		if strings.Contains(string(msg), "{\"items\"") && !strings.Contains(string(msg), "{\"items\":[]}") {
-			lastMsgId = getLastMsgId(msg) // update last message id for reconnection
+			lastMsgId = updateLastMsgId(msg)
 			err := parseResponseByFormat(msg, format, "", mode)
 			if err != nil {
-				fmt.Println("ERRRRRR: ", err.Error()) // todo remove ERRRRR
+				fmt.Println(err.Error())
 			}
-			// todo remove
-		} else {
-			fmt.Println("msg", string(msg))
 		}
 	}
 }
 
-func getLastMsgId(body []byte) string {
+// update last msg ID for ws reconnection, but only if there is a new message coming
+func updateLastMsgId(body []byte) string {
 	var jsonData Response
 	err := json.Unmarshal(body, &jsonData)
 	if err != nil || len(jsonData.Items) == 0 {
