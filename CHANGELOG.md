@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.12.8] - 2022-09-21
+
+### Added
+- `--follow` flag for `zcli service logs` command to receive stream of logs
+
 ## [v0.12.7] - 2022-09-08
 
 ### Added
