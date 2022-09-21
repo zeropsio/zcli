@@ -53,6 +53,14 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 
+	if err = h.writeLogs(ctx, inputs, containerId, logServiceId, projectId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *Handler) writeLogs(ctx context.Context, inputs InputValues, containerId, logServiceId, projectId string) error {
 	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
 	if err != nil {
 		return err
@@ -68,12 +76,11 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 	if inputs.mode == STREAM {
 		wsUrl := getWsUrl(url)
-		err := h.getLogStream(ctx, inputs.format, wsUrl, query, inputs.mode)
+		err := h.getLogStream(ctx, inputs, wsUrl, query, containerId, logServiceId, projectId)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 

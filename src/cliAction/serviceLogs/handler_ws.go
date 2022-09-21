@@ -12,12 +12,17 @@ import (
 	"time"
 )
 
-var done chan interface{}
-var interrupt chan os.Signal
-var lastMsgId string
+var (
+	done      chan interface{}
+	interrupt chan os.Signal
+	lastMsgId string
+)
 
-func (h *Handler) getLogStream(ctx context.Context, format, uri, query, mode string) error {
+func (h *Handler) getLogStream(
+	ctx context.Context, inputs InputValues, uri, query, containerId, logServiceId, projectId string,
+) error {
 	url := updateUri(uri, query)
+	fmt.Println(url)                       // todo remove after testing
 	interrupt = make(chan os.Signal, 1)    // Channel to listen for interrupt signal to terminate gracefully
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
 
@@ -29,13 +34,18 @@ func (h *Handler) getLogStream(ctx context.Context, format, uri, query, mode str
 
 	done = make(chan interface{}) // Channel to indicate that the receiverHandler is done
 
-	go receiveHandler(conn, format, mode)
+	go h.receiveHandler(conn, inputs.format, inputs.mode)
 
 	for {
 		select {
-		case <-done:
-			fmt.Println("done")
+		case <-ctx.Done():
 			return nil
+		case <-done:
+			// reconnect the websocket connection
+			err := h.writeLogs(ctx, inputs, containerId, logServiceId, projectId)
+			if err != nil {
+				return err
+			}
 		// received a SIGINT (Ctrl + C). Terminate gracefully...
 		case <-interrupt:
 			// Close the websocket connection
@@ -49,9 +59,6 @@ func (h *Handler) getLogStream(ctx context.Context, format, uri, query, mode str
 			case <-time.After(time.Duration(1) * time.Second):
 				return nil
 			}
-		case <-ctx.Done():
-			fmt.Println("ctx done")
-			return ctx.Err() // dunno what to do with this
 		}
 	}
 }
@@ -65,12 +72,17 @@ func updateUri(uri, query string) string {
 	return WSS + uri + query + from
 }
 
-func receiveHandler(connection *websocket.Conn, format, mode string) {
+func (h *Handler) receiveHandler(connection *websocket.Conn, format, mode string) {
 	defer close(done)
 
 	for {
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
+			// websocket close err (appears on expiration of token) - try to reconnect
+			closeErr := strings.Contains(err.Error(), "websocket: close")
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || closeErr {
+				return
+			}
 			finishedByUser := strings.Contains(err.Error(), "use of closed network connection")
 			if !finishedByUser {
 				errMsg := fmt.Errorf("%s %s\n", i18n.LogReadingFailed, err.Error())
@@ -79,12 +91,15 @@ func receiveHandler(connection *websocket.Conn, format, mode string) {
 			return
 		}
 
-		if !strings.Contains(string(msg), "{\"items\":[]}") {
+		if strings.Contains(string(msg), "{\"items\"") && !strings.Contains(string(msg), "{\"items\":[]}") {
 			lastMsgId = getLastMsgId(msg) // update last message id for reconnection
 			err := parseResponseByFormat(msg, format, "", mode)
 			if err != nil {
-				fmt.Println(err.Error())
+				fmt.Println("ERRRRRR: ", err.Error()) // todo remove ERRRRR
 			}
+			// todo remove
+		} else {
+			fmt.Println("msg", string(msg))
 		}
 	}
 }
@@ -92,8 +107,8 @@ func receiveHandler(connection *websocket.Conn, format, mode string) {
 func getLastMsgId(body []byte) string {
 	var jsonData Response
 	err := json.Unmarshal(body, &jsonData)
-	if err != nil {
-		return ""
+	if err != nil || len(jsonData.Items) == 0 {
+		return lastMsgId
 	}
 	return jsonData.Items[len(jsonData.Items)-1].Id
 }
