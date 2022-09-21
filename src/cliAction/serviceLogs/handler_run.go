@@ -3,8 +3,6 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/utils/projectService"
 )
@@ -53,39 +51,9 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		}
 	}
 
-	if err = h.writeLogs(ctx, inputs, containerId, logServiceId, projectId); err != nil {
+	if err = h.printLogs(ctx, inputs, containerId, logServiceId, projectId); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (h *Handler) writeLogs(ctx context.Context, inputs InputValues, containerId, logServiceId, projectId string) error {
-	method, url, _, err := h.getServiceLogResData(ctx, h.sdkConfig, projectId)
-	if err != nil {
-		return err
-	}
-
-	query := makeQueryParams(inputs, logServiceId, containerId)
-
-	if inputs.mode == RESPONSE {
-		err = getLogs(ctx, method, HTTP+url+query, inputs.format, inputs.formatTemplate, inputs.mode)
-		if err != nil {
-			return err
-		}
-	}
-	if inputs.mode == STREAM {
-		wsUrl := getWsUrl(url)
-		err := h.getLogStream(ctx, inputs, wsUrl, query, containerId, logServiceId, projectId)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func getWsUrl(apiUrl string) string {
-	urlSplit := strings.Split(apiUrl, "?")
-	url, token := urlSplit[0], urlSplit[1]
-	return url + "/stream?" + token
 }

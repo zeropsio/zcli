@@ -46,7 +46,7 @@ func (h *Handler) getLogStream(
 				return nil
 			}
 			// otherwise try to reconnect the websocket
-			err := h.writeLogs(ctx, inputs, containerId, logServiceId, projectId)
+			err := h.printLogs(ctx, inputs, containerId, logServiceId, projectId)
 			if err != nil {
 				return err
 			}
