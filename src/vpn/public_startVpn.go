@@ -2,13 +2,6 @@ package vpn
 
 import (
 	"context"
-	"fmt"
-
-	"github.com/zerops-io/zcli/src/proto/daemon"
-
-	"github.com/zerops-io/zcli/src/i18n"
-
-	"github.com/zerops-io/zcli/src/dns"
 )
 
 func (h *Handler) StartVpn(
@@ -20,11 +13,12 @@ func (h *Handler) StartVpn(
 	userId string,
 	mtu uint32,
 	caCertificateUrl string,
-) (vpnStatus *daemon.VpnStatus, err error) {
+	preferredPortMin uint32,
+	preferredPortMax uint32,
+) (err error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-
-	err = h.startVpn(
+	return h.startVpn(
 		ctx,
 		grpcApiAddress,
 		grpcVpnAddress,
@@ -33,39 +27,7 @@ func (h *Handler) StartVpn(
 		userId,
 		mtu,
 		caCertificateUrl,
+		preferredPortMin,
+		preferredPortMax,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	// tunnel status was checked in internal function startVpn
-	vpnStatus = &daemon.VpnStatus{
-		TunnelState: daemon.TunnelState_TUNNEL_ACTIVE,
-		DnsState:    daemon.DnsState_DNS_UNSET,
-	}
-
-	data := h.storage.Data()
-	if data.DnsManagement != string(dns.LocalDnsManagementUnknown) {
-		vpnStatus.DnsState = daemon.DnsState_DNS_SET_INACTIVE
-		dnsIsAlive, err := dns.IsAlive()
-		if err != nil {
-			h.logger.Error(err)
-			vpnStatus.AdditionalInfo = i18n.VpnStatusDnsCheckError + "\n"
-		}
-		if dnsIsAlive {
-			vpnStatus.DnsState = daemon.DnsState_DNS_ACTIVE
-		}
-		if vpnStatus.DnsState != daemon.DnsState_DNS_ACTIVE {
-			vpnStatus.AdditionalInfo += fmt.Sprintf(
-				"dns ip: %s\n"+
-					"vpn network: %s\n"+
-					"client ip: %s\n",
-				data.DnsIp.String(),
-				data.VpnNetwork.String(),
-				data.ClientIp.String(),
-			)
-		}
-	}
-
-	return
 }

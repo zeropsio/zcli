@@ -1,27 +1,29 @@
 //go:build darwin
-// +build darwin
 
 package vpn
 
 import (
-	"os/exec"
+	"context"
+	"errors"
+	"net"
+	"os"
+	"path"
 
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
-func (h *Handler) cleanVpn() error {
-
-	var err error
-
-	h.logger.Debug("clean vpn start")
-
-	cmd := "ps aux | grep wireguard | grep -v grep | awk '{print $2}' | xargs sudo kill"
-	_, err = cmdRunner.Run(exec.Command("bash", "-c", cmd))
+func (h *Handler) cleanVpn(_ context.Context, interfaceName string) error {
+	interfaces, err := net.Interfaces()
 	if err != nil {
-		return err
+		h.logger.Error(err)
+		return errors.New(i18n.VpnStopUnableToRemoveTunnelInterface)
 	}
-
-	h.logger.Debug("clean vpn end")
-
+	for _, in := range interfaces {
+		if in.Name == interfaceName {
+			if err := os.Remove(path.Join("/var/run/wireguard/", interfaceName+".sock")); err != nil {
+				return errors.New(i18n.VpnStopUnableToRemoveTunnelInterface)
+			}
+		}
+	}
 	return nil
 }

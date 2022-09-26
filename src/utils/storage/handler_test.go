@@ -20,12 +20,19 @@ func TestStorage(t *testing.T) {
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		d := storage.load()
-		Expect(d.Param).To(Equal(""))
-		d.Param = "value"
+		{
+			d := storage.Data()
+			Expect(d.Param).To(Equal(""))
+		}
 
-		err = storage.Save(d)
-		Expect(err).ShouldNot(HaveOccurred())
+		{
+			d, err := storage.Update(func(data dataObject) dataObject {
+				data.Param = "value"
+				return data
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(d.Param).To(Equal("value"))
+		}
 	}
 
 	{
@@ -34,7 +41,7 @@ func TestStorage(t *testing.T) {
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		d := storage.load()
+		d := storage.Data()
 		Expect(d.Param).To(Equal("value"))
 	}
 

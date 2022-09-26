@@ -15,7 +15,6 @@ type InputValues struct {
 	facility       int
 	format         string
 	formatTemplate string
-	mode           string
 }
 
 func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, err error) {
@@ -36,20 +35,12 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 		return inputValues, err
 	}
 
-	mode := RESPONSE
-	if config.Follow {
-		mode = STREAM
-		if format == JSON {
-			return inputValues, fmt.Errorf("%s", i18n.LogFormatStreamMismatch)
-		}
-	}
 	return InputValues{
 		limit:          int(limit),
 		minSeverity:    severity,
 		facility:       facility,
 		format:         format,
 		formatTemplate: formatTemplate,
-		mode:           mode,
 	}, nil
 }
 

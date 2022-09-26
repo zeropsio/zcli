@@ -1,15 +1,40 @@
 //go:build windows
-// +build windows
 
 package vpn
 
-import "os/exec"
+import (
+	"context"
+	"errors"
+	"os"
 
-func (h *Handler) cleanVpn() error {
-	output, err := exec.Command("wireguard", "/uninstalltunnelservice", "zerops").Output()
+	"github.com/zerops-io/zcli/src/i18n"
+	"golang.zx2c4.com/wireguard/wgctrl"
+)
+
+func (h *Handler) cleanVpn(ctx context.Context, interfaceName string) error {
+
+	wg, err := wgctrl.New()
 	if err != nil {
-		h.logger.Error(output)
+		h.logger.Error(err)
+		return errors.New(i18n.VpnStatusWireguardNotAvailable)
+	}
+	defer wg.Close()
+
+	h.logger.Debug("check Interface: ", interfaceName)
+	if _, err := wg.Device(interfaceName); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
 		return err
 	}
-	return nil
+
+	return runCommands(
+		ctx,
+		h.logger,
+		makeCommand(
+			"wireguard",
+			i18n.VpnStopUnableToRemoveTunnelInterface,
+			"/uninstalltunnelservice", interfaceName,
+		),
+	)
 }

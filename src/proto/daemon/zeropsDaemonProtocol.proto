@@ -5,9 +5,9 @@ option go_package = "github.com/zerops-io/zcli/src/protocol/daemon";
 package zeropsDaemonProtocol;
 
 service ZeropsDaemonProtocol {
-    rpc startVpn (startVpnRequest) returns (startVpnResponse);
-    rpc stopVpn (stopVpnRequest) returns (stopVpnResponse);
-    rpc statusVpn (statusVpnRequest) returns (statusVpnResponse);
+    rpc startVpn (startVpnRequest) returns (vpnStatus);
+    rpc stopVpn (stopVpnRequest) returns (vpnStatus);
+    rpc statusVpn (statusVpnRequest) returns (vpnStatus);
 }
 
 enum tunnelState {
@@ -36,23 +36,12 @@ message startVpnRequest {
     uint32 mtu = 5;
     string userId = 6;
     string caCertificateUrl = 7;
-}
-
-message startVpnResponse {
-    vpnStatus vpnStatus = 1;
+    uint32 preferredPortMin = 8;
+    uint32 preferredPortMax = 9;
 }
 
 message stopVpnRequest {
 }
 
-message stopVpnResponse {
-    vpnStatus vpnStatus = 1;
-    bool activeBefore = 2;
-}
-
 message statusVpnRequest {
-}
-
-message statusVpnResponse {
-    vpnStatus vpnStatus = 1;
 }

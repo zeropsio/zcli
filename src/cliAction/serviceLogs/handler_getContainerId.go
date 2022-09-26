@@ -37,7 +37,6 @@ func (h *Handler) getContainerId(ctx context.Context, sdkConfig sdkConfig.Config
 		Operator: "eq",
 		Value:    types.String(serviceId),
 	})
-
 	var sortData []body.EsSortItem
 	sortData = append(sortData, body.EsSortItem{
 		Name:      "number",

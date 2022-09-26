@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/zeropsio/zerops-go/dto/output"
+	"github.com/zeropsio/zerops-go/types"
 )
 
 type Response struct {
@@ -37,7 +38,7 @@ type Data struct {
 	Message        string `json:"message"`
 }
 
-func getLogs(ctx context.Context, method, url, format, formatTemplate, mode string) error {
+func getLogs(ctx context.Context, method, url, format, formatTemplate string) error {
 	c := http.Client{Timeout: time.Duration(1) * time.Minute}
 
 	req, err := http.NewRequest(method, url, nil)
@@ -60,14 +61,14 @@ func getLogs(ctx context.Context, method, url, format, formatTemplate, mode stri
 		return err
 	}
 
-	err = parseResponseByFormat(body, format, formatTemplate, mode)
+	err = parseResponseByFormat(body, format, formatTemplate)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func parseResponseByFormat(body []byte, format, formatTemplate, mode string) error {
+func parseResponseByFormat(body []byte, format, formatTemplate string) error {
 	var err error
 
 	var jsonData Response
@@ -77,27 +78,25 @@ func parseResponseByFormat(body []byte, format, formatTemplate, mode string) err
 	}
 
 	logs := jsonData.Items
-	if mode == RESPONSE {
-		logs = reverseLogs(logs)
-	}
+	ascLogs := reverseLogs(logs)
 
 	if format == FULL {
 		if formatTemplate != "" {
-			if err = getFullWithTemplate(logs, formatTemplate); err != nil {
+			if err = getFullWithTemplate(ascLogs, formatTemplate); err != nil {
 				return err
 			}
 			return nil
 		} else {
 			// TODO get rfc from config when implemented as flag
-			getFullByRfc(logs, RFC5424)
+			getFullByRfc(ascLogs, RFC5424)
 			return nil
 		}
 	} else if format == SHORT {
-		for _, o := range logs {
+		for _, o := range ascLogs {
 			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
 		}
 	} else if format == JSONSTREAM {
-		for _, o := range logs {
+		for _, o := range ascLogs {
 			val, err := json.Marshal(o)
 			if err != nil {
 				return err
@@ -105,7 +104,7 @@ func parseResponseByFormat(body []byte, format, formatTemplate, mode string) err
 			fmt.Println(string(val))
 		}
 	} else {
-		val, err := json.Marshal(logs)
+		val, err := json.Marshal(ascLogs)
 		if err != nil {
 			return err
 		}
@@ -123,20 +122,24 @@ func reverseLogs(data []Data) []Data {
 	return data
 }
 
-func getLogRequestData(resOutput output.ProjectLog) (string, string) {
+func getLogRequestData(resOutput output.ProjectLog) (string, string, types.DateTime) {
 	outputUrl := string(resOutput.Url)
 	urlData := strings.Split(outputUrl, " ")
 	method, url := urlData[0], urlData[1]
 
-	return method, url
+	// TODO enable token when websocket is used and return it
+	// accessToken := resOutput.AccessToken
+	expiration := resOutput.Expiration
+
+	return method, HTTP + url, expiration
 }
 
-func makeQueryParams(inputs InputValues, logServiceId, containerId string) string {
-	query := fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s",
-		inputs.limit, getDesc(inputs.mode), inputs.facility, logServiceId)
+func makeQueryParams(limit, facility, minSeverity int, logServiceId, containerId string) string {
+	query := fmt.Sprintf("&limit=%d&desc=1&facility=%d&serviceStackId=%s",
+		limit, facility, logServiceId)
 
-	if inputs.minSeverity != -1 {
-		query += fmt.Sprintf("&minimumSeverity=%d", inputs.minSeverity)
+	if minSeverity != -1 {
+		query += fmt.Sprintf("&minimumSeverity=%d", minSeverity)
 	}
 
 	if containerId != "" {
@@ -144,11 +147,4 @@ func makeQueryParams(inputs InputValues, logServiceId, containerId string) strin
 	}
 
 	return query
-}
-
-func getDesc(mode string) int {
-	if mode == RESPONSE {
-		return 1
-	}
-	return 0
 }

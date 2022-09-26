@@ -6,9 +6,9 @@ import (
 	"github.com/zerops-io/zcli/src/proto/daemon"
 )
 
-func (h *Handler) StartVpn(ctx context.Context, request *daemon.StartVpnRequest) (*daemon.StartVpnResponse, error) {
+func (h *Handler) StartVpn(ctx context.Context, request *daemon.StartVpnRequest) (*daemon.VpnStatus, error) {
 
-	vpnStatus, err := h.vpn.StartVpn(
+	if err := h.vpn.StartVpn(
 		ctx,
 		request.GetApiAddress(),
 		request.GetVpnAddress(),
@@ -17,12 +17,11 @@ func (h *Handler) StartVpn(ctx context.Context, request *daemon.StartVpnRequest)
 		request.GetUserId(),
 		request.GetMtu(),
 		request.GetCaCertificateUrl(),
-	)
-	if err != nil {
-		return &daemon.StartVpnResponse{}, err
+		request.GetPreferredPortMin(),
+		request.GetPreferredPortMax(),
+	); err != nil {
+		return nil, err
 	}
 
-	return &daemon.StartVpnResponse{
-		VpnStatus: vpnStatus,
-	}, nil
+	return h.StatusVpn(ctx, &daemon.StatusVpnRequest{})
 }

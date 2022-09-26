@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -63,8 +62,7 @@ func regSignals(contextCancel func()) {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		sig := <-sigs
-		fmt.Println("\n", "signal:", sig)
+		<-sigs
 		contextCancel()
 	}()
 }

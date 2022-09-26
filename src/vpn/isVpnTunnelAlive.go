@@ -7,7 +7,7 @@ import (
 	"github.com/zerops-io/zcli/src/nettools"
 )
 
-func (h *Handler) isVpnTunnelAlive(serverIp net.IP) bool {
+func (h *Handler) isVpnTunnelAlive(ctx context.Context, serverIp net.IP) bool {
 
 	if serverIp.String() == "" {
 		return false
@@ -15,7 +15,7 @@ func (h *Handler) isVpnTunnelAlive(serverIp net.IP) bool {
 
 	for i := 0; i < h.config.VpnCheckRetryCount; i++ {
 		if func() bool {
-			ctx, cancel := context.WithTimeout(context.Background(), h.config.VpnCheckTimeout)
+			ctx, cancel := context.WithTimeout(ctx, h.config.VpnCheckTimeout)
 			defer cancel()
 
 			err := nettools.Ping(ctx, serverIp.String())

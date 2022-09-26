@@ -15,7 +15,7 @@ var (
 	DaemonInstallDir string
 )
 
-const WireguardPath = `C:\Program Files\Wireguard`
+const WireguardPath = `C:\Program Files\wireguard`
 
 func init() {
 	appData, _ := os.UserConfigDir()

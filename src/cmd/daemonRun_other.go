@@ -29,6 +29,6 @@ func prepareEnvironment() error {
 	return nil
 }
 
-func run(cmd *cobra.Command, args []string) error {
-	return daemonRun(cmd, args)
+func run(cmd *cobra.Command, _ []string) error {
+	return daemonRun(cmd.Context())
 }

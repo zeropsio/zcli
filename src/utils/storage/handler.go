@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -16,9 +15,8 @@ type Config struct {
 
 type Handler[T any] struct {
 	config Config
-	data   *T
-
-	lock sync.Mutex
+	data   T
+	lock   sync.RWMutex
 }
 
 func New[T any](config Config) (*Handler[T], error) {
@@ -26,82 +24,78 @@ func New[T any](config Config) (*Handler[T], error) {
 		config: config,
 	}
 
-	dir := filepath.Dir(config.FilePath)
-	err := os.MkdirAll(dir, 0755)
-	if err != nil {
-		return nil, err
-	}
-
-	f, err := os.OpenFile(config.FilePath, os.O_CREATE, 0755)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	return h, nil
+	return h, h.load()
 }
 
-func (h *Handler[T]) load() *T {
-	var data T
+func (h *Handler[T]) load() error {
 
-	storageFileExists, err := utils.FileExists(h.config.FilePath)
-	if err != nil {
-		return &data
-	}
-
-	if storageFileExists {
-		err := func() error {
-			f, err := os.Open(h.config.FilePath)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-
-			bytes, err := ioutil.ReadAll(f)
-			if err != nil {
-				return err
-			}
-
-			err = json.Unmarshal(bytes, &data)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}()
-		if err == nil {
-			return &data
-		}
-	}
-
-	return &data
-}
-
-func (h *Handler[T]) Save(data *T) error {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-
-	h.data = data
-
-	dataBytes, err := json.Marshal(data)
+	dir := filepath.Dir(h.config.FilePath)
+	err := os.MkdirAll(dir, 0700)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(h.config.FilePath, dataBytes, 0644)
+	storageFileExists, err := utils.FileExists(h.config.FilePath)
 	if err != nil {
+		return err
+	}
+	if !storageFileExists {
+		return nil
+	}
+
+	f, err := os.Open(h.config.FilePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if err := json.NewDecoder(f).Decode(&h.data); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (h *Handler[T]) Data() *T {
+func (h *Handler[T]) Clear() error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	if h.data != nil {
-		return h.data
+	var data T
+	return h.save(data)
+}
+
+func (h *Handler[T]) Update(callback func(T) T) (T, error) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	h.data = callback(h.data)
+	return h.data, h.save(h.data)
+}
+
+func (h *Handler[T]) save(data T) error {
+	h.data = data
+
+	if err := func() error {
+		f, err := os.Create(h.config.FilePath + ".new")
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		if err := json.NewEncoder(f).Encode(data); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return err
 	}
-	h.data = h.load()
+	if err := os.Rename(h.config.FilePath+".new", h.config.FilePath); err != nil {
+		return err
+	}
+	os.Remove(h.config.FilePath + ".new")
+	return nil
+}
+
+func (h *Handler[T]) Data() T {
+	h.lock.RLock()
+	defer h.lock.RUnlock()
 	return h.data
 }

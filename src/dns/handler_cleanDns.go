@@ -1,43 +1,46 @@
 package dns
 
 import (
-	"net"
+	"context"
 	"os/exec"
 
-	"github.com/zerops-io/zcli/src/dnsServer"
-
 	"github.com/zerops-io/zcli/src/constants"
-
+	"github.com/zerops-io/zcli/src/daemonStorage"
+	"github.com/zerops-io/zcli/src/dnsServer"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zerops-io/zcli/src/utils/logger"
 )
 
-func CleanDns(dnsServer *dnsServer.Handler, dnsIp net.IP, interfaceName string, dnsManagement LocalDnsManagement) error {
+func CleanDns(_ context.Context, _ logger.Logger, data daemonStorage.Data, dnsServer *dnsServer.Handler) error {
 
-	switch dnsManagement {
-	case LocalDnsManagementUnknown:
+	switch data.DnsManagement {
+	case daemonStorage.LocalDnsManagementUnknown:
 		return nil
-	case LocalDnsManagementSystemdResolve:
+	case daemonStorage.LocalDnsManagementSystemdResolve:
 		return nil
-	case LocalDnsManagementResolveConf:
-		cmd := exec.Command("resolvconf", "-d", interfaceName)
+	case daemonStorage.LocalDnsManagementResolveConf:
+		cmd := exec.Command("resolvconf", "-d", data.InterfaceName)
 		_, err := cmdRunner.Run(cmd)
 		if err != nil {
 			return err
 		}
-	case LocalDnsManagementFile:
-		err := utils.RemoveFirstLine(constants.ResolvFilePath, "nameserver "+dnsIp.String())
+	case daemonStorage.LocalDnsManagementFile:
+		err := utils.RemoveFirstLine(constants.ResolvFilePath, "nameserver "+data.DnsIp.String())
 		if err != nil {
 			return err
 		}
-	case LocalDnsManagementScutil:
-		var zeropsDynamicStorage ZeropsDynamicStorage
-		zeropsDynamicStorage.Read()
-		zeropsDynamicStorage.Active = false
-		zeropsDynamicStorage.Apply()
-		dnsServer.StopForward()
+	case
+		daemonStorage.LocalDnsManagementNetworkSetup,
+		daemonStorage.LocalDnsManagementScutil:
+		if err := setDnsByNetworksetup(data, dnsServer, false); err != nil {
+			return err
+		}
+
+	case daemonStorage.LocalDnsManagementWindows:
+		return nil
 	default:
-		return UnknownDnsManagementErr
+		return nil
 	}
 	return nil
 }

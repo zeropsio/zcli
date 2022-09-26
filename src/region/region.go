@@ -26,7 +26,10 @@ type Handler struct {
 }
 
 func New(client *httpClient.Handler, storage *storage.Handler[Data]) *Handler {
-	return &Handler{storage: storage, client: client}
+	return &Handler{
+		storage: storage,
+		client:  client,
+	}
 }
 
 // RetrieveFromURL retrieves the region from URL, if region is empty, returns a default region
@@ -48,7 +51,9 @@ func (h *Handler) RetrieveFromURLAndSave(regionURL, region string) (Data, error)
 	if err != nil {
 		return Data{}, err
 	}
-	return reg, h.storage.Save(&reg)
+	return h.storage.Update(func(Data) Data {
+		return reg
+	})
 }
 
 func (h *Handler) RetrieveAllFromURL(regionURL string) ([]Data, error) {
@@ -73,7 +78,7 @@ func (h *Handler) RetrieveAllFromURL(regionURL string) ([]Data, error) {
 }
 
 func (h *Handler) RetrieveFromFile() (Data, error) {
-	return *h.storage.Data(), nil
+	return h.storage.Data(), nil
 }
 
 func readRegions(regionFile json.RawMessage) ([]Data, error) {

@@ -11,22 +11,33 @@ type Handler struct {
 	*storage.Handler[Data]
 }
 
+type LocalDnsManagement string
+
+const (
+	LocalDnsManagementSystemdResolve LocalDnsManagement = "SYSTEMD_RESOLVE"
+	LocalDnsManagementResolveConf    LocalDnsManagement = "RESOLVCONF"
+	LocalDnsManagementFile           LocalDnsManagement = "FILE"
+	LocalDnsManagementNetworkSetup   LocalDnsManagement = "NETWORKSETUP"
+	LocalDnsManagementScutil         LocalDnsManagement = "SCUTIL"
+	LocalDnsManagementUnknown        LocalDnsManagement = "UNKNOWN"
+	LocalDnsManagementWindows        LocalDnsManagement = "WINDOWS"
+)
+
 type Data struct {
 	ProjectId        string
 	UserId           string
-	ServerIp         net.IP
 	VpnNetwork       net.IPNet
 	GrpcApiAddress   string
 	GrpcVpnAddress   string
-	Token            string
-	DnsIp            net.IP
-	ClientIp         net.IP
-	Mtu              uint32
-	DnsManagement    string
 	CaCertificateUrl string
-	VpnStarted       bool
-	InterfaceName    string
-	Expiry           time.Time
-	PublicKey        string
-	PrivateKey       string
+	Token            string
+
+	InterfaceName string
+	ServerIp      net.IP
+	DnsIp         net.IP
+	ClientIp      net.IP
+	Mtu           uint32
+	DnsManagement LocalDnsManagement
+
+	Expiry time.Time
 }

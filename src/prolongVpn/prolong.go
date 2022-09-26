@@ -2,13 +2,17 @@ package prolongVpn
 
 import (
 	"context"
+	"errors"
+	"os"
 	"time"
 
 	"github.com/zerops-io/zcli/src/daemonStorage"
+	"github.com/zerops-io/zcli/src/i18n"
 	"github.com/zerops-io/zcli/src/proto"
 	"github.com/zerops-io/zcli/src/proto/vpnproxy"
 	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
 	"github.com/zerops-io/zcli/src/utils/logger"
+	"golang.zx2c4.com/wireguard/wgctrl"
 )
 
 const (
@@ -48,11 +52,10 @@ func (h *Handler) Run(ctx context.Context) error {
 
 func (h *Handler) prolong(ctx context.Context) error {
 	data := h.storage.Data()
-	if !data.VpnStarted {
+	if data.InterfaceName == "" {
 		return nil
 	}
 	if data.Expiry.Sub(time.Now()) > thresholdInterval {
-		h.log.Debug("prolong threshold not met")
 		return nil
 	}
 	apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{CaCertificateUrl: data.CaCertificateUrl})
@@ -62,9 +65,23 @@ func (h *Handler) prolong(ctx context.Context) error {
 	}
 	defer closeFunc()
 
+	wgClient, err := wgctrl.New()
+	if err != nil {
+		return errors.New(i18n.VpnStatusWireguardNotAvailable)
+	}
+	defer wgClient.Close()
+
+	device, err := wgClient.Device(data.InterfaceName)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+
 	businessResp, err := apiGrpcClient.PostVpnRequest(ctx, &zBusinessZeropsApiProtocol.PostVpnRequestRequest{
 		Id:              data.ProjectId,
-		ClientPublicKey: data.PublicKey,
+		ClientPublicKey: device.PublicKey.String(),
 	})
 	if err := proto.BusinessError(businessResp, err); err != nil {
 		return err
@@ -84,7 +101,10 @@ func (h *Handler) prolong(ctx context.Context) error {
 		return err
 	}
 
-	data.Expiry = zBusinessZeropsApiProtocol.FromProtoTimestamp(expiry)
+	h.storage.Update(func(data daemonStorage.Data) daemonStorage.Data {
+		data.Expiry = zBusinessZeropsApiProtocol.FromProtoTimestamp(expiry)
+		return data
+	})
 
-	return h.storage.Save(data)
+	return nil
 }

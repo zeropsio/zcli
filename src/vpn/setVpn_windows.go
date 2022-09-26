@@ -1,24 +1,30 @@
 //go:build windows
-// +build windows
 
 package vpn
 
 import (
 	"bytes"
+	"context"
+	"errors"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
+	"github.com/zerops-io/zcli/src/i18n"
 	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 const Template = `
 [Interface]
 PrivateKey = {{.ClientPrivateKey}}
 Address = {{.ClientAddress}}
-DNS = {{.DnsServers}}
+DNS = {{.DnsServers}}, zerops
 
 [Peer]
 PublicKey = {{.ServerPublicKey}}
@@ -27,10 +33,10 @@ Endpoint = {{.ServerAddress}}
 PersistentKeepalive = 25
 `
 
-func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, response *vpnproxy.StartVpnResponse) error {
+func (h *Handler) setVpn(ctx context.Context, selectedVpnAddress net.IP, privateKey wgtypes.Key, mtu uint32, response *vpnproxy.StartVpnResponse) error {
 	_, err := exec.LookPath("wireguard")
 	if err != nil {
-		return err
+		return errors.New(i18n.VpnStatusWireguardNotAvailable)
 	}
 
 	clientIp := vpnproxy.FromProtoIP(response.GetVpn().GetAssignedClientIp())
@@ -48,12 +54,12 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, resp
 		AllowedIPs      string
 		ServerAddress   string
 	}{
-		ClientPrivateKey: privateKey,
+		ClientPrivateKey: privateKey.String(),
 		ClientAddress:    clientIp.String(),
 		AllowedIPs:       vpnRange.String(),
 
-		DnsServers:      strings.Join([]string{dnsIp.String(), "zerops"}, ", "),
-		ServerAddress:   selectedVpnAddress,
+		DnsServers:      dnsIp.String(),
+		ServerAddress:   net.JoinHostPort(selectedVpnAddress.String(), strconv.Itoa(int(response.GetVpn().GetPort()))),
 		ServerPublicKey: response.GetVpn().GetServerPublicKey(),
 	})
 	configFile := filepath.Join(os.TempDir(), "zerops.conf")
@@ -63,11 +69,20 @@ func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, resp
 		return err
 	}
 
-	output, err := exec.Command("wireguard", "/installtunnelservice", configFile).Output()
-	if err != nil {
-		h.logger.Error(output)
-		return err
-	}
+	runCommands(ctx, h.logger,
+		makeCommand(
+			"wireguard",
+			i18n.VpnStartTunnelConfigurationFailed,
+			"/installtunnelservice", configFile,
+		),
+		makeCommand(
+			"netsh",
+			i18n.VpnStartTunnelConfigurationFailed,
+			"interface", "ipv4", "set", "subinterface", "zerops", "mtu="+strconv.Itoa(int(mtu)),
+		),
+	)
+
+	time.Sleep(time.Second * 5)
 
 	return nil
 }

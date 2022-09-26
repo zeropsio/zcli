@@ -87,5 +87,14 @@ func serviceLogCmd() *cobra.Command {
 
 	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ServiceLogHelp))
 
+	// TODO remove when websocket is enabled
+	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		err := command.Flags().MarkHidden("follow")
+		if err != nil {
+			return
+		}
+		command.Parent().HelpFunc()(command, strings)
+	})
+
 	return cmd
 }

@@ -20,8 +20,8 @@ func daemonRunCmd() *cobra.Command {
 	return cmd
 }
 
-func daemonRun(cmd *cobra.Command, args []string) error {
-	ctx, cancel := context.WithCancel(cmd.Context())
+func daemonRun(ctx context.Context) error {
+	cancelCtx, cancel := context.WithCancel(ctx)
 	regSignals(cancel)
 
 	if err := prepareEnvironment(); err != nil {
@@ -38,13 +38,13 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	wg := sync.WaitGroup{}
+	var wg sync.WaitGroup
 
-	dnsServer := createDnsServer()
+	dnsServer := createDnsServer(logger)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := dnsServer.Run(ctx)
+		err := dnsServer.Run(cancelCtx)
 		if err != nil {
 			logger.Error(err)
 			cancel()
@@ -52,6 +52,10 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 	}()
 
 	vpnHandler := createVpn(storage, dnsServer, logger)
+
+	if err := vpnHandler.ReloadVpn(cancelCtx); err != nil {
+		return err
+	}
 
 	grpcServer, err := createDaemonGrpcServer(vpnHandler)
 	if err != nil {
@@ -61,7 +65,7 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := grpcServer.Run(ctx)
+		err := grpcServer.Run(cancelCtx)
 		if err != nil {
 			logger.Error(err)
 			cancel()
@@ -72,7 +76,7 @@ func daemonRun(cmd *cobra.Command, args []string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := vpnProlong.Run(ctx)
+		err := vpnProlong.Run(cancelCtx)
 		if err != nil {
 			logger.Error(err)
 			cancel()

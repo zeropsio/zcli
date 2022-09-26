@@ -94,6 +94,7 @@ const (
 	LogFormatFlag         = "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects."
 	LogFormatTemplateFlag = "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.timestamp}} {{.severity}} {{.facility}} {{.message}}\".\nSupports standard GoLang template format and functions."
 	MtuFlag               = "Sets a custom MTU for VPN interface. Default value is 1420."
+	PreferredPortFlag     = "????"
 
 	// process
 	ProcessInvalidState        = "last command has finished with error, identifier for communication with our support: %s"
@@ -171,7 +172,6 @@ const (
 	LogMinSeverityNumLimitErr    = "Allowed interval is <0;7>."
 	LogFormatInvalid             = "Invalid --format value. Allowed values are FULL, SHORT, JSON, JSONSTREAM."
 	LogFormatTemplateMismatch    = "--formatTemplate can be used only in combination with --format=FULL."
-	LogFormatStreamMismatch      = "--format=JSON cannot be used in combination with --follow. Use --format=JSONSTREAM instead."
 	LogServiceNameInvalid        = "Invalid serviceName value. Multiple @ characters are not supported. See -h for help."
 	LogFormatTemplateInvalid     = "Invalid --formatTemplate content. The custom template failed with following error:"
 	LogFormatTemplateNoSpace     = "Template items must be split by a (single) space."
@@ -183,7 +183,6 @@ const (
 	LogBuildStatusUploading      = "Service status UPLOADING, need to wait for app version data."
 	LogAccessFailed              = "Request for access to logs failed."
 	LogMsgTypeInvalid            = "Invalid --messageType value. Allowed values are APPLICATION, WEBSERVER."
-	LogReadingFailed             = "Log reading failed."
 
 	// deploy
 	DeployHintPush                   = "To build your application in Zerops, use the zcli push command instead."
@@ -205,14 +204,18 @@ const (
 	VpnDaemonUnavailable = "Zerops VPN daemon needs to be installed on your machine to handle VPN connections."
 
 	// vpn start
-	VpnStartInterfaceAssignFailed      = "interface name assign failed"
-	VpnStartWireguardInterfaceNotfound = "wireguard interface not found"
-	VpnStartInstallDaemonPrompt        = "Do you want to install the VPN daemon?\nYou will be prompted for your root/administrator password to confirm the installation."
-	VpnStartTerminatedByUser           = "when you are ready, try `/path/to/zcli daemon install`"
-	VpnStartUserIsUnableToWriteYorN    = "type 'y' or 'n' please"
-	VpnStartWireguardUtunError         = "We failed to start vpn, there is a possibility that you have another vpn. If so, try to shut it down."
-	VpnStartVpnNotReachable            = "zerops vpn servers aren't reachable"
-	VpnStartTunnelIsNotAlive           = "we failed to establish zerops vpn"
+	VpnStartInstallDaemonPrompt               = "Do you want to install the VPN daemon?\nYou will be prompted for your root/administrator password to confirm the installation."
+	VpnStartTerminatedByUser                  = "when you are ready, try `/path/to/zcli daemon install`"
+	VpnStartUserIsUnableToWriteYorN           = "type 'y' or 'n' please"
+	VpnStartWireguardUtunError                = "we failed to start vpn, there is a possibility that you have another vpn. If so, try to shut it down"
+	VpnStartVpnNotReachable                   = "zerops vpn servers aren't reachable"
+	VpnStartTunnelIsNotAlive                  = "we failed to establish zerops vpn"
+	VpnStartUnableToConfigureNetworkInterface = "unable to configure network interface"
+	VpnStartUnableToUpdateRoutingTable        = "unable to update routing table"
+	VpnStartNetworkInterfaceNotFound          = "network interface not found"
+	VpnStartInvalidServerPublicKey            = "invalid server public key"
+	VpnStartInvalidVpnAddress                 = "invalid VPN address"
+	VpnStartTunnelConfigurationFailed         = "tunnel configuration failed"
 
 	// vpn status
 	VpnStatusTunnelStatusActive      = "wireguard tunnel is working properly"
@@ -224,16 +227,20 @@ const (
 	VpnStatusAdditionalInfo          = "additional info:"
 	VpnStatusDnsCheckError           = "we failed to check that dns is working correctly"
 	VpnStatusDnsNoCheckFunction      = "there is no function for dns check"
+	VpnStatusDnsInterfaceNotFound    = "vpn interface not found"
+	VpnStatusWireguardNotAvailable   = "wireguard interface not available"
 
 	// vpn stop
-	VpnStopSuccess               = "vpn connection was closed"
-	VpnStopAdditionalInfo        = "additional info:"
-	VpnStopAdditionalInfoMessage = "dns could be set by yourself, if so it must be removed manually"
+	VpnStopSuccess                       = "vpn connection was closed"
+	VpnStopAdditionalInfo                = "additional info:"
+	VpnStopAdditionalInfoMessage         = "dns could be set by yourself, if so it must be removed manually"
+	VpnStopUnableToRemoveTunnelInterface = "unable to remove tunnel interface"
 
 	// daemon
-	DaemonInstallerDesc = "zerops daemon"
-	DaemonElevated      = "operation continues in a new window"
-	PathNotFound        = "path not found"
+	DaemonInstallerDesc             = "zerops daemon"
+	DaemonUnableToSaveConfiguration = "unable to save configuration"
+	DaemonElevated                  = "operation continues in a new window"
+	PathNotFound                    = "path not found"
 
 	// daemon install
 	DaemonInstallSuccess                 = "zerops daemon has been installed"

@@ -21,6 +21,8 @@ type Config struct {
 }
 
 type Handler struct {
+	daemon.UnimplementedZeropsDaemonProtocolServer
+
 	config Config
 	vpn    *vpn.Handler
 }

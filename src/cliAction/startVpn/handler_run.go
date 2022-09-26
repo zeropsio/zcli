@@ -54,6 +54,8 @@ func (h *Handler) tryStartVpn(ctx context.Context, projectId string, userId stri
 		Mtu:              config.Mtu,
 		UserId:           userId,
 		CaCertificateUrl: config.CaCertificateUrl,
+		PreferredPortMin: config.PreferredPortMin,
+		PreferredPortMax: config.PreferredPortMax,
 	})
 	daemonInstalled, err := proto.DaemonError(err)
 	if err != nil {
@@ -98,6 +100,6 @@ func (h *Handler) tryStartVpn(ctx context.Context, projectId string, userId stri
 		}
 	}
 
-	utils.PrintVpnStatus(response.GetVpnStatus())
+	utils.PrintVpnStatus(response)
 	return nil
 }
