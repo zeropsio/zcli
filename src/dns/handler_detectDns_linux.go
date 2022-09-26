@@ -1,36 +1,18 @@
+//go:build linux
+
 package dns
 
 import (
 	"os/exec"
 	"regexp"
-	"runtime"
 
 	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/scutil"
+	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/utils"
 	"github.com/zerops-io/zcli/src/utils/cmdRunner"
 )
 
-type LocalDnsManagement string
-
-const (
-	LocalDnsManagementSystemdResolve LocalDnsManagement = "SYSTEMD_RESOLVE"
-	LocalDnsManagementResolveConf    LocalDnsManagement = "RESOLVCONF"
-	LocalDnsManagementFile           LocalDnsManagement = "FILE"
-	LocalDnsManagementScutil         LocalDnsManagement = "SCUTIL"
-	LocalDnsManagementUnknown        LocalDnsManagement = "UNKNOWN"
-	LocalDnsManagementWindows        LocalDnsManagement = "WINDOWS"
-)
-
-func DetectDns() (LocalDnsManagement, error) {
-
-	binaryLocationExists, err := utils.FileExists(scutil.BinaryLocation)
-	if err != nil {
-		return "", err
-	}
-	if binaryLocationExists {
-		return LocalDnsManagementScutil, nil
-	}
+func DetectDns() (daemonStorage.LocalDnsManagement, error) {
 
 	resolvExists, err := utils.FileExists(constants.ResolvFilePath)
 	if err != nil {
@@ -43,24 +25,20 @@ func DetectDns() (LocalDnsManagement, error) {
 			return "", err
 		}
 		if ok {
-			return LocalDnsManagementSystemdResolve, nil
+			return daemonStorage.LocalDnsManagementSystemdResolve, nil
 		}
 	}
 
 	_, err = exec.LookPath("resolvconf")
 	if err == nil {
-		return LocalDnsManagementResolveConf, nil
+		return daemonStorage.LocalDnsManagementResolveConf, nil
 	}
 
 	if resolvExists {
-		return LocalDnsManagementFile, nil
+		return daemonStorage.LocalDnsManagementFile, nil
 	}
 
-	if runtime.GOOS == "windows" {
-		return LocalDnsManagementWindows, nil
-	}
-
-	return LocalDnsManagementUnknown, nil
+	return daemonStorage.LocalDnsManagementUnknown, nil
 }
 
 func isValidSystemdResolveResolveConf(filePath string) (bool, error) {

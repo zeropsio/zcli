@@ -1,29 +1,31 @@
 //go:build linux
-// +build linux
 
 package vpn
 
 import (
-	"errors"
-	"os/exec"
+	"context"
+	"net"
 
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zerops-io/zcli/src/i18n"
 )
 
-func (h *Handler) cleanVpn() error {
-
-	var err error
-
-	h.logger.Debug("clean vpn start")
-
-	_, err = cmdRunner.Run(exec.Command("ip", "link", "del", "dev", "wg0"))
+func (h *Handler) cleanVpn(ctx context.Context, interfaceName string) error {
+	interfaces, err := net.Interfaces()
 	if err != nil {
-		if !errors.Is(err, cmdRunner.CannotFindDeviceErr) {
-			return err
+		return err
+	}
+	for _, in := range interfaces {
+		if in.Name == interfaceName {
+			return runCommands(
+				ctx,
+				h.logger,
+				makeCommand(
+					"ip",
+					i18n.VpnStopUnableToRemoveTunnelInterface,
+					"link", "del", interfaceName,
+				),
+			)
 		}
 	}
-
-	h.logger.Debug("clean vpn end")
-
 	return nil
 }

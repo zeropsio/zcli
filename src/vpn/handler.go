@@ -9,8 +9,6 @@ import (
 	"github.com/zerops-io/zcli/src/utils/logger"
 )
 
-const wireguardPort = "51820"
-
 type Config struct {
 	VpnCheckInterval   time.Duration
 	VpnCheckRetryCount int
@@ -31,6 +29,7 @@ func New(
 	logger logger.Logger,
 	daemonStorage *daemonStorage.Handler,
 	dnsServer *dnsServer.Handler,
+
 ) *Handler {
 	return &Handler{
 		config:    config,

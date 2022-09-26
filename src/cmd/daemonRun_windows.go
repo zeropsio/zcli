@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"os"
 	"strings"
@@ -45,8 +46,9 @@ type program struct {
 	args []string
 	err  error
 
-	wg   sync.WaitGroup
-	quit chan error
+	wg     sync.WaitGroup
+	cancel context.CancelFunc
+	ctx    context.Context
 }
 
 func (p *program) Init(environment svc.Environment) error {
@@ -54,32 +56,27 @@ func (p *program) Init(environment svc.Environment) error {
 }
 
 func (p *program) Start() error {
-	p.quit = make(chan error, 0)
-
+	p.wg.Add(1)
 	go func() {
-		err := daemonRun(p.cmd, p.args)
-		if err != nil {
-			close(p.quit)
-			p.err = err
-			p.wg.Done()
-			return
-		}
-		p.err = <-p.quit
-		p.wg.Done()
+		defer p.wg.Done()
+		defer p.cancel()
+		p.err = daemonRun(p.ctx)
 	}()
-
 	return nil
 }
 
 func (p *program) Stop() error {
-	close(p.quit)
+	p.cancel()
 	p.wg.Wait()
 	return nil
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	pr := &program{cmd: cmd, args: args}
-
+	pr := &program{
+		cmd:  cmd,
+		args: args,
+	}
+	pr.ctx, pr.cancel = context.WithCancel(cmd.Context())
 	if err := svc.Run(pr); err != nil {
 		return err
 	}

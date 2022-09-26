@@ -4,108 +4,121 @@
 package vpn
 
 import (
+	"context"
+	_ "embed"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net"
-	"os"
-	"os/exec"
-	"path"
+	"net/netip"
 	"strconv"
+	"time"
 
-	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
-
-	"github.com/google/uuid"
+	"github.com/lxc/lxd/shared/logger"
 	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zerops-io/zcli/src/proto/vpnproxy"
+	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
-func getNewVpnInterfaceName() (string, error) {
-	for i := 0; i < 99; i++ {
-		interfaceName := fmt.Sprintf("wg%d", i)
-		_, err := net.InterfaceByName(interfaceName)
-		if err == nil {
-			continue
-		}
-		if err.Error() == "route ip+net: no such network interface" {
-			return interfaceName, nil
-		}
-	}
-	return "", errors.New(i18n.VpnStartInterfaceAssignFailed)
-}
+const interfaceName = "zerops"
 
-func (h *Handler) setVpn(selectedVpnAddress, privateKey string, mtu uint32, response *vpnproxy.StartVpnResponse) error {
-	var err error
-
-	interfaceName, err := getNewVpnInterfaceName()
-	if err != nil {
-		return err
-	}
-
-	_, err = cmdRunner.Run(exec.Command("ip", "link", "add", interfaceName, "type", "wireguard"))
-	if err != nil {
-		if !errors.Is(err, cmdRunner.IpAlreadySetErr) {
-			return err
-		}
-	}
-
-	_, err = cmdRunner.Run(exec.Command("ip", "link", "set", "mtu", strconv.Itoa(int(mtu)), "up", "dev", interfaceName))
-	if err != nil {
-		return err
-	}
-
-	{
-		privateKeyName := uuid.New().String()
-		tempPrivateKeyFile := path.Join(os.TempDir(), privateKeyName)
-		err = ioutil.WriteFile(tempPrivateKeyFile, []byte(privateKey), 0755)
-		if err != nil {
-			return err
-		}
-		_, err = cmdRunner.Run(exec.Command("wg", "set", interfaceName, "private-key", tempPrivateKeyFile))
-		if err != nil {
-			return err
-		}
-		err = os.Remove(tempPrivateKeyFile)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err = cmdRunner.Run(exec.Command("ip", "link", "set", interfaceName, "up"))
-	if err != nil {
-		return err
-	}
-
-	_, err = cmdRunner.Run(exec.Command("wg", "set", interfaceName, "listen-port", wireguardPort))
-	if err != nil {
-		return err
-	}
+func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgtypes.Key, mtu uint32, response *vpnproxy.StartVpnResponse) error {
 
 	clientIp := vpnproxy.FromProtoIP(response.GetVpn().GetAssignedClientIp())
 	vpnRange := vpnproxy.FromProtoIPRange(response.GetVpn().GetVpnIpRange())
-
-	args := []string{
-		"set", interfaceName,
-		"peer", response.GetVpn().GetServerPublicKey(),
-		"allowed-ips", vpnRange.String(),
-		"endpoint", selectedVpnAddress,
-		"persistent-keepalive", "25",
-	}
-	_, err = cmdRunner.Run(exec.Command("wg", args...))
+	serverPublicKey, err := wgtypes.ParseKey(response.GetVpn().ServerPublicKey)
 	if err != nil {
-		if !errors.Is(err, cmdRunner.IpAlreadySetErr) {
-			panic(err)
+		return err
+	}
+	udpAddr, ok := netip.AddrFromSlice(vpnAddress)
+	if !ok {
+		return errors.New(i18n.VpnStartInvalidVpnAddress)
+	}
+	addr := net.UDPAddrFromAddrPort(
+		netip.AddrPortFrom(
+			udpAddr,
+			uint16(response.GetVpn().GetPort()),
+		),
+	)
+
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return err
+	}
+	for _, in := range interfaces {
+		if in.Name == interfaceName {
+			if err := runCommands(
+				ctx,
+				h.logger,
+				makeCommand(
+					"ip",
+					i18n.VpnStopUnableToRemoveTunnelInterface,
+					"link", "del", interfaceName,
+				),
+			); err != nil {
+				return err
+			}
 		}
 	}
 
-	_, err = cmdRunner.Run(exec.Command("ip", "-6", "address", "add", clientIp.String(), "dev", interfaceName))
-	if err != nil {
+	if err := runCommands(
+		ctx,
+		h.logger,
+		makeCommand(
+			"ip",
+			i18n.VpnStartUnableToConfigureNetworkInterface,
+			"link", "add", interfaceName, "type", "wireguard",
+		),
+		makeCommand(
+			"ip",
+			i18n.VpnStartUnableToConfigureNetworkInterface,
+			"-6", "address", "add", clientIp.String()+"/128", "dev", interfaceName,
+		),
+		makeCommand(
+			"ip",
+			i18n.VpnStartUnableToConfigureNetworkInterface,
+			"link", "set", "dev", interfaceName, "mtu", strconv.Itoa(int(mtu)), "up",
+		),
+		makeCommand(
+			"ip",
+			i18n.VpnStartUnableToUpdateRoutingTable,
+			"route", "add", vpnRange.String(), "dev", interfaceName,
+		),
+	); err != nil {
 		return err
 	}
 
-	_, err = cmdRunner.Run(exec.Command("ip", "route", "add", vpnRange.String(), "dev", interfaceName))
+	wgClient, err := wgctrl.New()
 	if err != nil {
-		return err
+		logger.Error(err.Error())
+		return errors.New(i18n.VpnStatusWireguardNotAvailable)
+	}
+	defer wgClient.Close()
+	keep := time.Second * 25
+	if err := wgClient.ConfigureDevice(interfaceName, wgtypes.Config{
+		PrivateKey:   &privateKey,
+		ListenPort:   nil,
+		FirewallMark: nil,
+		ReplacePeers: true,
+		Peers: []wgtypes.PeerConfig{
+			{
+				PublicKey:                   serverPublicKey,
+				Remove:                      false,
+				UpdateOnly:                  false,
+				PresharedKey:                nil,
+				Endpoint:                    addr,
+				PersistentKeepaliveInterval: &keep,
+				ReplaceAllowedIPs:           false,
+				AllowedIPs: []net.IPNet{
+					{
+						IP:   response.GetVpn().GetVpnIpRange().GetIp(),
+						Mask: response.GetVpn().GetVpnIpRange().GetMask(),
+					},
+				},
+			},
+		},
+	}); err != nil {
+		logger.Error(err.Error())
+		return errors.New(i18n.VpnStartTunnelConfigurationFailed)
 	}
 
 	return nil

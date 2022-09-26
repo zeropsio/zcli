@@ -15,6 +15,7 @@ import (
 	"text/template"
 
 	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zerops-io/zcli/src/daemonStorage"
 	"github.com/zerops-io/zcli/src/dns"
 	"github.com/zerops-io/zcli/src/i18n"
 )
@@ -59,12 +60,12 @@ func (daemon *systemDRecord) Install() error {
 	if err != nil {
 		return err
 	}
-	if dnsManagement == dns.LocalDnsManagementResolveConf {
+	if dnsManagement == daemonStorage.LocalDnsManagementResolveConf {
 		dir := filepath.Dir(constants.ResolvconfOrderFilePath)
 		readWritePaths = append(readWritePaths, dir)
 		readWritePaths = append(readWritePaths, "/run/resolvconf/")
 	}
-	if dnsManagement == dns.LocalDnsManagementFile {
+	if dnsManagement == daemonStorage.LocalDnsManagementFile {
 		dir := filepath.Dir(constants.ResolvFilePath)
 		readWritePaths = append(readWritePaths, dir)
 	}

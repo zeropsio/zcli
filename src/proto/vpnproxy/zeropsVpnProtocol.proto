@@ -22,6 +22,8 @@ enum errorCode {
     INVALID_ACCESS_TOKEN = 4;
     VPN_SESSION_EXPIRED = 5;
     MAX_PARALLEL_VPN_LIMIT = 6;
+    INVALID_PREFERRED_PORT = 7;
+    PREFERRED_PORT_UNAVAILABLE = 8;
 }
 
 message IP {
@@ -41,6 +43,8 @@ message Timestamp {
 
 message startVpnRequest {
     string accessToken = 1;
+    uint32 preferredPortMin = 2;
+    uint32 preferredPortMax = 3;
 }
 
 message startVpnResponse {

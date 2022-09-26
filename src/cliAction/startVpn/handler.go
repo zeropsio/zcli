@@ -16,6 +16,8 @@ type RunConfig struct {
 	Token            string
 	Mtu              uint32
 	CaCertificateUrl string
+	PreferredPortMin uint32
+	PreferredPortMax uint32
 }
 
 type Handler struct {

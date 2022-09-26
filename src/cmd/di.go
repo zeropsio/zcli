@@ -48,8 +48,8 @@ func createCliStorage() (*cliStorage.Handler, error) {
 	return &cliStorage.Handler{Handler: s}, err
 }
 
-func createDnsServer() *dnsServer.Handler {
-	return dnsServer.New()
+func createDnsServer(logger logger.Logger) *dnsServer.Handler {
+	return dnsServer.New(logger)
 }
 
 func createDaemonStorage() (*daemonStorage.Handler, error) {

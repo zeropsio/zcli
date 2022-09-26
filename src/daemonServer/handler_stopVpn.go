@@ -6,6 +6,9 @@ import (
 	"github.com/zerops-io/zcli/src/proto/daemon"
 )
 
-func (h *Handler) StopVpn(ctx context.Context, request *daemon.StopVpnRequest) (*daemon.StopVpnResponse, error) {
-	return h.vpn.StopVpn()
+func (h *Handler) StopVpn(ctx context.Context, _ *daemon.StopVpnRequest) (*daemon.VpnStatus, error) {
+	if err := h.vpn.StopVpn(ctx); err != nil {
+		return nil, err
+	}
+	return h.vpn.StatusVpn(ctx)
 }

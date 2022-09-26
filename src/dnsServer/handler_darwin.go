@@ -1,3 +1,6 @@
+//go:build darwin
+// +build darwin
+
 package dnsServer
 
 import (
@@ -11,6 +14,7 @@ import (
 	"time"
 
 	"github.com/zerops-io/zcli/src/nettools"
+	"github.com/zerops-io/zcli/src/utils/logger"
 
 	"github.com/miekg/dns"
 )
@@ -20,6 +24,7 @@ var (
 )
 
 type Handler struct {
+	logger            logger.Logger
 	lock              sync.RWMutex
 	address           net.IP
 	forwardAddress    []net.IP
@@ -30,8 +35,9 @@ type Handler struct {
 	dnsClient         dns.Client
 }
 
-func New() *Handler {
+func New(logger logger.Logger) *Handler {
 	h := &Handler{
+		logger: logger,
 		forwardAddress: []net.IP{
 			net.ParseIP("8.8.8.8"),
 		},
@@ -70,25 +76,25 @@ func (h *Handler) Run(ctx context.Context) error {
 	doneUdp := make(chan struct{})
 	go func() {
 		defer close(doneUdp)
-		defer fmt.Println("stop: ", listenAddr.String())
-		fmt.Println("Listen: ", listenAddr.String())
+		defer h.logger.Info("stop: ", listenAddr.String())
+		h.logger.Debug("Listen: ", listenAddr.String())
 		if err := serverUdp.ListenAndServe(); err != nil {
-			fmt.Println(err.Error())
+			h.logger.Error(err)
 		}
 		vpnInterfaceName, vpnInterfaceFound, err := nettools.GetInterfaceNameByIp(lo0IP)
 		if err != nil {
-			fmt.Println(err.Error())
+			h.logger.Error(err)
 		}
 		if vpnInterfaceFound {
 			c := exec.Command("ifconfig", vpnInterfaceName, "delete", lo0IP.String())
 			if err := c.Run(); err != nil {
-				fmt.Println(err.Error())
+				h.logger.Error(err)
 			}
 		}
 	}()
 	<-ctx.Done()
 	if err := serverUdp.Shutdown(); err != nil {
-		fmt.Println(err.Error())
+		h.logger.Error(err)
 	}
 	<-doneUdp
 	return nil
@@ -101,12 +107,12 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 
 	response, err := h.parseQuery(ctx, r)
 	if err != nil {
-		fmt.Println("parseQuery", err.Error())
+		h.logger.Error(err)
 		return
 	}
 
 	if err := w.WriteMsg(response); err != nil {
-		fmt.Println("writeMsg", err.Error())
+		h.logger.Error(err)
 		return
 	}
 }
@@ -126,22 +132,13 @@ func (h *Handler) parseQuery(ctx context.Context, in *dns.Msg) (out *dns.Msg, er
 
 	q := in.Question[0]
 
-	fmt.Println(q.Name, dns.TypeToString[q.Qtype])
 	if h.vpnForward && strings.HasSuffix(q.Name, ".zerops.") || strings.HasSuffix(q.Name, h.ptrPrefix) {
 		if q.Qtype == dns.TypeA {
 			m := new(dns.Msg)
 			m.SetRcode(in, dns.RcodeServerFailure)
 			return m, nil
 		}
-		source := q.Name
-		response, err := h.serveVpnForward(ctx, in)
-		if err != nil {
-			return nil, err
-		}
-		for _, res := range response.Answer {
-			fmt.Println("RESPONSE ", source, "[", dns.TypeToString[q.Qtype], "] -> ", res.String(), res.Header().Rrtype)
-		}
-		return response, err
+		return h.serveVpnForward(ctx, in)
 	}
 	return h.serveForward(ctx, in)
 }
@@ -153,7 +150,7 @@ func (h *Handler) serveForward(ctx context.Context, m *dns.Msg) (*dns.Msg, error
 		}
 		in, _, err := h.dnsClient.ExchangeContext(ctx, m, address.String())
 		if err != nil {
-			fmt.Println("forward error", m.Question[0].Name, err, address.String())
+			h.logger.Error("forward error", m.Question[0].Name, err, address.String())
 			continue
 		}
 		return in, nil
@@ -164,7 +161,7 @@ func (h *Handler) serveForward(ctx context.Context, m *dns.Msg) (*dns.Msg, error
 func (h *Handler) serveVpnForward(ctx context.Context, m *dns.Msg) (*dns.Msg, error) {
 	in, _, err := h.dnsClient.ExchangeContext(ctx, m, h.vpnForwardAddress.String())
 	if err != nil {
-		fmt.Println("vpn forward", err, h.vpnForwardAddress.String())
+		h.logger.Error("vpn forward", err, "|", h.vpnForwardAddress.String())
 		return nil, err
 	}
 	return in, err
@@ -192,9 +189,9 @@ func (h *Handler) SetAddresses(serverAddress net.IP, userResolverIp []net.IP, vp
 		IP:   vpnResolverIp,
 		Port: 53,
 	}
-	fmt.Println("vpnNetwork: ", h.vpnNetwork.String())
-	fmt.Println("address: ", h.address)
-	fmt.Println("forwardAddress: ", h.forwardAddress)
-	fmt.Println("vpnForwardAddress: ", h.vpnForwardAddress)
-	fmt.Println("ptrPrefix: ", h.ptrPrefix)
+	h.logger.Info("vpnNetwork: ", h.vpnNetwork.String())
+	h.logger.Info("address: ", h.address)
+	h.logger.Info("forwardAddress: ", h.forwardAddress)
+	h.logger.Info("vpnForwardAddress: ", h.vpnForwardAddress)
+	h.logger.Info("ptrPrefix: ", h.ptrPrefix)
 }

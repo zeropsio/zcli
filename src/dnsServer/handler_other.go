@@ -1,25 +1,27 @@
+//go:build windows || linux
+// +build windows linux
+
 package dnsServer
 
 import (
 	"context"
 	"net"
+
+	"github.com/zerops-io/zcli/src/utils/logger"
 )
 
 type Handler struct {
 }
 
-func New() *Handler {
+func New(_ logger.Logger) *Handler {
 	return &Handler{}
 }
 
-// listen and serve
 func (h *Handler) Run(_ context.Context) error {
 	return nil
 }
 
-func (h *Handler) StopForward() {
-
-}
+func (h *Handler) StopForward() {}
 
 func (h *Handler) SetAddresses(_ net.IP, _ []net.IP, _ net.IP, _ net.IPNet) {
 }

@@ -44,11 +44,11 @@ func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 		return nil
 	}
 
-	if response.GetActiveBefore() {
+	if response.GetTunnelState() == daemon.TunnelState_TUNNEL_SET_INACTIVE {
 		fmt.Println(i18n.VpnStopSuccess)
-		if response.GetVpnStatus().GetAdditionalInfo() != "" {
+		if response.GetAdditionalInfo() != "" {
 			fmt.Println(i18n.VpnStopAdditionalInfo)
-			fmt.Println(response.GetVpnStatus().GetAdditionalInfo())
+			fmt.Println(response.GetAdditionalInfo())
 		}
 	}
 

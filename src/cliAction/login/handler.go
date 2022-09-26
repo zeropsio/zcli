@@ -77,7 +77,7 @@ func (h *Handler) Run(ctx context.Context, runConfig RunConfig) error {
 		return err
 	}
 
-	if daemonInstalled && response.GetActiveBefore() {
+	if daemonInstalled && response.GetTunnelState() == daemon.TunnelState_TUNNEL_SET_INACTIVE {
 		fmt.Println(i18n.LoginVpnClosed)
 	}
 
@@ -138,18 +138,15 @@ func (h *Handler) loginWithPassword(_ context.Context, login, password string) e
 		return err
 	}
 
-	data := h.storage.Data()
-	data.Token = tokenResponseObject.Token
-	err = h.storage.Save(data)
-	if err != nil {
-		return err
-	}
+	h.storage.Update(func(data cliStorage.Data) cliStorage.Data {
+		data.Token = tokenResponseObject.Token
+		return data
+	})
 
 	return nil
 }
 
 func (h *Handler) loginWithToken(ctx context.Context, token string) error {
-
 	grpcApiClient, closeFunc, err := h.grpcApiClientFactory.CreateClient(ctx, h.config.GrpcApiAddress, token)
 	if err != nil {
 		return err
@@ -165,12 +162,10 @@ func (h *Handler) loginWithToken(ctx context.Context, token string) error {
 		return err
 	}
 
-	data := h.storage.Data()
-	data.Token = token
-	err = h.storage.Save(data)
-	if err != nil {
-		return err
-	}
+	h.storage.Update(func(data cliStorage.Data) cliStorage.Data {
+		data.Token = token
+		return data
+	})
 
 	return nil
 }

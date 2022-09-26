@@ -46,6 +46,6 @@ func (h *Handler) Run(ctx context.Context, _ RunConfig) error {
 		return nil
 	}
 
-	utils.PrintVpnStatus(response.GetVpnStatus())
+	utils.PrintVpnStatus(response)
 	return nil
 }

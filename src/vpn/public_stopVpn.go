@@ -1,24 +1,9 @@
 package vpn
 
-import (
-	"github.com/zerops-io/zcli/src/proto/daemon"
-)
+import "context"
 
-func (h *Handler) StopVpn() (_ *daemon.StopVpnResponse, err error) {
+func (h *Handler) StopVpn(ctx context.Context) error {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-
-	if !h.storage.Data().VpnStarted {
-		return &daemon.StopVpnResponse{}, nil
-	}
-	vpnStatus, err := h.stopVpn()
-	if err != nil {
-		h.logger.Error(err)
-		return nil, err
-	}
-
-	return &daemon.StopVpnResponse{
-		VpnStatus:    vpnStatus,
-		ActiveBefore: true,
-	}, nil
+	return h.stopVpn(ctx)
 }
