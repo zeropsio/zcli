@@ -29,7 +29,7 @@ func (h *Handler) getLogStream(
 
 	done := make(chan interface{}) // Channel to indicate that the receiverHandler is done
 
-	go h.receiveHandler(conn, inputs.format, config, done)
+	go h.receiveHandler(conn, inputs.format, done)
 
 	for {
 		select {
@@ -71,7 +71,7 @@ func updateUri(uri, query string) string {
 	return WSS + uri + query + from
 }
 
-func (h *Handler) receiveHandler(connection *websocket.Conn, format string, config RunConfig, done chan interface{}) {
+func (h *Handler) receiveHandler(connection *websocket.Conn, format string, done chan interface{}) {
 	defer close(done)
 
 	for {
@@ -90,11 +90,11 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format string, conf
 			return
 		}
 
-		printStreamLog(config, msg, format)
+		printStreamLog(msg, format)
 	}
 }
 
-func printStreamLog(config RunConfig, data []byte, format string) {
+func printStreamLog(data []byte, format string) {
 	jsonData, _ := parseResponse(data)
 	// only if there is a new message coming
 	if len(jsonData.Items) > 0 {
