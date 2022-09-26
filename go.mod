@@ -7,6 +7,7 @@ require (
 	github.com/briandowns/spinner v1.18.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.5.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/judwhite/go-svc v1.2.1
 	github.com/lxc/lxd v0.0.0-20220922224603-c76bc42c6393
 	github.com/miekg/dns v1.1.50
