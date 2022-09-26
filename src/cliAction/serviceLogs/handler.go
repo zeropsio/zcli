@@ -21,7 +21,6 @@ type RunConfig struct {
 	FormatTemplate  string
 	Follow          bool
 	Levels          Levels
-	LastMsgId       string
 }
 
 type Handler struct {

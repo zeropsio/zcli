@@ -11,11 +11,12 @@ import (
 	"time"
 )
 
+var lastMsgId string
+
 func (h *Handler) getLogStream(
 	ctx context.Context, config RunConfig, inputs InputValues, uri, query, containerId, logServiceId, projectId string,
 ) error {
-	url := config.updateUri(uri, query)
-	fmt.Println("updateUri", url)
+	url := updateUri(uri, query)
 
 	interrupt := make(chan os.Signal, 1)   // Channel to listen for interrupt signal to terminate gracefully
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
@@ -62,10 +63,10 @@ func (h *Handler) getLogStream(
 }
 
 // check last message id, add it to `from` and update the ws url for reconnect
-func (c RunConfig) updateUri(uri, query string) string {
+func updateUri(uri, query string) string {
 	from := ""
-	if c.LastMsgId != "" {
-		from = fmt.Sprintf("&from=%s", c.LastMsgId)
+	if lastMsgId != "" {
+		from = fmt.Sprintf("&from=%s", lastMsgId)
 	}
 	return WSS + uri + query + from
 }
@@ -76,7 +77,7 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format string, conf
 	for {
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
-			// websocket close err (appears on expiration of token)
+			// on token expiration
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || websocket.IsUnexpectedCloseError(err) {
 				time.Sleep(time.Second * 5)
 				return
@@ -98,8 +99,7 @@ func printStreamLog(config RunConfig, data []byte, format string) {
 	// only if there is a new message coming
 	if len(jsonData.Items) > 0 {
 		//update last msg ID for ws reconnection
-		config.LastMsgId = jsonData.Items[len(jsonData.Items)-1].Id
-		fmt.Println("last msg id is: ", config.LastMsgId)
+		lastMsgId = jsonData.Items[len(jsonData.Items)-1].Id
 		err := parseResponseByFormat(jsonData, format, "", STREAM)
 		if err != nil {
 			fmt.Println(err.Error())
