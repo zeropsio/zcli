@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func (h *Handler) savePackage(config RunConfig, reader io.Reader) (io.Reader, error) {

@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zerops-io/zcli/src/nettools"
-	"github.com/zerops-io/zcli/src/utils/logger"
+	"github.com/zeropsio/zcli/src/nettools"
+	"github.com/zeropsio/zcli/src/utils/logger"
 
 	"github.com/miekg/dns"
 )

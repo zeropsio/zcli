@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zerops-io/zcli/src/utils/uuid"
+	"github.com/zeropsio/zcli/src/utils/uuid"
 
-	"github.com/zerops-io/zcli/src/support"
+	"github.com/zeropsio/zcli/src/support"
 )
 
 type Config struct {

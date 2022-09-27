@@ -3,7 +3,7 @@ package support
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/utils/uuid"
+	"github.com/zeropsio/zcli/src/utils/uuid"
 )
 
 type supportID struct{}

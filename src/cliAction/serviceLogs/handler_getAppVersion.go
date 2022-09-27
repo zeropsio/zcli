@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils/projectService"
-	"github.com/zerops-io/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/utils/projectService"
+	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/sdk"
 	"github.com/zeropsio/zerops-go/sdkBase"

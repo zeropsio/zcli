@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 	"google.golang.org/grpc/security/advancedtls"
 
-	"github.com/zerops-io/zcli/src/proto/unary"
+	"github.com/zeropsio/zcli/src/proto/unary"
 )
 
 type Config struct {

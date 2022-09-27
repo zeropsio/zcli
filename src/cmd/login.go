@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zerops-io/zcli/src/cliAction/login"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zeropsio/zcli/src/cliAction/login"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/httpClient"
 )
 
 func loginCmd() *cobra.Command {

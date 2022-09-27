@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os/exec"
 
-	"github.com/zerops-io/zcli/src/utils/logger"
+	"github.com/zeropsio/zcli/src/utils/logger"
 )
 
 type command struct {

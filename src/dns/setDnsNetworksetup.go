@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/dnsServer"
 )
 
 func setDnsByNetworksetup(data daemonStorage.Data, dns *dnsServer.Handler, addZerops bool) error {

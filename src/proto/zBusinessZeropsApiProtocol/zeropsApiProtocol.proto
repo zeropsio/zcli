@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package zBusinessZeropsApiProtocol;
-option go_package = "github.com/zerops-io/zcli/src/protocol/zBusinessZeropsApiProtocol";
+option go_package = "github.com/zeropsio/zcli/src/protocol/zBusinessZeropsApiProtocol";
 
 service ZBusinessZeropsApiProtocol {
     rpc PutAppVersionDeploy(PutAppVersionDeployRequest) returns (PutAppVersionDeployResponse);

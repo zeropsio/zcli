@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 func (h *Handler) sendProjectRequest(ctx context.Context, config RunConfig, yamlContent string) ([]*zBusinessZeropsApiProtocol.ProjectImportServiceStack, error) {

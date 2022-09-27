@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 	"os"
 	"os/signal"
 	"strings"

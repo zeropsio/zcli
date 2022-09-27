@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/proto/daemon"
 	"golang.zx2c4.com/wireguard/wgctrl"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 
-	"github.com/zerops-io/zcli/src/dns"
+	"github.com/zeropsio/zcli/src/dns"
 )
 
 func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {

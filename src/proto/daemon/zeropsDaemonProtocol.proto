@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/zerops-io/zcli/src/protocol/daemon";
+option go_package = "github.com/zeropsio/zcli/src/protocol/daemon";
 
 package zeropsDaemonProtocol;
 

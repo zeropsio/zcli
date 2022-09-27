@@ -1,6 +1,6 @@
 package cliStorage
 
-import "github.com/zerops-io/zcli/src/utils/storage"
+import "github.com/zeropsio/zcli/src/utils/storage"
 
 type Handler struct {
 	*storage.Handler[Data]

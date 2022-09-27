@@ -3,8 +3,8 @@ package startStopDelete
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 func (h *Handler) ProjectStart(ctx context.Context, projectId string, _ string) (string, error) {

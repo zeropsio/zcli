@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/daemonServer"
-	"github.com/zerops-io/zcli/src/vpn"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/daemonServer"
+	"github.com/zeropsio/zcli/src/vpn"
 )
 
 func createDaemonGrpcServer(vpn *vpn.Handler) (*daemonServer.Handler, error) {

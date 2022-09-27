@@ -3,7 +3,7 @@ package daemonServer
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/proto/daemon"
 )
 
 func (h *Handler) StopVpn(ctx context.Context, _ *daemon.StopVpnRequest) (*daemon.VpnStatus, error) {

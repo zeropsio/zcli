@@ -3,13 +3,13 @@ package cmd
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/proto/daemon"
 
-	"github.com/zerops-io/zcli/src/cliAction/removeDaemon"
-	"github.com/zerops-io/zcli/src/cliAction/stopVpn"
-	"github.com/zerops-io/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/cliAction/removeDaemon"
+	"github.com/zeropsio/zcli/src/cliAction/stopVpn"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 
 	"github.com/spf13/cobra"
 )

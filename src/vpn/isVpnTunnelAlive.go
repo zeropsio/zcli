@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/zerops-io/zcli/src/nettools"
+	"github.com/zeropsio/zcli/src/nettools"
 )
 
 func (h *Handler) isVpnTunnelAlive(ctx context.Context, serverIp net.IP) bool {

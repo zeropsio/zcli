@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 func GetServiceStack(ctx context.Context, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, projectId string, serviceName string) (*zBusinessZeropsApiProtocol.GetServiceStackByNameResponseDto, error) {

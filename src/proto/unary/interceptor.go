@@ -8,10 +8,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/zerops-io/zcli/src/utils/uuid"
+	"github.com/zeropsio/zcli/src/utils/uuid"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/zerops-io/zcli/src/support"
+	"github.com/zeropsio/zcli/src/support"
 
 	"google.golang.org/grpc"
 )

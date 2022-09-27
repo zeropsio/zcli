@@ -1,7 +1,7 @@
 package installDaemon
 
 import (
-	"github.com/zerops-io/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
 )
 
 type Config struct {

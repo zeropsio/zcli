@@ -3,9 +3,9 @@ package importProjectService
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/projectService"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/projectService"
 )
 
 func (h *Handler) sendServiceRequest(ctx context.Context, config RunConfig, yamlContent string) ([]*zBusinessZeropsApiProtocol.ProjectImportServiceStack, error) {

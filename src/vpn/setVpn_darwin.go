@@ -14,12 +14,12 @@ import (
 	"strings"
 	"time"
 
-	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
+	vpnproxy "github.com/zeropsio/zcli/src/proto/vpnproxy"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/utils/cmdRunner"
 )
 
 const TunnelNameFile = "/tmp/wg-zerops"

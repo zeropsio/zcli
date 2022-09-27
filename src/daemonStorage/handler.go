@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/zerops-io/zcli/src/utils/storage"
+	"github.com/zeropsio/zcli/src/utils/storage"
 )
 
 type Handler struct {

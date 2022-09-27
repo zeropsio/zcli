@@ -3,7 +3,7 @@ package vpnproxy
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/proto/unary"
+	"github.com/zeropsio/zcli/src/proto/unary"
 
 	"google.golang.org/grpc"
 )

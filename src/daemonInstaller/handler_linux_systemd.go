@@ -14,10 +14,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dns"
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/dns"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 type systemDRecord struct {

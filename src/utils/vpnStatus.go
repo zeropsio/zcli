@@ -3,9 +3,9 @@ package utils
 import (
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/proto/daemon"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func PrintVpnStatus(vpnStatus *daemon.VpnStatus) {

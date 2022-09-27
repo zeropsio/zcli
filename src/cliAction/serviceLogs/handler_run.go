@@ -3,8 +3,8 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils/projectService"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/utils/projectService"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {

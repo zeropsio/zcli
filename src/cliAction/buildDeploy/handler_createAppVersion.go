@@ -3,8 +3,8 @@ package buildDeploy
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 func (h *Handler) createAppVersion(ctx context.Context, config RunConfig, serviceStack *zBusinessZeropsApiProtocol.GetServiceStackByNameResponseDto) (*zBusinessZeropsApiProtocol.PostAppVersionResponseDto, error) {

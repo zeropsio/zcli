@@ -1,9 +1,9 @@
 package startVpn
 
 import (
-	"github.com/zerops-io/zcli/src/daemonInstaller"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 )
 
 type Config struct {

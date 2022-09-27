@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func getFullWithTemplate(logData []Data, formatTemplate string) error {

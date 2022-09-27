@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func (h *Handler) Run(ctx context.Context, _ RunConfig) error {

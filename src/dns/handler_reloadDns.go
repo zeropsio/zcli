@@ -1,8 +1,8 @@
 package dns
 
 import (
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/dnsServer"
 )
 
 func ReloadDns(data daemonStorage.Data, dns *dnsServer.Handler) error {
