@@ -28,6 +28,7 @@ type Handler struct {
 	httpClient    *httpClient.Handler
 	apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient
 	sdkConfig     sdkConfig.Config
+	LastMsgId     string
 }
 
 func New(config Config, httpClient *httpClient.Handler, apiGrpcClient zBusinessZeropsApiProtocol.ZBusinessZeropsApiProtocolClient, sdkConfig sdkConfig.Config) *Handler {
