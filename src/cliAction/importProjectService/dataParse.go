@@ -3,7 +3,7 @@ package importProjectService
 import (
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
 )
 
 // return number of services and process data [](process Id, service name, action name)

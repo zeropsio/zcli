@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/projectService"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/projectService"
 )
 
 func (h *Handler) checkInputValues(ctx context.Context, config RunConfig) (*zBusinessZeropsApiProtocol.GetServiceStackByNameResponseDto, error) {

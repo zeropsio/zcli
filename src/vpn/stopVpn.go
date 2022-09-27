@@ -3,7 +3,7 @@ package vpn
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/dns"
+	"github.com/zeropsio/zcli/src/dns"
 )
 
 func (h *Handler) stopVpn(ctx context.Context) error {

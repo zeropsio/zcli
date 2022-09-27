@@ -1,8 +1,8 @@
 package removeDaemon
 
 import (
-	"github.com/zerops-io/zcli/src/cliAction/stopVpn"
-	"github.com/zerops-io/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/cliAction/stopVpn"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
 )
 
 type Config struct {

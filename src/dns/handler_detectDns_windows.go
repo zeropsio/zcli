@@ -3,7 +3,7 @@
 package dns
 
 import (
-	"github.com/zerops-io/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/daemonStorage"
 )
 
 func DetectDns() (daemonStorage.LocalDnsManagement, error) {

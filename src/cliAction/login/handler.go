@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/zerops-io/zcli/src/cliStorage"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/daemon"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/httpClient"
+	"github.com/zeropsio/zcli/src/cliStorage"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/httpClient"
 )
 
 type Config struct {

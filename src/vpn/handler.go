@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
-	"github.com/zerops-io/zcli/src/utils/logger"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/dnsServer"
+	"github.com/zeropsio/zcli/src/utils/logger"
 )
 
 type Config struct {

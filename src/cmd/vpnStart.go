@@ -8,11 +8,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zerops-io/zcli/src/cliAction/startVpn"
-	"github.com/zerops-io/zcli/src/daemonInstaller"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zcli/src/cliAction/startVpn"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 )
 
 func vpnStartCmd() *cobra.Command {

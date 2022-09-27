@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/support"
-	paramsPackage "github.com/zerops-io/zcli/src/utils/params"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/support"
+	paramsPackage "github.com/zeropsio/zcli/src/utils/params"
 )
 
 var (

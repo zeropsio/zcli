@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/constants"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

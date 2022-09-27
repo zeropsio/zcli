@@ -1,4 +1,4 @@
-module github.com/zerops-io/zcli
+module github.com/zeropsio/zcli
 
 go 1.18
 

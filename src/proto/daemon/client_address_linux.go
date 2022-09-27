@@ -4,7 +4,7 @@
 package daemon
 
 import (
-	"github.com/zerops-io/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/constants"
 )
 
 func daemonDialAddress() string {

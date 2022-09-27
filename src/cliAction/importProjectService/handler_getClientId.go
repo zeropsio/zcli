@@ -3,7 +3,7 @@ package importProjectService
 import (
 	"context"
 
-	"github.com/zerops-io/zcli/src/utils/projectService"
+	"github.com/zeropsio/zcli/src/utils/projectService"
 )
 
 func (h *Handler) getClientId(ctx context.Context, config RunConfig) (string, error) {

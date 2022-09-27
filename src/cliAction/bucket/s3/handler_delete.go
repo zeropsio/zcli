@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func (h Handler) Delete(ctx context.Context, config RunConfig) error {

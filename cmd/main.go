@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/zerops-io/zcli/src/metaError"
+	"github.com/zeropsio/zcli/src/metaError"
 
-	"github.com/zerops-io/zcli/src/cmd"
+	"github.com/zeropsio/zcli/src/cmd"
 )
 
 var (

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/storage"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/utils/httpClient"
+	"github.com/zeropsio/zcli/src/utils/storage"
 )
 
 type Data struct {

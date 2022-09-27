@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/daemonInstaller"
+	"github.com/zeropsio/zcli/src/daemonInstaller"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/zerops-io/zcli/src/cliAction/stopVpn"
+	"github.com/zeropsio/zcli/src/cliAction/stopVpn"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func (h *Handler) Run(ctx context.Context, _ RunConfig) error {

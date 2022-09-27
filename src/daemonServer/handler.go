@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/proto/daemon"
 
-	"github.com/zerops-io/zcli/src/vpn"
+	"github.com/zeropsio/zcli/src/vpn"
 	"google.golang.org/grpc"
 )
 

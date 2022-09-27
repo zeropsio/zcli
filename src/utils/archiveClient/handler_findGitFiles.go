@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zeropsio/zcli/src/utils/cmdRunner"
 )
 
 func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {

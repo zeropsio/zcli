@@ -3,9 +3,9 @@ package daemonInstaller
 import (
 	"os/exec"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zeropsio/zcli/src/utils/cmdRunner"
 )
 
 type Config struct {

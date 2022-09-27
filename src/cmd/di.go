@@ -5,17 +5,17 @@ import (
 	"errors"
 	"time"
 
-	"github.com/zerops-io/zcli/src/cliStorage"
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
-	"github.com/zerops-io/zcli/src/i18n"
-	"github.com/zerops-io/zcli/src/prolongVpn"
-	"github.com/zerops-io/zcli/src/region"
-	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/logger"
-	"github.com/zerops-io/zcli/src/utils/storage"
-	"github.com/zerops-io/zcli/src/vpn"
+	"github.com/zeropsio/zcli/src/cliStorage"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/dnsServer"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/prolongVpn"
+	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/utils/httpClient"
+	"github.com/zeropsio/zcli/src/utils/logger"
+	"github.com/zeropsio/zcli/src/utils/storage"
+	"github.com/zeropsio/zcli/src/vpn"
 )
 
 func getToken(storage *cliStorage.Handler) (string, error) {

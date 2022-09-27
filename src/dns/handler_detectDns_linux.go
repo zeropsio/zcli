@@ -6,10 +6,10 @@ import (
 	"os/exec"
 	"regexp"
 
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/utils"
+	"github.com/zeropsio/zcli/src/utils/cmdRunner"
 )
 
 func DetectDns() (daemonStorage.LocalDnsManagement, error) {

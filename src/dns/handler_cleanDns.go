@@ -4,12 +4,12 @@ import (
 	"context"
 	"os/exec"
 
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/daemonStorage"
-	"github.com/zerops-io/zcli/src/dnsServer"
-	"github.com/zerops-io/zcli/src/utils"
-	"github.com/zerops-io/zcli/src/utils/cmdRunner"
-	"github.com/zerops-io/zcli/src/utils/logger"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/daemonStorage"
+	"github.com/zeropsio/zcli/src/dnsServer"
+	"github.com/zeropsio/zcli/src/utils"
+	"github.com/zeropsio/zcli/src/utils/cmdRunner"
+	"github.com/zeropsio/zcli/src/utils/logger"
 )
 
 func CleanDns(_ context.Context, _ logger.Logger, data daemonStorage.Data, dnsServer *dnsServer.Handler) error {

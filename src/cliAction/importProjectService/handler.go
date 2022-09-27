@@ -1,10 +1,10 @@
 package importProjectService
 
 import (
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zerops-io/zcli/src/utils/httpClient"
-	"github.com/zerops-io/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
+	"github.com/zeropsio/zcli/src/utils/httpClient"
+	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 )
 
 type Config struct {

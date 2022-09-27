@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zerops-io/zcli/src/proto"
-	"github.com/zerops-io/zcli/src/proto/daemon"
+	"github.com/zeropsio/zcli/src/proto"
+	"github.com/zeropsio/zcli/src/proto/daemon"
 
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/i18n"
 
-	"github.com/zerops-io/zcli/src/utils"
+	"github.com/zeropsio/zcli/src/utils"
 )
 
 type Config struct {

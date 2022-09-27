@@ -15,8 +15,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/zerops-io/zcli/src/i18n"
-	vpnproxy "github.com/zerops-io/zcli/src/proto/vpnproxy"
+	"github.com/zeropsio/zcli/src/i18n"
+	vpnproxy "github.com/zeropsio/zcli/src/proto/vpnproxy"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 

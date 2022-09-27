@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/zerops-io/zcli/src/utils"
+	"github.com/zeropsio/zcli/src/utils"
 )
 
 type Config struct {

@@ -7,8 +7,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/zerops-io/zcli/src/constants"
-	"github.com/zerops-io/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func getImportYamlContent(config RunConfig) ([]byte, error) {

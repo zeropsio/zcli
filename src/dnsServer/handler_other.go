@@ -7,7 +7,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/zerops-io/zcli/src/utils/logger"
+	"github.com/zeropsio/zcli/src/utils/logger"
 )
 
 type Handler struct {
