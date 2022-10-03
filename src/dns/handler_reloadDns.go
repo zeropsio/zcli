@@ -20,7 +20,7 @@ func ReloadDns(data daemonStorage.Data, dns *dnsServer.Handler) error {
 		daemonStorage.LocalDnsManagementNetworkSetup,
 		daemonStorage.LocalDnsManagementScutil:
 
-		if err := setDnsByNetworksetup(data, dns, data.InterfaceName != ""); err != nil {
+		if _, err := setDnsByNetworksetup(data, dns, data.InterfaceName != ""); err != nil {
 			return err
 		}
 	default:

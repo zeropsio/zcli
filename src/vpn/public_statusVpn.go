@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zeropsio/zcli/src/daemonStorage"
 	"github.com/zeropsio/zcli/src/proto/daemon"
 	"golang.zx2c4.com/wireguard/wgctrl"
 
@@ -19,15 +18,8 @@ func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
 	data := h.storage.Data()
 
 	vpnStatus := &daemon.VpnStatus{
-		TunnelState: daemon.TunnelState_TUNNEL_UNSET,
-		DnsState:    daemon.DnsState_DNS_UNSET,
-	}
-
-	if data.ServerIp != nil {
-		vpnStatus.TunnelState = daemon.TunnelState_TUNNEL_SET_INACTIVE
-	}
-	if data.DnsManagement != daemonStorage.LocalDnsManagementUnknown {
-		vpnStatus.DnsState = daemon.DnsState_DNS_SET_INACTIVE
+		TunnelState: daemon.TunnelState_TUNNEL_SET_INACTIVE,
+		DnsState:    daemon.DnsState_DNS_SET_INACTIVE,
 	}
 
 	if data.InterfaceName == "" {
@@ -49,35 +41,29 @@ func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
 		return vpnStatus, err
 	} else {
 		if !h.isVpnTunnelAlive(ctx, data.ServerIp) {
-			vpnStatus.TunnelState = daemon.TunnelState_TUNNEL_SET_INACTIVE
 			return vpnStatus, nil
 		}
 	}
 	vpnStatus.TunnelState = daemon.TunnelState_TUNNEL_ACTIVE
 
-	if vpnStatus.DnsState == daemon.DnsState_DNS_SET_INACTIVE {
-		dnsIsAlive, err := dns.IsAlive()
-		if err != nil {
-			h.logger.Error(err)
-			vpnStatus.AdditionalInfo = i18n.VpnStatusDnsCheckError + "\n"
-		}
-		if dnsIsAlive {
-			vpnStatus.DnsState = daemon.DnsState_DNS_ACTIVE
-		}
-
-		if vpnStatus.DnsState != daemon.DnsState_DNS_ACTIVE {
-			vpnStatus.AdditionalInfo += fmt.Sprintf(
-				"dns ip: %s\n"+
-					"vpn network: %s\n"+
-					"client ip: %s\n"+
-					"interface: %s\n",
-				data.DnsIp.String(),
-				data.VpnNetwork.String(),
-				data.ClientIp.String(),
-				data.InterfaceName,
-			)
-		}
+	dnsIsAlive, err := dns.IsAlive()
+	if err != nil {
+		h.logger.Error(err)
+		vpnStatus.AdditionalInfo = i18n.VpnStatusDnsCheckError + "\n"
 	}
-
+	if dnsIsAlive {
+		vpnStatus.DnsState = daemon.DnsState_DNS_ACTIVE
+	} else {
+		vpnStatus.AdditionalInfo += fmt.Sprintf(
+			"dns ip: %s\n"+
+				"vpn network: %s\n"+
+				"client ip: %s\n"+
+				"interface: %s\n",
+			data.DnsIp.String(),
+			data.VpnNetwork.String(),
+			data.ClientIp.String(),
+			data.InterfaceName,
+		)
+	}
 	return vpnStatus, nil
 }

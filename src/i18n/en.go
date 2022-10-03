@@ -221,11 +221,9 @@ const (
 
 	// vpn status
 	VpnStatusTunnelStatusActive      = "wireguard tunnel is working properly"
-	VpnStatusTunnelStatusSetInactive = "wireguard tunnel is established but it isn't working properly, try `/path/to/zcli vpn start` command"
-	VpnStatusTunnelStatusUnset       = "wireguard tunnel isn't established, try `/path/to/zcli vpn start` command"
+	VpnStatusTunnelStatusSetInactive = "wireguard tunnel isn't established, try `/path/to/zcli vpn start` command"
 	VpnStatusDnsStatusActive         = "dns is working properly"
-	VpnStatusDnsStatusSetInactive    = "dns is set but it isn't working properly, try `/path/to/zcli vpn start` command"
-	VpnStatusDnsStatusUnset          = "dns isn't set, try `/path/to/zcli vpn start` command"
+	VpnStatusDnsStatusSetInactive    = "dns isn't set, try `/path/to/zcli vpn start` command"
 	VpnStatusAdditionalInfo          = "additional info:"
 	VpnStatusDnsCheckError           = "we failed to check that dns is working correctly"
 	VpnStatusDnsNoCheckFunction      = "there is no function for dns check"

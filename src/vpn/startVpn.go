@@ -165,10 +165,18 @@ func (h *Handler) startVpn(
 		return errors.New(i18n.DaemonUnableToSaveConfiguration)
 	}
 
-	err = dns.SetDns(data, h.dnsServer)
+	dataUpdate, err := dns.SetDns(data, h.dnsServer)
 	if err != nil {
 		h.logger.Error(err)
 		return err
+	}
+
+	if dataUpdate != nil {
+		data, err = h.storage.Update(dataUpdate)
+		if err != nil {
+			h.logger.Error(err)
+			return errors.New(i18n.DaemonUnableToSaveConfiguration)
+		}
 	}
 
 	h.logger.Debug("dnsIp: " + data.DnsIp.String())
@@ -177,6 +185,13 @@ func (h *Handler) startVpn(
 	h.logger.Debug("serverIp: " + data.ServerIp.String())
 	h.logger.Debug("vpnNetwork: " + data.VpnNetwork.String())
 	h.logger.Debug("interface: " + data.InterfaceName)
+
+	h.logger.Debug("dhcpEnabled: " + func() string {
+		if data.DhcpEnabled {
+			return "true"
+		}
+		return "false"
+	}())
 
 	h.logger.Debug("try vpn")
 	if !h.isVpnTunnelAlive(ctx, serverIp) {
