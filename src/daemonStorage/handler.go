@@ -38,6 +38,7 @@ type Data struct {
 	ClientIp      net.IP
 	Mtu           uint32
 	DnsManagement LocalDnsManagement
+	DhcpEnabled   bool
 
 	Expiry time.Time
 }

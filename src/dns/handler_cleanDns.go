@@ -33,7 +33,7 @@ func CleanDns(_ context.Context, _ logger.Logger, data daemonStorage.Data, dnsSe
 	case
 		daemonStorage.LocalDnsManagementNetworkSetup,
 		daemonStorage.LocalDnsManagementScutil:
-		if err := setDnsByNetworksetup(data, dnsServer, false); err != nil {
+		if _, err := setDnsByNetworksetup(data, dnsServer, false); err != nil {
 			return err
 		}
 

@@ -189,6 +189,7 @@ func (h *Handler) SetAddresses(serverAddress net.IP, userResolverIp []net.IP, vp
 		IP:   vpnResolverIp,
 		Port: 53,
 	}
+	h.logger.Info("vpnResolverIp: ", vpnResolverIp.String())
 	h.logger.Info("vpnNetwork: ", h.vpnNetwork.String())
 	h.logger.Info("address: ", h.address)
 	h.logger.Info("forwardAddress: ", h.forwardAddress)

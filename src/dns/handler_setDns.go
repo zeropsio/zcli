@@ -15,12 +15,12 @@ import (
 
 var UnknownDnsManagementErr = errors.New("unknown dns management")
 
-func SetDns(data daemonStorage.Data, dns *dnsServer.Handler) error {
+func SetDns(data daemonStorage.Data, dns *dnsServer.Handler) (dataUpdate func(daemonStorage.Data) daemonStorage.Data, _ error) {
 	var err error
 
 	switch data.DnsManagement {
 	case daemonStorage.LocalDnsManagementUnknown, daemonStorage.LocalDnsManagementWindows:
-		return nil
+		return nil, nil
 
 	case daemonStorage.LocalDnsManagementSystemdResolve:
 		// resolvectl is multi-binary and behaves differently
@@ -30,41 +30,41 @@ func SetDns(data daemonStorage.Data, dns *dnsServer.Handler) error {
 		cmd.Args[0] = "systemd-resolve"
 		_, err = cmdRunner.Run(cmd)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 	case daemonStorage.LocalDnsManagementResolveConf:
 		err := utils.SetFirstLine(constants.ResolvconfOrderFilePath, "wg*")
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		cmd := exec.Command("resolvconf", "-a", data.InterfaceName)
 		cmd.Stdin = strings.NewReader(strings.Join([]string{"nameserver " + data.DnsIp.String(), "search zerops"}, "\n"))
 		_, err = cmdRunner.Run(cmd)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 	case daemonStorage.LocalDnsManagementFile:
 		err := utils.SetFirstLine(constants.ResolvFilePath, "nameserver "+data.DnsIp.String())
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 	case
 		daemonStorage.LocalDnsManagementNetworkSetup,
 		daemonStorage.LocalDnsManagementScutil:
 
-		if err := setDnsByNetworksetup(data, dns, true); err != nil {
-			return err
+		if dataUpdate, err = setDnsByNetworksetup(data, dns, true); err != nil {
+			return nil, err
 		}
 
 	default:
-		return UnknownDnsManagementErr
+		return nil, UnknownDnsManagementErr
 	}
 
 	time.Sleep(3 * time.Second)
 
-	return nil
+	return dataUpdate, nil
 }
