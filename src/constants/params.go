@@ -2,7 +2,7 @@ package constants
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 )
 
 func CliLoginData() (string, error) {
@@ -22,5 +22,5 @@ func cliStorageFilepath(filename string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return path.Join(configDir, "zerops", filename), nil
+	return filepath.Join(configDir, "zerops", filename), nil
 }
