@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/zeropsio/zcli/src/constants"
@@ -19,7 +18,7 @@ func getImportYamlContent(config RunConfig) ([]byte, error) {
 		return nil, err
 	}
 
-	importYamlPath := path.Join(workingDir, config.ImportYamlPath)
+	importYamlPath := filepath.Join(workingDir, config.ImportYamlPath)
 
 	fileInfo, err := os.Stat(importYamlPath)
 	if err != nil {
