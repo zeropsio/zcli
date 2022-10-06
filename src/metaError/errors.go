@@ -10,7 +10,7 @@ import (
 )
 
 type apiError interface {
-	GetMeta() interface{}
+	GetMeta() any
 	GetMessage() string
 }
 

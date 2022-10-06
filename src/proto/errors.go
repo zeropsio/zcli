@@ -20,7 +20,7 @@ type handleGrpcErrorConfig struct {
 
 type Error struct {
 	Message string
-	Meta    interface{}
+	Meta    any
 }
 
 func (e Error) Error() string {
@@ -31,7 +31,7 @@ func (e Error) GetMessage() string {
 	return e.Message
 }
 
-func (e Error) GetMeta() interface{} {
+func (e Error) GetMeta() any {
 	return e.Meta
 }
 
@@ -79,10 +79,13 @@ func GrpcError[T errorCode, R response[T]](
 
 	noErrorCode := 0
 	if resp.GetError().GetCodeInt() != noErrorCode {
-		return Error{
-			Meta:    json.RawMessage(resp.GetError().GetMeta()),
+		zcliErr := Error{
 			Message: resp.GetError().GetMessage(),
 		}
+		if meta := resp.GetError().GetMeta(); meta != nil {
+			zcliErr.Meta = json.RawMessage(meta)
+		}
+		return zcliErr
 	}
 
 	return nil
