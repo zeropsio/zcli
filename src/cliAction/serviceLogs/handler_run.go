@@ -3,6 +3,7 @@ package serviceLogs
 import (
 	"context"
 	"fmt"
+
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/utils/projectService"
 )
@@ -37,7 +38,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	containerId := ""
 	// defined by user, can be 1 or higher
 	if containerIndex > 0 {
-		containerId, err = h.getContainerId(ctx, h.sdkConfig, serviceId, containerIndex)
+		containerId, err = h.getContainerId(ctx, h.sdkConfig, service.Project.ClientId, serviceId, containerIndex)
 		if err != nil {
 			return err
 		}
@@ -45,7 +46,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 
 	logServiceId := serviceId
 	if source == BUILD {
-		logServiceId, err = h.getAppVersionServiceId(ctx, h.sdkConfig, serviceId)
+		logServiceId, err = h.getAppVersionServiceId(ctx, h.sdkConfig, service.Project.ClientId, serviceId)
 		if err != nil {
 			return err
 		}
