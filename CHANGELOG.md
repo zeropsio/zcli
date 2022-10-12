@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v0.12.14] - 2022-10-12
 
 ### Fixed
-- support absolute path for import script 
+- support absolute path for import script
+- fix missing clientId in get logs on appVersion and container
 
 ## [v0.12.13] - 2022-10-06
 

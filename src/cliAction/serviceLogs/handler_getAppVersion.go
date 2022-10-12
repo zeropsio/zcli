@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/utils/projectService"
 	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/sdk"
@@ -15,18 +14,13 @@ import (
 	"github.com/zeropsio/zerops-go/types"
 )
 
-func (h *Handler) getAppVersionServiceId(ctx context.Context, sdkConfig sdkConfig.Config, serviceId string) (string, error) {
+func (h *Handler) getAppVersionServiceId(ctx context.Context, sdkConfig sdkConfig.Config, clientId string, serviceId string) (string, error) {
 	zdk := sdk.New(
 		sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(sdkConfig.RegionUrl)),
 		&http.Client{Timeout: 1 * time.Minute},
 	)
 
 	authorizedSdk := sdk.AuthorizeSdk(zdk, sdkConfig.Token)
-	clientId, err := projectService.GetClientId(ctx, h.apiGrpcClient)
-	if err != nil {
-		return "", err
-	}
-
 	var searchData []body.EsSearchItem
 	searchData = append(searchData, body.EsSearchItem{
 		Name:     "clientId",
