@@ -13,12 +13,16 @@ import (
 func getImportYamlContent(config RunConfig) ([]byte, error) {
 	fmt.Println(i18n.YamlCheck)
 
-	workingDir, err := filepath.Abs(config.WorkingDir)
-	if err != nil {
-		return nil, err
-	}
+	importYamlPath := config.ImportYamlPath
+	if !filepath.IsAbs(importYamlPath) {
 
-	importYamlPath := filepath.Join(workingDir, config.ImportYamlPath)
+		workingDir, err := filepath.Abs(config.WorkingDir)
+		if err != nil {
+			return nil, err
+		}
+
+		importYamlPath = filepath.Join(workingDir, importYamlPath)
+	}
 
 	fileInfo, err := os.Stat(importYamlPath)
 	if err != nil {
