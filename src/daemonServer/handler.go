@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/zeropsio/zcli/src/proto/daemon"
@@ -83,6 +84,16 @@ func (h *Handler) Run(ctx context.Context) error {
 }
 
 func removeUnusedServerSocket(address *url.URL) error {
+
+	socketDir := filepath.Dir(address.Path)
+	if err := os.MkdirAll(socketDir, 0755); err != nil {
+		return fmt.Errorf("unable to create socket directory (%s)", socketDir)
+	}
+
+	if err := os.Chmod(socketDir, 0755); err != nil {
+		return fmt.Errorf("unable to change socket directory (%s) permissions", socketDir)
+	}
+
 	if _, errFound := os.Stat(address.Path); errFound != nil {
 		return nil
 	}

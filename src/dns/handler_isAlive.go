@@ -16,7 +16,7 @@ func IsAlive() (bool, error) {
 	if !nettools.HasIPv6PingCommand() {
 		return false, errors.New(i18n.VpnStatusDnsNoCheckFunction)
 	}
-	err := nettools.Ping(ctx, "core-master")
+	err := nettools.Ping(ctx, "node1.master.core.zerops")
 	if err != nil {
 		return false, nil
 	}
