@@ -159,9 +159,12 @@ func (h *Handler) serveForward(ctx context.Context, m *dns.Msg) (*dns.Msg, error
 }
 
 func (h *Handler) serveVpnForward(ctx context.Context, m *dns.Msg) (*dns.Msg, error) {
+	if h.vpnForwardAddress == nil {
+		return nil, errors.New("vpn not started")
+	}
 	in, _, err := h.dnsClient.ExchangeContext(ctx, m, h.vpnForwardAddress.String())
 	if err != nil {
-		h.logger.Error("vpn forward", err, "|", h.vpnForwardAddress.String())
+		h.logger.Error("vpn forward ", err, "|", h.vpnForwardAddress.String())
 		return nil, err
 	}
 	return in, err

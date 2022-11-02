@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"net"
 	"os/exec"
 	"regexp"
@@ -15,17 +16,18 @@ import (
 	"github.com/zeropsio/zcli/src/dnsServer"
 )
 
-var serviceOrderNameRegExp = regexp.MustCompile("^\\(([0-9]+)\\) (.*)$")
+var serviceOrderNameRegExp = regexp.MustCompile("^\\(([0-9*]+)\\) (.*)$")
 var serviceOrderPortRegExp = regexp.MustCompile("^\\(Hardware Port: ([^,]+), Device: ([^)]+)\\)$")
 
 type service struct {
-	Name          string
-	InterfaceName string
-	Active        bool
+	Index           int
+	Name            string
+	InterfaceName   string
+	InterfaceActive bool
+	Disabled        bool
 }
 
 func getServiceOrder() (result []service, _ error) {
-	resultMap := make(map[string]int)
 	output, err := exec.Command("networksetup", "-listnetworkserviceorder").Output()
 	if err != nil {
 		return nil, err
@@ -34,42 +36,37 @@ func getServiceOrder() (result []service, _ error) {
 	for dnsScan.Scan() {
 		line := dnsScan.Text()
 		if match := serviceOrderNameRegExp.FindStringSubmatch(line); len(match) > 0 {
-			index, err := strconv.Atoi(match[1])
-			if err != nil {
-				continue
+			index := 99
+			disabled := true
+			if match[1] != "*" {
+				index, err = strconv.Atoi(match[1])
+				if err != nil {
+					continue
+				}
+				disabled = false
 			}
-			resultMap[match[2]] = index
-			result = append(result, service{
-				Name: match[2],
-			})
-		}
-		if match := serviceOrderPortRegExp.FindStringSubmatch(line); len(match) > 0 {
-			for index, ser := range result {
-				if ser.Name == match[1] {
-					result[index].InterfaceName = match[2]
+			ser := service{
+				Index:    index,
+				Name:     match[2],
+				Disabled: disabled,
+			}
+			if dnsScan.Scan() {
+				line := dnsScan.Text()
+				if match := serviceOrderPortRegExp.FindStringSubmatch(line); len(match) > 0 {
+					ser.InterfaceName = match[2]
 					in, err := net.InterfaceByName(match[2])
 					if err != nil {
 						continue
 					}
-					if !strings.HasPrefix(in.Name, "en") {
-						continue
-					}
-					result[index].Active = (in.Flags & net.FlagUp) > 0
+					ser.InterfaceActive = (in.Flags & net.FlagUp) > 0
+					result = append(result, ser)
 				}
 			}
 		}
 	}
 
 	sort.Slice(result, func(i, j int) bool {
-		iIndex, exists := resultMap[result[i].Name]
-		if !exists {
-			return false
-		}
-		jIndex, exists := resultMap[result[j].Name]
-		if !exists {
-			return false
-		}
-		return iIndex < jIndex
+		return result[i].Index > result[j].Index
 	})
 	return result, nil
 }
@@ -89,16 +86,64 @@ func setDnsByNetworksetup(data daemonStorage.Data, dns *dnsServer.Handler, addZe
 
 	var ser service
 	for _, s := range serviceOrder {
-		if s.Active {
+		if s.InterfaceActive {
 			ser = s
-			break
 		}
 	}
 
-	if !ser.Active {
+	if !ser.InterfaceActive {
 		return nil, errors.New("unable to find active network service")
 	}
 
+	var ipv6Enabled bool
+	if addZerops {
+		infoOutput, err := exec.Command("networksetup", "-getinfo", ser.Name).Output()
+		if err != nil {
+			return nil, err
+		}
+		{
+			infoScan := bufio.NewScanner(bytes.NewReader(infoOutput))
+			for infoScan.Scan() {
+				infoText := infoScan.Text()
+
+				if strings.HasPrefix(infoText, "IPv6:") {
+					if strings.TrimSpace(strings.TrimPrefix(infoText, "IPv6:")) != "Off" {
+						ipv6Enabled = true
+					}
+				}
+			}
+			dataUpdate = func(data daemonStorage.Data) daemonStorage.Data {
+				data.IPv6Enabled = ipv6Enabled
+				return data
+			}
+		}
+	} else {
+		ipv6Enabled = data.IPv6Enabled
+	}
+	if !ipv6Enabled {
+		if addZerops {
+			size, _ := data.VpnNetwork.Mask.Size()
+			args := []string{
+				"-setv6manual",
+				ser.Name,
+				data.ClientIp.String(),
+				strconv.Itoa(size),
+				data.ServerIp.String(),
+			}
+			if output, err := exec.Command("networksetup", args...).CombinedOutput(); err != nil {
+				return nil, fmt.Errorf("unable to set ipv6 routing %v: %s\n\n %s", args, err.Error(), string(output))
+			}
+		} else {
+			args := []string{
+				"-setv6off",
+				ser.Name,
+			}
+			if output, err := exec.Command("networksetup", args...).CombinedOutput(); err != nil {
+				return nil, fmt.Errorf("unable to unset ipv6 routing %v: %s\n\n %s", args, err.Error(), string(output))
+			}
+
+		}
+	}
 	{
 		dnsOutput, err := exec.Command("networksetup", "-getdnsservers", ser.Name).Output()
 		if err != nil {
@@ -169,9 +214,8 @@ func setDnsByNetworksetup(data daemonStorage.Data, dns *dnsServer.Handler, addZe
 
 				}
 			}
-			_, err := exec.Command("networksetup", args...).Output()
-			if err != nil {
-				return nil, err
+			if output, err := exec.Command("networksetup", args...).CombinedOutput(); err != nil {
+				return nil, fmt.Errorf("unable to set dnsservers %v: %s\n\n %s", args, err.Error(), string(output))
 			}
 		}
 	}
@@ -213,14 +257,13 @@ func setDnsByNetworksetup(data daemonStorage.Data, dns *dnsServer.Handler, addZe
 				args = append(args, searchDomains...)
 			} else {
 				if data.DhcpEnabled || len(searchDomains) == 0 {
-					args = append(args, "empty")
+					args = append(args, "Empty")
 				} else {
 					args = append(args, searchDomains...)
 				}
 			}
-			_, err := exec.Command("networksetup", args...).Output()
-			if err != nil {
-				return dataUpdate, err
+			if output, err := exec.Command("networksetup", args...).CombinedOutput(); err != nil {
+				return dataUpdate, fmt.Errorf("unable to set searchdomain %v: %s\n\n %s", args, err.Error(), string(output))
 			}
 		}
 	}

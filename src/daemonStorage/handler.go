@@ -39,6 +39,7 @@ type Data struct {
 	Mtu           uint32
 	DnsManagement LocalDnsManagement
 	DhcpEnabled   bool
+	IPv6Enabled   bool
 
 	Expiry time.Time
 }
