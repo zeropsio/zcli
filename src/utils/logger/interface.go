@@ -1,8 +1,12 @@
 package logger
 
 type Logger interface {
-	Info(a ...interface{})
+	Info(...interface{})
+	Infof(string, ...interface{})
 	Warning(a ...interface{})
-	Error(a ...interface{})
-	Debug(a ...interface{})
+	Warningf(string, ...interface{})
+	Error(...interface{})
+	Errorf(string, ...interface{})
+	Debug(...interface{})
+	Debugf(string, ...interface{})
 }

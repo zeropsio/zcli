@@ -69,16 +69,16 @@ func (h *Handler) setVpn(ctx context.Context, selectedVpnAddress net.IP, private
 		return err
 	}
 
-	runCommands(ctx, h.logger,
+	h.runCommands(ctx,
 		makeCommand(
 			"wireguard",
-			i18n.VpnStartTunnelConfigurationFailed,
-			"/installtunnelservice", configFile,
+			commandWithErrorMessage(i18n.VpnStartTunnelConfigurationFailed),
+			commandWithArgs("/installtunnelservice", configFile),
 		),
 		makeCommand(
 			"netsh",
-			i18n.VpnStartTunnelConfigurationFailed,
-			"interface", "ipv4", "set", "subinterface", "zerops", "mtu="+strconv.Itoa(int(mtu)),
+			commandWithErrorMessage(i18n.VpnStartTunnelConfigurationFailed),
+			commandWithArgs("interface", "ipv4", "set", "subinterface", "zerops", "mtu="+strconv.Itoa(int(mtu))),
 		),
 	)
 

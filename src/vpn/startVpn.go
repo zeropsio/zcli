@@ -7,10 +7,10 @@ import (
 	"net"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/daemonStorage"
-	"github.com/zeropsio/zcli/src/dns"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/proto"
@@ -72,7 +72,7 @@ func (h *Handler) startVpn(
 	accessToken := apiVpnRequestResponse.GetOutput().GetAccessToken()
 	expiry := apiVpnRequestResponse.GetOutput().GetExpiry()
 
-	h.logger.Debug("get vpn addresses start")
+	h.logger.Debugf("get vpn addresses start %s", grpcVpnAddress)
 
 	ipRecords, err := net.LookupIP(grpcVpnAddress)
 	if err != nil {
@@ -131,7 +131,7 @@ func (h *Handler) startVpn(
 		return err
 	}
 
-	dnsManagement, err := dns.DetectDns()
+	dnsManagement, err := DnsDetect()
 	if err != nil {
 		h.logger.Error(err)
 		return err
@@ -153,10 +153,13 @@ func (h *Handler) startVpn(
 		data.DnsIp = dnsIp
 		data.ClientIp = clientIp
 		data.GrpcApiAddress = grpcApiAddress
-		data.GrpcVpnAddress = targetVpnAddress
+		data.GrpcVpnAddress = grpcVpnAddress
+		data.GrpcTargetVpnAddress = targetVpnAddress
 		data.Token = token
 		data.DnsManagement = dnsManagement
 		data.CaCertificateUrl = caCertificateUrl
+		data.PreferredPortMin = preferredPortMin
+		data.PreferredPortMax = preferredPortMax
 		data.Expiry = zBusinessZeropsApiProtocol.FromProtoTimestamp(expiry)
 		return data
 	})
@@ -165,35 +168,26 @@ func (h *Handler) startVpn(
 		return errors.New(i18n.DaemonUnableToSaveConfiguration)
 	}
 
-	dataUpdate, err := dns.SetDns(data, h.dnsServer)
-	if err != nil {
+	if err := h.setDns(ctx); err != nil {
 		h.logger.Error(err)
 		return err
 	}
 
-	if dataUpdate != nil {
-		data, err = h.storage.Update(dataUpdate)
-		if err != nil {
-			h.logger.Error(err)
-			return errors.New(i18n.DaemonUnableToSaveConfiguration)
-		}
-	}
+	data = h.storage.Data()
 
-	h.logger.Debug("dnsIp: " + data.DnsIp.String())
-	h.logger.Debug("clientIp: " + data.ClientIp.String())
-	h.logger.Debug("dnsManagementType: " + data.DnsManagement)
-	h.logger.Debug("serverIp: " + data.ServerIp.String())
-	h.logger.Debug("vpnNetwork: " + data.VpnNetwork.String())
-	h.logger.Debug("interface: " + data.InterfaceName)
+	h.logger.Debugf("dnsIp: %s", data.DnsIp.String())
+	h.logger.Debugf("clientIp: %s", data.ClientIp.String())
+	h.logger.Debugf("dnsManagementType: %s", data.DnsManagement)
+	h.logger.Debugf("serverIp: %s", data.ServerIp.String())
+	h.logger.Debugf("vpnNetwork: %s", data.VpnNetwork.String())
+	h.logger.Debugf("interface: %s", data.InterfaceName)
+	h.logger.Debugf("mtu: %d", data.Mtu)
+	h.logger.Debugf("preferredPortMin: %d", data.PreferredPortMin)
+	h.logger.Debugf("preferredPortMax: %d", data.PreferredPortMax)
 
-	h.logger.Debug("dhcpEnabled: " + func() string {
-		if data.DhcpEnabled {
-			return "true"
-		}
-		return "false"
-	}())
-
+	time.Sleep(time.Second * 3)
 	h.logger.Debug("try vpn")
+
 	if !h.isVpnTunnelAlive(ctx, serverIp) {
 		if err := h.stopVpn(ctx); err != nil {
 			h.logger.Error(err)

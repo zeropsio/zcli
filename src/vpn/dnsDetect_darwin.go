@@ -1,6 +1,6 @@
 //go:build darwin
 
-package dns
+package vpn
 
 import (
 	"os/exec"
@@ -8,9 +8,8 @@ import (
 	"github.com/zeropsio/zcli/src/daemonStorage"
 )
 
-func DetectDns() (daemonStorage.LocalDnsManagement, error) {
-
-	if _, err := exec.LookPath("networksetup"); err == nil {
+func dnsDetect() (daemonStorage.LocalDnsManagement, error) {
+	if _, err := exec.LookPath("scutil"); err == nil {
 		return daemonStorage.LocalDnsManagementNetworkSetup, nil
 	}
 	return daemonStorage.LocalDnsManagementUnknown, nil

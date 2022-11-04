@@ -20,7 +20,7 @@ func (h *Handler) cleanVpn(ctx context.Context, interfaceName string) error {
 	}
 	defer wg.Close()
 
-	h.logger.Debug("check Interface: ", interfaceName)
+	h.logger.Debug("check interface: ", interfaceName)
 	if _, err := wg.Device(interfaceName); err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -28,13 +28,12 @@ func (h *Handler) cleanVpn(ctx context.Context, interfaceName string) error {
 		return err
 	}
 
-	return runCommands(
+	return h.runCommands(
 		ctx,
-		h.logger,
 		makeCommand(
 			"wireguard",
-			i18n.VpnStopUnableToRemoveTunnelInterface,
-			"/uninstalltunnelservice", interfaceName,
+			commandWithErrorMessage(i18n.VpnStopUnableToRemoveTunnelInterface),
+			commandWithArgs("/uninstalltunnelservice", interfaceName),
 		),
 	)
 }

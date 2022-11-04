@@ -8,7 +8,6 @@ import (
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/daemonStorage"
-	"github.com/zeropsio/zcli/src/dnsServer"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/prolongVpn"
 	"github.com/zeropsio/zcli/src/region"
@@ -48,10 +47,6 @@ func createCliStorage() (*cliStorage.Handler, error) {
 	return &cliStorage.Handler{Handler: s}, err
 }
 
-func createDnsServer(logger logger.Logger) *dnsServer.Handler {
-	return dnsServer.New(logger)
-}
-
 func createDaemonStorage() (*daemonStorage.Handler, error) {
 	s, err := storage.New[daemonStorage.Data](
 		storage.Config{
@@ -74,7 +69,6 @@ func createRegionRetriever(ctx context.Context) (*region.Handler, error) {
 
 func createVpn(
 	storage *daemonStorage.Handler,
-	dnsServer *dnsServer.Handler,
 	logger *logger.Handler,
 ) *vpn.Handler {
 	return vpn.New(
@@ -85,7 +79,6 @@ func createVpn(
 		},
 		logger,
 		storage,
-		dnsServer,
 	)
 }
 

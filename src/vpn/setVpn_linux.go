@@ -46,13 +46,12 @@ func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgty
 	}
 	for _, in := range interfaces {
 		if in.Name == interfaceName {
-			if err := runCommands(
+			if err := h.runCommands(
 				ctx,
-				h.logger,
 				makeCommand(
 					"ip",
-					i18n.VpnStopUnableToRemoveTunnelInterface,
-					"link", "del", interfaceName,
+					commandWithErrorMessage(i18n.VpnStopUnableToRemoveTunnelInterface),
+					commandWithArgs("link", "del", interfaceName),
 				),
 			); err != nil {
 				return err
@@ -60,28 +59,27 @@ func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgty
 		}
 	}
 
-	if err := runCommands(
+	if err := h.runCommands(
 		ctx,
-		h.logger,
 		makeCommand(
 			"ip",
-			i18n.VpnStartUnableToConfigureNetworkInterface,
-			"link", "add", interfaceName, "type", "wireguard",
+			commandWithErrorMessage(i18n.VpnStartUnableToConfigureNetworkInterface),
+			commandWithArgs("link", "add", interfaceName, "type", "wireguard"),
 		),
 		makeCommand(
 			"ip",
-			i18n.VpnStartUnableToConfigureNetworkInterface,
-			"-6", "address", "add", clientIp.String()+"/128", "dev", interfaceName,
+			commandWithErrorMessage(i18n.VpnStartUnableToConfigureNetworkInterface),
+			commandWithArgs("-6", "address", "add", clientIp.String()+"/128", "dev", interfaceName),
 		),
 		makeCommand(
 			"ip",
-			i18n.VpnStartUnableToConfigureNetworkInterface,
-			"link", "set", "dev", interfaceName, "mtu", strconv.Itoa(int(mtu)), "up",
+			commandWithErrorMessage(i18n.VpnStartUnableToConfigureNetworkInterface),
+			commandWithArgs("link", "set", "dev", interfaceName, "mtu", strconv.Itoa(int(mtu)), "up"),
 		),
 		makeCommand(
 			"ip",
-			i18n.VpnStartUnableToUpdateRoutingTable,
-			"route", "add", vpnRange.String(), "dev", interfaceName,
+			commandWithErrorMessage(i18n.VpnStartUnableToUpdateRoutingTable),
+			commandWithArgs("route", "add", vpnRange.String(), "dev", interfaceName),
 		),
 	); err != nil {
 		return err

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/zeropsio/zcli/src/proto/daemon"
-
 	"github.com/zeropsio/zcli/src/vpn"
 	"google.golang.org/grpc"
 )

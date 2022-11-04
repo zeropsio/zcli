@@ -1,4 +1,4 @@
-package dns
+package vpn
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/zeropsio/zcli/src/nettools"
 )
 
-func IsAlive() (bool, error) {
+func (h *Handler) dnsIsAlive() (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
