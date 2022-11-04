@@ -1,26 +1,25 @@
-package dns
+package vpn
 
 import (
+	"context"
 	"errors"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/daemonStorage"
-	"github.com/zeropsio/zcli/src/dnsServer"
 	"github.com/zeropsio/zcli/src/utils"
 	"github.com/zeropsio/zcli/src/utils/cmdRunner"
 )
 
 var UnknownDnsManagementErr = errors.New("unknown dns management")
 
-func SetDns(data daemonStorage.Data, dns *dnsServer.Handler) (dataUpdate func(daemonStorage.Data) daemonStorage.Data, _ error) {
-	var err error
+func (h *Handler) setDns(ctx context.Context) error {
+	data := h.storage.Data()
 
 	switch data.DnsManagement {
 	case daemonStorage.LocalDnsManagementUnknown, daemonStorage.LocalDnsManagementWindows:
-		return nil, nil
+		return nil
 
 	case daemonStorage.LocalDnsManagementSystemdResolve:
 		// resolvectl is multi-binary and behaves differently
@@ -28,43 +27,36 @@ func SetDns(data daemonStorage.Data, dns *dnsServer.Handler) (dataUpdate func(da
 		// systemd-resolve is only a symlink to resolvectl
 		cmd := exec.Command("resolvectl", "--set-dns="+data.DnsIp.String(), `--set-domain=zerops`, "--interface="+data.InterfaceName)
 		cmd.Args[0] = "systemd-resolve"
-		_, err = cmdRunner.Run(cmd)
-		if err != nil {
-			return nil, err
+		if _, err := cmdRunner.Run(cmd); err != nil {
+			return err
 		}
 
 	case daemonStorage.LocalDnsManagementResolveConf:
 		err := utils.SetFirstLine(constants.ResolvconfOrderFilePath, "wg*")
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		cmd := exec.Command("resolvconf", "-a", data.InterfaceName)
 		cmd.Stdin = strings.NewReader(strings.Join([]string{"nameserver " + data.DnsIp.String(), "search zerops"}, "\n"))
-		_, err = cmdRunner.Run(cmd)
-		if err != nil {
-			return nil, err
+		if _, err = cmdRunner.Run(cmd); err != nil {
+			return err
 		}
 
 	case daemonStorage.LocalDnsManagementFile:
-		err := utils.SetFirstLine(constants.ResolvFilePath, "nameserver "+data.DnsIp.String())
-		if err != nil {
-			return nil, err
+		if err := utils.SetFirstLine(constants.ResolvFilePath, "nameserver "+data.DnsIp.String()); err != nil {
+			return err
 		}
 
-	case
-		daemonStorage.LocalDnsManagementNetworkSetup,
-		daemonStorage.LocalDnsManagementScutil:
+	case daemonStorage.LocalDnsManagementNetworkSetup:
 
-		if dataUpdate, err = setDnsByNetworksetup(data, dns, true); err != nil {
-			return nil, err
+		if err := h.setDnsNetworksetup(ctx); err != nil {
+			return err
 		}
 
 	default:
-		return nil, UnknownDnsManagementErr
+		return UnknownDnsManagementErr
 	}
 
-	time.Sleep(3 * time.Second)
-
-	return dataUpdate, nil
+	return nil
 }

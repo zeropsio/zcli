@@ -16,13 +16,12 @@ func (h *Handler) cleanVpn(ctx context.Context, interfaceName string) error {
 	}
 	for _, in := range interfaces {
 		if in.Name == interfaceName {
-			return runCommands(
+			return h.runCommands(
 				ctx,
-				h.logger,
 				makeCommand(
 					"ip",
-					i18n.VpnStopUnableToRemoveTunnelInterface,
-					"link", "del", interfaceName,
+					commandWithErrorMessage(i18n.VpnStopUnableToRemoveTunnelInterface),
+					commandWithArgs("link", "del", interfaceName),
 				),
 			)
 		}

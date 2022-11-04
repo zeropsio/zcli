@@ -15,7 +15,7 @@ import (
 
 func createDaemonGrpcServer(vpn *vpn.Handler) (*daemonServer.Handler, error) {
 	socketDir := filepath.Dir(constants.DaemonAddress)
-	err := os.MkdirAll(socketDir, 0777)
+	err := os.MkdirAll(socketDir, 0755)
 	if err != nil {
 		return nil, err
 	}

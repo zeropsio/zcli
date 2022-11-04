@@ -40,18 +40,7 @@ func daemonRun(ctx context.Context) error {
 
 	var wg sync.WaitGroup
 
-	dnsServer := createDnsServer(logger)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := dnsServer.Run(cancelCtx)
-		if err != nil {
-			logger.Error(err)
-			cancel()
-		}
-	}()
-
-	vpnHandler := createVpn(storage, dnsServer, logger)
+	vpnHandler := createVpn(storage, logger)
 
 	if err := vpnHandler.ReloadVpn(cancelCtx); err != nil {
 		return err
@@ -86,6 +75,8 @@ func daemonRun(ctx context.Context) error {
 	logger.Info("daemon is running")
 
 	wg.Wait()
+
+	vpnHandler.DnsClean(context.Background())
 
 	logger.Info("daemon ended")
 

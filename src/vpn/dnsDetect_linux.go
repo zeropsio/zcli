@@ -1,6 +1,6 @@
 //go:build linux
 
-package dns
+package vpn
 
 import (
 	"os/exec"
@@ -12,7 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/utils/cmdRunner"
 )
 
-func DetectDns() (daemonStorage.LocalDnsManagement, error) {
+func dnsDetect() (daemonStorage.LocalDnsManagement, error) {
 
 	resolvExists, err := utils.FileExists(constants.ResolvFilePath)
 	if err != nil {

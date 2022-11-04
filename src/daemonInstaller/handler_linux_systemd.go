@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package daemonInstaller
 
@@ -16,8 +15,8 @@ import (
 
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/daemonStorage"
-	"github.com/zeropsio/zcli/src/dns"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/vpn"
 )
 
 type systemDRecord struct {
@@ -56,7 +55,7 @@ func (daemon *systemDRecord) Install() error {
 		daemonStorageDir,
 	}
 
-	dnsManagement, err := dns.DetectDns()
+	dnsManagement, err := vpn.DnsDetect()
 	if err != nil {
 		return err
 	}

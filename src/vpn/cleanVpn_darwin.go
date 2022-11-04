@@ -20,7 +20,9 @@ func (h *Handler) cleanVpn(_ context.Context, interfaceName string) error {
 	}
 	for _, in := range interfaces {
 		if in.Name == interfaceName {
-			if err := os.Remove(path.Join("/var/run/wireguard/", interfaceName+".sock")); err != nil {
+			socket := path.Join("/var/run/wireguard/", interfaceName+".sock")
+			h.logger.Debugf("remove wireguard socket: %s", socket)
+			if err := os.Remove(socket); err != nil {
 				return errors.New(i18n.VpnStopUnableToRemoveTunnelInterface)
 			}
 		}

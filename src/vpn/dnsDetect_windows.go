@@ -1,12 +1,12 @@
 //go:build windows
 
-package dns
+package vpn
 
 import (
 	"github.com/zeropsio/zcli/src/daemonStorage"
 )
 
-func DetectDns() (daemonStorage.LocalDnsManagement, error) {
+func dnsDetect() (daemonStorage.LocalDnsManagement, error) {
 	return daemonStorage.LocalDnsManagementWindows, nil
 
 }

@@ -89,7 +89,7 @@ func (h *Handler) prolong(ctx context.Context) error {
 	expiry := businessResp.GetOutput().GetExpiry()
 	accessToken := businessResp.GetOutput().GetAccessToken()
 
-	vpnClient, closeFn, err := vpnproxy.CreateClient(ctx, data.GrpcVpnAddress)
+	vpnClient, closeFn, err := vpnproxy.CreateClient(ctx, data.GrpcTargetVpnAddress)
 	if err != nil {
 		return err
 	}

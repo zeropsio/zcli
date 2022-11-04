@@ -1,4 +1,4 @@
-package dns
+package vpn
 
 import (
 	"context"
@@ -6,13 +6,13 @@ import (
 
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/daemonStorage"
-	"github.com/zeropsio/zcli/src/dnsServer"
 	"github.com/zeropsio/zcli/src/utils"
 	"github.com/zeropsio/zcli/src/utils/cmdRunner"
-	"github.com/zeropsio/zcli/src/utils/logger"
 )
 
-func CleanDns(_ context.Context, _ logger.Logger, data daemonStorage.Data, dnsServer *dnsServer.Handler) error {
+func (h *Handler) DnsClean(ctx context.Context) error {
+
+	data := h.storage.Data()
 
 	switch data.DnsManagement {
 	case daemonStorage.LocalDnsManagementUnknown:
@@ -30,10 +30,8 @@ func CleanDns(_ context.Context, _ logger.Logger, data daemonStorage.Data, dnsSe
 		if err != nil {
 			return err
 		}
-	case
-		daemonStorage.LocalDnsManagementNetworkSetup,
-		daemonStorage.LocalDnsManagementScutil:
-		if _, err := setDnsByNetworksetup(data, dnsServer, false); err != nil {
+	case daemonStorage.LocalDnsManagementNetworkSetup:
+		if err := h.dnsCleanNetworkSetup(ctx); err != nil {
 			return err
 		}
 

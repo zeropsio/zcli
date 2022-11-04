@@ -66,18 +66,17 @@ func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgty
 		),
 	)
 
-	if err := runCommands(
+	if err := h.runCommands(
 		ctx,
-		h.logger,
 		makeCommand(
 			"ifconfig",
-			i18n.VpnStartUnableToConfigureNetworkInterface,
-			interfaceName, "inet6", clientIp.String(), "mtu", strconv.Itoa(int(mtu)),
+			commandWithErrorMessage(i18n.VpnStartUnableToConfigureNetworkInterface),
+			commandWithArgs(interfaceName, "inet6", clientIp.String(), "mtu", strconv.Itoa(int(mtu))),
 		),
 		makeCommand(
 			"route",
-			i18n.VpnStartUnableToUpdateRoutingTable,
-			"add", "-inet6", vpnRange.String(), serverIp.String(),
+			commandWithErrorMessage(i18n.VpnStartUnableToUpdateRoutingTable),
+			commandWithArgs("add", "-inet6", vpnRange.String(), serverIp.String()),
 		),
 	); err != nil {
 		return err

@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/proto/daemon"
 	"golang.zx2c4.com/wireguard/wgctrl"
-
-	"github.com/zeropsio/zcli/src/i18n"
-
-	"github.com/zeropsio/zcli/src/dns"
 )
 
 func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
@@ -33,7 +30,7 @@ func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
 	}
 	defer wg.Close()
 
-	h.logger.Debug("check Interface: ", data.InterfaceName)
+	h.logger.Debug("check interface: ", data.InterfaceName)
 	if _, err := wg.Device(data.InterfaceName); err != nil {
 		if os.IsNotExist(err) {
 			return vpnStatus, h.stopVpn(ctx)
@@ -46,7 +43,7 @@ func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
 	}
 	vpnStatus.TunnelState = daemon.TunnelState_TUNNEL_ACTIVE
 
-	dnsIsAlive, err := dns.IsAlive()
+	dnsIsAlive, err := h.dnsIsAlive()
 	if err != nil {
 		h.logger.Error(err)
 		vpnStatus.AdditionalInfo = i18n.VpnStatusDnsCheckError + "\n"

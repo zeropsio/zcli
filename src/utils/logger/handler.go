@@ -43,17 +43,33 @@ func New(config Config) (*Handler, error) {
 }
 
 func (h *Handler) Info(a ...interface{}) {
-	h.logrus.Println(a...)
+	h.logrus.Info(a...)
+}
+
+func (h *Handler) Infof(format string, a ...interface{}) {
+	h.logrus.Infof(format, a...)
 }
 
 func (h *Handler) Warning(a ...interface{}) {
 	h.logrus.Warning(a...)
 }
 
+func (h *Handler) Warningf(format string, a ...interface{}) {
+	h.logrus.Warningf(format, a...)
+}
+
 func (h *Handler) Error(a ...interface{}) {
 	h.logrus.Error(a...)
 }
 
+func (h *Handler) Errorf(format string, a ...interface{}) {
+	h.logrus.Errorf(format, a...)
+}
+
 func (h *Handler) Debug(a ...interface{}) {
 	h.logrus.Debug(a...)
+}
+
+func (h *Handler) Debugf(format string, a ...interface{}) {
+	h.logrus.Debugf(format, a...)
 }

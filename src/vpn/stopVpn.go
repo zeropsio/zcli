@@ -2,13 +2,12 @@ package vpn
 
 import (
 	"context"
-
-	"github.com/zeropsio/zcli/src/dns"
 )
 
 func (h *Handler) stopVpn(ctx context.Context) error {
 	h.logger.Debug("stopping VPN")
 	data := h.storage.Data()
+
 	if data.InterfaceName == "" {
 		return nil
 	}
@@ -20,8 +19,7 @@ func (h *Handler) stopVpn(ctx context.Context) error {
 	h.logger.Debug("clean vpn end")
 
 	h.logger.Debug("clean vpn DNS")
-
-	if err := dns.CleanDns(ctx, h.logger, data, h.dnsServer); err != nil {
+	if err := h.DnsClean(ctx); err != nil {
 		return err
 	}
 	h.logger.Debug("clean DNS start")
@@ -29,6 +27,5 @@ func (h *Handler) stopVpn(ctx context.Context) error {
 	if err := h.storage.Clear(); err != nil {
 		return err
 	}
-
 	return nil
 }

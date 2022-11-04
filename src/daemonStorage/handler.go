@@ -18,28 +18,29 @@ const (
 	LocalDnsManagementResolveConf    LocalDnsManagement = "RESOLVCONF"
 	LocalDnsManagementFile           LocalDnsManagement = "FILE"
 	LocalDnsManagementNetworkSetup   LocalDnsManagement = "NETWORKSETUP"
-	LocalDnsManagementScutil         LocalDnsManagement = "SCUTIL"
 	LocalDnsManagementUnknown        LocalDnsManagement = "UNKNOWN"
 	LocalDnsManagementWindows        LocalDnsManagement = "WINDOWS"
 )
 
 type Data struct {
-	ProjectId        string
-	UserId           string
-	VpnNetwork       net.IPNet
-	GrpcApiAddress   string
-	GrpcVpnAddress   string
-	CaCertificateUrl string
-	Token            string
+	ProjectId            string
+	UserId               string
+	VpnNetwork           net.IPNet
+	GrpcApiAddress       string
+	GrpcVpnAddress       string
+	GrpcTargetVpnAddress string
+	CaCertificateUrl     string
+	Token                string
+	PreferredPortMin     uint32
+	PreferredPortMax     uint32
 
-	InterfaceName string
 	ServerIp      net.IP
 	DnsIp         net.IP
 	ClientIp      net.IP
 	Mtu           uint32
 	DnsManagement LocalDnsManagement
-	DhcpEnabled   bool
-	IPv6Enabled   bool
+
+	InterfaceName string
 
 	Expiry time.Time
 }
