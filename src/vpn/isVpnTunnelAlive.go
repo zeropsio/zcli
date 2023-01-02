@@ -20,6 +20,7 @@ func (h *Handler) isVpnTunnelAlive(ctx context.Context, serverIp net.IP) bool {
 
 			err := nettools.Ping(ctx, serverIp.String())
 			if err != nil {
+				h.logger.Error(err)
 				return false
 			}
 			return true

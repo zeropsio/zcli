@@ -18,6 +18,7 @@ func (h *Handler) dnsIsAlive() (bool, error) {
 	}
 	err := nettools.Ping(ctx, "node1.master.core.zerops")
 	if err != nil {
+		h.logger.Error(err)
 		return false, nil
 	}
 	return true, nil
