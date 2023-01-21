@@ -28,6 +28,7 @@ func ExecuteCmd() error {
 		SilenceErrors:     true,
 	}
 
+	rootCmd.AddCommand(initCommand())
 	rootCmd.AddCommand(deployCmd())
 	rootCmd.AddCommand(pushCmd())
 	rootCmd.AddCommand(vpnCmd())
