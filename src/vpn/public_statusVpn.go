@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"golang.zx2c4.com/wireguard/wgctrl"
+
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/proto/daemon"
-	"golang.zx2c4.com/wireguard/wgctrl"
 )
 
 func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
@@ -42,6 +43,7 @@ func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
 		}
 	}
 	vpnStatus.TunnelState = daemon.TunnelState_TUNNEL_ACTIVE
+	vpnStatus.ProjectId = data.ProjectId
 
 	dnsIsAlive, err := h.dnsIsAlive()
 	if err != nil {

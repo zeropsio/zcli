@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -40,6 +41,9 @@ func ExecuteCmd() error {
 	rootCmd.AddCommand(projectCmd())
 	rootCmd.AddCommand(serviceCmd())
 	rootCmd.AddCommand(bucketCmd())
+	if runtime.GOOS != "windows" {
+		rootCmd.AddCommand(sshCmd())
+	}
 
 	rootCmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
 

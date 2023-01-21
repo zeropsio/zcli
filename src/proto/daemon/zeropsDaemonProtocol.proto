@@ -24,6 +24,7 @@ message vpnStatus {
     tunnelState tunnelState = 1;
     dnsState dnsState = 2;
     string additionalInfo = 3;
+    string projectId = 4;
 }
 
 message startVpnRequest {

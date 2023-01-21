@@ -63,6 +63,7 @@ const (
 	CmdBucketS3      = "Management directly via S3 API"
 	CmdBucketCreate  = "Creates a bucket in an existing object storage."
 	CmdBucketDelete  = "Deletes a bucket from an existing object storage."
+	CmdSsh           = "Connects to container via ssh."
 
 	// cmd long
 	ProjectImportLong = "Creates a new project with one or more services according to the definition in the import YAML file."
