@@ -1,0 +1,28 @@
+# Service hostname to which the application will be deployed.
+{{ .Name }}:
+    # The part used for the build phase to produce a final application runtime.
+    build:
+        # Which technology should be used as a base one for creating a build container.
+        base: [  ]
+        # Which commands should be run to install additional or custom dependencies.
+        prepare:
+        # Which commands should be run to build the application.
+        build:
+        # Which files or directories of the application build should be stored for the next build.
+        cache: []
+        # Which files and directories should be copied from a build container into a runtime container.
+        deploy: []
+    # The part used to run the application runtime after a successful deployment.
+    run:
+        # Which commands should be run to install additional libraries or tools.
+        prepare:
+        # Which commands to run after a launch or each restart of a runtime container instance.
+        init:
+        # Replacement of template patterns in static files with environment variable values.
+        envReplace:
+            # Specification of files / folders to search for delimiters.
+            target: [ ]
+            # Specification of one or more delimiters (quote YAML special characters).
+            delimiter: [ ]
+        # A command that should start your service.
+        start:

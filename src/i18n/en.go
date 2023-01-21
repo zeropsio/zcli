@@ -96,6 +96,12 @@ const (
 	MtuFlag               = "Sets a custom MTU for VPN interface. Default value is 1420."
 	PreferredPortFlag     = "????"
 
+	// prompt
+	PromptEnterZeropsServiceName = "Enter hostname of zerops service"
+	PromptName                   = "name"
+	PromptInvalidInput           = "Invalid input."
+	PromptInvalidHostname        = "Name contains invalid characters."
+
 	// process
 	ProcessInvalidState        = "last command has finished with error, identifier for communication with our support: %s"
 	ProcessInvalidStateProcess = "process finished with error, identifier for communication with our support:"
