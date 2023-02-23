@@ -19,7 +19,7 @@ require (
 	github.com/zeropsio/zerops-go v1.0.4
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.3.8
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20220504211119-3d4a969bb56b
 	google.golang.org/grpc v1.49.0
 	google.golang.org/grpc/security/advancedtls v0.0.0-20220516211522-d9b952b17060
