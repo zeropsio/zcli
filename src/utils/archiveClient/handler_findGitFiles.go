@@ -59,7 +59,7 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 
 	// add all non deleted
 	if err := h.listFiles(
-		createCmd("git", "ls-files", "--exclude-standard"),
+		createCmd("git", "ls-files", "--exclude-standard", "--recurse-submodules"),
 		func(path string) error {
 			if _, exists := excludedFiles[path]; !exists {
 				res = append(res, createFile(filepath.Join(workingDir, path)))

@@ -7,3 +7,5 @@ tools/npm/node_modules
 *zerops.yml
 *import.yml
 *.DS_Store
+# ignore built binary in root dir
+/zcli
