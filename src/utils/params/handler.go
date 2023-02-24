@@ -27,60 +27,54 @@ func (h *Handler) getCmdId(cmd *cobra.Command, name string) string {
 }
 
 func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, description string) {
-
 	var paramValue string
 
-	cmd.Flags().StringVar(&paramValue, name, "", description)
+	cmd.Flags().StringVar(&paramValue, name, defaultValue, description)
 
 	h.params[h.getCmdId(cmd, name)] = func() *string {
-		if paramValue != "" {
+		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
 		if h.viper.GetString(name) != "" {
 			v := h.viper.GetString(name)
 			return &v
 		}
-
-		return &defaultValue
+		return &paramValue
 	}
 }
 
 func (h *Handler) RegisterBool(cmd *cobra.Command, name string, defaultValue bool, description string) {
-
 	var paramValue bool
 
-	cmd.Flags().BoolVar(&paramValue, name, false, description)
+	cmd.Flags().BoolVar(&paramValue, name, defaultValue, description)
 
 	h.params[h.getCmdId(cmd, name)] = func() *bool {
-		if paramValue != false {
+		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
 		if h.viper.GetBool(name) != false {
 			v := h.viper.GetBool(name)
 			return &v
 		}
-
-		return &defaultValue
+		return &paramValue
 	}
 }
 
 func (h *Handler) RegisterPersistentString(cmd *cobra.Command, name, defaultValue, description string) {
-
 	var paramValue string
 
-	cmd.PersistentFlags().StringVar(&paramValue, name, "", description)
+	cmd.PersistentFlags().StringVar(&paramValue, name, defaultValue, description)
 	h.viper.BindPFlags(cmd.PersistentFlags())
 
 	h.params[name] = func() *string {
-		if paramValue != "" {
+		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
 		if h.viper.GetString(name) != "" {
 			v := h.viper.GetString(name)
 			return &v
 		}
-
-		return &defaultValue
+		return &paramValue
 	}
 }
 
@@ -90,18 +84,14 @@ func (h *Handler) RegisterUInt32(cmd *cobra.Command, name string, defaultValue u
 	cmd.Flags().Uint32Var(&paramValue, name, defaultValue, description)
 
 	h.params[name] = func() *uint32 {
-		if paramValue > 0 {
+		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
 		if h.viper.GetUint32(name) != 0 {
 			v := h.viper.GetUint32(name)
 			return &v
 		}
-		if paramValue == 0 {
-			return &paramValue
-		}
-
-		return &defaultValue
+		return &paramValue
 	}
 }
 
@@ -167,7 +157,6 @@ func (h *Handler) GetBool(cmd *cobra.Command, name string) bool {
 }
 
 func (h *Handler) InitViper() error {
-
 	path, err := os.Getwd()
 	if err != nil {
 		return err
