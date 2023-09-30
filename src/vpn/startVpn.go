@@ -113,14 +113,18 @@ func (h *Handler) startVpn(
 	h.logger.Debug("call start vpn - end")
 
 	clientIp := vpnproxy.FromProtoIP(startVpnResponse.GetVpn().GetAssignedClientIp())
+	clientIp4 := vpnproxy.FromProtoIP(startVpnResponse.GetVpn().GetAssignedClientIp4())
 	vpnRange := vpnproxy.FromProtoIPRange(startVpnResponse.GetVpn().GetVpnIpRange())
+	vpnRange4 := vpnproxy.FromProtoIPRange(startVpnResponse.GetVpn().GetVpnIp4Range())
 	serverIp := vpnproxy.FromProtoIP(startVpnResponse.GetVpn().GetServerIp())
 
 	h.logger.Debug("assigned client address: " + clientIp.String())
+	h.logger.Debug("assigned client address: " + clientIp4.String())
 	h.logger.Debug("assigned vpn server: " + vpnAddress.String() + ":" + strconv.Itoa(int(startVpnResponse.GetVpn().GetPort())))
 	h.logger.Debug("server public key: " + startVpnResponse.GetVpn().GetServerPublicKey())
 	h.logger.Debug("serverIp address: " + serverIp.String())
 	h.logger.Debug("vpnRange: " + vpnRange.String())
+	h.logger.Debug("vpnRange4: " + vpnRange4.String())
 	h.logger.Debug("mtu: " + strconv.Itoa(int(mtu)))
 
 	if err := h.setVpn(ctx, vpnAddress, privateKey, mtu, startVpnResponse); err != nil {
@@ -141,17 +145,25 @@ func (h *Handler) startVpn(
 		IP:   startVpnResponse.GetVpn().VpnIpRange.GetIp(),
 		Mask: startVpnResponse.GetVpn().VpnIpRange.GetMask(),
 	}
+	vpnNetwork4 := net.IPNet{
+		IP:   startVpnResponse.GetVpn().VpnIp4Range.GetIp(),
+		Mask: startVpnResponse.GetVpn().VpnIp4Range.GetMask(),
+	}
 
 	dnsIp := vpnproxy.FromProtoIP(startVpnResponse.GetVpn().GetDnsIp())
+	dnsIp4 := vpnproxy.FromProtoIP(startVpnResponse.GetVpn().GetDnsIp4())
 
 	data, err := h.storage.Update(func(data daemonStorage.Data) daemonStorage.Data {
 		data.ServerIp = serverIp
 		data.VpnNetwork = vpnNetwork
+		data.VpnNetwork4 = vpnNetwork4
 		data.ProjectId = projectId
 		data.UserId = userId
 		data.Mtu = mtu
 		data.DnsIp = dnsIp
+		data.DnsIp4 = dnsIp4
 		data.ClientIp = clientIp
+		data.ClientIp4 = clientIp4
 		data.GrpcApiAddress = grpcApiAddress
 		data.GrpcVpnAddress = grpcVpnAddress
 		data.GrpcTargetVpnAddress = targetVpnAddress

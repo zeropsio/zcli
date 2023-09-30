@@ -26,6 +26,7 @@ type Data struct {
 	ProjectId            string
 	UserId               string
 	VpnNetwork           net.IPNet
+	VpnNetwork4          net.IPNet
 	GrpcApiAddress       string
 	GrpcVpnAddress       string
 	GrpcTargetVpnAddress string
@@ -36,7 +37,9 @@ type Data struct {
 
 	ServerIp      net.IP
 	DnsIp         net.IP
+	DnsIp4        net.IP
 	ClientIp      net.IP
+	ClientIp4     net.IP
 	Mtu           uint32
 	DnsManagement LocalDnsManagement
 

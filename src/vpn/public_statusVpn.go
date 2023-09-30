@@ -52,13 +52,13 @@ func (h *Handler) StatusVpn(ctx context.Context) (*daemon.VpnStatus, error) {
 		vpnStatus.DnsState = daemon.DnsState_DNS_ACTIVE
 	} else {
 		vpnStatus.AdditionalInfo += fmt.Sprintf(
-			"dns ip: %s\n"+
-				"vpn network: %s\n"+
+			"dns ip: %s, %s\n"+
+				"vpn network: %s, %s\n"+
 				"client ip: %s\n"+
 				"interface: %s\n",
-			data.DnsIp.String(),
-			data.VpnNetwork.String(),
-			data.ClientIp.String(),
+			data.DnsIp.String(), data.DnsIp4.String(),
+			data.VpnNetwork.String(), data.VpnNetwork4.String(),
+			data.ClientIp.String(), data.ClientIp4.String(),
 			data.InterfaceName,
 		)
 	}

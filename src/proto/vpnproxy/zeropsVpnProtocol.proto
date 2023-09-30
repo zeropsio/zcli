@@ -58,7 +58,11 @@ message startVpnOutDto {
     IP assignedClientIp = 3;
     IP serverIp = 4;
     IPRange vpnIpRange = 5;
+    IPRange vpnIp4Range = 7;
     IP dnsIp = 6;
+    IP dnsIp4 = 8;
+    IP assignedClientIp4 = 9;
+    IP serverIp4 = 10;
 }
 
 message prolongVpnRequest {

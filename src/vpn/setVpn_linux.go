@@ -24,7 +24,9 @@ const interfaceName = "zerops"
 func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgtypes.Key, mtu uint32, response *vpnproxy.StartVpnResponse) error {
 
 	clientIp := vpnproxy.FromProtoIP(response.GetVpn().GetAssignedClientIp())
+	clientIp4 := vpnproxy.FromProtoIP(response.GetVpn().GetAssignedClientIp4())
 	vpnRange := vpnproxy.FromProtoIPRange(response.GetVpn().GetVpnIpRange())
+	//vpnRange4 := vpnproxy.FromProtoIPRange(response.GetVpn().GetVpnIp4Range())
 	serverPublicKey, err := wgtypes.ParseKey(response.GetVpn().ServerPublicKey)
 	if err != nil {
 		return err
@@ -74,6 +76,11 @@ func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgty
 		makeCommand(
 			"ip",
 			commandWithErrorMessage(i18n.VpnStartUnableToConfigureNetworkInterface),
+			commandWithArgs("address", "add", clientIp4.String()+"/22", "dev", interfaceName),
+		),
+		makeCommand(
+			"ip",
+			commandWithErrorMessage(i18n.VpnStartUnableToConfigureNetworkInterface),
 			commandWithArgs("link", "set", "dev", interfaceName, "mtu", strconv.Itoa(int(mtu)), "up"),
 		),
 		makeCommand(
@@ -81,6 +88,11 @@ func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgty
 			commandWithErrorMessage(i18n.VpnStartUnableToUpdateRoutingTable),
 			commandWithArgs("route", "add", vpnRange.String(), "dev", interfaceName),
 		),
+		//makeCommand(
+		//	"ip",
+		//	commandWithErrorMessage(i18n.VpnStartUnableToUpdateRoutingTable),
+		//	commandWithArgs("route", "add", vpnRange4.String(), "dev", interfaceName),
+		//)
 	); err != nil {
 		return err
 	}
@@ -110,6 +122,10 @@ func (h *Handler) setVpn(ctx context.Context, vpnAddress net.IP, privateKey wgty
 					{
 						IP:   response.GetVpn().GetVpnIpRange().GetIp(),
 						Mask: response.GetVpn().GetVpnIpRange().GetMask(),
+					},
+					{
+						IP:   response.GetVpn().GetVpnIp4Range().GetIp(),
+						Mask: response.GetVpn().GetVpnIp4Range().GetMask(),
 					},
 				},
 			},
