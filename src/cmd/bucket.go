@@ -3,25 +3,28 @@ package cmd
 import (
 	"errors"
 
-	"github.com/spf13/cobra"
-
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 )
 
-func bucketCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "bucket", Short: i18n.CmdBucket}
-
-	cmd.AddCommand(bucketZeropsCmd(), bucketS3Cmd())
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.GroupHelp))
-	return cmd
+func bucketCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("bucket").
+		Short(i18n.T(i18n.CmdBucket)).
+		AddChildrenCmd(bucketZeropsCmd()).
+		AddChildrenCmd(bucketS3Cmd())
 }
 
-func getXAmzAcl(cmd *cobra.Command) (string, error) {
-	xAmzAcl := params.GetString(cmd, "x-amz-acl")
+// FIXME - janhajek better place?
+const (
+	xAmzAclName = "x-amz-acl"
+)
+
+func checkXAmzAcl(xAmzAcl string) error {
 	switch xAmzAcl {
 	case "", "private", "public-read", "public-read-write", "authenticated-read":
-		return xAmzAcl, nil
+		return nil
 	}
 
-	return "", errors.New(i18n.BucketGenericXAmzAclInvalid)
+	return errors.New(i18n.T(i18n.BucketGenericXAmzAclInvalid))
 }

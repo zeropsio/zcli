@@ -2,82 +2,65 @@ package cmd
 
 import (
 	"context"
-	"time"
+	"fmt"
 
-	"github.com/spf13/cobra"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zerops-go/dto/input/path"
 
-	"github.com/zeropsio/zcli/src/cliAction/startStopDelete"
-	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 )
 
-func projectDeleteCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "delete projectNameOrId [flags]",
-		Short:        i18n.CmdProjectDelete,
-		Args:         ExactNArgs(1),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
-
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
-			}
-			token, err := getToken(storage)
+func projectDeleteCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("delete").
+		Short(i18n.T(i18n.CmdProjectDelete)).
+		ScopeLevel(cmdBuilder.Project).
+		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name))
 			if err != nil {
 				return err
 			}
 
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
+			if !confirm {
+				// FIXME - janhajek message
+				fmt.Println("you have to confirm it")
+				return nil
 			}
 
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+			deleteProjectResponse, err := cmdData.RestApiClient.DeleteProject(
 				ctx,
-				reg.GrpcApiAddress,
-				token,
+				path.ProjectId{
+					Id: cmdData.Project.ID,
+				},
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
-
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
-
-			cmdData := startStopDelete.CmdType{
-				Start:   i18n.ProjectDelete,
-				Finish:  i18n.ProjectDeleted,
-				Execute: handler.ProjectDelete,
+			responseOutput, err := deleteProjectResponse.Output()
+			if err != nil {
+				return err
 			}
 
-			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectNameOrId: args[0],
-				Confirm:         params.GetBool(cmd, "confirm"),
-				ParentCmd:       constants.Project,
-				CmdData:         cmdData,
-			})
-		},
-	}
-	params.RegisterBool(cmd, "confirm", false, i18n.ConfirmDelete)
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ProjectDeleteHelp))
+			processId := responseOutput.Id
 
-	return cmd
+			err = uxHelpers.ProcessCheckWithSpinner(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				[]uxHelpers.Process{{
+					Id:                  processId,
+					RunningMessage:      i18n.T(i18n.ProjectDeleting),
+					ErrorMessageMessage: i18n.T(i18n.ProjectDeleting),
+					SuccessMessage:      i18n.T(i18n.ProjectDeleted),
+				}},
+			)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 }

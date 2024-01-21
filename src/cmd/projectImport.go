@@ -2,78 +2,76 @@ package cmd
 
 import (
 	"context"
-	"time"
 
-	"github.com/zeropsio/zcli/src/cliAction/importProjectService"
-	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
-
-	"github.com/spf13/cobra"
+	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
+	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-func projectImportCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "import pathToImportFile [flags]",
-		Short:        i18n.CmdProjectImport,
-		Long:         i18n.ProjectImportLong,
-		Args:         ExactNArgs(1),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
+const projectImportArgName = "importYamlPath"
 
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
-			}
-			token, err := getToken(storage)
-			if err != nil {
-				return err
-			}
+func projectImportCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("project-import").
+		Short(i18n.T(i18n.CmdProjectImport)).
+		Long(i18n.T(i18n.CmdProjectImportLong)).
+		Arg(projectImportArgName).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			region, err := createRegionRetriever(ctx)
+			// FIXME - janhajek client via flag
+			// FIXME - janhajek interactive selector of clients
+
+			// FIXME - janhajek config
+			yamlContent, err := yamlReader.ReadContent(uxBlocks, cmdData.Args[projectImportArgName][0], "./")
 			if err != nil {
 				return err
 			}
 
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
 				ctx,
-				reg.GrpcApiAddress,
-				token,
+				body.ProjectImport{
+					// FIXME - janhajek client id
+					ClientId: uuid.ClientId(cmdData.Args[projectImportArgName][0]),
+					Yaml:     types.Text(yamlContent),
+				},
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
+			responseOutput, err := importProjectResponse.Output()
+			if err != nil {
+				return err
+			}
 
-			return importProjectService.New(
-				importProjectService.Config{}, client, apiGrpcClient, sdkConfig.Config{},
-			).Import(ctx, importProjectService.RunConfig{
-				WorkingDir:     constants.WorkingDir,
-				ImportYamlPath: args[0],
-				ClientId:       params.GetString(cmd, "clientId"),
-				ParentCmd:      constants.Project,
-			})
-		},
-	}
+			var processes []uxHelpers.Process
+			for _, service := range responseOutput.ServiceStacks {
+				for _, process := range service.Processes {
+					processes = append(processes, uxHelpers.Process{
+						Id:                  process.Id,
+						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
+						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
+						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
+					})
+				}
+			}
 
-	params.RegisterString(cmd, "clientId", "", i18n.ClientId)
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ProjectImportHelp))
+			uxBlocks.PrintLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks)))
+			uxBlocks.PrintLine(i18n.T(i18n.QueuedProcesses, len(processes)))
+			uxBlocks.PrintLine(i18n.T(i18n.CoreServices))
 
-	return cmd
+			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, cmdData.RestApiClient, processes)
+			if err != nil {
+				return err
+			}
+
+			uxBlocks.PrintInfoLine(i18n.T(i18n.ProjectImported))
+
+			return nil
+		})
 }

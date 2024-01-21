@@ -2,80 +2,65 @@ package cmd
 
 import (
 	"context"
-	"time"
+	"fmt"
+	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/bucket/zerops"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
 )
 
-func bucketZeropsCreateCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "create projectNameOrId serviceName bucketName [flags]",
-		Short:        i18n.CmdBucketCreate,
-		Args:         ExactNArgs(3),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
+func bucketZeropsCreateCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("create").
+		Short(i18n.T(i18n.CmdBucketCreate)).
+		ScopeLevel(cmdBuilder.Service).
+		Arg("bucketName").
+		StringFlag(xAmzAclName, "", i18n.T(i18n.BucketGenericXAmzAcl)).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			xAmzAcl, err := getXAmzAcl(cmd)
+			xAmzAcl := cmdData.Params.GetString(xAmzAclName)
+			err := checkXAmzAcl(xAmzAcl)
 			if err != nil {
 				return err
 			}
 
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
+			if cmdData.Service.ServiceTypeCategory != enum.ServiceStackTypeCategoryEnumObjectStorage {
+				return errors.New(i18n.T(i18n.BucketGenericOnlyForObjectStorage))
 			}
 
-			token, err := getToken(storage)
-			if err != nil {
-				return err
+			serviceId := cmdData.Service.ID
+			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(serviceId.Native()), cmdData.Args["bucketName"][0])
+
+			uxBlocks.PrintLine(i18n.T(i18n.BucketCreateCreatingZeropsApi, bucketName))
+			uxBlocks.PrintLine(i18n.T(i18n.BucketGenericBucketNamePrefixed))
+
+			bucketBody := body.PostS3Bucket{
+				Name: types.NewString(bucketName),
+			}
+			if xAmzAcl != "" {
+				bucketBody.XAmzAcl = types.NewStringNull(xAmzAcl)
 			}
 
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
-			}
-
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+			resp, err := cmdData.RestApiClient.PostS3Bucket(
 				ctx,
-				reg.GrpcApiAddress,
-				token,
+				path.ServiceStackIdNamed{ServiceStackId: serviceId},
+				bucketBody,
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
+			if _, err := resp.Output(); err != nil {
+				return err
+			}
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
+			uxBlocks.PrintSuccessLine(i18n.T(i18n.BucketCreated))
 
-			b := bucketZerops.New(bucketZerops.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
-			return b.Create(ctx, bucketZerops.RunConfig{
-				ProjectNameOrId:  args[0],
-				ServiceStackName: args[1],
-				BucketName:       args[2],
-				XAmzAcl:          xAmzAcl,
-			})
-		},
-	}
-	params.RegisterString(cmd, "x-amz-acl", "", i18n.BucketGenericXAmzAcl)
-
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.BucketCreateHelp))
-	return cmd
+			return nil
+		})
 }

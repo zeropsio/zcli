@@ -5,24 +5,21 @@ package constants
 
 import (
 	"os"
-	"path/filepath"
 )
 
-var (
-	LogFilePath,
-	DaemonStorageFilePath,
-	DaemonAddress,
-	DaemonInstallDir string
-)
+func getDataFilePaths() []pathReceiver {
+	return []pathReceiver{
+		receiverWithPath(os.UserConfigDir, "Zerops", cliDataFileName),
+		receiverWithPath(os.UserHomeDir, "Zerops", cliDataFileName),
+	}
+}
 
-const WireguardPath = `C:\Program Files\wireguard`
-
-func init() {
-	appData, _ := os.UserConfigDir()
-	zeropsFolder := filepath.Join(appData, "Zerops")
-
-	LogFilePath = filepath.Join(zeropsFolder, "zerops.log")
-	DaemonAddress = ":45677"
-	DaemonStorageFilePath = filepath.Join(zeropsFolder, "daemon.data")
-	DaemonInstallDir = zeropsFolder
+func getLogFilePath() []pathReceiver {
+	return []pathReceiver{
+		func() (string, error) {
+			return path.Join("/usr/local/var/log/", zeropsLogFile), nil
+		},
+		receiverWithPath(os.UserConfigDir, "Zerops", zeropsLogFile),
+		receiverWithPath(os.UserHomeDir, "Zerops", zeropsLogFile),
+	}
 }

@@ -2,73 +2,64 @@ package cmd
 
 import (
 	"context"
-	"time"
+	"fmt"
+	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/bucket/zerops"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
 )
 
-func bucketZeropsDeleteCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "delete projectNameOrId serviceName bucketName [flags]",
-		Short:        i18n.CmdBucketDelete,
-		Args:         ExactNArgs(3),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
+func bucketZeropsDeleteCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("delete").
+		Short(i18n.T(i18n.CmdBucketDelete)).
+		ScopeLevel(cmdBuilder.Service).
+		Arg("bucketName").
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			storage, err := createCliStorage()
+			if cmdData.Service.ServiceTypeCategory != enum.ServiceStackTypeCategoryEnumObjectStorage {
+				return errors.New(i18n.T(i18n.BucketGenericOnlyForObjectStorage))
+			}
+
+			serviceId := cmdData.Service.ID
+			// FIXME - janhajek duplicate
+			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(serviceId.Native()), cmdData.Args["bucketName"][0])
+
+			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
 			if err != nil {
 				return err
 			}
 
-			token, err := getToken(storage)
-			if err != nil {
-				return err
+			if !confirm {
+				// FIXME - janhajek message
+				fmt.Println("you have to confirm it")
+				return nil
 			}
 
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
-			}
+			uxBlocks.PrintLine(i18n.T(i18n.BucketDeleteDeletingZeropsApi, bucketName))
+			uxBlocks.PrintLine(i18n.T(i18n.BucketGenericBucketNamePrefixed))
 
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+			resp, err := cmdData.RestApiClient.DeleteS3(
 				ctx,
-				reg.GrpcApiAddress,
-				token,
+				path.S3Bucket{
+					ServiceStackId: serviceId,
+					Name:           types.NewString(bucketName),
+				},
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
+			if _, err := resp.Output(); err != nil {
+				return err
+			}
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
+			uxBlocks.PrintSuccessLine(i18n.T(i18n.BucketDeleted))
 
-			b := bucketZerops.New(bucketZerops.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
-			return b.Delete(ctx, bucketZerops.RunConfig{
-				ProjectNameOrId:  args[0],
-				ServiceStackName: args[1],
-				BucketName:       args[2],
-			})
-		},
-	}
-
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.BucketDeleteHelp))
-	return cmd
+			return nil
+		})
 }

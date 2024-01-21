@@ -2,84 +2,64 @@ package cmd
 
 import (
 	"context"
-	"time"
+	"fmt"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/startStopDelete"
-	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zerops-go/dto/input/path"
 )
 
-func serviceDeleteCmd() *cobra.Command {
-	cmdDelete := &cobra.Command{
-		Use:          "delete projectNameOrId serviceName [flags]",
-		Short:        i18n.CmdServiceDelete,
-		Args:         ExactNArgs(2),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
-
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
-			}
-			token, err := getToken(storage)
+func serviceDeleteCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("delete").
+		Short(i18n.T(i18n.CmdServiceDelete)).
+		ScopeLevel(cmdBuilder.Service).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ServiceDeleteConfirm, cmdData.Service.Name))
 			if err != nil {
 				return err
 			}
 
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
+			if !confirm {
+				// FIXME - janhajek message
+				fmt.Println("you have to confirm it")
+				return nil
 			}
 
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+			deleteServiceResponse, err := cmdData.RestApiClient.DeleteServiceStack(
 				ctx,
-				reg.GrpcApiAddress,
-				token,
+				path.ServiceStackId{
+					Id: cmdData.Service.ID,
+				},
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
-
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
-
-			cmdData := startStopDelete.CmdType{
-				Start:   i18n.ServiceDelete,
-				Finish:  i18n.ServiceDeleted,
-				Execute: handler.ServiceDelete,
+			responseOutput, err := deleteServiceResponse.Output()
+			if err != nil {
+				return err
 			}
 
-			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectNameOrId: args[0],
-				ServiceName:     args[1],
-				Confirm:         params.GetBool(cmd, "confirm"),
-				ParentCmd:       constants.Service,
-				CmdData:         cmdData,
-			})
-		},
-	}
+			processId := responseOutput.Id
 
-	params.RegisterBool(cmdDelete, "confirm", false, i18n.ConfirmDelete)
-	cmdDelete.Flags().BoolP("help", "h", false, helpText(i18n.ServiceDeleteHelp))
+			err = uxHelpers.ProcessCheckWithSpinner(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				[]uxHelpers.Process{{
+					Id:                  processId,
+					RunningMessage:      i18n.T(i18n.ServiceDeleting),
+					ErrorMessageMessage: i18n.T(i18n.ServiceDeleting),
+					SuccessMessage:      i18n.T(i18n.ServiceDeleted),
+				}},
+			)
+			if err != nil {
+				return err
+			}
 
-	return cmdDelete
+			return nil
+		})
 }

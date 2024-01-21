@@ -2,81 +2,52 @@ package cmd
 
 import (
 	"context"
-	"time"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/startStopDelete"
-	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
+	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zerops-go/dto/input/path"
 )
 
-func serviceStartCmd() *cobra.Command {
-	cmdStart := &cobra.Command{
-		Use:          "start projectNameOrId serviceName [flags]",
-		Short:        i18n.CmdServiceStart,
-		Args:         ExactNArgs(2),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
-
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
-			}
-			token, err := getToken(storage)
-			if err != nil {
-				return err
-			}
-
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
-			}
-
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
+func serviceStartCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("start").
+		Short(i18n.T(i18n.CmdServiceStart)).
+		ScopeLevel(cmdBuilder.Service).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{serviceName | serviceId}")).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			startServiceResponse, err := cmdData.RestApiClient.PutServiceStackStart(
 				ctx,
-				reg.GrpcApiAddress,
-				token,
+				path.ServiceStackId{
+					Id: cmdData.Service.ID,
+				},
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
-
-			handler := startStopDelete.New(startStopDelete.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
-
-			cmdData := startStopDelete.CmdType{
-				Start:   i18n.ServiceStart,
-				Finish:  i18n.ServiceStarted,
-				Execute: handler.ServiceStart,
+			responseOutput, err := startServiceResponse.Output()
+			if err != nil {
+				return err
 			}
 
-			return handler.Run(ctx, startStopDelete.RunConfig{
-				ProjectNameOrId: args[0],
-				ServiceName:     args[1],
-				ParentCmd:       constants.Service,
-				Confirm:         true,
-				CmdData:         cmdData,
-			})
-		},
-	}
-	cmdStart.Flags().BoolP("help", "h", false, helpText(i18n.ServiceStartHelp))
-	return cmdStart
+			processId := responseOutput.Id
+
+			err = uxHelpers.ProcessCheckWithSpinner(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				[]uxHelpers.Process{{
+					Id:                  processId,
+					RunningMessage:      i18n.T(i18n.ServiceStarting),
+					ErrorMessageMessage: i18n.T(i18n.ServiceStarting),
+					SuccessMessage:      i18n.T(i18n.ServiceStarted),
+				}},
+			)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 }

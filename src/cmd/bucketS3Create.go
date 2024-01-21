@@ -5,67 +5,78 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/bucket/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 )
 
-func bucketS3CreateCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "create serviceName bucketName [flags]",
-		Short:        i18n.CmdBucketCreate,
-		Args:         ExactNArgs(2),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
+func bucketS3CreateCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("create").
+		Short(i18n.T(i18n.CmdBucketCreate)).
+		Long(i18n.T(i18n.CmdBucketCreate)).
+		ScopeLevel(cmdBuilder.Service).
+		Arg("bucketName").
+		StringFlag(xAmzAclName, "", i18n.T(i18n.BucketGenericXAmzAcl)).
+		StringFlag(accessKeyIdName, "", i18n.T(i18n.BucketS3AccessKeyId)).
+		StringFlag(secretAccessKeyName, "", i18n.T(i18n.BucketS3SecretAccessKey)).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			xAmzAcl, err := getXAmzAcl(cmd)
+			xAmzAcl := cmdData.Params.GetString(xAmzAclName)
+			err := checkXAmzAcl(xAmzAcl)
 			if err != nil {
 				return err
 			}
 
-			accessKeyId, secretAccessKey, err := getAccessKeys(cmd, args[0])
+			accessKeyId, secretAccessKey, err := getAccessKeys(
+				cmdData.Params.GetString(accessKeyIdName),
+				cmdData.Params.GetString(secretAccessKeyName),
+				cmdData.Service.Name.String(),
+			)
 			if err != nil {
 				return err
 			}
 
-			reg, err := getRegion(ctx, cmd)
+			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(accessKeyId), cmdData.Args["bucketName"][0])
+
+			uxBlocks.PrintLine(i18n.T(i18n.BucketCreateCreatingDirect, bucketName))
+			uxBlocks.PrintLine(i18n.T(i18n.BucketGenericBucketNamePrefixed))
+
+			awsConf := aws.NewConfig().
+				WithEndpoint(cmdData.CliStorage.Data().RegionData.S3StorageAddress).
+				WithRegion(s3ServerRegion).
+				WithS3ForcePathStyle(true).
+				WithCredentials(
+					credentials.NewStaticCredentials(accessKeyId, secretAccessKey, ""),
+				)
+
+			sess, err := session.NewSession(awsConf)
 			if err != nil {
 				return err
 			}
 
-			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(accessKeyId), args[1])
+			bucketInput := (&s3.CreateBucketInput{}).
+				SetACL(xAmzAclName).
+				SetBucket(bucketName)
 
-			fmt.Printf(i18n.BucketCreateCreatingDirect, bucketName)
-			fmt.Println(i18n.BucketGenericBucketNamePrefixed)
+			if _, err := s3.New(sess).CreateBucketWithContext(ctx, bucketInput); err != nil {
+				var s3Err s3.RequestFailure
+				if errors.As(err, &s3Err) {
+					if s3Err.Code() == s3.ErrCodeBucketAlreadyExists {
+						return errors.New(i18n.T(i18n.BucketS3BucketAlreadyExists))
+					}
+					return errors.Errorf(i18n.T(i18n.BucketS3RequestFailed), s3Err)
+				}
+				return err
+			}
 
-			b := bucketS3.New(bucketS3.Config{
-				S3StorageAddress: reg.S3StorageAddress,
-			})
-			return b.Create(ctx, bucketS3.RunConfig{
-				ServiceStackName: args[0],
-				BucketName:       bucketName,
-				XAmzAcl:          xAmzAcl,
-				AccessKeyId:      accessKeyId,
-				SecretAccessKey:  secretAccessKey,
-			})
-		},
-	}
-	params.RegisterString(cmd, "x-amz-acl", "", i18n.BucketGenericXAmzAcl)
-	params.RegisterString(cmd, "accessKeyId", "", i18n.BucketS3AccessKeyId)
-	params.RegisterString(cmd, "secretAccessKey", "", i18n.BucketS3SecretAccessKey)
-	params.RegisterString(cmd, "region", "", i18n.BucketS3Region)
+			uxBlocks.PrintSuccessLine(i18n.T(i18n.BucketCreated))
 
-	params.RegisterString(cmd, "regionURL", defaultRegionUrl, i18n.RegionUrlFlag)
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.BucketCreateHelp))
-	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		if err := command.Flags().MarkHidden("regionURL"); err != nil {
-			return
-		}
-		command.Parent().HelpFunc()(command, strings)
-	})
-
-	return cmd
+			return nil
+		})
 }

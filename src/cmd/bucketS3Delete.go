@@ -5,61 +5,78 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/bucket/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 )
 
-func bucketS3DeleteCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "delete serviceName bucketName [flags]",
-		Short:        i18n.CmdBucketDelete,
-		Args:         ExactNArgs(2),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
+func bucketS3DeleteCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("delete").
+		Short(i18n.T(i18n.CmdBucketDelete)).
+		ScopeLevel(cmdBuilder.Service).
+		Arg("bucketName").
+		StringFlag(accessKeyIdName, "", i18n.T(i18n.BucketS3AccessKeyId)).
+		StringFlag(secretAccessKeyName, "", i18n.T(i18n.BucketS3SecretAccessKey)).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			accessKeyId, secretAccessKey, err := getAccessKeys(cmd, args[0])
+			accessKeyId, secretAccessKey, err := getAccessKeys(
+				cmdData.Params.GetString(accessKeyIdName),
+				cmdData.Params.GetString(secretAccessKeyName),
+				cmdData.Service.Name.String(),
+			)
 			if err != nil {
 				return err
 			}
 
-			reg, err := getRegion(ctx, cmd)
+			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(accessKeyId), cmdData.Args["bucketName"][0])
+
+			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
 			if err != nil {
 				return err
 			}
 
-			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(accessKeyId), args[1])
+			if !confirm {
+				// FIXME - janhajek message
+				fmt.Println("you have to confirm it")
+				return nil
+			}
 
-			fmt.Printf(i18n.BucketDeleteDeletingDirect, bucketName)
-			fmt.Println(i18n.BucketGenericBucketNamePrefixed)
+			uxBlocks.PrintLine(i18n.T(i18n.BucketDeleteDeletingDirect, bucketName))
+			uxBlocks.PrintLine(i18n.T(i18n.BucketGenericBucketNamePrefixed))
 
-			b := bucketS3.New(bucketS3.Config{
-				S3StorageAddress: reg.S3StorageAddress,
-			})
-			return b.Delete(ctx, bucketS3.RunConfig{
-				ServiceStackName: args[0],
-				BucketName:       bucketName,
-				AccessKeyId:      accessKeyId,
-				SecretAccessKey:  secretAccessKey,
-			})
-		},
-	}
-	params.RegisterString(cmd, "x-amz-acl", "", i18n.BucketGenericXAmzAcl)
-	params.RegisterString(cmd, "accessKeyId", "", i18n.BucketS3AccessKeyId)
-	params.RegisterString(cmd, "secretAccessKey", "", i18n.BucketS3SecretAccessKey)
-	params.RegisterString(cmd, "region", "", i18n.BucketS3Region)
+			awsConf := aws.NewConfig().
+				WithEndpoint(cmdData.CliStorage.Data().RegionData.S3StorageAddress).
+				WithRegion(s3ServerRegion).
+				WithS3ForcePathStyle(true).
+				WithCredentials(
+					credentials.NewStaticCredentials(accessKeyId, secretAccessKey, ""),
+				)
 
-	params.RegisterString(cmd, "regionURL", defaultRegionUrl, i18n.RegionUrlFlag)
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.BucketDeleteHelp))
-	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		if err := command.Flags().MarkHidden("regionURL"); err != nil {
-			return
-		}
-		command.Parent().HelpFunc()(command, strings)
-	})
+			sess, err := session.NewSession(awsConf)
+			if err != nil {
+				return err
+			}
 
-	return cmd
+			bucketInput := (&s3.DeleteBucketInput{}).
+				SetBucket(bucketName).
+				SetExpectedBucketOwner(accessKeyId)
+
+			if _, err := s3.New(sess).DeleteBucketWithContext(ctx, bucketInput); err != nil {
+				var s3Err s3.RequestFailure
+				if errors.As(err, &s3Err) {
+					return errors.Errorf(i18n.T(i18n.BucketS3RequestFailed), s3Err)
+				}
+				return err
+			}
+
+			uxBlocks.PrintSuccessLine(i18n.T(i18n.BucketDeleted))
+
+			return nil
+		})
 }
