@@ -27,6 +27,13 @@ func getDataFilePaths() []pathReceiver {
 func getLogFilePath() []pathReceiver {
 	return []pathReceiver{
 		func() (string, error) {
+			env := os.Getenv(cliLogFilePathEnvVar)
+			if env != "" {
+				return env, nil
+			}
+			return "", errors.New("env is empty")
+		},
+		func() (string, error) {
 			return path.Join("/usr/local/var/log/", zeropsLogFile), nil
 		},
 		receiverWithPath(os.UserConfigDir, zeropsDir, zeropsLogFile),

@@ -66,7 +66,7 @@ func PrintProjectList(
 }
 
 func createProjectTableRows(projects []entity.Project) (*uxBlock.TableRow, *uxBlock.TableBody) {
-	// FIXME - janhajek translation
+	// TODO - janhajek translation
 	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Description", "Client ID", "Status")
 
 	tableBody := &uxBlock.TableBody{}

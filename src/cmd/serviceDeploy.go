@@ -84,12 +84,12 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			// FIXME - janhajek merge with sdk client?
+			// TODO - janhajek merge with sdk client?
 			httpClient := httpClient.New(ctx, httpClient.Config{
 				HttpTimeout: time.Minute * 15,
 			})
 
-			// FIXME - janhajek spinner?
+			// TODO - janhajek spinner?
 			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployUploadingPackageStart))
 			if err := packageUpload(httpClient, appVersion.UploadUrl.String(), r); err != nil {
 				// if an error occurred while packing the app, return that error

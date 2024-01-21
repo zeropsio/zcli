@@ -22,7 +22,7 @@ func scopeResetCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			// FIXME - janhajek message
+			// TODO - janhajek message
 			cmdData.UxBlocks.PrintInfoLine("scope reset")
 
 			return nil

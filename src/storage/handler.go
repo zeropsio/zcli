@@ -13,9 +13,12 @@ type Config struct {
 }
 
 type Handler[T any] struct {
+	//nolint:structcheck // Why: `is unused` error is false positive
 	config Config
-	data   T
-	lock   sync.RWMutex
+	//nolint:structcheck // Why: `is unused` error is false positive
+	data T
+	//nolint:structcheck // Why: `is unused` error is false positive
+	lock sync.RWMutex
 }
 
 func New[T any](config Config) (*Handler[T], error) {
@@ -51,7 +54,7 @@ func (h *Handler[T]) load() error {
 	}
 
 	if err := json.NewDecoder(f).Decode(&h.data); err != nil {
-		// FIXME - janhajek translation
+		// TODO - janhajek translation
 		return errors.WithMessagef(err, "Unable to decode json file %s", h.config.FilePath)
 	}
 

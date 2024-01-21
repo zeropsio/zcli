@@ -18,7 +18,7 @@ type project struct {
 const ProjectArgName = "projectId"
 
 func (p *project) AddCommandFlags(cmd *Cmd) {
-	// FIXME - janhajek translation
+	// TODO - janhajek translation
 	cmd.StringFlag(ProjectArgName, "", "Project id")
 }
 

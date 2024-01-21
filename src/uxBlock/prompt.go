@@ -9,8 +9,7 @@ import (
 )
 
 type promptConfig struct {
-	label  string
-	header *TableRow
+	label string
 }
 
 type PromptOption = func(cfg *promptConfig)
@@ -26,7 +25,7 @@ func (b *UxBlocks) Prompt(
 		opt(&cfg)
 	}
 
-	// FIXME - janhajek fix message
+	// TODO - janhajek fix message
 	if !b.isTerminal {
 		return 0, errors.New(cfg.label + ", you can choose only in terminal")
 	}

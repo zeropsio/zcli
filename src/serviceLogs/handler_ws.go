@@ -26,10 +26,11 @@ func (h *Handler) getLogStream(
 	interrupt := make(chan os.Signal, 1)   // Channel to listen for interrupt signal to terminate gracefully
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
 
-	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	conn, reps, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		return fmt.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
 	}
+	defer reps.Body.Close()
 	defer conn.Close()
 
 	done := make(chan interface{}) // Channel to indicate that the receiverHandler is done

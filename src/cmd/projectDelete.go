@@ -24,7 +24,7 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 			}
 
 			if !confirm {
-				// FIXME - janhajek message
+				// TODO - janhajek message
 				fmt.Println("you have to confirm it")
 				return nil
 			}

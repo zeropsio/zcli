@@ -77,7 +77,7 @@ func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 			return key, nil
 		}
 	}
-	intVal, err = strconv.Atoi(ms)
+	_, err = strconv.Atoi(ms)
 	if err != nil {
 		return 1, fmt.Errorf("%s %s", i18n.T(i18n.LogMinSeverityInvalid), i18n.T(i18n.LogMinSeverityStringLimitErr))
 	}

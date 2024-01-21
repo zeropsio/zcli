@@ -12,7 +12,7 @@ type UxBlocks struct {
 	outputLogger    logger.Logger
 	debugFileLogger logger.Logger
 
-	// FIXME - janhajek comment
+	// TODO - janhajek comment
 	ctxCancel context.CancelFunc
 }
 

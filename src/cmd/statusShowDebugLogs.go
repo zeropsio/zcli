@@ -32,7 +32,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 			filesize := stat.Size()
 
 			if filesize == 0 {
-				// FIXME - janhajek translate
+				// TODO - janhajek translate
 				fmt.Println("No logs found")
 				return nil
 			}

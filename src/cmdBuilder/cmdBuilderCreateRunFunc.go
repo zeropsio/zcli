@@ -145,16 +145,16 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 			cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, storedData.RegionData.RestApiAddress)
 
 			for _, dep := range getDependencyListFromRoot(cmd.scopeLevel) {
-				err := dep.LoadSelectedScope(cobraCmd.Context(), cmd, cmdData)
+				err := dep.LoadSelectedScope(ctx, cmd, cmdData)
 				if err != nil {
 					return err
 				}
 			}
-			return cmd.loggedUserRunFunc(cobraCmd.Context(), cmdData)
+			return cmd.loggedUserRunFunc(ctx, cmdData)
 
 		}
 
-		return cmd.guestRunFunc(cobraCmd.Context(), guestCmdData)
+		return cmd.guestRunFunc(ctx, guestCmdData)
 	}
 }
 
@@ -175,13 +175,13 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	}
 
 	if len(args) < requiredArgsCount {
-		// FIXME - janhajek message
+		// TODO - janhajek message
 		return nil, errors.Errorf("expected at least %d arg(s), got %d", requiredArgsCount, len(args))
 	}
 
 	// the last arg is not an array, max number of given args can't be greater than the number of registered args
 	if !isArray && len(args) > len(cmd.args) {
-		// FIXME - janhajek message
+		// TODO - janhajek message
 		return nil, errors.Errorf("expected no more than %d arg(s), got %d", len(cmd.args), len(args))
 	}
 
@@ -233,7 +233,7 @@ func getQuietMode(isTerminal bool) (QuietMode, error) {
 	case QuietModeConfirmNothing, QuietModeConfirmAll, QuietModeConfirmOnlyDestructive:
 		return QuietMode(QuietModeFlag), nil
 	default:
-		// FIXME - janhajek message
+		// TODO - janhajek message
 		return 0, errors.New("unknown quiet mode")
 	}
 }
@@ -247,7 +247,7 @@ func isTerminal() (bool, error) {
 	case TerminalModeEnabled:
 		return true, nil
 	default:
-		// FIXME - janhajek message
+		// TODO - janhajek message
 		return false, errors.New("unknown terminal mode")
 	}
 }

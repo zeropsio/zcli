@@ -23,7 +23,7 @@ import (
 	"github.com/zeropsio/zerops-go/types"
 )
 
-// FIXME - janhajek shared
+// TODO - janhajek shared
 const ZeropsYamlFileName = "zerops.yaml"
 
 func servicePushCmd() *cmdBuilder.Cmd {
@@ -78,12 +78,12 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			// FIXME - janhajek merge with sdk client
+			// TODO - janhajek merge with sdk client
 			HttpClient := httpClient.New(ctx, httpClient.Config{
 				HttpTimeout: time.Minute * 15,
 			})
 
-			// FIXME - janhajek spinner?
+			// TODO - janhajek spinner?
 			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployUploadingPackageStart))
 			if err := packageUpload(HttpClient, appVersion.UploadUrl.String(), r); err != nil {
 				// if an error occurred while packing the app, return that error

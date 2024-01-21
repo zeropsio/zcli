@@ -69,7 +69,7 @@ func PrintServiceList(
 }
 
 func createServiceTableRows(projects []entity.Service) (*uxBlock.TableRow, *uxBlock.TableBody) {
-	// FIXME - janhajek translation
+	// TODO - janhajek translation
 	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Status")
 
 	tableBody := &uxBlock.TableBody{}

@@ -64,7 +64,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 				Format:         cmdData.Params.GetString("format"),
 				FormatTemplate: cmdData.Params.GetString("formatTemplate"),
 				Follow:         cmdData.Params.GetBool("follow"),
-				// FIXME - janhajek better place?
+				// TODO - janhajek better place?
 				Levels: serviceLogs.Levels{
 					{"EMERGENCY", "0"},
 					{"ALERT", "1"},

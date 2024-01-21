@@ -3,7 +3,7 @@ package serviceLogs
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -50,7 +50,7 @@ func getLogs(ctx context.Context, method, url, format, formatTemplate, mode stri
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return err

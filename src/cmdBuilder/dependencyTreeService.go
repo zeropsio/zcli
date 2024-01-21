@@ -18,7 +18,7 @@ const ServiceArgName = "serviceIdOrName"
 const ServiceFlagName = "serviceId"
 
 func (s *service) AddCommandFlags(cmd *Cmd) {
-	// FIXME - janhajek translation
+	// TODO - janhajek translation
 	cmd.StringFlag(ServiceFlagName, "", "Service id")
 }
 

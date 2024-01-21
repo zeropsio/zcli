@@ -51,7 +51,7 @@ func findFirstWritablePath(paths []pathReceiver) (string, error) {
 		}
 	}
 
-	// FIXME - janhajek translate
+	// TODO - janhajek translate
 	return "", errors.Errorf("Unable to find writable path from %v", checkedPaths)
 }
 

@@ -16,7 +16,7 @@ func bucketS3Cmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(bucketS3DeleteCmd())
 }
 
-// FIXME - janhajek better place?
+// TODO - janhajek better place?
 const (
 	s3ServerRegion      = "us-east-1"
 	accessKeyIdName     = "accessKeyId"

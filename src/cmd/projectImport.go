@@ -23,10 +23,10 @@ func projectImportCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			// FIXME - janhajek client via flag
-			// FIXME - janhajek interactive selector of clients
+			// TODO - janhajek client via flag
+			// TODO - janhajek interactive selector of clients
 
-			// FIXME - janhajek config
+			// TODO - janhajek config
 			yamlContent, err := yamlReader.ReadContent(uxBlocks, cmdData.Args[projectImportArgName][0], "./")
 			if err != nil {
 				return err
@@ -35,7 +35,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
 				ctx,
 				body.ProjectImport{
-					// FIXME - janhajek client id
+					// TODO - janhajek client id
 					ClientId: uuid.ClientId(cmdData.Args[projectImportArgName][0]),
 					Yaml:     types.Text(yamlContent),
 				},

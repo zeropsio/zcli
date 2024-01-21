@@ -16,7 +16,7 @@ func (b *UxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 
 	//if !b.isTerminal {
 	//	return func(success bool) {
-	//		// FIXME - janhajek
+	//		// TODO - janhajek
 	//		//if success {
 	//		//	b.info(cfg.successMessage)
 	//		//} else {
@@ -42,7 +42,7 @@ func (b *UxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 	return func() {
 		p.Send(spinnerEndCmd{})
 		p.Wait()
-		// FIXME - janhajek
+		// TODO - janhajek
 		//if success {
 		//	b.info(cfg.successMessage)
 		//} else {

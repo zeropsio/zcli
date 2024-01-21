@@ -10,7 +10,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 		return err
 	}
 
-	// FIXME - janhajek check empty containerID
+	// TODO - janhajek check empty containerID
 	if err = h.printLogs(ctx, inputs, config.Project.ID, config.ServiceId, config.Container.ID); err != nil {
 		return err
 	}

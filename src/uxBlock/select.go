@@ -43,7 +43,7 @@ func (b *UxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 		opt(&cfg)
 	}
 
-	// FIXME - janhajek fix message
+	// TODO - janhajek fix message
 	if !b.isTerminal {
 		return nil, errors.New(cfg.label + ", you can choose only in terminal")
 	}

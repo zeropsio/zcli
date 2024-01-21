@@ -28,7 +28,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 					}
 					cmdData.UxBlocks.PrintWarningLine(i18n.T(i18n.ScopedProjectNotFound))
 				} else {
-					// FIXME - janhajek message
+					// TODO - janhajek message
 					cmdData.UxBlocks.PrintInfoLine("previously scoped project: " + project.Name.String())
 				}
 			}

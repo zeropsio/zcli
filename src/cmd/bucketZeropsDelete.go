@@ -27,7 +27,7 @@ func bucketZeropsDeleteCmd() *cmdBuilder.Cmd {
 			}
 
 			serviceId := cmdData.Service.ID
-			// FIXME - janhajek duplicate
+			// TODO - janhajek duplicate
 			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(serviceId.Native()), cmdData.Args["bucketName"][0])
 
 			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
@@ -36,7 +36,7 @@ func bucketZeropsDeleteCmd() *cmdBuilder.Cmd {
 			}
 
 			if !confirm {
-				// FIXME - janhajek message
+				// TODO - janhajek message
 				fmt.Println("you have to confirm it")
 				return nil
 			}

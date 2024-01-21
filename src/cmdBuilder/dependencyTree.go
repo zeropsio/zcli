@@ -5,7 +5,7 @@ import (
 	"slices"
 )
 
-// FIXME - janhajek do we need interface?
+// TODO - janhajek do we need interface?
 type Dependency interface {
 	AddCommandFlags(*Cmd)
 	LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *LoggedUserCmdData) error
@@ -20,7 +20,7 @@ func (c *commonDependency) GetParent() Dependency {
 	return c.parent
 }
 
-// FIXME - janhajek move back cmd?
+// TODO - janhajek move back cmd?
 var Project *project
 var Service *service
 

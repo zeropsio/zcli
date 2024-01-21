@@ -10,14 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Config struct {
-	FilePath   string
-	IsTerminal bool
-}
-
 type Handler struct {
-	config Config
-
 	logrus *logrus.Logger
 }
 

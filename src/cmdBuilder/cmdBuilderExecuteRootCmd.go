@@ -23,8 +23,8 @@ type TerminalMode string
 
 const (
 	TerminalModeAuto     TerminalMode = "auto"
-	TerminalModeDisabled              = "disabled"
-	TerminalModeEnabled               = "enabled"
+	TerminalModeDisabled TerminalMode = "disabled"
+	TerminalModeEnabled  TerminalMode = "enabled"
 )
 
 var TerminalFlag string
@@ -71,7 +71,7 @@ func createRootCommand() *cobra.Command {
 		SilenceErrors:     true,
 	}
 
-	// FIXME - janhajek add a dynamic help for subcommands
+	// TODO - janhajek add a dynamic help for subcommands
 	rootCmd.Flags().BoolP("help", "h", false, i18n.T(i18n.DisplayHelp)+i18n.T(i18n.GroupHelp))
 
 	rootCmd.PersistentFlags().IntVar(&QuietModeFlag, "quiet", int(QuietModeConfirmAll), i18n.T(i18n.QuietModeFlag))

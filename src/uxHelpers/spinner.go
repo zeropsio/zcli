@@ -20,7 +20,7 @@ func ProcessCheckWithSpinner(
 	restApiClient *zeropsRestApiClient.Handler,
 	processList []Process,
 ) error {
-	var spinners []*uxBlock.Spinner
+	spinners := make([]*uxBlock.Spinner, 0, len(processList))
 	for _, process := range processList {
 		spinners = append(spinners, uxBlock.NewSpinner(process.RunningMessage))
 	}

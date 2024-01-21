@@ -93,7 +93,7 @@ func getLoginRegion(
 		}
 	}
 
-	// FIXME - janhajek translation
+	// TODO - janhajek translation
 	header := (&uxBlock.TableRow{}).AddStringCells("Name")
 
 	tableBody := &uxBlock.TableBody{}

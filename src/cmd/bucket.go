@@ -15,7 +15,7 @@ func bucketCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(bucketS3Cmd())
 }
 
-// FIXME - janhajek better place?
+// TODO - janhajek better place?
 const (
 	xAmzAclName = "x-amz-acl"
 )

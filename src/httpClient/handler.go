@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -43,12 +42,6 @@ type Option func(cfg *optionConfig)
 func ContentType(contentType string) Option {
 	return func(cfg *optionConfig) {
 		cfg.headers["Content-Type"] = contentType
-	}
-}
-
-func BearerAuthorization(token string) Option {
-	return func(cfg *optionConfig) {
-		cfg.headers["Authorization"] = "Bearer " + token
 	}
 }
 
@@ -103,7 +96,7 @@ func (h *Handler) doStream(method string, url string, body io.Reader, options ..
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return Response{}, err
 	}

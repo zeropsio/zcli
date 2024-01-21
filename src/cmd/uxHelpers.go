@@ -11,7 +11,7 @@ func YesNoPromptDestructive(ctx context.Context, cmdData *cmdBuilder.LoggedUserC
 		return true, nil
 	}
 
-	// FIXME - janhajek translate
+	// TODO - janhajek translate
 	choices := []string{"no", "yes"}
 	choice, err := cmdData.UxBlocks.Prompt(ctx, message, choices)
 	if err != nil {
@@ -26,7 +26,7 @@ func YesNoPromptNonDestructive(ctx context.Context, cmdData *cmdBuilder.LoggedUs
 		return true, nil
 	}
 
-	// FIXME - janhajek translate
+	// TODO - janhajek translate
 	choices := []string{"no", "yes"}
 	choice, err := cmdData.UxBlocks.Prompt(ctx, message, choices)
 	if err != nil {
