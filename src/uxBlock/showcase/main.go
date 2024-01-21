@@ -156,7 +156,7 @@ func createBlocks(contextCancelFunc func()) (*UxBlocks, error) {
 		FilePath: "zerops.log",
 	})
 
-	blocks := NewBlock(outputLogger, debugFileLogger, isTerminal, contextCancelFunc, []string{})
+	blocks := NewBlock(outputLogger, debugFileLogger, isTerminal, contextCancelFunc)
 
 	return blocks, nil
 }
