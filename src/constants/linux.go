@@ -3,6 +3,11 @@
 
 package constants
 
+import (
+	"os"
+	"path"
+)
+
 func getDataFilePaths() []pathReceiver {
 	return []pathReceiver{
 		receiverWithPath(os.UserConfigDir, zeropsDir, cliDataFileName),

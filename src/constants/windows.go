@@ -5,6 +5,7 @@ package constants
 
 import (
 	"os"
+	"path"
 )
 
 func getDataFilePaths() []pathReceiver {
