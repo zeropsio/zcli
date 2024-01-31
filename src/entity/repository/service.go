@@ -5,11 +5,9 @@ import (
 
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/errorsx"
-	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -45,17 +43,7 @@ func GetServiceById(
 
 	serviceOutput, err := serviceResponse.Output()
 	if err != nil {
-		return nil, zeropsRestApiClient.CheckError(
-			err,
-			zeropsRestApiClient.CheckInvalidUserInput(
-				"id",
-				errorsx.NewUserError(i18n.T(i18n.ServiceIdInvalidFormat), err),
-			),
-			zeropsRestApiClient.CheckErrorCode(
-				errorCode.ServiceStackNotFound,
-				errorsx.NewUserError(i18n.T(i18n.ServiceNotFound, serviceId), err),
-			),
-		)
+		return nil, err
 	}
 
 	service := serviceFromApiOutput(serviceOutput)
@@ -78,17 +66,7 @@ func GetServiceByName(
 
 	serviceOutput, err := serviceResponse.Output()
 	if err != nil {
-		return nil, zeropsRestApiClient.CheckError(
-			err,
-			zeropsRestApiClient.CheckInvalidUserInput(
-				"id",
-				errorsx.NewUserError(i18n.T(i18n.ServiceIdInvalidFormat), err),
-			),
-			zeropsRestApiClient.CheckErrorCode(
-				errorCode.ServiceStackNotFound,
-				errorsx.NewUserError(i18n.T(i18n.ServiceNotFound, serviceName), err),
-			),
-		)
+		return nil, err
 	}
 
 	service := serviceFromApiOutput(serviceOutput)

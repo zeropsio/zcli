@@ -13,7 +13,7 @@ import (
 
 func PrintProjectSelector(
 	ctx context.Context,
-	uxBlocks *uxBlock.UxBlocks,
+	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
 ) (*entity.Project, error) {
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
@@ -51,7 +51,7 @@ func PrintProjectSelector(
 
 func PrintProjectList(
 	ctx context.Context,
-	uxBlocks *uxBlock.UxBlocks,
+	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler) error {
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
 	if err != nil {
@@ -67,7 +67,7 @@ func PrintProjectList(
 
 func createProjectTableRows(projects []entity.Project) (*uxBlock.TableRow, *uxBlock.TableBody) {
 	// TODO - janhajek translation
-	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Description", "Client ID", "Status")
+	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Description", "Org ID", "Status")
 
 	tableBody := &uxBlock.TableBody{}
 	for _, project := range projects {

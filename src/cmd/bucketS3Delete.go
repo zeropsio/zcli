@@ -22,6 +22,7 @@ func bucketS3DeleteCmd() *cmdBuilder.Cmd {
 		Arg("bucketName").
 		StringFlag(accessKeyIdName, "", i18n.T(i18n.BucketS3AccessKeyId)).
 		StringFlag(secretAccessKeyName, "", i18n.T(i18n.BucketS3SecretAccessKey)).
+		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -36,15 +37,11 @@ func bucketS3DeleteCmd() *cmdBuilder.Cmd {
 
 			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(accessKeyId), cmdData.Args["bucketName"][0])
 
-			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
-			if err != nil {
-				return err
-			}
-
-			if !confirm {
-				// TODO - janhajek message
-				fmt.Println("you have to confirm it")
-				return nil
+			if !cmdData.Params.GetBool("confirm") {
+				err = YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
+				if err != nil {
+					return err
+				}
 			}
 
 			uxBlocks.PrintLine(i18n.T(i18n.BucketDeleteDeletingDirect, bucketName))

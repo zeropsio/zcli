@@ -37,9 +37,8 @@ func projectStopCmd() *cmdBuilder.Cmd {
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				cmdData.RestApiClient,
 				[]uxHelpers.Process{{
-					Id:                  processId,
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ProjectStopping),
 					ErrorMessageMessage: i18n.T(i18n.ProjectStopping),
 					SuccessMessage:      i18n.T(i18n.ProjectStopped),

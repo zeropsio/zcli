@@ -3,7 +3,9 @@ package archiveClient
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/gomega"
+	"github.com/zeropsio/zcli/src/uxBlock/mocks"
 )
 
 var testErrorResponseDataProvider = []struct {
@@ -219,14 +221,19 @@ var testErrorResponseDataProvider = []struct {
 }
 
 func TestValidation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	uxBlocks := mocks.NewMockUxBlocks(ctrl)
+	uxBlocks.EXPECT().PrintLine(gomock.Any()).AnyTimes()
+
 	for _, test := range testErrorResponseDataProvider {
 		test := test // scope lint
 		t.Run(test.name+" in "+test.workingDir, func(t *testing.T) {
+
 			RegisterTestingT(t)
 
 			archiver := New(Config{})
 
-			files, err := archiver.FindFilesByRules(test.workingDir, test.input)
+			files, err := archiver.FindFilesByRules(uxBlocks, test.workingDir, test.input)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			output := func() (res []string) {

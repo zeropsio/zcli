@@ -82,7 +82,7 @@ func WithTableHeader(header *TableRow) TableOption {
 
 type TableOption = func(cfg *tableConfig)
 
-func (b *UxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
+func (b *uxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
 	cfg := tableConfig{}
 	for _, opt := range auxOptions {
 		opt(&cfg)

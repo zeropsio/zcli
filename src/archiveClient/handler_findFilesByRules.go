@@ -2,21 +2,21 @@ package archiveClient
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func (h *Handler) FindFilesByRules(workingDir string, sources []string) ([]File, error) {
+func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string, sources []string) ([]File, error) {
 	workingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf(i18n.T(i18n.ArchClientWorkingDirectory)+"\n", workingDir)
+	uxBlocks.PrintLine(i18n.T(i18n.ArchClientWorkingDirectory, workingDir))
 
 	// resulting function returns File from provided path
 	// if file shouldn't be included in the result, File.ArchivePath will be empty
@@ -56,9 +56,9 @@ func (h *Handler) FindFilesByRules(workingDir string, sources []string) ([]File,
 
 		if fileInfo.IsDir() {
 			source = strings.TrimSuffix(source, string(os.PathSeparator)) + string(os.PathSeparator)
-			fmt.Printf(i18n.T(i18n.ArchClientPackingDirectory)+"\n", source)
+			uxBlocks.PrintLine(i18n.T(i18n.ArchClientPackingDirectory, source))
 		} else {
-			fmt.Printf(i18n.T(i18n.ArchClientPackingFile)+"\n", source)
+			uxBlocks.PrintLine(i18n.T(i18n.ArchClientPackingFile, source))
 		}
 
 		trimPath, err := filepath.Abs(filepath.Join(workingDir, parts[0]))

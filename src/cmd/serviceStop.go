@@ -37,9 +37,8 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				cmdData.RestApiClient,
 				[]uxHelpers.Process{{
-					Id:                  processId,
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ServiceStopping),
 					ErrorMessageMessage: i18n.T(i18n.ServiceStopping),
 					SuccessMessage:      i18n.T(i18n.ServiceStopped),

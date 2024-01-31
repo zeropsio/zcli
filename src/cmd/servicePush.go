@@ -56,16 +56,24 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			reader, writer := io.Pipe()
-			defer reader.Close()
+			var reader io.Reader
+			pipeReader, writer := io.Pipe()
+			defer pipeReader.Close()
+			reader = pipeReader
 
 			tarErrChan := make(chan error, 1)
 
 			go arch.TarFiles(writer, files, tarErrChan)
 
-			r, err := savePackage(cmdData.Params.GetString("archiveFilePath"), reader)
-			if err != nil {
-				return err
+			if cmdData.Params.GetString("archiveFilePath") != "" {
+				packageFile, err := openPackageFile(
+					cmdData.Params.GetString("archiveFilePath"),
+					cmdData.Params.GetString("workingDir"),
+				)
+				if err != nil {
+					return err
+				}
+				reader = io.TeeReader(reader, packageFile)
 			}
 
 			appVersion, err := createAppVersion(
@@ -79,28 +87,40 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			}
 
 			// TODO - janhajek merge with sdk client
-			HttpClient := httpClient.New(ctx, httpClient.Config{
+			httpClient := httpClient.New(ctx, httpClient.Config{
 				HttpTimeout: time.Minute * 15,
 			})
 
-			// TODO - janhajek spinner?
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployUploadingPackageStart))
-			if err := packageUpload(HttpClient, appVersion.UploadUrl.String(), r); err != nil {
-				// if an error occurred while packing the app, return that error
-				select {
-				case err := <-tarErrChan:
-					return err
-				default:
-					return err
-				}
-			}
+			err = uxHelpers.ProcessCheckWithSpinner(
+				ctx,
+				cmdData.UxBlocks,
+				[]uxHelpers.Process{{
+					F: func(ctx context.Context) error {
+						if err := packageUpload(httpClient, appVersion.UploadUrl.String(), reader); err != nil {
+							// if an error occurred while packing the app, return that error
+							select {
+							case err := <-tarErrChan:
+								return err
+							default:
+								return err
+							}
+						}
 
-			// wait for packing and saving to finish (should already be done after the package upload has finished)
-			if tarErr := <-tarErrChan; tarErr != nil {
-				return tarErr
-			}
+						// wait for packing and saving to finish (should already be done after the package upload has finished)
+						if tarErr := <-tarErrChan; tarErr != nil {
+							return tarErr
+						}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployUploadingPackageDone))
+						return nil
+					},
+					RunningMessage:      i18n.T(i18n.BuildDeployUploadingPackageStart),
+					ErrorMessageMessage: i18n.T(i18n.BuildDeployUploadPackageFailed),
+					SuccessMessage:      i18n.T(i18n.BuildDeployUploadingPackageDone),
+				}},
+			)
+			if err != nil {
+				return err
+			}
 
 			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployCreatingPackageDone))
 
@@ -136,9 +156,8 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				cmdData.RestApiClient,
 				[]uxHelpers.Process{{
-					Id:                  deployProcess.Id,
+					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.PushRunning),
 					ErrorMessageMessage: i18n.T(i18n.PushRunning),
 					SuccessMessage:      i18n.T(i18n.PushFinished),
@@ -181,31 +200,34 @@ func createAppVersion(
 	return appVersion, nil
 }
 
-func savePackage(archiveFilePath string, reader io.Reader) (io.Reader, error) {
-	if archiveFilePath == "" {
-		return reader, nil
+func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error) {
+	workingDir, err := filepath.Abs(workingDir)
+	if err != nil {
+		return nil, err
 	}
+
+	archiveFilePath = filepath.Join(workingDir, archiveFilePath)
 
 	filePath, err := filepath.Abs(archiveFilePath)
 	if err != nil {
-		return reader, err
+		return nil, err
 	}
 
 	// check if the target file exists
 	_, err = os.Stat(filePath)
 	if err != nil && !os.IsNotExist(err) {
-		return reader, err
+		return nil, err
 	}
 	if err == nil {
-		return reader, errors.Errorf(i18n.T(i18n.ArchClientFileAlreadyExists), archiveFilePath)
+		return nil, errors.Errorf(i18n.T(i18n.ArchClientFileAlreadyExists), archiveFilePath)
 	}
 
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0660)
 	if err != nil {
-		return reader, err
+		return nil, err
 	}
 
-	return io.TeeReader(reader, file), nil
+	return file, nil
 }
 
 func packageUpload(client *httpClient.Handler, uploadUrl string, reader io.Reader) error {

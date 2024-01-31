@@ -15,14 +15,13 @@ type service struct {
 }
 
 const ServiceArgName = "serviceIdOrName"
-const ServiceFlagName = "serviceId"
+const serviceFlagName = "serviceId"
 
 func (s *service) AddCommandFlags(cmd *Cmd) {
-	// TODO - janhajek translation
-	cmd.StringFlag(ServiceFlagName, "", "Service id")
+	cmd.StringFlag(serviceFlagName, "", i18n.T(i18n.ServiceIdFlag))
 }
 
-func (s *service) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *LoggedUserCmdData) error {
+func (s *service) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *LoggedUserCmdData) error {
 	infoText := i18n.SelectedService
 	var service *entity.Service
 	var err error
@@ -35,7 +34,7 @@ func (s *service) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *Logg
 	}
 
 	// service id is passed as a flag
-	if serviceId := cmdData.Params.GetString(ServiceFlagName); serviceId != "" {
+	if serviceId := cmdData.Params.GetString(serviceFlagName); serviceId != "" {
 		service, err = repository.GetServiceById(
 			ctx,
 			cmdData.RestApiClient,

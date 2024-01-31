@@ -19,6 +19,7 @@ func bucketZeropsDeleteCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdBucketDelete)).
 		ScopeLevel(cmdBuilder.Service).
 		Arg("bucketName").
+		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -30,15 +31,11 @@ func bucketZeropsDeleteCmd() *cmdBuilder.Cmd {
 			// TODO - janhajek duplicate
 			bucketName := fmt.Sprintf("%s.%s", strings.ToLower(serviceId.Native()), cmdData.Args["bucketName"][0])
 
-			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
-			if err != nil {
-				return err
-			}
-
-			if !confirm {
-				// TODO - janhajek message
-				fmt.Println("you have to confirm it")
-				return nil
+			if !cmdData.Params.GetBool("confirm") {
+				err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.BucketDeleteConfirm, bucketName))
+				if err != nil {
+					return err
+				}
 			}
 
 			uxBlocks.PrintLine(i18n.T(i18n.BucketDeleteDeletingZeropsApi, bucketName))

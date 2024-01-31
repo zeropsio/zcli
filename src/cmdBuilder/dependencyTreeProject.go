@@ -18,8 +18,7 @@ type project struct {
 const ProjectArgName = "projectId"
 
 func (p *project) AddCommandFlags(cmd *Cmd) {
-	// TODO - janhajek translation
-	cmd.StringFlag(ProjectArgName, "", "Project id")
+	cmd.StringFlag(ProjectArgName, "", i18n.T(i18n.ProjectIdFlag))
 }
 
 func (p *project) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *LoggedUserCmdData) error {

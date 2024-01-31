@@ -89,7 +89,7 @@ const (
 	BuildArchiveFilePath  = "BuildArchiveFilePath"
 	ZeropsYamlLocation    = "ZeropsYamlLocation"
 	UploadGitFolder       = "UploadGitFolder"
-	ClientId              = "ClientId"
+	OrgIdFlag             = "OrgIdFlag"
 	LogLimitFlag          = "LogLimitFlag"
 	LogMinSeverityFlag    = "LogMinSeverityFlag"
 	LogMsgTypeFlag        = "LogMsgTypeFlag"
@@ -100,6 +100,9 @@ const (
 	QuietModeFlag         = "QuietModeFlag"
 	TerminalFlag          = "TerminalFlag"
 	LogFilePathFlag       = "LogFilePathFlag"
+	ConfirmFlag           = "ConfirmFlag"
+	ServiceIdFlag         = "ServiceIdFlag"
+	ProjectIdFlag         = "ProjectIdFlag"
 
 	// prompt
 	PromptEnterZeropsServiceName = "PromptEnterZeropsServiceName"
@@ -252,8 +255,13 @@ const (
 	ServiceSelectorListEmpty       = "ServiceSelectorListEmpty"
 	ServiceSelectorPrompt          = "ServiceSelectorPrompt"
 	ServiceSelectorOutOfRangeError = "ServiceSelectorOutOfRangeError"
+	OrgSelectorListEmpty           = "OrgSelectorListEmpty"
+	OrgSelectorPrompt              = "OrgSelectorPrompt"
+	OrgSelectorOutOfRangeError     = "OrgSelectorOutOfRangeError"
+	SelectorAllowedOnlyInTerminal  = "SelectorAllowedOnlyInTerminal"
+	PromptAllowedOnlyInTerminal    = "PromptAllowedOnlyInTerminal"
 
-	// General
+	// Global
 	SelectedProject       = "SelectedProject"
 	SelectedService       = "SelectedService"
 	ScopedProject         = "ScopedProject"
@@ -265,4 +273,6 @@ const (
 
 	ServiceIdInvalidFormat = "ServiceIdInvalidFormat"
 	ServiceNotFound        = "ServiceNotFound"
+
+	DestructiveOperationConfirmationFailed = "DestructiveOperationConfirmationFailed"
 )

@@ -9,16 +9,6 @@ import (
 	"github.com/zeropsio/zcli/src/params"
 )
 
-type QuietMode int
-
-const (
-	QuietModeConfirmAll QuietMode = iota
-	QuietModeConfirmOnlyDestructive
-	QuietModeConfirmNothing
-)
-
-var QuietModeFlag int
-
 type TerminalMode string
 
 const (
@@ -73,8 +63,6 @@ func createRootCommand() *cobra.Command {
 
 	// TODO - janhajek add a dynamic help for subcommands
 	rootCmd.Flags().BoolP("help", "h", false, i18n.T(i18n.DisplayHelp)+i18n.T(i18n.GroupHelp))
-
-	rootCmd.PersistentFlags().IntVar(&QuietModeFlag, "quiet", int(QuietModeConfirmAll), i18n.T(i18n.QuietModeFlag))
 	rootCmd.PersistentFlags().StringVar(&TerminalFlag, "terminal", "auto", i18n.T(i18n.TerminalFlag))
 
 	return rootCmd

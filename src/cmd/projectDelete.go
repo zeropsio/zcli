@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -17,16 +16,13 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdProjectDelete)).
 		ScopeLevel(cmdBuilder.Project).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name))
-			if err != nil {
-				return err
-			}
-
-			if !confirm {
-				// TODO - janhajek message
-				fmt.Println("you have to confirm it")
-				return nil
+			if !cmdData.Params.GetBool("confirm") {
+				err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name))
+				if err != nil {
+					return err
+				}
 			}
 
 			deleteProjectResponse, err := cmdData.RestApiClient.DeleteProject(
@@ -49,9 +45,8 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				cmdData.RestApiClient,
 				[]uxHelpers.Process{{
-					Id:                  processId,
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ProjectDeleting),
 					ErrorMessageMessage: i18n.T(i18n.ProjectDeleting),
 					SuccessMessage:      i18n.T(i18n.ProjectDeleted),

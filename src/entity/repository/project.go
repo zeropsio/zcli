@@ -4,12 +4,9 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/entity"
-	"github.com/zeropsio/zcli/src/errorsx"
-	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -25,17 +22,7 @@ func GetProjectById(
 
 	projectOutput, err := projectResponse.Output()
 	if err != nil {
-		return nil, zeropsRestApiClient.CheckError(
-			err,
-			zeropsRestApiClient.CheckInvalidUserInput(
-				"id",
-				errorsx.NewUserError(i18n.T(i18n.ProjectIdInvalidFormat), err),
-			),
-			zeropsRestApiClient.CheckErrorCode(
-				errorCode.ProjectNotFound,
-				errorsx.NewUserError(i18n.T(i18n.ProjectNotFound, projectId), err),
-			),
-		)
+		return nil, err
 	}
 
 	project := projectFromApiOutput(projectOutput)
@@ -51,14 +38,14 @@ func GetAllProjects(
 		return nil, err
 	}
 
-	i, err := info.Output()
+	output, err := info.Output()
 	if err != nil {
 		return nil, err
 	}
 
 	var projects []entity.Project
-	for _, b := range i.ClientUserList {
-		response, err := restApiClient.GetProjectsByClient(ctx, b.ClientId)
+	for _, clientUser := range output.ClientUserList {
+		response, err := restApiClient.GetProjectsByClient(ctx, clientUser.ClientId)
 		if err != nil {
 			return nil, err
 		}

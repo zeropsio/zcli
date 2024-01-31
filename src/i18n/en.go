@@ -76,7 +76,7 @@ var en = map[string]string{
 	BuildArchiveFilePath:  "If set, zCLI creates a tar.gz archive with the application code in the required path relative\nto the working directory. By default, no archive is created.",
 	ZeropsYamlLocation:    "Sets a custom path to the zerops.yml file relative to the working directory. By default zCLI\nlooks for zerops.yml in the working directory.",
 	UploadGitFolder:       "If set, zCLI the .git folder is also uploaded. By default, the .git folder is ignored.",
-	ClientId:              "If you have access to more than one client, you must specify the client ID for which the\nproject is to be created.",
+	OrgIdFlag:             "If you have access to more than one organization, you must specify the org ID for which the\nproject is to be created.",
 	LogLimitFlag:          "How many of the most recent log messages will be returned. Allowed interval is <1;1000>.\nDefault value = 100.",
 	LogMinSeverityFlag:    "Returns log messages with requested or higher severity. Set either severity number in the interval\n<0;7> or one of following severity codes:\nEMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFORMATIONAL, DEBUG.",
 	LogMsgTypeFlag:        "Select either APPLICATION or WEBSERVER log messages to be returned. Default value = APPLICATION.",
@@ -87,6 +87,9 @@ var en = map[string]string{
 	QuietModeFlag:         "In terminal mode some operations need to be confirmed. 0 = Everything needs to be confirmed, 1 = Non-destructive operations need to be confirmed, 2 = Quiet mode, nothing needs to be confirmed. Default value is 0.",
 	TerminalFlag:          "If enabled provides a rich UI to communicate with a user. Possible values: auto, enabled, disabled. Default value is auto.",
 	LogFilePathFlag:       "Path to a log file. Default value: %s.",
+	ConfirmFlag:           "If set, zCLI will not ask for confirmation of destructive operations.",
+	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
+	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
 
 	// prompt
 	PromptEnterZeropsServiceName: "Enter hostname of zerops service",
@@ -196,7 +199,7 @@ var en = map[string]string{
 	BuildDeployZeropsYamlEmpty:       "config file zerops.yml is empty",
 	BuildDeployZeropsYamlTooLarge:    "max. size of zerops.yml is 10 KB",
 	BuildDeployZeropsYamlFound:       "File zerops.yml found. Path: %s.",
-	BuildDeployZeropsYamlNotFound:    "File zerops.yml not found",
+	BuildDeployZeropsYamlNotFound:    "File zerops.yml not found. Expected path: %s.",
 
 	// S3
 	BucketGenericXAmzAcl:              "Defines one of predefined grants, known as canned ACLs.\nValid values are: private, public-read, public-read-write, authenticated-read.",
@@ -241,17 +244,20 @@ more info: https://docs.zerops.io/documentation/cli/authorization.html`,
 	ServiceSelectorListEmpty:       "Project doesn't have any services yet. Create a new service using `zcli service import` command",
 	ServiceSelectorPrompt:          "Please, select a service",
 	ServiceSelectorOutOfRangeError: "We couldn't find a service with the index you entered. Please, try again or contact our support team.",
+	OrgSelectorListEmpty:           "You don't belong to any organization yet. Please, contact our support team.",
+	OrgSelectorPrompt:              "Please, select an org",
+	OrgSelectorOutOfRangeError:     "We couldn't find an org with the index you entered. Please, try again or contact our support team.",
+	SelectorAllowedOnlyInTerminal:  "Interactive selection can be used only in terminal mode. Use command flags to specify missing parameters.",
+	PromptAllowedOnlyInTerminal:    "Interactive prompt can be used only in terminal mode. Use --confirm=true flag to confirm it",
 
 	// Global
 	SelectedProject:       "Selected project: %s",
 	SelectedService:       "Selected service: %s",
 	ScopedProject:         "Scoped project: %s",
 	ScopedProjectNotFound: "Scoped project wasn't found, Select a different project using `zcli scope project` command.",
-	ScopedServiceNotFound: "Scoped service wasn't found, Select a different service using `zcli scope service` command.",
-
-	ProjectIdInvalidFormat: "Invalid format of project ID. ID must have 22 characters.",
-	ProjectNotFound:        "Project [%s] wasn't found",
 
 	ServiceIdInvalidFormat: "Invalid format of service ID. ID must have 22 characters.",
 	ServiceNotFound:        "Service [%s] wasn't found",
+
+	DestructiveOperationConfirmationFailed: "You have to confirm a destructive operation.",
 }

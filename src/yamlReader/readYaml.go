@@ -10,7 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func ReadContent(uxBlocks *uxBlock.UxBlocks, importYamlPath string, workingDir string) ([]byte, error) {
+func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir string) ([]byte, error) {
 	if !filepath.IsAbs(importYamlPath) {
 		workingDir, err := filepath.Abs(workingDir)
 		if err != nil {

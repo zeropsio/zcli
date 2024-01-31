@@ -8,22 +8,19 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (b *UxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOptions ...SpinnerOption) func() {
+func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOptions ...SpinnerOption) func() {
 	cfg := spinnerConfig{}
 	for _, opt := range auxOptions {
 		opt(&cfg)
 	}
 
-	//if !b.isTerminal {
-	//	return func(success bool) {
-	//		// TODO - janhajek
-	//		//if success {
-	//		//	b.info(cfg.successMessage)
-	//		//} else {
-	//		//	b.Error(cfg.failureMessage)
-	//		//}
-	//	}
-	//}
+	if !b.isTerminal {
+		return func() {
+			for _, spinner := range spinners {
+				b.PrintLine(spinner.text)
+			}
+		}
+	}
 
 	model := &spinnerModel{
 		cfg:      cfg,
@@ -42,12 +39,6 @@ func (b *UxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 	return func() {
 		p.Send(spinnerEndCmd{})
 		p.Wait()
-		// TODO - janhajek
-		//if success {
-		//	b.info(cfg.successMessage)
-		//} else {
-		//	b.Error(cfg.failureMessage)
-		//}
 	}
 }
 
@@ -57,7 +48,7 @@ type spinnerEndCmd struct {
 type spinnerModel struct {
 	cfg      spinnerConfig
 	spinners []*Spinner
-	uxBlocks *UxBlocks
+	uxBlocks *uxBlocks
 
 	quiting  bool
 	canceled bool

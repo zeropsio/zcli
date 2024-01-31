@@ -2,10 +2,11 @@ package archiveClient
 
 import (
 	"archive/tar"
-	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func tarFile(archive *tar.Writer, file File, info os.FileInfo) error {
@@ -48,11 +49,11 @@ func tarFile(archive *tar.Writer, file File, info os.FileInfo) error {
 			return cpErr
 		}
 		if n != info.Size() {
-			return fmt.Errorf("wrote %d, want %d", n, info.Size())
+			return errors.Errorf("wrote %d, want %d", n, info.Size())
 		}
 	default:
 		// let user know instead of silently ignoring unsupported files
-		return fmt.Errorf("unsupported file type: %s", header.Name)
+		return errors.Errorf("unsupported file type: %s", header.Name)
 	}
 
 	return nil

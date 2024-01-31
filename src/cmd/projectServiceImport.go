@@ -47,7 +47,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 			for _, service := range responseOutput.ServiceStacks {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
-						Id:                  process.Id,
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient),
 						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
 						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
 						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
@@ -58,7 +58,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 			uxBlocks.PrintLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks)))
 			uxBlocks.PrintLine(i18n.T(i18n.QueuedProcesses, len(processes)))
 
-			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, cmdData.RestApiClient, processes)
+			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
 			if err != nil {
 				return err
 			}

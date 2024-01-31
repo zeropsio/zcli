@@ -7,12 +7,36 @@ import (
 	"github.com/zeropsio/zcli/src/logger"
 )
 
-type UxBlocks struct {
+//go:generate go run --mod=mod github.com/golang/mock/mockgen -source=$GOFILE -destination=$PWD/mocks/$GOFILE -package=mocks
+
+type UxBlocks interface {
+	PrintLine(values ...interface{})
+	PrintSuccessLine(values ...string)
+	PrintInfoLine(values ...string)
+	PrintWarningLine(values ...string)
+	PrintErrorLine(values ...string)
+	PrintDebugLine(args ...interface{})
+	Table(body *TableBody, auxOptions ...TableOption)
+	Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error)
+	Prompt(
+		ctx context.Context,
+		message string,
+		choices []string,
+		auxOptions ...PromptOption,
+	) (int, error)
+	RunSpinners(ctx context.Context, spinners []*Spinner, auxOptions ...SpinnerOption) func()
+}
+
+type uxBlocks struct {
 	isTerminal      bool
 	outputLogger    logger.Logger
 	debugFileLogger logger.Logger
 
-	// TODO - janhajek comment
+	// ctxCancel is used to cancel the context of the command.
+	// Bubbles package that we use to render graphic components steals the signal handler.
+	// In case that I want to cancel the context of a running component, e.g. spinner, the main context is not canceled.
+	// Therefore, we need to pass the cancel function to the uxBlocks.
+	// If the graphic component is canceled, we cancel the main context.
 	ctxCancel context.CancelFunc
 }
 
@@ -21,13 +45,13 @@ func NewBlock(
 	debugFileLogger logger.Logger,
 	isTerminal bool,
 	ctxCancel context.CancelFunc,
-) *UxBlocks {
+) *uxBlocks {
 	// safety check
 	if ctxCancel == nil {
 		ctxCancel = func() {}
 	}
 
-	return &UxBlocks{
+	return &uxBlocks{
 		outputLogger:    outputLogger,
 		debugFileLogger: debugFileLogger,
 		isTerminal:      isTerminal,

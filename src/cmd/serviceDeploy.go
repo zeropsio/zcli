@@ -57,21 +57,33 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart))
 
-			files, err := arch.FindFilesByRules(cmdData.Params.GetString("workingDir"), cmdData.Args["pathToFileOrDir"])
+			files, err := arch.FindFilesByRules(
+				uxBlocks,
+				cmdData.Params.GetString("workingDir"),
+				cmdData.Args["pathToFileOrDir"],
+			)
 			if err != nil {
 				return err
 			}
 
-			reader, writer := io.Pipe()
-			defer reader.Close()
+			var reader io.Reader
+			pipeReader, writer := io.Pipe()
+			defer pipeReader.Close()
+			reader = pipeReader
 
 			tarErrChan := make(chan error, 1)
 
 			go arch.TarFiles(writer, files, tarErrChan)
 
-			r, err := savePackage(cmdData.Params.GetString("archiveFilePath"), reader)
-			if err != nil {
-				return err
+			if cmdData.Params.GetString("archiveFilePath") != "" {
+				packageFile, err := openPackageFile(
+					cmdData.Params.GetString("archiveFilePath"),
+					cmdData.Params.GetString("workingDir"),
+				)
+				if err != nil {
+					return err
+				}
+				reader = io.TeeReader(reader, packageFile)
 			}
 
 			appVersion, err := createAppVersion(
@@ -89,24 +101,36 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				HttpTimeout: time.Minute * 15,
 			})
 
-			// TODO - janhajek spinner?
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployUploadingPackageStart))
-			if err := packageUpload(httpClient, appVersion.UploadUrl.String(), r); err != nil {
-				// if an error occurred while packing the app, return that error
-				select {
-				case err := <-tarErrChan:
-					return err
-				default:
-					return err
-				}
-			}
+			err = uxHelpers.ProcessCheckWithSpinner(
+				ctx,
+				cmdData.UxBlocks,
+				[]uxHelpers.Process{{
+					F: func(ctx context.Context) error {
+						if err := packageUpload(httpClient, appVersion.UploadUrl.String(), reader); err != nil {
+							// if an error occurred while packing the app, return that error
+							select {
+							case err := <-tarErrChan:
+								return err
+							default:
+								return err
+							}
+						}
 
-			// wait for packing and saving to finish (should already be done after the package upload has finished)
-			if tarErr := <-tarErrChan; tarErr != nil {
-				return tarErr
-			}
+						// wait for packing and saving to finish (should already be done after the package upload has finished)
+						if tarErr := <-tarErrChan; tarErr != nil {
+							return tarErr
+						}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployUploadingPackageDone))
+						return nil
+					},
+					RunningMessage:      i18n.T(i18n.BuildDeployUploadingPackageStart),
+					ErrorMessageMessage: i18n.T(i18n.BuildDeployUploadPackageFailed),
+					SuccessMessage:      i18n.T(i18n.BuildDeployUploadingPackageDone),
+				}},
+			)
+			if err != nil {
+				return err
+			}
 
 			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployDeployingStart))
 
@@ -131,14 +155,14 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				cmdData.RestApiClient,
 				[]uxHelpers.Process{{
-					Id:                  deployProcess.Id,
+					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.PushRunning),
 					ErrorMessageMessage: i18n.T(i18n.PushRunning),
 					SuccessMessage:      i18n.T(i18n.PushFinished),
 				}},
 			)
+
 			if err != nil {
 				return err
 			}
@@ -147,7 +171,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		})
 }
 
-func getValidConfigContent(uxBlocks *uxBlock.UxBlocks, workingDir string, zeropsYamlPath string) ([]byte, error) {
+func getValidConfigContent(uxBlocks uxBlock.UxBlocks, workingDir string, zeropsYamlPath string) ([]byte, error) {
 	workingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return nil, err
@@ -162,11 +186,9 @@ func getValidConfigContent(uxBlocks *uxBlock.UxBlocks, workingDir string, zerops
 	zeropsYamlStat, err := os.Stat(zeropsYamlPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if zeropsYamlPath != "" {
-				return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlNotFound))
-			}
+			return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlNotFound, zeropsYamlPath))
 		}
-		return nil, nil
+		return nil, err
 	}
 
 	uxBlocks.PrintLine(i18n.T(i18n.BuildDeployZeropsYamlFound, zeropsYamlPath))
@@ -192,7 +214,6 @@ func validateZeropsYamlContent(
 	service *entity.Service,
 	yamlContent []byte,
 ) error {
-
 	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
 		Name:               service.Name,
 		ServiceStackTypeId: service.ServiceTypeId,

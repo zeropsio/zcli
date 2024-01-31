@@ -6,15 +6,15 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 type promptConfig struct {
-	label string
 }
 
 type PromptOption = func(cfg *promptConfig)
 
-func (b *UxBlocks) Prompt(
+func (b *uxBlocks) Prompt(
 	ctx context.Context,
 	message string,
 	choices []string,
@@ -25,9 +25,9 @@ func (b *UxBlocks) Prompt(
 		opt(&cfg)
 	}
 
-	// TODO - janhajek fix message
 	if !b.isTerminal {
-		return 0, errors.New(cfg.label + ", you can choose only in terminal")
+		b.PrintLine(message)
+		return 0, errors.New(i18n.T(i18n.PromptAllowedOnlyInTerminal))
 	}
 
 	model := &promptModel{
@@ -52,7 +52,7 @@ func (b *UxBlocks) Prompt(
 
 type promptModel struct {
 	cfg      promptConfig
-	uxBlocks *UxBlocks
+	uxBlocks *uxBlocks
 	message  string
 	choices  []string
 	cursor   int

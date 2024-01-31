@@ -16,8 +16,7 @@ import (
 
 func ProcessCheckWithSpinner(
 	ctx context.Context,
-	uxBlocks *uxBlock.UxBlocks,
-	restApiClient *zeropsRestApiClient.Handler,
+	uxBlocks uxBlock.UxBlocks,
 	processList []Process,
 ) error {
 	spinners := make([]*uxBlock.Spinner, 0, len(processList))
@@ -38,7 +37,7 @@ func ProcessCheckWithSpinner(
 			defer wg.Done()
 			process := processList[i]
 
-			err := checkProcess(ctx, process.Id, restApiClient)
+			err := process.F(ctx)
 			if err != nil {
 				spinners[i].Finish(uxBlock.NewLine(uxBlock.ErrorIcon, uxBlock.ErrorText(process.ErrorMessageMessage)).String())
 				stopFunc()
@@ -59,40 +58,45 @@ func ProcessCheckWithSpinner(
 }
 
 type Process struct {
-	Id                  uuid.ProcessId
+	F                   func(ctx context.Context) error
 	RunningMessage      string
 	ErrorMessageMessage string
 	SuccessMessage      string
 }
 
-func checkProcess(ctx context.Context, processId uuid.ProcessId, restApiClient *zeropsRestApiClient.Handler) error {
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
+func CheckZeropsProcess(
+	processId uuid.ProcessId,
+	restApiClient *zeropsRestApiClient.Handler,
+) func(ctx context.Context) error {
+	return func(ctx context.Context) error {
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-ticker.C:
-			getProcessResponse, err := restApiClient.GetProcess(ctx, path.ProcessId{Id: processId})
-			if err != nil {
-				return err
-			}
-
-			processOutput, err := getProcessResponse.Output()
-			if err != nil {
-				return err
-			}
-
-			processStatus := processOutput.Status
-
-			if processStatus == enum.ProcessStatusEnumFinished {
+		for {
+			select {
+			case <-ctx.Done():
 				return nil
-			}
+			case <-ticker.C:
+				getProcessResponse, err := restApiClient.GetProcess(ctx, path.ProcessId{Id: processId})
+				if err != nil {
+					return err
+				}
 
-			if !(processStatus == enum.ProcessStatusEnumRunning ||
-				processStatus == enum.ProcessStatusEnumPending) {
-				return errors.Errorf(i18n.T(i18n.ProcessInvalidState), processId)
+				processOutput, err := getProcessResponse.Output()
+				if err != nil {
+					return err
+				}
+
+				processStatus := processOutput.Status
+
+				if processStatus == enum.ProcessStatusEnumFinished {
+					return nil
+				}
+
+				if !(processStatus == enum.ProcessStatusEnumRunning ||
+					processStatus == enum.ProcessStatusEnumPending) {
+					return errors.Errorf(i18n.T(i18n.ProcessInvalidState), processId)
+				}
 			}
 		}
 	}

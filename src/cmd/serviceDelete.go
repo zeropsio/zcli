@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -16,16 +15,13 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdServiceDelete)).
 		ScopeLevel(cmdBuilder.Service).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
+		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			confirm, err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ServiceDeleteConfirm, cmdData.Service.Name))
-			if err != nil {
-				return err
-			}
-
-			if !confirm {
-				// TODO - janhajek message
-				fmt.Println("you have to confirm it")
-				return nil
+			if !cmdData.Params.GetBool("confirm") {
+				err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ServiceDeleteConfirm, cmdData.Service.Name))
+				if err != nil {
+					return err
+				}
 			}
 
 			deleteServiceResponse, err := cmdData.RestApiClient.DeleteServiceStack(
@@ -48,9 +44,8 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				cmdData.RestApiClient,
 				[]uxHelpers.Process{{
-					Id:                  processId,
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ServiceDeleting),
 					ErrorMessageMessage: i18n.T(i18n.ServiceDeleting),
 					SuccessMessage:      i18n.T(i18n.ServiceDeleted),

@@ -30,7 +30,7 @@ func main() {
 	}
 }
 
-func do(ctx context.Context, blocks *UxBlocks) error {
+func do(ctx context.Context, blocks UxBlocks) error {
 	prompts(ctx, blocks)
 	spinners(ctx, blocks)
 	texts(ctx, blocks)
@@ -39,7 +39,7 @@ func do(ctx context.Context, blocks *UxBlocks) error {
 	return nil
 }
 
-func spinners(ctx context.Context, blocks *UxBlocks) {
+func spinners(ctx context.Context, blocks UxBlocks) {
 	{
 		fmt.Println("========= spinners block =========")
 
@@ -79,7 +79,7 @@ func spinners(ctx context.Context, blocks *UxBlocks) {
 	}
 }
 
-func prompts(ctx context.Context, blocks *UxBlocks) {
+func prompts(ctx context.Context, blocks UxBlocks) {
 	fmt.Println("========= prompt block =========")
 	choices := []string{"yes", "no", "maybe"}
 	choice, err := blocks.Prompt(ctx, "Question?", choices)
@@ -92,7 +92,7 @@ func prompts(ctx context.Context, blocks *UxBlocks) {
 	fmt.Println("========= prompt block end =========")
 }
 
-func texts(ctx context.Context, blocks *UxBlocks) {
+func texts(ctx context.Context, blocks UxBlocks) {
 	fmt.Println("========= texts block =========")
 	blocks.PrintInfoLine("info line")
 	blocks.PrintWarningLine("warning line")
@@ -101,7 +101,7 @@ func texts(ctx context.Context, blocks *UxBlocks) {
 	fmt.Println("========= texts block end =========")
 }
 
-func tables(ctx context.Context, blocks *UxBlocks) {
+func tables(ctx context.Context, blocks UxBlocks) {
 	fmt.Println("========= table selection block =========")
 
 	tableData := [][]string{
@@ -145,7 +145,7 @@ func regSignals(contextCancel func()) {
 	}()
 }
 
-func createBlocks(contextCancelFunc func()) (*UxBlocks, error) {
+func createBlocks(contextCancelFunc func()) (UxBlocks, error) {
 	isTerminal := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
 
 	outputLogger := logger.NewOutputLogger(logger.OutputConfig{

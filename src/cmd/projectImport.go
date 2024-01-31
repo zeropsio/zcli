@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
@@ -20,14 +21,35 @@ func projectImportCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdProjectImport)).
 		Long(i18n.T(i18n.CmdProjectImportLong)).
 		Arg(projectImportArgName).
+		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
+		StringFlag("workingDie", "./", i18n.T(i18n.BuildWorkingDir)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			// TODO - janhajek client via flag
-			// TODO - janhajek interactive selector of clients
+			orgId := uuid.ClientId(cmdData.Params.GetString("orgId"))
+			if orgId == "" {
+				orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
+				if err != nil {
+					return err
+				}
 
-			// TODO - janhajek config
-			yamlContent, err := yamlReader.ReadContent(uxBlocks, cmdData.Args[projectImportArgName][0], "./")
+				if len(orgs) == 1 {
+					orgId = orgs[0].ID
+				} else {
+					selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, uxBlocks, cmdData.RestApiClient)
+					if err != nil {
+						return err
+					}
+
+					orgId = selectedOrg.ID
+				}
+			}
+
+			yamlContent, err := yamlReader.ReadContent(
+				uxBlocks,
+				cmdData.Args[projectImportArgName][0],
+				cmdData.Params.GetString("workingDir"),
+			)
 			if err != nil {
 				return err
 			}
@@ -35,8 +57,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
 				ctx,
 				body.ProjectImport{
-					// TODO - janhajek client id
-					ClientId: uuid.ClientId(cmdData.Args[projectImportArgName][0]),
+					ClientId: orgId,
 					Yaml:     types.Text(yamlContent),
 				},
 			)
@@ -53,7 +74,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			for _, service := range responseOutput.ServiceStacks {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
-						Id:                  process.Id,
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient),
 						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
 						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
 						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
@@ -65,7 +86,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			uxBlocks.PrintLine(i18n.T(i18n.QueuedProcesses, len(processes)))
 			uxBlocks.PrintLine(i18n.T(i18n.CoreServices))
 
-			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, cmdData.RestApiClient, processes)
+			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
 			if err != nil {
 				return err
 			}

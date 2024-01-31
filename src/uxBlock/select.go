@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 type selectConfig struct {
@@ -37,15 +38,15 @@ func SelectTableHeader(header *TableRow) SelectOption {
 
 type SelectOption = func(cfg *selectConfig)
 
-func (b *UxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error) {
+func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error) {
 	cfg := selectConfig{}
 	for _, opt := range auxOptions {
 		opt(&cfg)
 	}
 
-	// TODO - janhajek fix message
 	if !b.isTerminal {
-		return nil, errors.New(cfg.label + ", you can choose only in terminal")
+		b.PrintLine(cfg.label)
+		return nil, errors.New(i18n.T(i18n.SelectorAllowedOnlyInTerminal))
 	}
 
 	model := &selectModel{
@@ -76,7 +77,7 @@ func (b *UxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 
 type selectModel struct {
 	cfg       selectConfig
-	uxBlocks  *UxBlocks
+	uxBlocks  *uxBlocks
 	tableBody *TableBody
 	cursor    int
 	selected  map[int]struct{}

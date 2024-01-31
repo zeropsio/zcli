@@ -13,7 +13,7 @@ import (
 
 func PrintServiceSelector(
 	ctx context.Context,
-	uxBlocks *uxBlock.UxBlocks,
+	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
 	project entity.Project,
 ) (*entity.Service, error) {
@@ -40,11 +40,11 @@ func PrintServiceSelector(
 	}
 
 	if len(serviceIndex) == 0 {
-		return nil, errors.New(i18n.T(i18n.ProjectSelectorOutOfRangeError))
+		return nil, errors.New(i18n.T(i18n.ServiceSelectorOutOfRangeError))
 	}
 
 	if serviceIndex[0] > len(services)-1 {
-		return nil, errors.New(i18n.T(i18n.ProjectSelectorOutOfRangeError))
+		return nil, errors.New(i18n.T(i18n.ServiceSelectorOutOfRangeError))
 	}
 
 	return &services[serviceIndex[0]], nil
@@ -52,7 +52,7 @@ func PrintServiceSelector(
 
 func PrintServiceList(
 	ctx context.Context,
-	uxBlocks *uxBlock.UxBlocks,
+	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
 	project entity.Project,
 ) error {

@@ -57,8 +57,7 @@ func (r *CmdParamReader) GetBool(name string) bool {
 
 type GuestCmdData struct {
 	CliStorage *cliStorage.Handler
-	UxBlocks   *uxBlock.UxBlocks
-	QuietMode  QuietMode
+	UxBlocks   uxBlock.UxBlocks
 	Args       map[string][]string
 	Params     ParamsReader
 }
@@ -106,11 +105,6 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 			return err
 		}
 
-		quietMode, err := getQuietMode(isTerminal)
-		if err != nil {
-			return err
-		}
-
 		cliStorage, err := createCliStorage()
 		if err != nil {
 			return err
@@ -124,7 +118,6 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 		guestCmdData := &GuestCmdData{
 			CliStorage: cliStorage,
 			UxBlocks:   uxBlocks,
-			QuietMode:  quietMode,
 			Args:       argsMap,
 			Params:     newCmdParamReader(cobraCmd, params),
 		}
@@ -199,7 +192,7 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	return argsMap, nil
 }
 
-func printError(err error, uxBlocks *uxBlock.UxBlocks) {
+func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	uxBlocks.PrintDebugLine(fmt.Sprintf("error: %+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
@@ -222,20 +215,6 @@ func printError(err error, uxBlocks *uxBlock.UxBlocks) {
 	}
 
 	uxBlocks.PrintErrorLine(err.Error())
-}
-
-func getQuietMode(isTerminal bool) (QuietMode, error) {
-	if !isTerminal {
-		return QuietModeConfirmNothing, nil
-	}
-
-	switch QuietMode(QuietModeFlag) {
-	case QuietModeConfirmNothing, QuietModeConfirmAll, QuietModeConfirmOnlyDestructive:
-		return QuietMode(QuietModeFlag), nil
-	default:
-		// TODO - janhajek message
-		return 0, errors.New("unknown quiet mode")
-	}
 }
 
 func isTerminal() (bool, error) {

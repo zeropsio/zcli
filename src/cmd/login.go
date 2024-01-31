@@ -8,13 +8,11 @@ import (
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
-	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/errorCode"
 )
 
 func loginCmd() *cmdBuilder.Cmd {
@@ -48,13 +46,7 @@ func loginCmd() *cmdBuilder.Cmd {
 
 			output, err := response.Output()
 			if err != nil {
-				return zeropsRestApiClient.CheckError(
-					err,
-					zeropsRestApiClient.CheckErrorCode(
-						errorCode.NotAuthorized,
-						errorsx.NewUserError(i18n.T(i18n.LoginIncorrectToken), err),
-					),
-				)
+				return err
 			}
 
 			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
@@ -74,7 +66,7 @@ func loginCmd() *cmdBuilder.Cmd {
 
 func getLoginRegion(
 	ctx context.Context,
-	uxBlocks *uxBlock.UxBlocks,
+	uxBlocks uxBlock.UxBlocks,
 	regions []region.Data,
 	selectedRegion string,
 ) (region.Data, error) {
