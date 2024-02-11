@@ -26,52 +26,49 @@ func (h *Handler) getCmdId(cmd *cobra.Command, name string) string {
 	return cmd.Use + name
 }
 
-func (h *Handler) RegisterString(cmd *cobra.Command, name, defaultValue, description string) {
+func (h *Handler) RegisterString(cmd *cobra.Command, name, shorthand, defaultValue, description string) {
 	var paramValue string
 
-	cmd.Flags().StringVar(&paramValue, name, defaultValue, description)
+	cmd.Flags().StringVarP(&paramValue, name, shorthand, defaultValue, description)
 
 	h.params[h.getCmdId(cmd, name)] = func() *string {
 		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
-		if h.viper.GetString(name) != "" {
-			v := h.viper.GetString(name)
-			return &v
+		if val := h.viper.GetString(toSnakeCase(name)); val != "" {
+			return &val
 		}
 		return &paramValue
 	}
 }
 
-func (h *Handler) RegisterBool(cmd *cobra.Command, name string, defaultValue bool, description string) {
+func (h *Handler) RegisterBool(cmd *cobra.Command, name, shorthand string, defaultValue bool, description string) {
 	var paramValue bool
 
-	cmd.Flags().BoolVar(&paramValue, name, defaultValue, description)
+	cmd.Flags().BoolVarP(&paramValue, name, shorthand, defaultValue, description)
 
 	h.params[h.getCmdId(cmd, name)] = func() *bool {
 		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
-		if h.viper.GetBool(name) != false {
-			v := h.viper.GetBool(name)
-			return &v
+		if val := h.viper.GetBool(toSnakeCase(name)); val {
+			return &val
 		}
 		return &paramValue
 	}
 }
 
-func (h *Handler) RegisterInt(cmd *cobra.Command, name string, defaultValue int, description string) {
+func (h *Handler) RegisterInt(cmd *cobra.Command, name, shorthand string, defaultValue int, description string) {
 	var paramValue int
 
-	cmd.Flags().IntVar(&paramValue, name, defaultValue, description)
+	cmd.Flags().IntVarP(&paramValue, name, shorthand, defaultValue, description)
 
 	h.params[h.getCmdId(cmd, name)] = func() *int {
 		if cmd.Flags().Lookup(name).Changed {
 			return &paramValue
 		}
-		if h.viper.GetInt(name) != 0 {
-			v := h.viper.GetInt(name)
-			return &v
+		if val := h.viper.GetInt(toSnakeCase(name)); val != 0 {
+			return &val
 		}
 		return &paramValue
 	}
@@ -130,4 +127,15 @@ func (h *Handler) InitViper() error {
 	}
 
 	return nil
+}
+
+func toSnakeCase(flagName string) string {
+	var result string
+	for i, r := range flagName {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result += "_"
+		}
+		result += string(r)
+	}
+	return result
 }

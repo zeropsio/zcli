@@ -37,8 +37,8 @@ func (b *uxBlocks) Prompt(
 		choices:  choices,
 	}
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
-	_, err := p.Run()
-	if err != nil {
+
+	if _, err := p.Run(); err != nil {
 		return 0, err
 	}
 
@@ -67,7 +67,6 @@ func (m *promptModel) Init() tea.Cmd {
 func (m *promptModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-
 		case "ctrl+c":
 			m.canceled = true
 			return m, tea.Quit

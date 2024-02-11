@@ -29,7 +29,7 @@ var TerminalFlag string
 // This error needs to be handled here. Simple fmt.Println(err.Error()) is enough.
 // But with this line, other errors are logged twice. Once here, once in the root command.
 // So, I added a special error to skip the logging after the root command.
-var skipErr = errors.New("skip")
+var errSkipErrorReporting = errors.New("skipErrorReporting")
 
 func (b *CmdBuilder) CreateAndExecuteRootCobraCmd() error {
 	rootCmd := createRootCommand()
@@ -46,7 +46,7 @@ func (b *CmdBuilder) CreateAndExecuteRootCobraCmd() error {
 
 	err := rootCmd.Execute()
 	if err != nil {
-		if !errors.Is(err, skipErr) {
+		if !errors.Is(err, errSkipErrorReporting) {
 			fmt.Println(err.Error())
 		}
 	}
@@ -61,8 +61,6 @@ func createRootCommand() *cobra.Command {
 		SilenceErrors:     true,
 	}
 
-	// TODO - janhajek add a dynamic help for subcommands
-	rootCmd.Flags().BoolP("help", "h", false, i18n.T(i18n.DisplayHelp)+i18n.T(i18n.GroupHelp))
 	rootCmd.PersistentFlags().StringVar(&TerminalFlag, "terminal", "auto", i18n.T(i18n.TerminalFlag))
 
 	return rootCmd

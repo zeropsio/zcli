@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -28,7 +29,7 @@ func (h *Handler) getLogStream(
 
 	conn, reps, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
-		return fmt.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
+		return errors.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
 	}
 	defer reps.Body.Close()
 	defer conn.Close()
@@ -44,7 +45,10 @@ func (h *Handler) getLogStream(
 		case <-done:
 			// if interrupted by user
 			if ctx.Err() != nil {
-				return nil
+				if errors.Is(ctx.Err(), context.Canceled) {
+					return nil
+				}
+				return err
 			}
 			// otherwise try to reconnect the websocket
 			err := h.printLogs(ctx, inputs, projectId, serviceId, containerId)
@@ -90,7 +94,7 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format string, done
 			}
 			finishedByUser := strings.Contains(err.Error(), "use of closed network connection")
 			if !finishedByUser {
-				errMsg := fmt.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
+				errMsg := errors.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
 				fmt.Println(errMsg)
 			}
 			return
@@ -104,7 +108,7 @@ func (h *Handler) printStreamLog(data []byte, format string) {
 	jsonData, _ := parseResponse(data)
 	// only if there is a new message coming
 	if len(jsonData.Items) > 0 {
-		//update last msg ID for ws reconnection
+		// update last msg ID for ws reconnection
 		h.lastMsgId = jsonData.Items[len(jsonData.Items)-1].Id
 		err := parseResponseByFormat(jsonData, format, "", STREAM)
 		if err != nil {

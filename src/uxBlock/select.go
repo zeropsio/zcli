@@ -91,42 +91,41 @@ func (m *selectModel) Init() tea.Cmd {
 
 func (m *selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Make sure these keys always quiting
-	if msg, ok := msg.(tea.KeyMsg); ok {
-		switch msg.String() {
+	keyMsg, ok := msg.(tea.KeyMsg)
+	if !ok {
+		return m, nil
+	}
+	switch keyMsg.String() {
+	case "ctrl+c":
+		m.canceled = true
+		return m, tea.Quit
 
-		case "ctrl+c":
-			m.canceled = true
-			return m, tea.Quit
-
-		case "up":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-
-		case "down":
-			if m.cursor < len(m.tableBody.rows)-1 {
-				m.cursor++
-			}
-		case "enter":
-			m.quiting = true
-
-			if !m.cfg.multiSelect {
-				m.selected = make(map[int]struct{})
-				m.selected[m.cursor] = struct{}{}
-			}
-
-			return m, tea.Quit
+	case "up":
+		if m.cursor > 0 {
+			m.cursor--
 		}
 
-		if m.cfg.multiSelect {
-			switch msg.String() {
+	case "down":
+		if m.cursor < len(m.tableBody.rows)-1 {
+			m.cursor++
+		}
+	case "enter":
+		m.quiting = true
 
-			case " ":
-				if _, ok := m.selected[m.cursor]; ok {
-					delete(m.selected, m.cursor)
-				} else {
-					m.selected[m.cursor] = struct{}{}
-				}
+		if !m.cfg.multiSelect {
+			m.selected = make(map[int]struct{})
+			m.selected[m.cursor] = struct{}{}
+		}
+
+		return m, tea.Quit
+	}
+
+	if m.cfg.multiSelect {
+		if keyMsg.String() == " " {
+			if _, ok := m.selected[m.cursor]; ok {
+				delete(m.selected, m.cursor)
+			} else {
+				m.selected[m.cursor] = struct{}{}
 			}
 		}
 	}
@@ -187,6 +186,8 @@ func (m *selectModel) View() string {
 	if m.cfg.label != "" {
 		s = SelectionIcon + m.cfg.label + "\n"
 	}
+
+	t.Width(calculateTableWidth(t, m.uxBlocks.terminalWidth))
 
 	return s + t.String()
 }

@@ -34,11 +34,11 @@ func (b *CmdBuilder) buildCobraCmd(cmd *Cmd, params *params.Handler) (*cobra.Com
 	for _, flag := range cmd.flags {
 		switch defaultValue := flag.defaultValue.(type) {
 		case string:
-			params.RegisterString(cobraCmd, flag.name, defaultValue, flag.description)
+			params.RegisterString(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
 		case int:
-			params.RegisterInt(cobraCmd, flag.name, defaultValue, flag.description)
+			params.RegisterInt(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
 		case bool:
-			params.RegisterBool(cobraCmd, flag.name, defaultValue, flag.description)
+			params.RegisterBool(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
 		default:
 			panic(fmt.Sprintf("unexpected type %T", flag.defaultValue))
 		}

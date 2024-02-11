@@ -18,7 +18,6 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdServiceLog)).
 		Long(i18n.T(i18n.CmdServiceLogLong)+i18n.T(i18n.ServiceLogAdditional)).
 		ScopeLevel(cmdBuilder.Service).
-		StringFlag("x-amz-acl", "", i18n.T(i18n.BucketGenericXAmzAcl)).
 		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
 		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
 		StringFlag("messageType", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).
@@ -26,6 +25,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		StringFlag("formatTemplate", "", i18n.T(i18n.LogFormatTemplateFlag)).
 		BoolFlag("follow", false, i18n.T(i18n.LogFollowFlag)).
 		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
+		Short(i18n.T(i18n.ServiceLogHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			handler := serviceLogs.New(
 				serviceLogs.Config{},

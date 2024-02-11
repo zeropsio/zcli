@@ -15,6 +15,7 @@ func projectStartCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdProjectStart)).
 		ScopeLevel(cmdBuilder.Project).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		HelpFlag(i18n.T(i18n.ProjectStartHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			startProjectResponse, err := cmdData.RestApiClient.PutProjectStart(
 				ctx,

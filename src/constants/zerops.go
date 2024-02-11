@@ -58,8 +58,7 @@ func findFirstWritablePath(paths []pathReceiver) (string, error) {
 func checkPath(filePath string) error {
 	dir := path.Dir(filePath)
 
-	err := os.MkdirAll(dir, 0775)
-	if err != nil {
+	if err := os.MkdirAll(dir, 0775); err != nil {
 		return err
 	}
 

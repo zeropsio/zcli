@@ -1,7 +1,6 @@
 package serviceLogs
 
 import (
-	"fmt"
 	"html/template"
 	"strconv"
 	"strings"
@@ -79,9 +78,9 @@ func (h *Handler) getMinSeverity(config RunConfig) (intVal int, err error) {
 	}
 	_, err = strconv.Atoi(ms)
 	if err != nil {
-		return 1, fmt.Errorf("%s %s", i18n.T(i18n.LogMinSeverityInvalid), i18n.T(i18n.LogMinSeverityStringLimitErr))
+		return 1, errors.Errorf("%s %s", i18n.T(i18n.LogMinSeverityInvalid), i18n.T(i18n.LogMinSeverityStringLimitErr))
 	}
-	return 1, fmt.Errorf("%s %s", i18n.T(i18n.LogMinSeverityInvalid), i18n.T(i18n.LogMinSeverityNumLimitErr))
+	return 1, errors.Errorf("%s %s", i18n.T(i18n.LogMinSeverityInvalid), i18n.T(i18n.LogMinSeverityNumLimitErr))
 }
 
 // getFacility returns facility number based on msgType
@@ -118,7 +117,7 @@ func (h *Handler) getFormat(config RunConfig) (string, string, error) {
 // e.g. --formatTemplate="{{.timestamp}} {{.priority}} {{.facility}} {{.message}}"
 func (h *Handler) checkFormat(ft string) (string, error) {
 	if err := validateTemplate(ft); err != nil {
-		return "", fmt.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
+		return "", errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
 	}
 	return ft, nil
 }

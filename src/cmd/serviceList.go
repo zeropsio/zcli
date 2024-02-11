@@ -14,6 +14,7 @@ func serviceListCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdProjectList)).
 		ScopeLevel(cmdBuilder.Project).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		Short(i18n.T(i18n.ServiceListHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			err := uxHelpers.PrintServiceList(ctx, cmdData.UxBlocks, cmdData.RestApiClient, *cmdData.Project)
 			if err != nil {

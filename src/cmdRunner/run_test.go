@@ -1,22 +1,18 @@
 package cmdRunner
 
 import (
-	"errors"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWrap(t *testing.T) {
-	RegisterTestingT(t)
-
-	err := &execErr{
-		prev:     OperationNotPermitted,
+	err := &execError{
+		prev:     ErrOperationNotPermitted,
 		exitCode: 1,
 	}
 
-	Expect(errors.Is(err, OperationNotPermitted)).To(BeTrue())
-	Expect(errors.Is(err, CannotFindDeviceErr)).To(BeFalse())
-	Expect(err.ExitCode()).To(Equal(1))
-
+	require.ErrorIs(t, err, ErrOperationNotPermitted)
+	require.NotErrorIs(t, err, ErrCannotFindDevice)
+	require.Equal(t, 1, err.ExitCode())
 }

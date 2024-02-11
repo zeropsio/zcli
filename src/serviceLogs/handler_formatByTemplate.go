@@ -6,6 +6,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pkg/errors"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -20,7 +21,7 @@ func getFullWithTemplate(logData []Data, formatTemplate string) error {
 	for _, o := range logData {
 		err := formatDataByTemplate(o, ft)
 		if err != nil {
-			return fmt.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
+			return errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
 		}
 	}
 	return nil
@@ -46,7 +47,7 @@ func testTokens(tokens []string) error {
 		// if any `{` characters are left, it means the items were not split by correctly
 		rmLeft := strings.Replace(token, "{", "", 2)
 		if strings.Contains(rmLeft, "{") {
-			return fmt.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), i18n.T(i18n.LogFormatTemplateNoSpace))
+			return errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), i18n.T(i18n.LogFormatTemplateNoSpace))
 		}
 	}
 	return nil

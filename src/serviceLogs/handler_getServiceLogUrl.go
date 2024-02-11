@@ -2,9 +2,9 @@ package serviceLogs
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
@@ -20,7 +20,7 @@ func (h *Handler) getServiceLogResData(ctx context.Context, projectId uuid.Proje
 
 	resOutput, err := response.Output()
 	if err != nil {
-		return "", "", fmt.Errorf("%s %v", i18n.T(i18n.LogAccessFailed), err)
+		return "", "", errors.Errorf("%s %v", i18n.T(i18n.LogAccessFailed), err)
 	}
 	method, url := getLogRequestData(resOutput)
 	return method, url, nil

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdRunner"
 )
 
@@ -98,7 +99,7 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 		}
 	}
 
-	return
+	return res, nil
 }
 
 func (h *Handler) listFiles(cmd *exec.Cmd, fn func(path string) error) error {
@@ -112,7 +113,7 @@ func (h *Handler) listFiles(cmd *exec.Cmd, fn func(path string) error) error {
 		lineB, _, err := rd.ReadLine()
 		line := string(lineB)
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			if line != "" {
 				if err := fn(line); err != nil {
 					return err

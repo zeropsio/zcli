@@ -4,12 +4,10 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStorage(t *testing.T) {
-	RegisterTestingT(t)
-
 	type dataObject struct {
 		Param string
 	}
@@ -18,11 +16,11 @@ func TestStorage(t *testing.T) {
 		storage, err := New[dataObject](Config{
 			FilePath: "./test",
 		})
-		Expect(err).ShouldNot(HaveOccurred())
+		require.NoError(t, err)
 
 		{
 			d := storage.Data()
-			Expect(d.Param).To(Equal(""))
+			require.Equal(t, "", d.Param)
 		}
 
 		{
@@ -30,8 +28,8 @@ func TestStorage(t *testing.T) {
 				data.Param = "value"
 				return data
 			})
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(d.Param).To(Equal("value"))
+			require.NoError(t, err)
+			require.Equal(t, "value", d.Param)
 		}
 	}
 
@@ -39,13 +37,12 @@ func TestStorage(t *testing.T) {
 		storage, err := New[dataObject](Config{
 			FilePath: "./test",
 		})
-		Expect(err).ShouldNot(HaveOccurred())
+		require.NoError(t, err)
 
 		d := storage.Data()
-		Expect(d.Param).To(Equal("value"))
+		require.Equal(t, "value", d.Param)
 	}
 
 	err := os.Remove("./test")
-	Expect(err).ShouldNot(HaveOccurred())
-
+	require.NoError(t, err)
 }

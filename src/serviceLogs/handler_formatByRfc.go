@@ -19,8 +19,8 @@ import (
 	"time"
 )
 
-func getFullByRfc(logData []Data, RFC string) {
-	if RFC == RFC3164 {
+func getFullByRfc(logData []Data, rfc string) {
+	if rfc == RFC3164 {
 		for _, data := range logData {
 			fmt.Printf("<%d>%s %s %s: %s\n",
 				data.Priority,
@@ -47,8 +47,7 @@ func getFullByRfc(logData []Data, RFC string) {
 
 // add missing 0 to have the same length for all timestamps
 func fixTimestamp(timestamp string) string {
-	missing := 27 - len(timestamp)
-	if missing == 0 {
+	if 27-len(timestamp) == 0 {
 		return timestamp
 	}
 	splitVal := strings.Split(timestamp, ".")
@@ -64,7 +63,7 @@ func rfc3164TimeFormat(timestamp string) string {
 	layout := "2006-01-02T15:04:05.000000Z"
 	timeStamp, err := time.Parse(layout, timestamp)
 	if err != nil {
-		fmt.Println(err)
+		return err.Error()
 	}
 	return timeStamp.Format("Jan 02 15:04:05")
 }

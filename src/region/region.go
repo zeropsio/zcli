@@ -1,6 +1,7 @@
 package region
 
 import (
+	"context"
 	"encoding/json"
 	"sort"
 
@@ -27,8 +28,8 @@ func New(client *httpClient.Handler) *Handler {
 	}
 }
 
-func (h *Handler) RetrieveAllFromURL(regionURL string) ([]Data, error) {
-	resp, err := h.client.Get(regionURL)
+func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]Data, error) {
+	resp, err := h.client.Get(ctx, regionURL)
 	if err != nil {
 		return nil, err
 	}

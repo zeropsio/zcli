@@ -2,31 +2,39 @@ package i18n
 
 var en = map[string]string{
 	// help
-	DisplayHelp:       "Displays help for ",
-	GroupHelp:         "any command.",
-	DeployHelp:        "the deploy command.",
-	LogShowHelp:       "the log show command.",
-	LoginHelp:         "the login command.",
-	ProjectHelp:       "the project command.",
-	ProjectStartHelp:  "the project start command.",
-	ProjectStopHelp:   "the project stop command.",
-	ProjectListHelp:   "the project list command.",
-	ScopeHelp:         "the scope command.",
-	ScopeProjectHelp:  "the scope project command.",
-	ScopeServiceHelp:  "the scope project command.",
-	ScopeResetHelp:    "the scope reset command.",
-	ProjectDeleteHelp: "the project delete command.",
-	ProjectImportHelp: "the project import command.",
-	PushHelp:          "the push command.",
-	RegionListHelp:    "the region list command.",
-	ServiceStartHelp:  "the service start command.",
-	ServiceStopHelp:   "the service stop command.",
-	ServiceImportHelp: "the service import command.",
-	ServiceDeleteHelp: "the service delete command.",
-	ServiceLogHelp:    "the service log command.",
-	VersionHelp:       "the version command.",
-	BucketCreateHelp:  "the bucket create command.",
-	BucketDeleteHelp:  "the bucket delete command.",
+	DisplayHelp:              "Displays help for ",
+	GroupHelp:                "any command.",
+	DeployHelp:               "the deploy command.",
+	LogShowHelp:              "the log show command.",
+	LoginHelp:                "the login command.",
+	ProjectHelp:              "the project command.",
+	ProjectStartHelp:         "the project start command.",
+	ProjectStopHelp:          "the project stop command.",
+	ProjectListHelp:          "the project list command.",
+	ScopeHelp:                "the scope command.",
+	ScopeProjectHelp:         "the scope project command.",
+	ScopeServiceHelp:         "the scope project command.",
+	ScopeResetHelp:           "the scope reset command.",
+	ProjectDeleteHelp:        "the project delete command.",
+	ProjectImportHelp:        "the project import command.",
+	ProjectServiceImportHelp: "the project service import command.",
+	ServiceHelp:              "the service command.",
+	PushHelp:                 "the push command.",
+	RegionListHelp:           "the region list command.",
+	ServiceStartHelp:         "the service start command.",
+	ServiceStopHelp:          "the service stop command.",
+	ServiceImportHelp:        "the service import command.",
+	ServiceDeleteHelp:        "the service delete command.",
+	ServiceLogHelp:           "the service log command.",
+	ServiceDeployHelp:        "the service deploy command.",
+	ServiceListHelp:          "the service list command.",
+	ServicePushHelp:          "the service push command.",
+	StatusHelp:               "the status command.",
+	StatusInfoHelp:           "the status info command.",
+	StatusShowDebugLogsHelp:  "the status show debug logs command.",
+	VersionHelp:              "the version command.",
+	BucketCreateHelp:         "the bucket create command.",
+	BucketDeleteHelp:         "the bucket delete command.",
 
 	// cmd short
 	CmdDeployDesc:          "Deploys your application to Zerops.",
@@ -84,24 +92,14 @@ var en = map[string]string{
 	LogFollowFlag:         "If set, zCLI will continuously poll for new log messages. By default, the command will exit\nonce there are no more logs to display. To exit from this mode, use Control-C.",
 	LogFormatFlag:         "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects.",
 	LogFormatTemplateFlag: "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.timestamp}} {{.severity}} {{.facility}} {{.message}}\".\nSupports standard GoLang template format and functions.",
-	QuietModeFlag:         "In terminal mode some operations need to be confirmed. 0 = Everything needs to be confirmed, 1 = Non-destructive operations need to be confirmed, 2 = Quiet mode, nothing needs to be confirmed. Default value is 0.",
 	TerminalFlag:          "If enabled provides a rich UI to communicate with a user. Possible values: auto, enabled, disabled. Default value is auto.",
 	LogFilePathFlag:       "Path to a log file. Default value: %s.",
 	ConfirmFlag:           "If set, zCLI will not ask for confirmation of destructive operations.",
 	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
 
-	// prompt
-	PromptEnterZeropsServiceName: "Enter hostname of zerops service",
-	PromptName:                   "name",
-	PromptInvalidInput:           "Invalid input.",
-	PromptInvalidHostname:        "Name contains invalid characters.",
-
 	// process
-	ProcessInvalidState:        "last command has finished with error, identifier for communication with our support: %s",
-	ProcessInvalidStateProcess: "process finished with error, identifier for communication with our support:",
-	ProcessStart:               "process started",
-	ProcessEnd:                 "process finished",
+	ProcessInvalidState: "last command has finished with error, identifier for communication with our support: %s",
 
 	// archiveClient
 	ArchClientWorkingDirectory:  "working directory: %s",
@@ -111,57 +109,45 @@ var en = map[string]string{
 	ArchClientFileAlreadyExists: "file [%s] already exists",
 
 	// login
-	LoginSuccess:        "You are logged as %s <%s>",
-	LoginIncorrectToken: "Incorrect token, login failed",
-	RegionUrl:           "zerops region file url",
+	LoginSuccess: "You are logged as %s <%s>",
 
 	// region
-	RegionNotFound: "Selected region %s not found",
-
-	// client ID
-	MultipleClientIds:  "you have assigned multiple client IDs, please use the --clientId flag",
-	AvailableClientIds: "your client IDs are: ",
-	MissingClientId:    "no client ID found four your account",
+	RegionNotFound:        "Selected region %s not found",
+	RegionTableColumnName: "Name",
 
 	// import
-	YamlCheck:             "yaml file check started",
-	ImportYamlOk:          "Yaml file was checked",
-	ImportYamlEmpty:       "Config file import yaml is empty",
-	ImportYamlTooLarge:    "Max. size of import yaml is 100 KB",
-	ImportYamlFound:       "Import yaml found",
-	ImportYamlNotFound:    "Import yaml not found",
-	ImportYamlCorrupted:   "Import yaml corrupted",
-	ServiceCount:          "Number of services to be added: %d",
-	QueuedProcesses:       "Queued processes: %d",
-	CoreServices:          "Core services activation started",
-	ReadyToImportServices: "Ready to import services",
+	ImportYamlOk:        "Yaml file was checked",
+	ImportYamlEmpty:     "Config file import yaml is empty",
+	ImportYamlTooLarge:  "Max. size of import yaml is 100 KB",
+	ImportYamlFound:     "Import yaml found",
+	ImportYamlNotFound:  "Import yaml not found",
+	ImportYamlCorrupted: "Import yaml corrupted",
+	ServiceCount:        "Number of services to be added: %d",
+	QueuedProcesses:     "Queued processes: %d",
+	CoreServices:        "Core services activation started",
 
 	// delete cmd
 	DeleteCanceledByUser: "delete command canceled by user",
 
 	// project + service
-	ProjectWrongId:               "Please, provide correct project ID.",
-	ProjectsWithSameName:         "found multiple projects with the same name",
-	AvailableProjectIds:          "available project IDs are: ",
-	ProjectNameOrIdEmpty:         "project name or ID must be filled",
-	ProjectDeleteConfirm:         "Project %s will be deleted? \n Are you sure?",
-	ServiceNameIsEmpty:           "Service name must be filled",
-	ServiceDeleteConfirm:         "Service %s will be deleted? \n Are you sure?",
-	ProcessInit:                  " command initialized",
-	ProjectStarting:              "Project is being started",
-	ProjectStarted:               "Project was started",
-	ProjectStopping:              "Project is begin stopped",
-	ProjectStopped:               "Project was stopped",
-	ProjectDeleting:              "Project is being deleted",
-	ProjectDeleted:               "Project was deleted",
-	ServiceStarting:              "Service is being started",
-	ServiceStarted:               "Service was started",
-	ServiceStopping:              "Service is being stopped",
-	ServiceStopped:               "Service was stopped",
-	ServiceDeleting:              "Service is being deleted",
-	ServiceDeleted:               "Service was deleted",
-	ProjectImported:              "project imported",
-	ServiceImported:              "service(s) imported",
+	ProjectDeleteConfirm: "Project %s will be deleted? \n Are you sure?",
+	ServiceDeleteConfirm: "Service %s will be deleted? \n Are you sure?",
+	ProjectStarting:      "Project is being started",
+	ProjectStarted:       "Project was started",
+	ProjectStopping:      "Project is begin stopped",
+	ProjectStopped:       "Project was stopped",
+	ProjectDeleting:      "Project is being deleted",
+	ProjectDeleted:       "Project was deleted",
+	ServiceStarting:      "Service is being started",
+	ServiceStarted:       "Service was started",
+	ServiceStopping:      "Service is being stopped",
+	ServiceStopped:       "Service was stopped",
+	ServiceDeleting:      "Service is being deleted",
+	ServiceDeleted:       "Service was deleted",
+	ProjectImported:      "project imported",
+	ServiceImported:      "service(s) imported",
+
+	// service logs
 	LogLimitInvalid:              "Invalid --limit value. Allowed interval is <1;1000>",
 	LogMinSeverityInvalid:        "Invalid --minimumSeverity value.",
 	LogMinSeverityStringLimitErr: "Allowed values are EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFORMATIONAL, DEBUG.",
@@ -188,7 +174,6 @@ var en = map[string]string{
 
 	// deploy
 	DeployHintPush:                   "To build your application in Zerops, use the zcli push command instead.",
-	BuildDeployServiceStatus:         "service status: %s",
 	BuildDeployCreatingPackageStart:  "creating package",
 	BuildDeployCreatingPackageDone:   "package created",
 	BuildDeployPackageSavedInto:      "package file saved into: %s",
@@ -201,7 +186,7 @@ var en = map[string]string{
 	BuildDeployZeropsYamlFound:       "File zerops.yml found. Path: %s.",
 	BuildDeployZeropsYamlNotFound:    "File zerops.yml not found. Expected path: %s.",
 
-	// S3
+	// s3
 	BucketGenericXAmzAcl:              "Defines one of predefined grants, known as canned ACLs.\nValid values are: private, public-read, public-read-write, authenticated-read.",
 	BucketGenericXAmzAclInvalid:       "Invalid --x-amz-acl value. Allowed values are: private, public-read, public-read-write, authenticated-read.",
 	BucketGenericOnlyForObjectStorage: "This command can be used on object storage services only.",
@@ -223,21 +208,27 @@ var en = map[string]string{
 	BucketS3RequestFailed:       "S3 API request failed: %s",
 	BucketS3BucketAlreadyExists: "The bucket name already exists under a different object storage user. Set a different bucket name.",
 
-	// Status info
+	// status info
 	StatusInfoCliDataFilePath: "Zerops CLI data file path",
 	StatusInfoLogFilePath:     "Zerops CLI log file path",
 
-	// Logger
+	// debug logs
+	DebugLogsNotFound: "Debug logs not found",
+
+	////////////
+	// global //
+	////////////
+
+	// args
+	ArgsOnlyOneOptionalAllowed: "optional arg %s can be only the last one",
+	ArgsOnlyOneArrayAllowed:    "array arg %s can be only the last one",
+	ArgsNotEnoughRequiredArgs:  "expected at least %d arg(s), got %d",
+	ArgsTooManyArgs:            "expected no more than %d arg(s), got %d",
+
+	// logger
 	LoggerUnableToOpenLogFileWarning: "Failed to open a log file, used path: %s. Try to use --log-file-path flag.\n",
 
-	// generic
-	UnauthenticatedUser: `unauthenticated user, login before proceeding with this command
-zcli login {token}
-more info: https://docs.zerops.io/documentation/cli/authorization.html`,
-
-	HintChangeRegion: "hint: try to change your region (you can list available regions using `zcli region list`)",
-
-	// UX helpers
+	// ux helpers
 	ProjectSelectorListEmpty:       "You don't have any projects yet. Create a new project using `zcli project import` command.",
 	ProjectSelectorPrompt:          "Please, select a project",
 	ProjectSelectorOutOfRangeError: "We couldn't find a project with the index you entered. Please, try again or contact our support team.",
@@ -250,14 +241,17 @@ more info: https://docs.zerops.io/documentation/cli/authorization.html`,
 	SelectorAllowedOnlyInTerminal:  "Interactive selection can be used only in terminal mode. Use command flags to specify missing parameters.",
 	PromptAllowedOnlyInTerminal:    "Interactive prompt can be used only in terminal mode. Use --confirm=true flag to confirm it",
 
-	// Global
-	SelectedProject:       "Selected project: %s",
-	SelectedService:       "Selected service: %s",
-	ScopedProject:         "Scoped project: %s",
-	ScopedProjectNotFound: "Scoped project wasn't found, Select a different project using `zcli scope project` command.",
+	UnauthenticatedUser: `unauthenticated user, login before proceeding with this command
+zcli login {token}
+more info: https://docs.zerops.io/documentation/cli/authorization.html`,
 
-	ServiceIdInvalidFormat: "Invalid format of service ID. ID must have 22 characters.",
-	ServiceNotFound:        "Service [%s] wasn't found",
+	// scope
+	SelectedProject:         "Selected project: %s",
+	SelectedService:         "Selected service: %s",
+	ScopedProject:           "Scoped project: %s",
+	ScopedProjectNotFound:   "Scoped project wasn't found, Select a different project using `zcli scope project` command.",
+	PreviouslyScopedProject: "Previously scoped project: %s",
+	ScopeReset:              "Scope was reset",
 
 	DestructiveOperationConfirmationFailed: "You have to confirm a destructive operation.",
 }

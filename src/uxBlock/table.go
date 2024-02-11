@@ -134,5 +134,19 @@ func (b *uxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
 	}
 	t = t.Rows(rows...)
 
+	t.Width(calculateTableWidth(t, b.terminalWidth))
+
 	fmt.Println(t)
+}
+
+// calculateTableWidth calculates the width of the table.
+// If the table is wider than the terminal, a table starts falling apart.
+// To set a fix width could help, but in that case, even if the table is smaller, it takes the whole terminal width.
+// And it doesn't look good.
+func calculateTableWidth(t *table.Table, terminalWidth int) int {
+	tableWidth := lipgloss.Width(t.String())
+	if tableWidth > terminalWidth {
+		return terminalWidth
+	}
+	return 0
 }

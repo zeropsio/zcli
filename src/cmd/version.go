@@ -15,6 +15,7 @@ func versionCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("version").
 		Short(i18n.T(i18n.CmdVersion)).
+		Short(i18n.T(i18n.VersionHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			fmt.Printf("zcli version %s (%s) %s/%s\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 

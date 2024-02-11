@@ -16,6 +16,7 @@ func projectStopCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdProjectStop)).
 		ScopeLevel(cmdBuilder.Project).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		HelpFlag(i18n.T(i18n.ProjectStopHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			stopProjectResponse, err := cmdData.RestApiClient.PutProjectStop(
 				ctx,

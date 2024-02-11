@@ -23,26 +23,13 @@ func projectImportCmd() *cmdBuilder.Cmd {
 		Arg(projectImportArgName).
 		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
 		StringFlag("workingDie", "./", i18n.T(i18n.BuildWorkingDir)).
+		HelpFlag(i18n.T(i18n.ProjectImportHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			orgId := uuid.ClientId(cmdData.Params.GetString("orgId"))
-			if orgId == "" {
-				orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
-				if err != nil {
-					return err
-				}
-
-				if len(orgs) == 1 {
-					orgId = orgs[0].ID
-				} else {
-					selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, uxBlocks, cmdData.RestApiClient)
-					if err != nil {
-						return err
-					}
-
-					orgId = selectedOrg.ID
-				}
+			orgId, err := getOrgId(ctx, cmdData)
+			if err != nil {
+				return err
 			}
 
 			yamlContent, err := yamlReader.ReadContent(
@@ -95,4 +82,27 @@ func projectImportCmd() *cmdBuilder.Cmd {
 
 			return nil
 		})
+}
+
+func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.ClientId, error) {
+	orgId := uuid.ClientId(cmdData.Params.GetString("orgId"))
+	if orgId != "" {
+		return orgId, nil
+	}
+
+	orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
+	if err != nil {
+		return "", err
+	}
+
+	if len(orgs) == 1 {
+		return orgs[0].ID, nil
+	}
+
+	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient)
+	if err != nil {
+		return "", err
+	}
+
+	return selectedOrg.ID, nil
 }

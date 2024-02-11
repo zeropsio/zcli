@@ -15,31 +15,39 @@ func T(textConst string, args ...interface{}) string {
 
 const (
 	// help
-	DisplayHelp       = "DisplayHelp"
-	GroupHelp         = "GroupHelp"
-	DeployHelp        = "DeployHelp"
-	LogShowHelp       = "LogShowHelp"
-	LoginHelp         = "LoginHelp"
-	ProjectHelp       = "ProjectHelp"
-	ProjectStartHelp  = "ProjectStartHelp"
-	ProjectStopHelp   = "ProjectStopHelp"
-	ProjectListHelp   = "ProjectListHelp"
-	ScopeHelp         = "ScopeHelp"
-	ScopeProjectHelp  = "ScopeProjectHelp"
-	ScopeServiceHelp  = "ScopeServiceHelp"
-	ScopeResetHelp    = "ScopeResetHelp"
-	ProjectDeleteHelp = "ProjectDeleteHelp"
-	ProjectImportHelp = "ProjectImportHelp"
-	PushHelp          = "PushHelp"
-	RegionListHelp    = "RegionListHelp"
-	ServiceStartHelp  = "ServiceStartHelp"
-	ServiceStopHelp   = "ServiceStopHelp"
-	ServiceImportHelp = "ServiceImportHelp"
-	ServiceDeleteHelp = "ServiceDeleteHelp"
-	ServiceLogHelp    = "ServiceLogHelp"
-	VersionHelp       = "VersionHelp"
-	BucketCreateHelp  = "BucketCreateHelp"
-	BucketDeleteHelp  = "BucketDeleteHelp"
+	DisplayHelp              = "DisplayHelp"
+	GroupHelp                = "GroupHelp"
+	DeployHelp               = "DeployHelp"
+	LogShowHelp              = "LogShowHelp"
+	LoginHelp                = "LoginHelp"
+	ProjectHelp              = "ProjectHelp"
+	ProjectStartHelp         = "ProjectStartHelp"
+	ProjectStopHelp          = "ProjectStopHelp"
+	ProjectListHelp          = "ProjectListHelp"
+	ScopeHelp                = "ScopeHelp"
+	ScopeProjectHelp         = "ScopeProjectHelp"
+	ScopeServiceHelp         = "ScopeServiceHelp"
+	ScopeResetHelp           = "ScopeResetHelp"
+	ProjectDeleteHelp        = "ProjectDeleteHelp"
+	ProjectImportHelp        = "ProjectImportHelp"
+	ProjectServiceImportHelp = "ProjectServiceImportHelp"
+	ServiceHelp              = "ServiceHelp"
+	PushHelp                 = "PushHelp"
+	RegionListHelp           = "RegionListHelp"
+	ServiceStartHelp         = "ServiceStartHelp"
+	ServiceStopHelp          = "ServiceStopHelp"
+	ServiceImportHelp        = "ServiceImportHelp"
+	ServiceDeleteHelp        = "ServiceDeleteHelp"
+	ServiceLogHelp           = "ServiceLogHelp"
+	ServiceDeployHelp        = "ServiceDeployHelp"
+	ServiceListHelp          = "ServiceListHelp"
+	ServicePushHelp          = "ServicePushHelp"
+	StatusHelp               = "StatusHelp"
+	StatusInfoHelp           = "StatusInfoHelp"
+	StatusShowDebugLogsHelp  = "StatusShowDebugLogsHelp"
+	VersionHelp              = "VersionHelp"
+	BucketCreateHelp         = "BucketCreateHelp"
+	BucketDeleteHelp         = "BucketDeleteHelp"
 
 	// cmd short
 	CmdDeployDesc          = "CmdDeployDesc"
@@ -97,7 +105,6 @@ const (
 	LogShowBuildFlag      = "LogShowBuildFlag"
 	LogFormatFlag         = "LogFormatFlag"
 	LogFormatTemplateFlag = "LogFormatTemplateFlag"
-	QuietModeFlag         = "QuietModeFlag"
 	TerminalFlag          = "TerminalFlag"
 	LogFilePathFlag       = "LogFilePathFlag"
 	ConfirmFlag           = "ConfirmFlag"
@@ -129,7 +136,8 @@ const (
 	RegionUrl           = "RegionUrl"
 
 	// region
-	RegionNotFound = "RegionNotFound"
+	RegionNotFound        = "RegionNotFound"
+	RegionTableColumnName = "RegionTableColumnName"
 
 	// client ID
 	MultipleClientIds  = "MultipleClientIds"
@@ -153,28 +161,30 @@ const (
 	DeleteCanceledByUser = "DeleteCanceledByUser"
 
 	// project + service
-	ProjectWrongId               = "ProjectWrongId"
-	ProjectsWithSameName         = "ProjectsWithSameName"
-	AvailableProjectIds          = "AvailableProjectIds"
-	ProjectNameOrIdEmpty         = "ProjectNameOrIdEmpty"
-	ProjectDeleteConfirm         = "ProjectDeleteConfirm"
-	ServiceNameIsEmpty           = "ServiceNameIsEmpty"
-	ServiceDeleteConfirm         = "ServiceDeleteConfirm"
-	ProcessInit                  = "ProcessInit"
-	ProjectStarting              = "ProjectStarting"
-	ProjectStarted               = "ProjectStarted"
-	ProjectStopping              = "ProjectStopping"
-	ProjectStopped               = "ProjectStopped"
-	ProjectDeleting              = "ProjectDeleting"
-	ProjectDeleted               = "ProjectDeleted"
-	ServiceStarting              = "ServiceStarting"
-	ServiceStarted               = "ServiceStarted"
-	ServiceStopping              = "ServiceStopping"
-	ServiceStopped               = "ServiceStopped"
-	ServiceDeleting              = "ServiceDeleting"
-	ServiceDeleted               = "ServiceDeleted"
-	ProjectImported              = "ProjectImported"
-	ServiceImported              = "ServiceImported"
+	ProjectWrongId       = "ProjectWrongId"
+	ProjectsWithSameName = "ProjectsWithSameName"
+	AvailableProjectIds  = "AvailableProjectIds"
+	ProjectNameOrIdEmpty = "ProjectNameOrIdEmpty"
+	ProjectDeleteConfirm = "ProjectDeleteConfirm"
+	ServiceNameIsEmpty   = "ServiceNameIsEmpty"
+	ServiceDeleteConfirm = "ServiceDeleteConfirm"
+	ProcessInit          = "ProcessInit"
+	ProjectStarting      = "ProjectStarting"
+	ProjectStarted       = "ProjectStarted"
+	ProjectStopping      = "ProjectStopping"
+	ProjectStopped       = "ProjectStopped"
+	ProjectDeleting      = "ProjectDeleting"
+	ProjectDeleted       = "ProjectDeleted"
+	ServiceStarting      = "ServiceStarting"
+	ServiceStarted       = "ServiceStarted"
+	ServiceStopping      = "ServiceStopping"
+	ServiceStopped       = "ServiceStopped"
+	ServiceDeleting      = "ServiceDeleting"
+	ServiceDeleted       = "ServiceDeleted"
+	ProjectImported      = "ProjectImported"
+	ServiceImported      = "ServiceImported"
+
+	// service logs
 	LogLimitInvalid              = "LogLimitInvalid"
 	LogMinSeverityInvalid        = "LogMinSeverityInvalid"
 	LogMinSeverityStringLimitErr = "LogMinSeverityStringLimitErr"
@@ -214,7 +224,7 @@ const (
 	BuildDeployZeropsYamlFound       = "BuildDeployZeropsYamlFound"
 	BuildDeployZeropsYamlNotFound    = "BuildDeployZeropsYamlNotFound"
 
-	// S3
+	// s3
 	BucketGenericXAmzAcl              = "BucketGenericXAmzAcl"
 	BucketGenericXAmzAclInvalid       = "BucketGenericXAmzAclInvalid"
 	BucketGenericOnlyForObjectStorage = "BucketGenericOnlyForObjectStorage"
@@ -236,19 +246,27 @@ const (
 	BucketS3RequestFailed       = "RequestFailed"
 	BucketS3BucketAlreadyExists = "BucketAlreadyExists"
 
-	// Status info
+	// status info
 	StatusInfoCliDataFilePath = "StatusInfoCliDataFilePath"
 	StatusInfoLogFilePath     = "StatusInfoLogFilePath"
 
-	// Logger
+	// debug logs
+	DebugLogsNotFound = "DebugLogsNotFound"
+
+	////////////
+	// global //
+	////////////
+
+	// args
+	ArgsOnlyOneOptionalAllowed = "ArgsOnlyOneOptionalAllowed"
+	ArgsOnlyOneArrayAllowed    = "ArgsOnlyOneArrayAllowed"
+	ArgsNotEnoughRequiredArgs  = "ArgsNotEnoughRequiredArgs"
+	ArgsTooManyArgs            = "ArgsTooManyArgs"
+
+	// logger
 	LoggerUnableToOpenLogFileWarning = "LoggerUnableToOpenLogFileWarning"
 
-	// generic
-	UnauthenticatedUser = "UnauthenticatedUser"
-
-	HintChangeRegion = "HintChangeRegion"
-
-	// UX helpers
+	// ux helpers
 	ProjectSelectorListEmpty       = "ProjectSelectorListEmpty"
 	ProjectSelectorPrompt          = "ProjectSelectorPrompt"
 	ProjectSelectorOutOfRangeError = "ProjectSelectorOutOfRangeError"
@@ -261,18 +279,22 @@ const (
 	SelectorAllowedOnlyInTerminal  = "SelectorAllowedOnlyInTerminal"
 	PromptAllowedOnlyInTerminal    = "PromptAllowedOnlyInTerminal"
 
-	// Global
-	SelectedProject       = "SelectedProject"
-	SelectedService       = "SelectedService"
-	ScopedProject         = "ScopedProject"
-	ScopedProjectNotFound = "ScopedProjectNotFound"
-	ScopedServiceNotFound = "ScopedServiceNotFound"
+	UnauthenticatedUser = "UnauthenticatedUser"
 
-	ProjectIdInvalidFormat = "ProjectIdInvalidFormat"
-	ProjectNotFound        = "ProjectNotFound"
-
-	ServiceIdInvalidFormat = "ServiceIdInvalidFormat"
-	ServiceNotFound        = "ServiceNotFound"
+	// scope
+	SelectedProject         = "SelectedProject"
+	SelectedService         = "SelectedService"
+	ScopedProject           = "ScopedProject"
+	ScopedProjectNotFound   = "ScopedProjectNotFound"
+	PreviouslyScopedProject = "PreviouslyScopedProject"
+	ScopeReset              = "ScopeReset"
 
 	DestructiveOperationConfirmationFailed = "DestructiveOperationConfirmationFailed"
+
+	HintChangeRegion       = "HintChangeRegion"
+	ScopedServiceNotFound  = "ScopedServiceNotFound"
+	ProjectIdInvalidFormat = "ProjectIdInvalidFormat"
+	ProjectNotFound        = "ProjectNotFound"
+	ServiceIdInvalidFormat = "ServiceIdInvalidFormat"
+	ServiceNotFound        = "ServiceNotFound"
 )

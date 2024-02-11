@@ -8,12 +8,10 @@ import (
 	"io"
 	"testing"
 
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSymlink(t *testing.T) {
-	RegisterTestingT(t)
-
 	archiver := New(Config{})
 	errChan := make(chan error)
 	reader, writer := io.Pipe()
@@ -30,26 +28,26 @@ func TestSymlink(t *testing.T) {
 	)
 
 	gz, err := gzip.NewReader(reader)
-	Expect(err).ShouldNot(HaveOccurred())
+	require.NoError(t, err)
 
 	b, err := io.ReadAll(gz)
-	Expect(err).ShouldNot(HaveOccurred())
+	require.NoError(t, err)
 
 	r := tar.NewReader(bytes.NewReader(b))
-	Expect(err).ShouldNot(HaveOccurred())
+	require.NoError(t, err)
 
 	for {
 		header, err := r.Next()
 		if errors.Is(err, io.EOF) {
 			break
 		}
-		Expect(err).ShouldNot(HaveOccurred())
+		require.NoError(t, err)
 
 		switch header.Typeflag {
 		case tar.TypeSymlink:
-			Expect(header.Linkname).To(Equal("../file2.1.txt"))
+			require.Equal(t, "../file2.1.txt", header.Linkname)
 		default:
-			Expect(errors.New("unknown type")).ShouldNot(HaveOccurred())
+			t.Fatal("unknown type")
 		}
 	}
 }

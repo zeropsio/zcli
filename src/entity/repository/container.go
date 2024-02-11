@@ -46,7 +46,6 @@ func GetAllContainers(
 }
 
 func containerFromEsSearch(esContainer output.EsContainer) entity.Container {
-
 	return entity.Container{
 		ID:        esContainer.Id,
 		ClientId:  esContainer.ClientId,

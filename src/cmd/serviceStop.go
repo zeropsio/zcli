@@ -16,6 +16,7 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdServiceStop)).
 		ScopeLevel(cmdBuilder.Service).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
+		Short(i18n.T(i18n.ServiceStopHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			stopServiceResponse, err := cmdData.RestApiClient.PutServiceStackStop(
 				ctx,

@@ -13,7 +13,8 @@ func parseResponseByFormat(jsonData Response, format, formatTemplate, mode strin
 		logs = reverseLogs(logs)
 	}
 
-	if format == FULL {
+	switch format {
+	case FULL:
 		if formatTemplate != "" {
 			if err = getFullWithTemplate(logs, formatTemplate); err != nil {
 				return err
@@ -24,11 +25,11 @@ func parseResponseByFormat(jsonData Response, format, formatTemplate, mode strin
 			getFullByRfc(logs, RFC5424)
 			return nil
 		}
-	} else if format == SHORT {
+	case SHORT:
 		for _, o := range logs {
 			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
 		}
-	} else if format == JSONSTREAM {
+	case JSONSTREAM:
 		for _, o := range logs {
 			val, err := json.Marshal(o)
 			if err != nil {
@@ -36,7 +37,7 @@ func parseResponseByFormat(jsonData Response, format, formatTemplate, mode strin
 			}
 			fmt.Println(string(val))
 		}
-	} else {
+	default:
 		val, err := json.Marshal(logs)
 		if err != nil {
 			return err

@@ -13,7 +13,6 @@ func ExecuteCmd() error {
 	cmdBuilder.AddCommand(projectCmd())
 	cmdBuilder.AddCommand(serviceCmd())
 	cmdBuilder.AddCommand(statusCmd())
-	cmdBuilder.AddCommand(bucketCmd())
 
 	return cmdBuilder.CreateAndExecuteRootCobraCmd()
 }

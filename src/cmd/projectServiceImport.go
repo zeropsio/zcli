@@ -19,6 +19,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdServiceImport)).
 		ScopeLevel(cmdBuilder.Project).
 		Arg(serviceImportArgName).
+		HelpFlag(i18n.T(i18n.ProjectServiceImportHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 

@@ -34,6 +34,7 @@ type cmdFlag struct {
 	defaultValue interface{}
 	description  string
 	hidden       bool
+	shorthand    string
 }
 
 func NewCmd() *Cmd {
@@ -122,6 +123,12 @@ func HiddenFlag() FlagOption {
 	}
 }
 
+func ShortHand(shorthand string) FlagOption {
+	return func(cfg *cmdFlag) {
+		cfg.shorthand = shorthand
+	}
+}
+
 func (cmd *Cmd) StringFlag(name string, defaultValue string, description string, auxOptions ...FlagOption) *Cmd {
 	return cmd.addFlag(name, defaultValue, description, auxOptions...)
 }
@@ -132,6 +139,11 @@ func (cmd *Cmd) IntFlag(name string, defaultValue int, description string, auxOp
 
 func (cmd *Cmd) BoolFlag(name string, defaultValue bool, description string, auxOptions ...FlagOption) *Cmd {
 	return cmd.addFlag(name, defaultValue, description, auxOptions...)
+}
+
+func (cmd *Cmd) HelpFlag(description string, auxOptions ...FlagOption) *Cmd {
+	auxOptions = append(auxOptions, ShortHand("h"))
+	return cmd.addFlag("help", false, description, auxOptions...)
 }
 
 func (cmd *Cmd) addFlag(name string, defaultValue interface{}, description string, auxOptions ...FlagOption) *Cmd {

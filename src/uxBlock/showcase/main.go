@@ -11,32 +11,23 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/zeropsio/zcli/src/logger"
 	. "github.com/zeropsio/zcli/src/uxBlock"
+	"golang.org/x/term"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	regSignals(cancel)
 
-	blocks, err := createBlocks(cancel)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	blocks := createBlocks(cancel)
 
-	err = do(ctx, blocks)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	do(ctx, blocks)
 }
 
-func do(ctx context.Context, blocks UxBlocks) error {
+func do(ctx context.Context, blocks UxBlocks) {
 	prompts(ctx, blocks)
 	spinners(ctx, blocks)
 	texts(ctx, blocks)
 	tables(ctx, blocks)
-
-	return nil
 }
 
 func spinners(ctx context.Context, blocks UxBlocks) {
@@ -92,7 +83,7 @@ func prompts(ctx context.Context, blocks UxBlocks) {
 	fmt.Println("========= prompt block end =========")
 }
 
-func texts(ctx context.Context, blocks UxBlocks) {
+func texts(_ context.Context, blocks UxBlocks) {
 	fmt.Println("========= texts block =========")
 	blocks.PrintInfoLine("info line")
 	blocks.PrintWarningLine("warning line")
@@ -106,7 +97,12 @@ func tables(ctx context.Context, blocks UxBlocks) {
 
 	tableData := [][]string{
 		{"lorem", "ipsum", "dolor", "sit"},
-		{"amet", "consectetur", "adipiscing", "elit"},
+		{
+			"amet",
+			"lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+			"adipiscing",
+			"elit",
+		},
 		{"sed", "do", "eiusmod", "tempor"},
 		{"incididunt", "ut", "labore", "et"},
 	}
@@ -145,18 +141,23 @@ func regSignals(contextCancel func()) {
 	}()
 }
 
-func createBlocks(contextCancelFunc func()) (UxBlocks, error) {
+func createBlocks(contextCancelFunc func()) UxBlocks {
 	isTerminal := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
 
 	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
 		IsTerminal: isTerminal,
 	})
 
+	width, _, err := term.GetSize(0)
+	if err != nil {
+		width = 100
+	}
+
 	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
 		FilePath: "zerops.log",
 	})
 
-	blocks := NewBlock(outputLogger, debugFileLogger, isTerminal, contextCancelFunc)
+	blocks := NewBlock(outputLogger, debugFileLogger, isTerminal, width, contextCancelFunc)
 
-	return blocks, nil
+	return blocks
 }

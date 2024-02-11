@@ -36,7 +36,6 @@ func NewOutputLogger(config OutputConfig) *Handler {
 	return &Handler{
 		logrus: l,
 	}
-
 }
 
 type DebugFileConfig struct {
@@ -66,7 +65,6 @@ func NewDebugFileLogger(config DebugFileConfig) *Handler {
 	return &Handler{
 		logrus: l,
 	}
-
 }
 
 func (h *Handler) Info(a ...interface{}) {

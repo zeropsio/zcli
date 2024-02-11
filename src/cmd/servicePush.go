@@ -4,27 +4,17 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
-	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 )
-
-// TODO - janhajek shared
-const ZeropsYamlFileName = "zerops.yaml"
 
 func servicePushCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
@@ -36,7 +26,9 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("source", "", i18n.T(i18n.SourceName)).
+		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
+		Short(i18n.T(i18n.ServicePushHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -46,12 +38,21 @@ func servicePushCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart))
 
-			files, err := arch.FindGitFiles(cmdData.Params.GetString("workingDir"))
+			configContent, err := getValidConfigContent(
+				uxBlocks,
+				cmdData.Params.GetString("workingDir"),
+				cmdData.Params.GetString("zeropsYamlPath"),
+			)
 			if err != nil {
 				return err
 			}
 
-			configContent, err := buildConfigContent(files)
+			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, configContent)
+			if err != nil {
+				return err
+			}
+
+			files, err := arch.FindGitFiles(cmdData.Params.GetString("workingDir"))
 			if err != nil {
 				return err
 			}
@@ -96,7 +97,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F: func(ctx context.Context) error {
-						if err := packageUpload(httpClient, appVersion.UploadUrl.String(), reader); err != nil {
+						if err := packageUpload(ctx, httpClient, appVersion.UploadUrl.String(), reader); err != nil {
 							// if an error occurred while packing the app, return that error
 							select {
 							case err := <-tarErrChan:
@@ -169,102 +170,4 @@ func servicePushCmd() *cmdBuilder.Cmd {
 
 			return nil
 		})
-}
-
-func createAppVersion(
-	ctx context.Context,
-	restApiClient *zeropsRestApiClient.Handler,
-	service *entity.Service,
-	versionName string,
-) (output.PostAppVersion, error) {
-	appVersionResponse, err := restApiClient.PostAppVersion(
-		ctx,
-		body.PostAppVersion{
-			ServiceStackId: service.ID,
-			Name: func() types.StringNull {
-				if versionName != "" {
-					return types.NewStringNull(versionName)
-				}
-				return types.StringNull{}
-			}(),
-		},
-	)
-	if err != nil {
-		return output.PostAppVersion{}, err
-	}
-	appVersion, err := appVersionResponse.Output()
-	if err != nil {
-		return output.PostAppVersion{}, err
-	}
-
-	return appVersion, nil
-}
-
-func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error) {
-	workingDir, err := filepath.Abs(workingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	archiveFilePath = filepath.Join(workingDir, archiveFilePath)
-
-	filePath, err := filepath.Abs(archiveFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// check if the target file exists
-	_, err = os.Stat(filePath)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	if err == nil {
-		return nil, errors.Errorf(i18n.T(i18n.ArchClientFileAlreadyExists), archiveFilePath)
-	}
-
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0660)
-	if err != nil {
-		return nil, err
-	}
-
-	return file, nil
-}
-
-func packageUpload(client *httpClient.Handler, uploadUrl string, reader io.Reader) error {
-	cephResponse, err := client.PutStream(uploadUrl, reader, httpClient.ContentType("application/gzip"))
-	if err != nil {
-		return err
-	}
-	if cephResponse.StatusCode != http.StatusCreated {
-		return errors.New(i18n.T(i18n.BuildDeployUploadPackageFailed))
-	}
-
-	return nil
-}
-
-func buildConfigContent(files []archiveClient.File) ([]byte, error) {
-	for _, file := range files {
-		if file.ArchivePath == ZeropsYamlFileName {
-			stat, err := os.Stat(file.SourcePath)
-			if err != nil {
-				return nil, err
-			}
-
-			if stat.Size() == 0 {
-				return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlEmpty))
-			}
-			if stat.Size() > 10*1024 {
-				return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlTooLarge))
-			}
-
-			buildConfigContent, err := os.ReadFile(file.SourcePath)
-			if err != nil {
-				return nil, err
-			}
-
-			return buildConfigContent, nil
-		}
-	}
-
-	return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlNotFound))
 }

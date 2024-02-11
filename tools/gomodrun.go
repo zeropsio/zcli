@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 func getMod(dir string) (string, error) {
@@ -17,7 +18,7 @@ func getMod(dir string) (string, error) {
 	if newDir != "" {
 		return getMod(newDir)
 	}
-	return "", fmt.Errorf("go.mod not found")
+	return "", errors.New("go.mod not found")
 }
 
 func main() {

@@ -102,5 +102,4 @@ type EsServiceStackInfoJsonObject struct {
 	ServiceStackTypeName        types.String                      `json:"serviceStackTypeName"`        // serviceStackTypeName - types.String
 	ServiceStackTypeCategory    enum.ServiceStackTypeCategoryEnum `json:"serviceStackTypeCategory"`    // serviceStackTypeCategory - enum.ServiceStackTypeCategoryEnum
 	ServiceStackTypeVersionName types.String                      `json:"serviceStackTypeVersionName"` // serviceStackTypeVersionName - types.String
-
 }

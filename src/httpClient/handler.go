@@ -49,27 +49,19 @@ type optionConfig struct {
 	headers map[string]string
 }
 
-func (h *Handler) PutStream(url string, body io.Reader, options ...Option) (Response, error) {
-	return h.doStream("PUT", url, body, options...)
+func (h *Handler) PutStream(ctx context.Context, url string, body io.Reader, options ...Option) (Response, error) {
+	return h.doStream(ctx, "PUT", url, body, options...)
 }
 
-func (h *Handler) Put(url string, data []byte, options ...Option) (Response, error) {
-	return h.do("PUT", url, data, options...)
+func (h *Handler) Get(ctx context.Context, url string, options ...Option) (Response, error) {
+	return h.do(ctx, "GET", url, nil)
 }
 
-func (h *Handler) Post(url string, data []byte, options ...Option) (Response, error) {
-	return h.do("POST", url, data, options...)
+func (h *Handler) do(ctx context.Context, method string, url string, data []byte, options ...Option) (Response, error) {
+	return h.doStream(ctx, method, url, bytes.NewReader(data), options...)
 }
 
-func (h *Handler) Get(url string, options ...Option) (Response, error) {
-	return h.do("GET", url, nil)
-}
-
-func (h *Handler) do(method string, url string, data []byte, options ...Option) (Response, error) {
-	return h.doStream(method, url, bytes.NewReader(data), options...)
-}
-
-func (h *Handler) doStream(method string, url string, body io.Reader, options ...Option) (Response, error) {
+func (h *Handler) doStream(ctx context.Context, method string, url string, body io.Reader, options ...Option) (Response, error) {
 	cfg := &optionConfig{
 		headers: map[string]string{
 			"Content-Type": "application/json",
@@ -81,7 +73,7 @@ func (h *Handler) doStream(method string, url string, body io.Reader, options ..
 	}
 
 	client := &http.Client{Timeout: h.config.HttpTimeout}
-	req, err := http.NewRequest(method, url, body)
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return Response{}, err
 	}

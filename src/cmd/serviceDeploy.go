@@ -4,19 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -32,8 +26,9 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
-		StringFlag("zeropsYamlPath", "", i18n.T(i18n.SourceName)).
+		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.ZeropsYamlLocation)).
+		Short(i18n.T(i18n.ServiceDeployHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -106,7 +101,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F: func(ctx context.Context) error {
-						if err := packageUpload(httpClient, appVersion.UploadUrl.String(), reader); err != nil {
+						if err := packageUpload(ctx, httpClient, appVersion.UploadUrl.String(), reader); err != nil {
 							// if an error occurred while packing the app, return that error
 							select {
 							case err := <-tarErrChan:
@@ -169,62 +164,4 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 			return nil
 		})
-}
-
-func getValidConfigContent(uxBlocks uxBlock.UxBlocks, workingDir string, zeropsYamlPath string) ([]byte, error) {
-	workingDir, err := filepath.Abs(workingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	if zeropsYamlPath != "" {
-		workingDir = filepath.Join(workingDir, zeropsYamlPath)
-	}
-
-	zeropsYamlPath = filepath.Join(workingDir, ZeropsYamlFileName)
-
-	zeropsYamlStat, err := os.Stat(zeropsYamlPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlNotFound, zeropsYamlPath))
-		}
-		return nil, err
-	}
-
-	uxBlocks.PrintLine(i18n.T(i18n.BuildDeployZeropsYamlFound, zeropsYamlPath))
-
-	if zeropsYamlStat.Size() == 0 {
-		return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlEmpty))
-	}
-	if zeropsYamlStat.Size() > 10*1024 {
-		return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlTooLarge))
-	}
-
-	yamlContent, err := os.ReadFile(zeropsYamlPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return yamlContent, nil
-}
-
-func validateZeropsYamlContent(
-	ctx context.Context,
-	restApiClient *zeropsRestApiClient.Handler,
-	service *entity.Service,
-	yamlContent []byte,
-) error {
-	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
-		Name:               service.Name,
-		ServiceStackTypeId: service.ServiceTypeId,
-		ZeropsYaml:         types.NewText(string(yamlContent)),
-	})
-	if err != nil {
-		return err
-	}
-	if _, err = resp.Output(); err != nil {
-		return err
-	}
-
-	return nil
 }

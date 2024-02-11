@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/require"
 	"github.com/zeropsio/zcli/src/uxBlock/mocks"
 )
 
@@ -228,13 +228,10 @@ func TestValidation(t *testing.T) {
 	for _, test := range testErrorResponseDataProvider {
 		test := test // scope lint
 		t.Run(test.name+" in "+test.workingDir, func(t *testing.T) {
-
-			RegisterTestingT(t)
-
 			archiver := New(Config{})
 
 			files, err := archiver.FindFilesByRules(uxBlocks, test.workingDir, test.input)
-			Expect(err).ShouldNot(HaveOccurred())
+			require.NoError(t, err)
 
 			output := func() (res []string) {
 				for _, f := range files {
@@ -243,7 +240,7 @@ func TestValidation(t *testing.T) {
 				return
 			}()
 
-			Expect(output).To(Equal(test.output))
+			require.Equal(t, test.output, output)
 		})
 	}
 }

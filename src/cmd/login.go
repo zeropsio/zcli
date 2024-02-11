@@ -21,13 +21,14 @@ func loginCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdLogin)).
 		StringFlag("regionUrl", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
 		StringFlag("region", "", i18n.T(i18n.RegionFlag), cmdBuilder.HiddenFlag()).
+		HelpFlag(i18n.T(i18n.LoginHelp)).
 		Arg("token").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
 			regionRetriever := region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}))
 
-			regions, err := regionRetriever.RetrieveAllFromURL(cmdData.Params.GetString("regionUrl"))
+			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("regionUrl"))
 			if err != nil {
 				return err
 			}
@@ -85,8 +86,7 @@ func getLoginRegion(
 		}
 	}
 
-	// TODO - janhajek translation
-	header := (&uxBlock.TableRow{}).AddStringCells("Name")
+	header := (&uxBlock.TableRow{}).AddStringCells(i18n.T(i18n.RegionTableColumnName))
 
 	tableBody := &uxBlock.TableBody{}
 	for _, reg := range regions {

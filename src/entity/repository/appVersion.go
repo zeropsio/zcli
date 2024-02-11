@@ -15,7 +15,6 @@ func GetAllAppVersionByService(
 	restApiClient *zeropsRestApiClient.Handler,
 	service entity.Service,
 ) ([]entity.AppVersion, error) {
-
 	var searchData []body.EsSearchItem
 	searchData = append(searchData, body.EsSearchItem{
 		Name:     "clientId",

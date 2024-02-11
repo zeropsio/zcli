@@ -15,6 +15,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("show-debug-logs").
 		Short(i18n.T(i18n.CmdStatusShowDebugLogs)).
+		Short(i18n.T(i18n.StatusShowDebugLogsHelp)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			logFilePath, err := constants.LogFilePath()
 			if err != nil {
@@ -32,18 +33,23 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 			filesize := stat.Size()
 
 			if filesize == 0 {
-				// TODO - janhajek translate
-				fmt.Println("No logs found")
+				cmdData.UxBlocks.PrintLine(i18n.T(i18n.DebugLogsNotFound))
 				return nil
 			}
 
 			lines := []string{}
 			for {
 				cursor -= 1
-				f.Seek(cursor, io.SeekEnd)
+				_, err = f.Seek(cursor, io.SeekEnd)
+				if err != nil {
+					return err
+				}
 
 				char := make([]byte, 1)
-				f.Read(char)
+				_, err = f.Read(char)
+				if err != nil {
+					return err
+				}
 
 				if cursor != -1 && (char[0] == 10 || char[0] == 13) { // stop if we find a line
 					if len(lines) > 10 {
@@ -55,7 +61,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 
 				line = fmt.Sprintf("%s%s", string(char), line)
 
-				if cursor == -filesize { // stop if we are at the begining
+				if cursor == -filesize { // stop if we are at the beginning
 					lines = append([]string{line}, lines...)
 					break
 				}

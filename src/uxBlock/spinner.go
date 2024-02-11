@@ -30,6 +30,7 @@ func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
 	go func() {
+		//nolint:errcheck
 		p.Run()
 		if model.canceled {
 			b.ctxCancel()
@@ -77,9 +78,7 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
-
+		if msg.String() == "ctrl+c" {
 			m.canceled = true
 			m.quiting = true
 			return m, tea.Quit
@@ -106,14 +105,11 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				lock.Lock()
 				cmdList[i] = cmd
 				lock.Unlock()
-
 			}(i)
 		}
 		wg.Wait()
 		return m, XXX(cmdList...)
-
 	}
-
 	return m, nil
 }
 

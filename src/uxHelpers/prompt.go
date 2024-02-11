@@ -1,17 +1,17 @@
-package cmd
+package uxHelpers
 
 import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func YesNoPromptDestructive(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData, message string) error {
+func YesNoPromptDestructive(ctx context.Context, uxBlocks uxBlock.UxBlocks, message string) error {
 	// TODO - janhajek translate
 	choices := []string{"NO", "YES"}
-	choice, err := cmdData.UxBlocks.Prompt(ctx, message, choices)
+	choice, err := uxBlocks.Prompt(ctx, message, choices)
 	if err != nil {
 		return err
 	}

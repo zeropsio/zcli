@@ -16,9 +16,10 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 		ScopeLevel(cmdBuilder.Service).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
+		Short(i18n.T(i18n.ServiceDeleteHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			if !cmdData.Params.GetBool("confirm") {
-				err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ServiceDeleteConfirm, cmdData.Service.Name))
+				err := uxHelpers.YesNoPromptDestructive(ctx, cmdData.UxBlocks, i18n.T(i18n.ServiceDeleteConfirm, cmdData.Service.Name))
 				if err != nil {
 					return err
 				}

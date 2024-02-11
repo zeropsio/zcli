@@ -17,9 +17,10 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 		ScopeLevel(cmdBuilder.Project).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
+		HelpFlag(i18n.T(i18n.ProjectDeleteHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			if !cmdData.Params.GetBool("confirm") {
-				err := YesNoPromptDestructive(ctx, cmdData, i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name))
+				err := uxHelpers.YesNoPromptDestructive(ctx, cmdData.UxBlocks, i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name))
 				if err != nil {
 					return err
 				}

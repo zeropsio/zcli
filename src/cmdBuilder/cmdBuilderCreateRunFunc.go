@@ -22,6 +22,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/apiError"
+	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
 
@@ -87,16 +88,21 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 			return err
 		}
 
+		width, _, err := term.GetSize(0)
+		if err != nil {
+			width = 100
+		}
+
 		outputLogger, debugFileLogger := createLoggers(isTerminal, loggerFilePath)
 
-		uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, cancel)
+		uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, cancel)
 
 		uxBlocks.PrintDebugLine(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
 		defer func() {
 			if err != nil {
 				printError(err, uxBlocks)
-				err = skipErr
+				err = errSkipErrorReporting
 			}
 		}()
 
@@ -131,7 +137,6 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 			}
 
 			cmdData := &LoggedUserCmdData{
-
 				GuestCmdData: guestCmdData,
 			}
 
@@ -144,7 +149,6 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 				}
 			}
 			return cmd.loggedUserRunFunc(ctx, cmdData)
-
 		}
 
 		return cmd.guestRunFunc(ctx, guestCmdData)
@@ -156,10 +160,10 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	var isArray bool
 	for i, arg := range cmd.args {
 		if arg.optional && i != len(cmd.args)-1 {
-			return nil, errors.Errorf("optional arg %s can be only the last one", arg.name)
+			return nil, errors.Errorf(i18n.T(i18n.ArgsOnlyOneOptionalAllowed), arg.name)
 		}
 		if arg.isArray && i != len(cmd.args)-1 {
-			return nil, errors.Errorf("array arg %s can be only the last one", arg.name)
+			return nil, errors.Errorf(i18n.T(i18n.ArgsOnlyOneArrayAllowed), arg.name)
 		}
 		if !arg.optional {
 			requiredArgsCount++
@@ -168,14 +172,12 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	}
 
 	if len(args) < requiredArgsCount {
-		// TODO - janhajek message
-		return nil, errors.Errorf("expected at least %d arg(s), got %d", requiredArgsCount, len(args))
+		return nil, errors.Errorf(i18n.T(i18n.ArgsNotEnoughRequiredArgs), requiredArgsCount, len(args))
 	}
 
 	// the last arg is not an array, max number of given args can't be greater than the number of registered args
 	if !isArray && len(args) > len(cmd.args) {
-		// TODO - janhajek message
-		return nil, errors.Errorf("expected no more than %d arg(s), got %d", len(cmd.args), len(args))
+		return nil, errors.Errorf(i18n.T(i18n.ArgsTooManyArgs), len(cmd.args), len(args))
 	}
 
 	argsMap := make(map[string][]string)
