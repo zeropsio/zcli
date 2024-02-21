@@ -1,11 +1,7 @@
 package logger
 
 import (
-	"fmt"
 	"io"
-	"os"
-
-	"github.com/zeropsio/zcli/src/i18n"
 
 	"github.com/sirupsen/logrus"
 )
@@ -47,12 +43,7 @@ func NewDebugFileLogger(config DebugFileConfig) *Handler {
 	l.Out = io.Discard
 	l.Level = logrus.DebugLevel
 
-	file, err := os.OpenFile(config.FilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0775)
-	if err != nil {
-		os.Stdout.WriteString(fmt.Sprintf(i18n.T(i18n.LoggerUnableToOpenLogFileWarning), config.FilePath))
-	} else {
-		file.Close()
-
+	if config.FilePath != "" {
 		l.AddHook(&VarLogHook{
 			path:   config.FilePath,
 			levels: []logrus.Level{logrus.DebugLevel, logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel},

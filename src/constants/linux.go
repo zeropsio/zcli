@@ -6,37 +6,21 @@ package constants
 import (
 	"os"
 	"path"
-
-	"github.com/pkg/errors"
 )
 
-func getDataFilePaths() []pathReceiver {
+func getDataFilePathsReceivers() []pathReceiver {
 	return []pathReceiver{
-		func() (string, error) {
-			env := os.Getenv(cliDataFilePathEnvVar)
-			if env != "" {
-				return env, nil
-			}
-			return "", errors.New("env is empty")
-		},
-		receiverWithPath(os.UserConfigDir, zeropsDir, cliDataFileName),
-		receiverWithPath(os.UserHomeDir, zeropsDir, cliDataFileName),
+		receiverFromEnv(cliDataFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, zeropsDir, cliDataFileName),
+		receiverFromOsFunc(os.UserHomeDir, zeropsDir, cliDataFileName),
 	}
 }
 
-func getLogFilePath() []pathReceiver {
+func getLogFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
-		func() (string, error) {
-			env := os.Getenv(cliLogFilePathEnvVar)
-			if env != "" {
-				return env, nil
-			}
-			return "", errors.New("env is empty")
-		},
-		func() (string, error) {
-			return path.Join("/var/log/", zeropsDir, zeropsLogFile), nil
-		},
-		receiverWithPath(os.UserConfigDir, zeropsDir, zeropsLogFile),
-		receiverWithPath(os.UserHomeDir, zeropsDir, zeropsLogFile),
+		receiverFromEnv(cliLogFilePathEnvVar),
+		receiverFromPath(path.Join("/var/log/", zeropsLogFile)),
+		receiverFromOsFunc(os.UserConfigDir, zeropsDir, zeropsLogFile),
+		receiverFromOsFunc(os.UserHomeDir, zeropsDir, zeropsLogFile),
 	}
 }

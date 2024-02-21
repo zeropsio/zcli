@@ -4,8 +4,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 const (
@@ -17,19 +19,55 @@ const (
 	cliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
 )
 
-type pathReceiver func() (string, error)
+type pathReceiver func() (path string, err error)
 
 func CliDataFilePath() (string, error) {
-	return findFirstWritablePath(getDataFilePaths())
+	pathReceivers := getDataFilePathsReceivers()
+	path := findFirstWritablePath(pathReceivers)
+	if path == "" {
+		paths := make([]string, 0, len(pathReceivers))
+		for _, p := range pathReceivers {
+			_, err := p()
+			paths = append(paths, err.Error())
+		}
+		return "", errors.New(i18n.T(i18n.UnableToWriteCliData, "\n"+strings.Join(paths, "\n")))
+	}
+	return path, nil
 }
 
 func LogFilePath() (string, error) {
-	return findFirstWritablePath(getLogFilePath())
+	pathReceivers := getLogFilePathReceivers()
+	path := findFirstWritablePath(pathReceivers)
+	if path == "" {
+		paths := make([]string, 0, len(pathReceivers))
+		for _, p := range pathReceivers {
+			_, err := p()
+			paths = append(paths, err.Error())
+		}
+		return "", errors.New(i18n.T(i18n.UnableToWriteLogFile, "\n"+strings.Join(paths, "\n")))
+	}
+	return path, nil
 }
 
-func receiverWithPath(receiver pathReceiver, elem ...string) pathReceiver {
+func receiverFromPath(path string) pathReceiver {
 	return func() (string, error) {
-		dir, err := receiver()
+		return checkPath(path)
+	}
+}
+
+func receiverFromEnv(envName string) pathReceiver {
+	return func() (string, error) {
+		env := os.Getenv(envName)
+		if env == "" {
+			return "", errors.Errorf("env %s is empty", envName)
+		}
+		return checkPath(env)
+	}
+}
+
+func receiverFromOsFunc(osFunc func() (string, error), elem ...string) pathReceiver {
+	return func() (string, error) {
+		dir, err := osFunc()
 		if err != nil {
 			return "", err
 		}
@@ -39,32 +77,32 @@ func receiverWithPath(receiver pathReceiver, elem ...string) pathReceiver {
 	}
 }
 
-func findFirstWritablePath(paths []pathReceiver) (string, error) {
-	checkedPaths := make([]string, 0, len(paths))
+func findFirstWritablePath(paths []pathReceiver) string {
 	for _, p := range paths {
 		path, err := p()
 		if err == nil {
-			checkedPaths = append(checkedPaths, path)
-			if err := checkPath(path); err == nil {
-				return path, nil
-			}
+			return path
 		}
 	}
 
-	// TODO - janhajek translate
-	return "", errors.Errorf("Unable to find writable path from %v", checkedPaths)
+	return ""
 }
 
-func checkPath(filePath string) error {
+func checkPath(filePath string) (string, error) {
 	dir := path.Dir(filePath)
 
 	if err := os.MkdirAll(dir, 0775); err != nil {
-		return err
+		return "", err
 	}
 
 	f, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return f.Close()
+	err = f.Close()
+	if err != nil {
+		return "", err
+	}
+
+	return filePath, nil
 }

@@ -219,6 +219,11 @@ var en = map[string]string{
 	// global //
 	////////////
 
+	UnknownTerminalMode:    "Unknown terminal mode: %s",
+	UnableToDecodeJsonFile: "Unable to decode json file: %s",
+	UnableToWriteCliData:   "Unable to write zcli data, paths tested: %s",
+	UnableToWriteLogFile:   "Unable to write zcli debug log file, paths tested: %s",
+
 	// args
 	ArgsOnlyOneOptionalAllowed: "optional arg %s can be only the last one",
 	ArgsOnlyOneArrayAllowed:    "array arg %s can be only the last one",
@@ -226,7 +231,7 @@ var en = map[string]string{
 	ArgsTooManyArgs:            "expected no more than %d arg(s), got %d",
 
 	// logger
-	LoggerUnableToOpenLogFileWarning: "Failed to open a log file, used path: %s. Try to use --log-file-path flag.\n",
+	LoggerUnableToOpenLogFileWarning: "Failed to open a log file, used path: %s",
 
 	// ux helpers
 	ProjectSelectorListEmpty:       "You don't have any projects yet. Create a new project using `zcli project import` command.",
@@ -246,11 +251,11 @@ zcli login {token}
 more info: https://docs.zerops.io/documentation/cli/authorization.html`,
 
 	// scope
-	SelectedProject:         "Selected project: %s",
-	SelectedService:         "Selected service: %s",
-	ScopedProject:           "Scoped project: %s",
+	SelectedProject:         "Selected project",
+	SelectedService:         "Selected service",
+	ScopedProject:           "Scoped project",
 	ScopedProjectNotFound:   "Scoped project wasn't found, Select a different project using `zcli scope project` command.",
-	PreviouslyScopedProject: "Previously scoped project: %s",
+	PreviouslyScopedProject: "Previously scoped project",
 	ScopeReset:              "Scope was reset",
 
 	DestructiveOperationConfirmationFailed: "You have to confirm a destructive operation.",

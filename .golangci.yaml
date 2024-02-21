@@ -68,7 +68,6 @@ linters:
     - ifshort
     - importas
     - ineffassign
-    - interfacebloat
     - interfacer
     - loggercheck
     - maintidx
@@ -80,7 +79,6 @@ linters:
     - nestif
     - nilerr
     - noctx
-    - nolintlint
     - nosprintfhostport
     - perfsprint
     - prealloc

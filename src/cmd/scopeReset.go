@@ -6,6 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -22,7 +23,7 @@ func scopeResetCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			cmdData.UxBlocks.PrintInfoLine(i18n.T(i18n.ScopeReset))
+			cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ScopeReset)))
 
 			return nil
 		})

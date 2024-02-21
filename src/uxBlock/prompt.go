@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 type promptConfig struct {
@@ -26,7 +27,7 @@ func (b *uxBlocks) Prompt(
 	}
 
 	if !b.isTerminal {
-		b.PrintLine(message)
+		b.PrintInfo(styles.InfoLine(message))
 		return 0, errors.New(i18n.T(i18n.PromptAllowedOnlyInTerminal))
 	}
 
@@ -98,9 +99,9 @@ func (m *promptModel) View() string {
 	buttonsTexts := []string{}
 	for i, choice := range m.choices {
 		if i == m.cursor {
-			buttonsTexts = append(buttonsTexts, activeButtonStyle.Render(choice))
+			buttonsTexts = append(buttonsTexts, styles.ActiveDialogButton().Render(choice))
 		} else {
-			buttonsTexts = append(buttonsTexts, buttonStyle.Render(choice))
+			buttonsTexts = append(buttonsTexts, styles.DialogButton().Render(choice))
 		}
 	}
 
@@ -110,31 +111,8 @@ func (m *promptModel) View() string {
 
 	dialog := lipgloss.Place(0, 0,
 		lipgloss.Left, lipgloss.Center,
-		dialogBoxStyle.Render(ui),
+		styles.DialogBox().Render(ui),
 	)
 
 	return dialog
 }
-
-var (
-	dialogBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#874BFD")).
-			Padding(1, 0).
-			BorderTop(true).
-			BorderLeft(true).
-			BorderRight(true).
-			BorderBottom(true)
-
-	buttonStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFF7DB")).
-			Background(lipgloss.Color("#888B7E")).
-			Padding(0, 3).
-			MarginRight(2).
-			MarginTop(1)
-
-	activeButtonStyle = buttonStyle.Copy().
-				Foreground(lipgloss.Color("#FFF7DB")).
-				Background(lipgloss.Color("#F25D94")).
-				Underline(true)
-)

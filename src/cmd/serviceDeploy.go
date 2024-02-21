@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
@@ -50,7 +51,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart)))
 
 			files, err := arch.FindFilesByRules(
 				uxBlocks,
@@ -127,7 +128,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployDeployingStart))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployDeployingStart)))
 
 			deployResponse, err := cmdData.RestApiClient.PutAppVersionDeploy(
 				ctx,

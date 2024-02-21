@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
@@ -36,7 +37,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				DeployGitFolder: cmdData.Params.GetBool("deployGitFolder"),
 			})
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart)))
 
 			configContent, err := getValidConfigContent(
 				uxBlocks,
@@ -123,13 +124,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployCreatingPackageDone))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployCreatingPackageDone)))
 
 			if cmdData.Params.GetString("archiveFilePath") != "" {
-				uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath")))
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath"))))
 			}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.BuildDeployDeployingStart))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployDeployingStart)))
 
 			sourceName := cmdData.Params.GetString("source")
 			if sourceName == "" {

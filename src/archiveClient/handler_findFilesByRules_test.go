@@ -223,7 +223,7 @@ var testErrorResponseDataProvider = []struct {
 func TestValidation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	uxBlocks := mocks.NewMockUxBlocks(ctrl)
-	uxBlocks.EXPECT().PrintLine(gomock.Any()).AnyTimes()
+	uxBlocks.EXPECT().PrintInfo(gomock.Any()).AnyTimes()
 
 	for _, test := range testErrorResponseDataProvider {
 		test := test // scope lint

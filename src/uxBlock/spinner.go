@@ -6,6 +6,7 @@ import (
 
 	bubblesSpinner "github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOptions ...SpinnerOption) func() {
@@ -17,7 +18,7 @@ func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 	if !b.isTerminal {
 		return func() {
 			for _, spinner := range spinners {
-				b.PrintLine(spinner.text)
+				b.PrintInfo(spinner.line)
 			}
 		}
 	}
@@ -30,7 +31,7 @@ func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
 	go func() {
-		//nolint:errcheck
+		//nolint:errcheck // Why: I'm not interest in the error
 		p.Run()
 		if model.canceled {
 			b.ctxCancel()
@@ -119,7 +120,7 @@ func (m *spinnerModel) View() string {
 		if m.canceled {
 			s += "canceled\n"
 		} else {
-			s += spinner.view() + spinner.text + "\n"
+			s += spinner.view() + spinner.line.String() + "\n"
 		}
 	}
 
@@ -132,26 +133,26 @@ type spinnerConfig struct {
 type SpinnerOption = func(cfg *spinnerConfig)
 
 type Spinner struct {
-	text     string
+	line     styles.Line
 	finished bool
 	spinner  bubblesSpinner.Model
 }
 
-func NewSpinner(text string) *Spinner {
+func NewSpinner(line styles.Line) *Spinner {
 	return &Spinner{
-		text:    text,
+		line:    line,
 		spinner: bubblesSpinner.New(bubblesSpinner.WithSpinner(bubblesSpinner.MiniDot)),
 	}
 }
 
-func (s *Spinner) SetMessage(text string) *Spinner {
-	s.text = text
+func (s *Spinner) SetMessage(text styles.Line) *Spinner {
+	s.line = text
 
 	return s
 }
 
-func (s *Spinner) Finish(text string) *Spinner {
-	s.text = text
+func (s *Spinner) Finish(text styles.Line) *Spinner {
+	s.line = text
 	s.finished = true
 
 	return s

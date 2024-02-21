@@ -7,6 +7,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -33,7 +34,7 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *Logg
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
 			if errorsx.IsUserError(err) {
-				cmdData.UxBlocks.PrintWarningLine(i18n.T(i18n.ScopedProjectNotFound))
+				cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ScopedProjectNotFound)))
 			}
 
 			return err
@@ -70,7 +71,7 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *Logg
 	}
 
 	cmdData.Project = project
-	cmdData.UxBlocks.PrintInfoLine(i18n.T(infoText, cmdData.Project.Name.String()))
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), cmdData.Project.Name.String()))
 
 	return nil
 }

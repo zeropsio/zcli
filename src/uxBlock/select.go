@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 type selectConfig struct {
@@ -45,7 +46,7 @@ func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 	}
 
 	if !b.isTerminal {
-		b.PrintLine(cfg.label)
+		b.PrintInfo(styles.InfoLine(cfg.label))
 		return nil, errors.New(i18n.T(i18n.SelectorAllowedOnlyInTerminal))
 	}
 
@@ -56,8 +57,8 @@ func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 		selected:  make(map[int]struct{}),
 	}
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
-	_, err := p.Run()
-	if err != nil {
+
+	if _, err := p.Run(); err != nil {
 		return nil, err
 	}
 
@@ -138,53 +139,47 @@ func (m *selectModel) View() string {
 		return ""
 	}
 
-	baseStyle := lipgloss.NewStyle().Padding(0, 1)
-
 	t := table.New().
+		BorderStyle(styles.InfoColor()).
 		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("238"))).
 		StyleFunc(func(row, col int) lipgloss.Style {
-			even := row%2 == 0
-
-			if even {
-				return baseStyle.Copy().Foreground(lipgloss.Color("245"))
+			// in case that header is present, we need to adjust row index
+			if m.cfg.header != nil {
+				row -= 1
 			}
-			return baseStyle.Copy().Foreground(lipgloss.Color("252"))
+			if row == m.cursor {
+				return styles.TableRowActive()
+			}
+
+			return styles.TableRow()
 		})
 
 	if m.cfg.header != nil {
-		capitalizeHeaders := func(data []string) []string {
-			for i := range data {
-				data[i] = strings.ToUpper(data[i])
-			}
-			return data
+		headers := make([]string, 0, len(m.cfg.header.cells)+1)
+		headers = append(headers, "")
+		for _, header := range m.cfg.header.cells {
+			headers = append(headers, strings.ToUpper(header.Text))
 		}
-
-		headers := make([]string, len(m.cfg.header.cells)+1)
-		headers[0] = ""
-		for i, header := range m.cfg.header.cells {
-			headers[i+1] = header.Text
-		}
-		t = t.Headers(capitalizeHeaders(headers)...)
+		t = t.Headers(headers...)
 	}
 
-	rows := make([][]string, len(m.tableBody.rows))
 	for rowIndex, row := range m.tableBody.rows {
-		cells := make([]string, len(row.cells)+1)
-		cells[0] = " "
+		cells := make([]string, 0, len(row.cells)+1)
+		icon := " "
 		if rowIndex == m.cursor {
-			cells[0] = "✓"
+			icon = styles.SelectIcon
 		}
-		for i, cell := range row.cells {
-			cells[i+1] = cell.Text
+		cells = append(cells, icon)
+
+		for _, cell := range row.cells {
+			cells = append(cells, cell.Text)
 		}
-		rows[rowIndex] = cells
+		t = t.Row(cells...)
 	}
-	t = t.Rows(rows...)
 
 	s := ""
 	if m.cfg.label != "" {
-		s = SelectionIcon + m.cfg.label + "\n"
+		s = styles.SelectLine(m.cfg.label).String() + "\n"
 	}
 
 	t.Width(calculateTableWidth(t, m.uxBlocks.terminalWidth))

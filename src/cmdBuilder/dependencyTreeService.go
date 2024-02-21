@@ -6,6 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -54,7 +55,6 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *Logged
 	}
 
 	cmdData.Service = service
-	cmdData.UxBlocks.PrintInfoLine(i18n.T(infoText, cmdData.Service.Name.String()))
-
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), cmdData.Service.Name.String()))
 	return nil
 }

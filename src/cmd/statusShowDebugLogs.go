@@ -9,6 +9,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
@@ -33,7 +34,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 			filesize := stat.Size()
 
 			if filesize == 0 {
-				cmdData.UxBlocks.PrintLine(i18n.T(i18n.DebugLogsNotFound))
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.DebugLogsNotFound)))
 				return nil
 			}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/output"
@@ -111,7 +112,7 @@ func getValidConfigContent(uxBlocks uxBlock.UxBlocks, workingDir string, zeropsY
 		return nil, err
 	}
 
-	uxBlocks.PrintLine(i18n.T(i18n.BuildDeployZeropsYamlFound, zeropsYamlPath))
+	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployZeropsYamlFound, zeropsYamlPath)))
 
 	if zeropsYamlStat.Size() == 0 {
 		return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlEmpty))

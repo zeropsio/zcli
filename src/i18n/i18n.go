@@ -257,6 +257,11 @@ const (
 	// global //
 	////////////
 
+	UnknownTerminalMode    = "UnknownTerminalMode"
+	UnableToDecodeJsonFile = "UnableToDecodeJsonFile"
+	UnableToWriteCliData   = "UnableToWriteCliData"
+	UnableToWriteLogFile   = "UnableToWriteLogFile"
+
 	// args
 	ArgsOnlyOneOptionalAllowed = "ArgsOnlyOneOptionalAllowed"
 	ArgsOnlyOneArrayAllowed    = "ArgsOnlyOneArrayAllowed"

@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 type tableConfig struct {
@@ -88,40 +89,19 @@ func (b *uxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
 		opt(&cfg)
 	}
 
-	baseStyle := lipgloss.NewStyle().Padding(0, 1)
-	headerStyle := baseStyle.Copy().Foreground(lipgloss.Color("252")).Bold(true)
-
-	baseStyle.SetString()
-
 	t := table.New().
+		BorderStyle(styles.InfoColor()).
 		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("238"))).
 		StyleFunc(func(row, col int) lipgloss.Style {
-			if row == 0 && cfg.header != nil {
-				return headerStyle
-			}
-
-			even := row%2 == 0
-
-			if even {
-				return baseStyle.Copy().Foreground(lipgloss.Color("245"))
-			}
-			return baseStyle.Copy().Foreground(lipgloss.Color("252"))
+			return styles.TableRow()
 		})
 
 	if cfg.header != nil {
-		capitalizeHeaders := func(data []string) []string {
-			for i := range data {
-				data[i] = strings.ToUpper(data[i])
-			}
-			return data
-		}
-
 		headers := make([]string, len(cfg.header.cells))
 		for i, header := range cfg.header.cells {
-			headers[i] = header.Text
+			headers[i] = strings.ToUpper(header.Text)
 		}
-		t = t.Headers(capitalizeHeaders(headers)...)
+		t = t.Headers(headers...)
 	}
 
 	rows := make([][]string, len(body.rows))

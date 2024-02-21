@@ -5,37 +5,24 @@ package constants
 
 import (
 	"os"
-
-	"github.com/pkg/errors"
 )
 
-// this line is here to make linter happy
+// this is here to make linter happy
 var _ = zeropsDir
+var _ = receiverFromPath
 
-func getDataFilePaths() []pathReceiver {
+func getDataFilePathsReceivers() []pathReceiver {
 	return []pathReceiver{
-		func() (string, error) {
-			env := os.Getenv(cliDataFilePathEnvVar)
-			if env != "" {
-				return env, nil
-			}
-			return "", errors.New("env is empty")
-		},
-		receiverWithPath(os.UserConfigDir, "Zerops", cliDataFileName),
-		receiverWithPath(os.UserHomeDir, "Zerops", cliDataFileName),
+		receiverFromEnv(cliDataFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", cliDataFileName),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", cliDataFileName),
 	}
 }
 
-func getLogFilePath() []pathReceiver {
+func getLogFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
-		func() (string, error) {
-			env := os.Getenv(cliLogFilePathEnvVar)
-			if env != "" {
-				return env, nil
-			}
-			return "", errors.New("env is empty")
-		},
-		receiverWithPath(os.UserConfigDir, "Zerops", zeropsLogFile),
-		receiverWithPath(os.UserHomeDir, "Zerops", zeropsLogFile),
+		receiverFromEnv(cliLogFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", zeropsLogFile),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", zeropsLogFile),
 	}
 }

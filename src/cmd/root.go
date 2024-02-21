@@ -5,14 +5,14 @@ import (
 )
 
 func ExecuteCmd() error {
-	cmdBuilder := cmdBuilder.NewCmdBuilder()
+	builder := cmdBuilder.NewCmdBuilder()
 
-	cmdBuilder.AddCommand(loginCmd())
-	cmdBuilder.AddCommand(versionCmd())
-	cmdBuilder.AddCommand(scopeCmd())
-	cmdBuilder.AddCommand(projectCmd())
-	cmdBuilder.AddCommand(serviceCmd())
-	cmdBuilder.AddCommand(statusCmd())
+	builder.AddCommand(loginCmd())
+	builder.AddCommand(versionCmd())
+	builder.AddCommand(scopeCmd())
+	builder.AddCommand(projectCmd())
+	builder.AddCommand(serviceCmd())
+	builder.AddCommand(statusCmd())
 
-	return cmdBuilder.CreateAndExecuteRootCobraCmd()
+	return builder.CreateAndExecuteRootCobraCmd()
 }

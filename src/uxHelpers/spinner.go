@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types/enum"
@@ -21,7 +22,7 @@ func ProcessCheckWithSpinner(
 ) error {
 	spinners := make([]*uxBlock.Spinner, 0, len(processList))
 	for _, process := range processList {
-		spinners = append(spinners, uxBlock.NewSpinner(process.RunningMessage))
+		spinners = append(spinners, uxBlock.NewSpinner(styles.NewLine(styles.InfoText(process.RunningMessage))))
 	}
 
 	stopFunc := uxBlocks.RunSpinners(ctx, spinners)
@@ -39,7 +40,7 @@ func ProcessCheckWithSpinner(
 
 			err := process.F(ctx)
 			if err != nil {
-				spinners[i].Finish(uxBlock.NewLine(uxBlock.ErrorIcon, uxBlock.ErrorText(process.ErrorMessageMessage)).String())
+				spinners[i].Finish(styles.ErrorLine(process.ErrorMessageMessage))
 				stopFunc()
 
 				once.Do(func() {
@@ -47,7 +48,7 @@ func ProcessCheckWithSpinner(
 				})
 				return
 			}
-			spinners[i].Finish(uxBlock.NewLine(uxBlock.SuccessIcon, uxBlock.SuccessText(process.SuccessMessage)).String())
+			spinners[i].Finish(styles.SuccessLine(process.SuccessMessage))
 		}(i)
 	}
 

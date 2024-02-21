@@ -32,6 +32,7 @@ func tarFile(archive *tar.Writer, file File, info os.FileInfo) error {
 		return err
 	}
 
+	//nolint:exhaustive // Why: Other file types are not supported
 	switch mode := info.Mode(); mode & os.ModeType {
 	case os.ModeDir, os.ModeSymlink:
 		return nil

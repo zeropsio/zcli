@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string, sources []string) ([]File, error) {
@@ -16,7 +17,7 @@ func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string,
 		return nil, err
 	}
 
-	uxBlocks.PrintLine(i18n.T(i18n.ArchClientWorkingDirectory, workingDir))
+	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientWorkingDirectory, workingDir)))
 
 	// resulting function returns File from provided path
 	// if file shouldn't be included in the result, File.ArchivePath will be empty
@@ -56,9 +57,9 @@ func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string,
 
 		if fileInfo.IsDir() {
 			source = strings.TrimSuffix(source, string(os.PathSeparator)) + string(os.PathSeparator)
-			uxBlocks.PrintLine(i18n.T(i18n.ArchClientPackingDirectory, source))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientPackingDirectory, source)))
 		} else {
-			uxBlocks.PrintLine(i18n.T(i18n.ArchClientPackingFile, source))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientPackingFile, source)))
 		}
 
 		trimPath, err := filepath.Abs(filepath.Join(workingDir, parts[0]))

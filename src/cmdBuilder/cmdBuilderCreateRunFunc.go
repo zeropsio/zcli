@@ -20,6 +20,7 @@ import (
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/apiError"
 	"golang.org/x/term"
@@ -78,11 +79,6 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 		regSignals(cancel)
 		ctx = support.Context(ctx)
 
-		loggerFilePath, err := constants.LogFilePath()
-		if err != nil {
-			return errors.New(i18n.T(i18n.LoggerUnableToOpenLogFileWarning))
-		}
-
 		isTerminal, err := isTerminal()
 		if err != nil {
 			return err
@@ -93,11 +89,11 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 			width = 100
 		}
 
-		outputLogger, debugFileLogger := createLoggers(isTerminal, loggerFilePath)
+		outputLogger, debugFileLogger := createLoggers(isTerminal)
 
 		uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, cancel)
 
-		uxBlocks.PrintDebugLine(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
+		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
 		defer func() {
 			if err != nil {
@@ -106,10 +102,8 @@ func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*co
 			}
 		}()
 
-		err = params.InitViper()
-		if err != nil {
-			return err
-		}
+		// TODO - janhajek move somewhere else?
+		params.InitViper()
 
 		cliStorage, err := createCliStorage()
 		if err != nil {
@@ -195,28 +189,28 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 }
 
 func printError(err error, uxBlocks uxBlock.UxBlocks) {
-	uxBlocks.PrintDebugLine(fmt.Sprintf("error: %+v", err))
+	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
-		uxBlocks.PrintErrorLine(err.Error())
+		uxBlocks.PrintError(styles.ErrorLine(err.Error()))
 		return
 	}
 
 	var apiErr apiError.Error
 	if errors.As(err, &apiErr) {
-		uxBlocks.PrintErrorLine(apiErr.GetMessage())
+		uxBlocks.PrintError(styles.ErrorLine(apiErr.GetMessage()))
 		if apiErr.GetMeta() != nil {
 			meta, err := yaml.Marshal(apiErr.GetMeta())
 			if err != nil {
-				uxBlocks.PrintErrorLine(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage()))
+				uxBlocks.PrintError(styles.ErrorLine(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage())))
 			}
-			uxBlocks.PrintErrorLine(string(meta))
+			uxBlocks.PrintError(styles.ErrorLine(string(meta)))
 		}
 
 		return
 	}
 
-	uxBlocks.PrintErrorLine(err.Error())
+	uxBlocks.PrintError(styles.ErrorLine(err.Error()))
 }
 
 func isTerminal() (bool, error) {
@@ -228,18 +222,22 @@ func isTerminal() (bool, error) {
 	case TerminalModeEnabled:
 		return true, nil
 	default:
-		// TODO - janhajek message
-		return false, errors.New("unknown terminal mode")
+		return false, errors.New(i18n.T(i18n.UnknownTerminalMode, TerminalFlag))
 	}
 }
 
-func createLoggers(isTerminal bool, logFilePathFlag string) (*logger.Handler, *logger.Handler) {
+func createLoggers(isTerminal bool) (*logger.Handler, *logger.Handler) {
 	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
 		IsTerminal: isTerminal,
 	})
 
+	loggerFilePath, err := constants.LogFilePath()
+	if err != nil {
+		outputLogger.Warning(styles.WarningLine(err.Error()))
+	}
+
 	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
-		FilePath: logFilePathFlag,
+		FilePath: loggerFilePath,
 	})
 
 	return outputLogger, debugFileLogger

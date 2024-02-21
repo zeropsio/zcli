@@ -9,6 +9,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -26,9 +27,9 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 					if !errorsx.IsUserError(err) {
 						return err
 					}
-					cmdData.UxBlocks.PrintWarningLine(i18n.T(i18n.ScopedProjectNotFound))
+					cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ScopedProjectNotFound)))
 				} else {
-					cmdData.UxBlocks.PrintInfoLine(i18n.T(i18n.PreviouslyScopedProject, project.Name.String()))
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.PreviouslyScopedProject), project.Name.String()))
 				}
 			}
 
@@ -57,7 +58,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			cmdData.UxBlocks.PrintInfoLine(i18n.T(infoText, project.Name.String()))
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), project.Name.String()))
 
 			return nil
 		})

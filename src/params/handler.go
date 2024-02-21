@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zeropsio/zcli/src/constants"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/zeropsio/zcli/src/constants"
 )
 
 type Handler struct {
@@ -107,17 +106,16 @@ func (h *Handler) GetBool(cmd *cobra.Command, name string) bool {
 	return false
 }
 
-func (h *Handler) InitViper() error {
+func (h *Handler) InitViper() {
 	path, err := os.Getwd()
-	if err != nil {
-		return err
+	if err == nil {
+		h.viper.AddConfigPath(path)
 	}
 	cliDataPath, err := constants.CliDataFilePath()
-	if err != nil {
-		return err
+	if err == nil {
+		h.viper.AddConfigPath(cliDataPath)
 	}
-	h.viper.AddConfigPath(path)
-	h.viper.AddConfigPath(cliDataPath)
+
 	h.viper.SetConfigName("zcli.config")
 	h.viper.SetEnvPrefix("ZEROPS")
 	h.viper.AutomaticEnv()
@@ -125,8 +123,6 @@ func (h *Handler) InitViper() error {
 	if err := h.viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", h.viper.ConfigFileUsed())
 	}
-
-	return nil
 }
 
 func toSnakeCase(flagName string) string {

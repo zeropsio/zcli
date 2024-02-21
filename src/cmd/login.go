@@ -12,6 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
@@ -59,7 +60,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintSuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email))
+			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email)))
 
 			return nil
 		})

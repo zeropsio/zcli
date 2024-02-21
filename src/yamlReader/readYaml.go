@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir string) ([]byte, error) {
@@ -29,7 +30,7 @@ func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir st
 		return nil, errors.New(i18n.T(i18n.ImportYamlNotFound))
 	}
 
-	uxBlocks.PrintLine(fmt.Sprintf("%s: %s", i18n.T(i18n.ImportYamlFound), importYamlPath))
+	uxBlocks.PrintInfo(styles.InfoLine(fmt.Sprintf("%s: %s", i18n.T(i18n.ImportYamlFound), importYamlPath)))
 
 	if fileInfo.Size() == 0 {
 		return nil, errors.New(i18n.T(i18n.ImportYamlEmpty))
@@ -48,6 +49,6 @@ func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir st
 		return nil, errors.New(i18n.T(i18n.ImportYamlCorrupted))
 	}
 
-	uxBlocks.PrintLine(i18n.T(i18n.ImportYamlOk))
+	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ImportYamlOk)))
 	return yamlContent, nil
 }

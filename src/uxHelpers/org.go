@@ -8,6 +8,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
@@ -22,7 +23,7 @@ func PrintOrgSelector(
 	}
 
 	if len(orgs) == 0 {
-		uxBlocks.PrintWarningLine(i18n.T(i18n.OrgSelectorListEmpty))
+		uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.OrgSelectorListEmpty)))
 		return nil, nil
 	}
 

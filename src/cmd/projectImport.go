@@ -6,6 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/dto/input/body"
@@ -69,16 +70,16 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			uxBlocks.PrintLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks)))
-			uxBlocks.PrintLine(i18n.T(i18n.QueuedProcesses, len(processes)))
-			uxBlocks.PrintLine(i18n.T(i18n.CoreServices))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.CoreServices)))
 
 			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
 			if err != nil {
 				return err
 			}
 
-			uxBlocks.PrintInfoLine(i18n.T(i18n.ProjectImported))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ProjectImported)))
 
 			return nil
 		})

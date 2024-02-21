@@ -1,40 +1,22 @@
 package uxBlock
 
-func (b *uxBlocks) PrintLine(values ...interface{}) {
-	b.info(values...)
+import "github.com/zeropsio/zcli/src/uxBlock/styles"
+
+func (b *uxBlocks) LogDebug(message string) {
+	b.debugFileLogger.Debug(message)
 }
 
-func (b *uxBlocks) PrintSuccessLine(values ...string) {
-	b.info(SuccessIcon, successColor.SetString(values...))
+func (b *uxBlocks) PrintInfo(line styles.Line) {
+	b.outputLogger.Info(line)
+	b.debugFileLogger.Info(line.DisableStyle())
 }
 
-func (b *uxBlocks) PrintInfoLine(values ...string) {
-	b.info(InfoIcon, infoColor.SetString(values...))
+func (b *uxBlocks) PrintWarning(line styles.Line) {
+	b.outputLogger.Warning(line)
+	b.debugFileLogger.Warning(line.DisableStyle())
 }
 
-func (b *uxBlocks) PrintWarningLine(values ...string) {
-	b.warning(WarningIcon, warningColor.SetString(values...))
-}
-
-func (b *uxBlocks) PrintErrorLine(values ...string) {
-	b.error(ErrorIcon, errorColor.SetString(values...))
-}
-
-func (b *uxBlocks) PrintDebugLine(args ...interface{}) {
-	b.debugFileLogger.Debug(NewLine(args...).DisableStyle())
-}
-
-func (b *uxBlocks) info(args ...interface{}) {
-	b.outputLogger.Info(NewLine(args...))
-	b.debugFileLogger.Info(NewLine(args...).DisableStyle())
-}
-
-func (b *uxBlocks) warning(args ...interface{}) {
-	b.outputLogger.Warning(NewLine(args...))
-	b.debugFileLogger.Warning(NewLine(args...).DisableStyle())
-}
-
-func (b *uxBlocks) error(args ...interface{}) {
-	b.outputLogger.Error(NewLine(args...))
-	b.debugFileLogger.Error(NewLine(args...).DisableStyle())
+func (b *uxBlocks) PrintError(line styles.Line) {
+	b.outputLogger.Error(line)
+	b.debugFileLogger.Error(line.DisableStyle())
 }

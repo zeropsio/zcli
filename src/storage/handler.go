@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/i18n"
 )
 
 type Config struct {
@@ -54,8 +55,7 @@ func (h *Handler[T]) load() error {
 	}
 
 	if err := json.NewDecoder(f).Decode(&h.data); err != nil {
-		// TODO - janhajek translation
-		return errors.WithMessagef(err, "Unable to decode json file %s", h.config.FilePath)
+		return errors.WithMessagef(err, i18n.T(i18n.UnableToDecodeJsonFile, h.config.FilePath))
 	}
 
 	return nil

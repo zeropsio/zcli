@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 func statusInfoCmd() *cmdBuilder.Cmd {
@@ -38,7 +39,7 @@ func statusInfoCmd() *cmdBuilder.Cmd {
 				project, err := repository2.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
 					if errorsx.IsUserError(err) {
-						cmdData.UxBlocks.PrintWarningLine(i18n.T(i18n.ScopedProjectNotFound))
+						cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ScopedProjectNotFound)))
 					}
 
 					return err

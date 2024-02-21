@@ -5,17 +5,16 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/logger"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 //go:generate go run --mod=mod github.com/golang/mock/mockgen -source=$GOFILE -destination=$PWD/mocks/$GOFILE -package=mocks
 
 type UxBlocks interface {
-	PrintLine(values ...interface{})
-	PrintSuccessLine(values ...string)
-	PrintInfoLine(values ...string)
-	PrintWarningLine(values ...string)
-	PrintErrorLine(values ...string)
-	PrintDebugLine(args ...interface{})
+	LogDebug(message string)
+	PrintInfo(line styles.Line)
+	PrintWarning(line styles.Line)
+	PrintError(line styles.Line)
 	Table(body *TableBody, auxOptions ...TableOption)
 	Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error)
 	Prompt(
