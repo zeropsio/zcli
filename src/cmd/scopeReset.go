@@ -14,6 +14,7 @@ func scopeResetCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("reset").
 		Short(i18n.T(i18n.CmdScopeReset)).
+		HelpFlag(i18n.T(i18n.ScopeResetHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			_, err := cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
 				data.ScopeProjectId = uuid.ProjectIdNull{}

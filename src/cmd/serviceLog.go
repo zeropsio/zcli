@@ -25,7 +25,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		StringFlag("formatTemplate", "", i18n.T(i18n.LogFormatTemplateFlag)).
 		BoolFlag("follow", false, i18n.T(i18n.LogFollowFlag)).
 		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
-		Short(i18n.T(i18n.ServiceLogHelp)).
+		HelpFlag(i18n.T(i18n.ServiceLogHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			handler := serviceLogs.New(
 				serviceLogs.Config{},

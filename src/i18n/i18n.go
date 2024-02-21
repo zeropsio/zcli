@@ -105,8 +105,6 @@ const (
 	LogShowBuildFlag      = "LogShowBuildFlag"
 	LogFormatFlag         = "LogFormatFlag"
 	LogFormatTemplateFlag = "LogFormatTemplateFlag"
-	TerminalFlag          = "TerminalFlag"
-	LogFilePathFlag       = "LogFilePathFlag"
 	ConfirmFlag           = "ConfirmFlag"
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
@@ -256,6 +254,9 @@ const (
 	////////////
 	// global //
 	////////////
+	CliTerminalModeEnvVar = "TerminalModeEnv"
+	CliLogFilePathEnvVar  = "CliLogFilePathEnvVar"
+	CliDataFilePathEnvVar = "CliDataFilePathEnvVar"
 
 	UnknownTerminalMode    = "UnknownTerminalMode"
 	UnableToDecodeJsonFile = "UnableToDecodeJsonFile"

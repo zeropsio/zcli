@@ -15,7 +15,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdServiceStart)).
 		ScopeLevel(cmdBuilder.Service).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{serviceName | serviceId}")).
-		Short(i18n.T(i18n.ServiceStartHelp)).
+		HelpFlag(i18n.T(i18n.ServiceStartHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			startServiceResponse, err := cmdData.RestApiClient.PutServiceStackStart(
 				ctx,

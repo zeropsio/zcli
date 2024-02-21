@@ -12,11 +12,12 @@ import (
 
 const (
 	DefaultRegionUrl      = "https://api.app.zerops.io/api/rest/public/region/zcli"
-	zeropsDir             = "zerops"
-	zeropsLogFile         = "zerops.log"
-	cliDataFileName       = "cli.data"
-	cliDataFilePathEnvVar = "ZEROPS_CLI_DATA_FILE_PATH"
-	cliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
+	ZeropsDir             = "zerops"
+	ZeropsLogFile         = "zerops.log"
+	CliDataFileName       = "cli.data"
+	CliDataFilePathEnvVar = "ZEROPS_CLI_DATA_FILE_PATH"
+	CliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
+	CliTerminalMode       = "ZEROPS_CLI_TERMINAL_MODE"
 )
 
 type pathReceiver func() (path string, err error)
@@ -30,7 +31,7 @@ func CliDataFilePath() (string, error) {
 			_, err := p()
 			paths = append(paths, err.Error())
 		}
-		return "", errors.New(i18n.T(i18n.UnableToWriteCliData, "\n"+strings.Join(paths, "\n")))
+		return "", errors.New(i18n.T(i18n.UnableToWriteCliData, "\n"+strings.Join(paths, "\n")+"\n"))
 	}
 	return path, nil
 }
@@ -44,7 +45,7 @@ func LogFilePath() (string, error) {
 			_, err := p()
 			paths = append(paths, err.Error())
 		}
-		return "", errors.New(i18n.T(i18n.UnableToWriteLogFile, "\n"+strings.Join(paths, "\n")))
+		return "", errors.New(i18n.T(i18n.UnableToWriteLogFile, "\n"+strings.Join(paths, "\n")+"\n"))
 	}
 	return path, nil
 }

@@ -16,7 +16,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("show-debug-logs").
 		Short(i18n.T(i18n.CmdStatusShowDebugLogs)).
-		Short(i18n.T(i18n.StatusShowDebugLogsHelp)).
+		HelpFlag(i18n.T(i18n.StatusShowDebugLogsHelp)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			logFilePath, err := constants.LogFilePath()
 			if err != nil {

@@ -19,6 +19,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 		Use("project").
 		Short(i18n.T(i18n.CmdScopeProject)).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		HelpFlag(i18n.T(i18n.ScopeProjectHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			projectId, projectSet := cmdData.CliStorage.Data().ScopeProjectId.Get()
 			if projectSet {

@@ -1,30 +1,16 @@
 package cmdBuilder
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/zeropsio/zcli/src/cliStorage"
-	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity"
-	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/params"
-	"github.com/zeropsio/zcli/src/storage"
-	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/uxBlock"
-	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/apiError"
-	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
 )
 
 type ParamsReader interface {
@@ -73,42 +59,18 @@ type LoggedUserCmdData struct {
 	Service *entity.Service
 }
 
-func (b *CmdBuilder) createCmdRunFunc(cmd *Cmd, params *params.Handler) func(*cobra.Command, []string) error {
+func (b *CmdBuilder) createCmdRunFunc(
+	cmd *Cmd,
+	params *params.Handler,
+	uxBlocks uxBlock.UxBlocks,
+	cliStorage *cliStorage.Handler,
+) func(*cobra.Command, []string) error {
 	return func(cobraCmd *cobra.Command, args []string) (err error) {
-		ctx, cancel := context.WithCancel(context.Background())
-		regSignals(cancel)
-		ctx = support.Context(ctx)
-
-		isTerminal, err := isTerminal()
-		if err != nil {
-			return err
-		}
-
-		width, _, err := term.GetSize(0)
-		if err != nil {
-			width = 100
-		}
-
-		outputLogger, debugFileLogger := createLoggers(isTerminal)
-
-		uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, cancel)
+		ctx := cobraCmd.Context()
 
 		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
-		defer func() {
-			if err != nil {
-				printError(err, uxBlocks)
-				err = errSkipErrorReporting
-			}
-		}()
-
-		// TODO - janhajek move somewhere else?
 		params.InitViper()
-
-		cliStorage, err := createCliStorage()
-		if err != nil {
-			return err
-		}
 
 		argsMap, err := convertArgs(cmd, args)
 		if err != nil {
@@ -186,83 +148,4 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	}
 
 	return argsMap, nil
-}
-
-func printError(err error, uxBlocks uxBlock.UxBlocks) {
-	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
-
-	if userErr := errorsx.AsUserError(err); userErr != nil {
-		uxBlocks.PrintError(styles.ErrorLine(err.Error()))
-		return
-	}
-
-	var apiErr apiError.Error
-	if errors.As(err, &apiErr) {
-		uxBlocks.PrintError(styles.ErrorLine(apiErr.GetMessage()))
-		if apiErr.GetMeta() != nil {
-			meta, err := yaml.Marshal(apiErr.GetMeta())
-			if err != nil {
-				uxBlocks.PrintError(styles.ErrorLine(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage())))
-			}
-			uxBlocks.PrintError(styles.ErrorLine(string(meta)))
-		}
-
-		return
-	}
-
-	uxBlocks.PrintError(styles.ErrorLine(err.Error()))
-}
-
-func isTerminal() (bool, error) {
-	switch TerminalMode(TerminalFlag) {
-	case TerminalModeAuto:
-		return isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd()), nil
-	case TerminalModeDisabled:
-		return false, nil
-	case TerminalModeEnabled:
-		return true, nil
-	default:
-		return false, errors.New(i18n.T(i18n.UnknownTerminalMode, TerminalFlag))
-	}
-}
-
-func createLoggers(isTerminal bool) (*logger.Handler, *logger.Handler) {
-	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
-		IsTerminal: isTerminal,
-	})
-
-	loggerFilePath, err := constants.LogFilePath()
-	if err != nil {
-		outputLogger.Warning(styles.WarningLine(err.Error()))
-	}
-
-	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
-		FilePath: loggerFilePath,
-	})
-
-	return outputLogger, debugFileLogger
-}
-
-func regSignals(contextCancel func()) {
-	sigs := make(chan os.Signal, 1)
-
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigs
-		contextCancel()
-	}()
-}
-
-func createCliStorage() (*cliStorage.Handler, error) {
-	filePath, err := constants.CliDataFilePath()
-	if err != nil {
-		return nil, err
-	}
-	s, err := storage.New[cliStorage.Data](
-		storage.Config{
-			FilePath: filePath,
-		},
-	)
-	return &cliStorage.Handler{Handler: s}, err
 }

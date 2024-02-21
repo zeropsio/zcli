@@ -29,7 +29,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("source", "", i18n.T(i18n.SourceName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
-		Short(i18n.T(i18n.ServicePushHelp)).
+		HelpFlag(i18n.T(i18n.ServicePushHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 

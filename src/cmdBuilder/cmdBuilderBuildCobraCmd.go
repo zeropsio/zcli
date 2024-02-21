@@ -5,10 +5,17 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/params"
+	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func (b *CmdBuilder) buildCobraCmd(cmd *Cmd, params *params.Handler) (*cobra.Command, error) {
+func (b *CmdBuilder) buildCobraCmd(
+	cmd *Cmd,
+	params *params.Handler,
+	uxBlocks uxBlock.UxBlocks,
+	cliStorage *cliStorage.Handler,
+) (*cobra.Command, error) {
 	cobraCmd := &cobra.Command{
 		Short:        cmd.short,
 		SilenceUsage: cmd.silenceUsage,
@@ -52,11 +59,11 @@ func (b *CmdBuilder) buildCobraCmd(cmd *Cmd, params *params.Handler) (*cobra.Com
 	}
 
 	if cmd.guestRunFunc != nil || cmd.loggedUserRunFunc != nil {
-		cobraCmd.RunE = b.createCmdRunFunc(cmd, params)
+		cobraCmd.RunE = b.createCmdRunFunc(cmd, params, uxBlocks, cliStorage)
 	}
 
 	for _, childrenCmd := range cmd.childrenCmds {
-		cobraChildrenCmd, err := b.buildCobraCmd(childrenCmd, params)
+		cobraChildrenCmd, err := b.buildCobraCmd(childrenCmd, params, uxBlocks, cliStorage)
 		if err != nil {
 			return nil, err
 		}

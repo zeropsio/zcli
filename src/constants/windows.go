@@ -8,21 +8,21 @@ import (
 )
 
 // this is here to make linter happy
-var _ = zeropsDir
+var _ = ZeropsDir
 var _ = receiverFromPath
 
 func getDataFilePathsReceivers() []pathReceiver {
 	return []pathReceiver{
-		receiverFromEnv(cliDataFilePathEnvVar),
-		receiverFromOsFunc(os.UserConfigDir, "Zerops", cliDataFileName),
-		receiverFromOsFunc(os.UserHomeDir, "Zerops", cliDataFileName),
+		receiverFromEnv(CliDataFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", CliDataFileName),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", CliDataFileName),
 	}
 }
 
 func getLogFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
-		receiverFromEnv(cliLogFilePathEnvVar),
-		receiverFromOsFunc(os.UserConfigDir, "Zerops", zeropsLogFile),
-		receiverFromOsFunc(os.UserHomeDir, "Zerops", zeropsLogFile),
+		receiverFromEnv(CliLogFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", ZeropsLogFile),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", ZeropsLogFile),
 	}
 }

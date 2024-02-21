@@ -17,7 +17,7 @@ func statusInfoCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("info").
 		Short(i18n.T(i18n.CmdStatusInfo)).
-		Short(i18n.T(i18n.StatusInfoHelp)).
+		HelpFlag(i18n.T(i18n.StatusInfoHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			body := &uxBlock.TableBody{}
 

@@ -92,8 +92,6 @@ var en = map[string]string{
 	LogFollowFlag:         "If set, zCLI will continuously poll for new log messages. By default, the command will exit\nonce there are no more logs to display. To exit from this mode, use Control-C.",
 	LogFormatFlag:         "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects.",
 	LogFormatTemplateFlag: "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.timestamp}} {{.severity}} {{.facility}} {{.message}}\".\nSupports standard GoLang template format and functions.",
-	TerminalFlag:          "If enabled provides a rich UI to communicate with a user. Possible values: auto, enabled, disabled. Default value is auto.",
-	LogFilePathFlag:       "Path to a log file. Default value: %s.",
 	ConfirmFlag:           "If set, zCLI will not ask for confirmation of destructive operations.",
 	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
@@ -219,7 +217,11 @@ var en = map[string]string{
 	// global //
 	////////////
 
-	UnknownTerminalMode:    "Unknown terminal mode: %s",
+	CliTerminalModeEnvVar: "If enabled provides a rich UI to communicate with a user. Possible values: auto, enabled, disabled. Default value is auto.",
+	CliLogFilePathEnvVar:  "Path to a log file.",
+	CliDataFilePathEnvVar: "Path to data file.",
+
+	UnknownTerminalMode:    "Unknown terminal mode: %s. Falling back to auto-discovery. Possible values: auto, enabled, disabled.",
 	UnableToDecodeJsonFile: "Unable to decode json file: %s",
 	UnableToWriteCliData:   "Unable to write zcli data, paths tested: %s",
 	UnableToWriteLogFile:   "Unable to write zcli debug log file, paths tested: %s",
