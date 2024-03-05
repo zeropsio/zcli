@@ -13,38 +13,38 @@ type check func(err error) error
 func CheckErrorCode(errorCode errorCode.ErrorCode, errMessage string) check {
 	return func(err error) error {
 		var apiErr apiError.Error
-		if errors.As(err, &apiErr) {
-			if string(errorCode) != apiErr.GetErrorCode() {
-				return nil
-			}
-
-			return NewUserError(errMessage, err)
+		if !errors.As(err, &apiErr) {
+			return nil
+		}
+		if string(errorCode) != apiErr.GetErrorCode() {
+			return nil
 		}
 
-		return nil
+		return NewUserError(errMessage, err)
 	}
 }
 
 func CheckInvalidUserInput(parameterName string, errMessage string) check {
 	return func(err error) error {
 		var apiErr apiError.Error
-		if errors.As(err, &apiErr) {
-			if string(errorCode.InvalidUserInput) != apiErr.GetErrorCode() {
-				return nil
-			}
+		if !errors.As(err, &apiErr) {
+			return nil
+		}
 
-			meta, ok := apiErr.GetMeta().([]interface{})
-			if !ok {
-				return nil
-			}
+		if string(errorCode.InvalidUserInput) != apiErr.GetErrorCode() {
+			return nil
+		}
 
-			for _, metaItem := range meta {
-				if metaItemTyped, ok := metaItem.(map[string]interface{}); ok {
-					if parameterValue, ok := metaItemTyped["parameter"]; ok {
-						if parameterValue == parameterName {
-							return NewUserError(fmt.Sprintf(errMessage, metaItemTyped["message"]), err)
-						}
-						return nil
+		meta, ok := apiErr.GetMeta().([]interface{})
+		if !ok {
+			return nil
+		}
+
+		for _, metaItem := range meta {
+			if metaItemTyped, ok := metaItem.(map[string]interface{}); ok {
+				if parameterValue, ok := metaItemTyped["parameter"]; ok {
+					if parameterValue == parameterName {
+						return NewUserError(fmt.Sprintf(errMessage, metaItemTyped["message"]), err)
 					}
 				}
 			}
