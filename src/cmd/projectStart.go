@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -13,8 +14,8 @@ func projectStartCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("start").
 		Short(i18n.T(i18n.CmdProjectStart)).
-		ScopeLevel(cmdBuilder.Project).
-		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(scope.Project).
+		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.ProjectStartHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			startProjectResponse, err := cmdData.RestApiClient.PutProjectStart(

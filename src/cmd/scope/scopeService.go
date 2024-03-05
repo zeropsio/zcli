@@ -1,10 +1,12 @@
-package cmdBuilder
+package scope
 
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -12,17 +14,21 @@ import (
 )
 
 type service struct {
-	commonDependency
+	parent cmdBuilder.ScopeLevel
+}
+
+func (s *service) GetParent() cmdBuilder.ScopeLevel {
+	return s.parent
 }
 
 const ServiceArgName = "serviceIdOrName"
 const serviceFlagName = "serviceId"
 
-func (s *service) AddCommandFlags(cmd *Cmd) {
+func (s *service) AddCommandFlags(cmd *cmdBuilder.Cmd) {
 	cmd.StringFlag(serviceFlagName, "", i18n.T(i18n.ServiceIdFlag))
 }
 
-func (s *service) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *LoggedUserCmdData) error {
+func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdData *cmdBuilder.LoggedUserCmdData) error {
 	infoText := i18n.SelectedService
 	var service *entity.Service
 	var err error
@@ -30,7 +36,10 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *Logged
 	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists {
 		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, cmdData.Project.ID, serviceIdOrName[0])
 		if err != nil {
-			return err
+			return errorsx.Check(
+				err,
+				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceIdOrName)),
+			)
 		}
 	}
 
@@ -42,7 +51,10 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *Logged
 			uuid.ServiceStackId(serviceId),
 		)
 		if err != nil {
-			return err
+			return errorsx.Check(
+				err,
+				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceId)),
+			)
 		}
 	}
 

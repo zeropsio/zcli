@@ -6,13 +6,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zeropsio/zcli/src/cliStorage"
-	"github.com/zeropsio/zcli/src/params"
+	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
 func (b *CmdBuilder) buildCobraCmd(
 	cmd *Cmd,
-	params *params.Handler,
+	flagParams *flagParams.Handler,
 	uxBlocks uxBlock.UxBlocks,
 	cliStorage *cliStorage.Handler,
 ) (*cobra.Command, error) {
@@ -34,18 +34,18 @@ func (b *CmdBuilder) buildCobraCmd(
 	}
 	cobraCmd.Use = strings.Join(append([]string{cmd.use}, argNames...), " ")
 
-	for _, dep := range getDependencyListFromRoot(cmd.scopeLevel) {
+	for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
 		dep.AddCommandFlags(cmd)
 	}
 
 	for _, flag := range cmd.flags {
 		switch defaultValue := flag.defaultValue.(type) {
 		case string:
-			params.RegisterString(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
+			flagParams.RegisterString(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
 		case int:
-			params.RegisterInt(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
+			flagParams.RegisterInt(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
 		case bool:
-			params.RegisterBool(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
+			flagParams.RegisterBool(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
 		default:
 			panic(fmt.Sprintf("unexpected type %T", flag.defaultValue))
 		}
@@ -59,11 +59,11 @@ func (b *CmdBuilder) buildCobraCmd(
 	}
 
 	if cmd.guestRunFunc != nil || cmd.loggedUserRunFunc != nil {
-		cobraCmd.RunE = b.createCmdRunFunc(cmd, params, uxBlocks, cliStorage)
+		cobraCmd.RunE = b.createCmdRunFunc(cmd, flagParams, uxBlocks, cliStorage)
 	}
 
 	for _, childrenCmd := range cmd.childrenCmds {
-		cobraChildrenCmd, err := b.buildCobraCmd(childrenCmd, params, uxBlocks, cliStorage)
+		cobraChildrenCmd, err := b.buildCobraCmd(childrenCmd, flagParams, uxBlocks, cliStorage)
 		if err != nil {
 			return nil, err
 		}

@@ -39,7 +39,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], reg.RestApiAddress)
+			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], "https://"+reg.Address)
 
 			response, err := restApiClient.GetUserInfo(ctx)
 			if err != nil {
@@ -69,16 +69,16 @@ func loginCmd() *cmdBuilder.Cmd {
 func getLoginRegion(
 	ctx context.Context,
 	uxBlocks uxBlock.UxBlocks,
-	regions []region.Data,
+	regions []region.RegionItem,
 	selectedRegion string,
-) (region.Data, error) {
+) (region.RegionItem, error) {
 	if selectedRegion != "" {
 		for _, reg := range regions {
 			if reg.Name == selectedRegion {
 				return reg, nil
 			}
 		}
-		return region.Data{}, errors.New(i18n.T(i18n.RegionNotFound, selectedRegion))
+		return region.RegionItem{}, errors.New(i18n.T(i18n.RegionNotFound, selectedRegion))
 	}
 
 	for _, reg := range regions {
@@ -103,7 +103,7 @@ func getLoginRegion(
 		uxBlock.SelectTableHeader(header),
 	)
 	if err != nil {
-		return region.Data{}, err
+		return region.RegionItem{}, err
 	}
 
 	return regions[regionIndex[0]], nil

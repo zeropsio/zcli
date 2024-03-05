@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -18,7 +19,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("service-import").
 		Short(i18n.T(i18n.CmdServiceImport)).
-		ScopeLevel(cmdBuilder.Project).
+		ScopeLevel(scope.Project).
 		Arg(serviceImportArgName).
 		HelpFlag(i18n.T(i18n.ProjectServiceImportHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

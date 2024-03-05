@@ -8,14 +8,10 @@ import (
 	"github.com/zeropsio/zcli/src/httpClient"
 )
 
-type Data struct {
-	Name             string `json:"name"`
-	IsDefault        bool   `json:"isDefault"`
-	RestApiAddress   string `json:"restApiAddress"`
-	GrpcApiAddress   string `json:"grpcApiAddress"`
-	VpnApiAddress    string `json:"vpnApiAddress"`
-	CaCertificateUrl string `json:"caCertificateUrl"`
-	S3StorageAddress string `json:"s3StorageAddress"`
+type RegionItem struct {
+	Name      string `json:"name"`
+	IsDefault bool   `json:"isDefault"`
+	Address   string `json:"address"`
 }
 
 type Handler struct {
@@ -28,7 +24,7 @@ func New(client *httpClient.Handler) *Handler {
 	}
 }
 
-func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]Data, error) {
+func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]RegionItem, error) {
 	resp, err := h.client.Get(ctx, regionURL)
 	if err != nil {
 		return nil, err
@@ -49,8 +45,15 @@ func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]D
 	return regions, nil
 }
 
-func readRegions(regionFile json.RawMessage) ([]Data, error) {
-	var regions []Data
-	err := json.Unmarshal(regionFile, &regions)
-	return regions, err
+func readRegions(regionFile json.RawMessage) ([]RegionItem, error) {
+	var regionItemsResponse response
+	err := json.Unmarshal(regionFile, &regionItemsResponse)
+	if err != nil {
+		return nil, err
+	}
+	return regionItemsResponse.Items, err
+}
+
+type response struct {
+	Items []RegionItem `json:"items"`
 }

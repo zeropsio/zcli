@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/path"
@@ -14,8 +15,8 @@ func projectStopCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("stop").
 		Short(i18n.T(i18n.CmdProjectStop)).
-		ScopeLevel(cmdBuilder.Project).
-		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(scope.Project).
+		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.ProjectStopHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			stopProjectResponse, err := cmdData.RestApiClient.PutProjectStop(

@@ -13,9 +13,9 @@ import (
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/errorsx"
+	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/logger"
-	"github.com/zeropsio/zcli/src/params"
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -52,12 +52,12 @@ func (b *CmdBuilder) CreateAndExecuteRootCobraCmd() (err error) {
 		return err
 	}
 
+	flagParams := flagParams.New()
+
 	rootCmd := createRootCommand()
 
-	params := params.New()
-
 	for _, cmd := range b.commands {
-		cobraCmd, err := b.buildCobraCmd(cmd, params, uxBlocks, cliStorage)
+		cobraCmd, err := b.buildCobraCmd(cmd, flagParams, uxBlocks, cliStorage)
 		if err != nil {
 			return err
 		}

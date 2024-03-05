@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -13,8 +14,8 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("delete").
 		Short(i18n.T(i18n.CmdServiceDelete)).
-		ScopeLevel(cmdBuilder.Service).
-		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(scope.Service).
+		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		HelpFlag(i18n.T(i18n.ServiceDeleteHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

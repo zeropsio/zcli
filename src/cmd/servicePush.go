@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -22,7 +23,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		Use("push").
 		Short(i18n.T(i18n.CmdPushDesc)).
 		Long(i18n.T(i18n.CmdPushDesc)+"\n\n"+i18n.T(i18n.PushDescLong)).
-		ScopeLevel(cmdBuilder.Service).
+		ScopeLevel(scope.Service).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
@@ -142,8 +143,8 @@ func servicePushCmd() *cmdBuilder.Cmd {
 					Id: appVersion.Id,
 				},
 				body.PutAppVersionBuildAndDeploy{
-					BuildConfigContent: types.MediumText(base64.StdEncoding.EncodeToString(configContent)),
-					Source:             types.NewStringNull(sourceName),
+					ZeropsYaml: types.MediumText(base64.StdEncoding.EncodeToString(configContent)),
+					Source:     types.NewStringNull(sourceName),
 				},
 			)
 			if err != nil {

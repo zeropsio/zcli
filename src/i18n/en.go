@@ -35,6 +35,9 @@ var en = map[string]string{
 	VersionHelp:              "the version command.",
 	BucketCreateHelp:         "the bucket create command.",
 	BucketDeleteHelp:         "the bucket delete command.",
+	VpnHelp:                  "the vpn command.",
+	VpnConnectHelp:           "the vpn connect command.",
+	VpnDisconnectHelp:        "the vpn disconnect command.",
 
 	// cmd short
 	CmdDeployDesc:          "Deploys your application to Zerops.",
@@ -57,6 +60,7 @@ var en = map[string]string{
 	CmdScopeReset:          "Resets the scope for project and service.",
 	CmdProjectDelete:       "Deletes a project and all of its services.",
 	CmdProjectImport:       "Creates a new project with one or more services.",
+	CmdServiceList:         "Lists all services in the project.",
 	CmdServiceImport:       "Creates one or more Zerops services in an existing project.",
 	CmdServiceStart:        "Starts the Zerops service.",
 	CmdServiceStop:         "Stops the Zerops service.",
@@ -67,6 +71,9 @@ var en = map[string]string{
 	CmdBucketS3:            "Management directly via S3 API",
 	CmdBucketCreate:        "Creates a bucket in an existing object storage.",
 	CmdBucketDelete:        "Deletes a bucket from an existing object storage.",
+	CmdVpn:                 "VPN commands group",
+	CmdVpnConnect:          "Connects to the Zerops VPN.",
+	CmdVpnDisconnect:       "Disconnects from the Zerops VPN.",
 
 	// cmd long
 	CmdProjectImportLong: "Creates a new project with one or more services according to the definition in the import YAML file.",
@@ -256,9 +263,16 @@ more info: https://docs.zerops.io/documentation/cli/authorization.html`,
 	SelectedProject:         "Selected project",
 	SelectedService:         "Selected service",
 	ScopedProject:           "Scoped project",
-	ScopedProjectNotFound:   "Scoped project wasn't found, Select a different project using `zcli scope project` command.",
+	ScopedProjectNotFound:   "Scoped project wasn't found, select a different project using `zcli scope project` command.",
 	PreviouslyScopedProject: "Previously scoped project",
 	ScopeReset:              "Scope was reset",
 
 	DestructiveOperationConfirmationFailed: "You have to confirm a destructive operation.",
+
+	// errors
+	ErrorInvalidProjectId:       "Invalid project ID [%s]",
+	ErrorInvalidScopedProjectId: "Invalid ID of the scoped project [%s], select a different project using `zcli scope project` command.",
+	ErrorInvalidServiceId:       "Invalid service ID [%s]",
+	ErrorInvalidServiceIdOrName: "Invalid service ID or name [%s]",
+	ErrorProjectIsNotActive:     "Project is not active",
 }

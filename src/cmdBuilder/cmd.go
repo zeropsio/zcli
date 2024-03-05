@@ -7,6 +7,12 @@ import (
 type loggedUserRunFunc func(ctx context.Context, cmdData *LoggedUserCmdData) error
 type guestRunFunc func(ctx context.Context, cmdData *GuestCmdData) error
 
+type ScopeLevel interface {
+	AddCommandFlags(*Cmd)
+	LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *LoggedUserCmdData) error
+	GetParent() ScopeLevel
+}
+
 type Cmd struct {
 	use               string
 	short             string
@@ -15,7 +21,7 @@ type Cmd struct {
 	guestRunFunc      guestRunFunc
 	silenceUsage      bool
 
-	scopeLevel Dependency
+	scopeLevel ScopeLevel
 	args       []cmdArg
 	flags      []cmdFlag
 
@@ -78,7 +84,7 @@ func (cmd *Cmd) SilenceUsage(silenceUsage bool) *Cmd {
 	return cmd
 }
 
-func (cmd *Cmd) ScopeLevel(scopeLevel Dependency) *Cmd {
+func (cmd *Cmd) ScopeLevel(scopeLevel ScopeLevel) *Cmd {
 	cmd.scopeLevel = scopeLevel
 	return cmd
 }

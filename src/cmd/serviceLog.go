@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/serviceLogs"
@@ -17,7 +18,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		Use("log").
 		Short(i18n.T(i18n.CmdServiceLog)).
 		Long(i18n.T(i18n.CmdServiceLogLong)+i18n.T(i18n.ServiceLogAdditional)).
-		ScopeLevel(cmdBuilder.Service).
+		ScopeLevel(scope.Service).
 		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
 		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
 		StringFlag("messageType", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).

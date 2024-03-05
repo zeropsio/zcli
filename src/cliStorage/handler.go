@@ -1,6 +1,7 @@
 package cliStorage
 
 import (
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -12,6 +13,7 @@ type Handler struct {
 
 type Data struct {
 	Token          string
-	RegionData     region.Data
+	RegionData     region.RegionItem
 	ScopeProjectId uuid.ProjectIdNull
+	VpnKeys        map[uuid.ProjectId]entity.VpnKey
 }

@@ -136,9 +136,9 @@ func validateZeropsYamlContent(
 	yamlContent []byte,
 ) error {
 	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
-		Name:               service.Name,
+		ServiceStackName:   service.Name,
 		ServiceStackTypeId: service.ServiceTypeId,
-		ZeropsYaml:         types.NewText(string(yamlContent)),
+		ZeropsYaml:         types.NewMediumText(string(yamlContent)),
 	})
 	if err != nil {
 		return err

@@ -48,6 +48,9 @@ const (
 	VersionHelp              = "VersionHelp"
 	BucketCreateHelp         = "BucketCreateHelp"
 	BucketDeleteHelp         = "BucketDeleteHelp"
+	VpnHelp                  = "VpnHelp"
+	VpnConnectHelp           = "VpnConnectHelp"
+	VpnDisconnectHelp        = "VpnDisconnectHelp"
 
 	// cmd short
 	CmdDeployDesc          = "CmdDeployDesc"
@@ -70,6 +73,7 @@ const (
 	CmdScopeReset          = "CmdScopeReset"
 	CmdProjectDelete       = "CmdProjectDelete"
 	CmdProjectImport       = "CmdProjectImport"
+	CmdServiceList         = "CmdServiceList"
 	CmdServiceImport       = "CmdServiceImport"
 	CmdServiceStart        = "CmdServiceStart"
 	CmdServiceStop         = "CmdServiceStop"
@@ -80,6 +84,9 @@ const (
 	CmdBucketS3            = ""
 	CmdBucketCreate        = "CmdBucketCreate"
 	CmdBucketDelete        = "CmdBucketDelete"
+	CmdVpn                 = "CmdVpn"
+	CmdVpnConnect          = "CmdVpnConnect"
+	CmdVpnDisconnect       = "CmdVpnDisconnect"
 
 	// cmd long
 	CmdProjectImportLong = "CmdProjectImportLong"
@@ -303,4 +310,11 @@ const (
 	ProjectNotFound        = "ProjectNotFound"
 	ServiceIdInvalidFormat = "ServiceIdInvalidFormat"
 	ServiceNotFound        = "ServiceNotFound"
+
+	// errors
+	ErrorInvalidProjectId       = "ErrorInvalidProjectId"
+	ErrorInvalidScopedProjectId = "ErrorInvalidScopedProjectId"
+	ErrorInvalidServiceId       = "ErrorInvalidServiceId"
+	ErrorInvalidServiceIdOrName = "ErrorInvalidServiceIdOrName"
+	ErrorProjectIsNotActive     = "ErrorProjectIsNotActive"
 )

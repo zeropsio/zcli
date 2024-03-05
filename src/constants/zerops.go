@@ -14,30 +14,29 @@ const (
 	DefaultRegionUrl      = "https://api.app.zerops.io/api/rest/public/region/zcli"
 	ZeropsDir             = "zerops"
 	ZeropsLogFile         = "zerops.log"
+	WgConfigFile          = "zerops.conf"
 	CliDataFileName       = "cli.data"
 	CliDataFilePathEnvVar = "ZEROPS_CLI_DATA_FILE_PATH"
 	CliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
+	CliWgConfigPathEnvVar = "ZEROPS_WG_CONFIG_FILE_PATH"
 	CliTerminalMode       = "ZEROPS_CLI_TERMINAL_MODE"
 )
 
 type pathReceiver func() (path string, err error)
 
 func CliDataFilePath() (string, error) {
-	pathReceivers := getDataFilePathsReceivers()
-	path := findFirstWritablePath(pathReceivers)
-	if path == "" {
-		paths := make([]string, 0, len(pathReceivers))
-		for _, p := range pathReceivers {
-			_, err := p()
-			paths = append(paths, err.Error())
-		}
-		return "", errors.New(i18n.T(i18n.UnableToWriteCliData, "\n"+strings.Join(paths, "\n")+"\n"))
-	}
-	return path, nil
+	return checkReceivers(getDataFilePathsReceivers(), i18n.UnableToWriteCliData)
 }
 
 func LogFilePath() (string, error) {
-	pathReceivers := getLogFilePathReceivers()
+	return checkReceivers(getLogFilePathReceivers(), i18n.UnableToWriteLogFile)
+}
+
+func WgConfigFilePath() (string, error) {
+	return checkReceivers(getWgConfigFilePathReceivers(), i18n.UnableToWriteLogFile)
+}
+
+func checkReceivers(pathReceivers []pathReceiver, errorText string) (string, error) {
 	path := findFirstWritablePath(pathReceivers)
 	if path == "" {
 		paths := make([]string, 0, len(pathReceivers))
@@ -45,7 +44,7 @@ func LogFilePath() (string, error) {
 			_, err := p()
 			paths = append(paths, err.Error())
 		}
-		return "", errors.New(i18n.T(i18n.UnableToWriteLogFile, "\n"+strings.Join(paths, "\n")+"\n"))
+		return "", errors.New(i18n.T(errorText, "\n"+strings.Join(paths, "\n")+"\n"))
 	}
 	return path, nil
 }

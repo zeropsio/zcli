@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cliStorage"
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
@@ -11,6 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -18,17 +20,21 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("project").
 		Short(i18n.T(i18n.CmdScopeProject)).
-		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.ScopeProjectHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			projectId, projectSet := cmdData.CliStorage.Data().ScopeProjectId.Get()
 			if projectSet {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
+					err = errorsx.Check(
+						err,
+						errorsx.CheckErrorCode(errorCode.ProjectNotFound, i18n.T(i18n.ScopedProjectNotFound)),
+					)
 					if !errorsx.IsUserError(err) {
 						return err
 					}
-					cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ScopedProjectNotFound)))
+					cmdData.UxBlocks.PrintWarning(styles.WarningLine(err.Error()))
 				} else {
 					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.PreviouslyScopedProject), project.Name.String()))
 				}

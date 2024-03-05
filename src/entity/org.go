@@ -8,6 +8,6 @@ import (
 
 type Org struct {
 	ID   uuid.ClientId
-	Role enum.ClientUserLightRoleCodeEnum
+	Role enum.ClientUserRoleCodeEnum
 	Name types.String
 }

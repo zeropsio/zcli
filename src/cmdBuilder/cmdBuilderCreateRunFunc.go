@@ -2,15 +2,17 @@ package cmdBuilder
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/params"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 type ParamsReader interface {
@@ -21,10 +23,10 @@ type ParamsReader interface {
 
 type CmdParamReader struct {
 	cobraCmd      *cobra.Command
-	paramsHandler *params.Handler
+	paramsHandler *flagParams.Handler
 }
 
-func newCmdParamReader(cobraCmd *cobra.Command, paramsHandler *params.Handler) *CmdParamReader {
+func newCmdParamReader(cobraCmd *cobra.Command, paramsHandler *flagParams.Handler) *CmdParamReader {
 	return &CmdParamReader{
 		cobraCmd:      cobraCmd,
 		paramsHandler: paramsHandler,
@@ -57,11 +59,13 @@ type LoggedUserCmdData struct {
 	// optional params
 	Project *entity.Project
 	Service *entity.Service
+
+	VpnKeys map[uuid.ProjectId]*entity.VpnKey
 }
 
 func (b *CmdBuilder) createCmdRunFunc(
 	cmd *Cmd,
-	params *params.Handler,
+	flagParams *flagParams.Handler,
 	uxBlocks uxBlock.UxBlocks,
 	cliStorage *cliStorage.Handler,
 ) func(*cobra.Command, []string) error {
@@ -70,7 +74,7 @@ func (b *CmdBuilder) createCmdRunFunc(
 
 		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
-		params.InitViper()
+		flagParams.InitViper()
 
 		argsMap, err := convertArgs(cmd, args)
 		if err != nil {
@@ -81,7 +85,7 @@ func (b *CmdBuilder) createCmdRunFunc(
 			CliStorage: cliStorage,
 			UxBlocks:   uxBlocks,
 			Args:       argsMap,
-			Params:     newCmdParamReader(cobraCmd, params),
+			Params:     newCmdParamReader(cobraCmd, flagParams),
 		}
 
 		if cmd.loggedUserRunFunc != nil {
@@ -96,9 +100,9 @@ func (b *CmdBuilder) createCmdRunFunc(
 				GuestCmdData: guestCmdData,
 			}
 
-			cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, storedData.RegionData.RestApiAddress)
+			cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+storedData.RegionData.Address)
 
-			for _, dep := range getDependencyListFromRoot(cmd.scopeLevel) {
+			for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
 				err := dep.LoadSelectedScope(ctx, cmd, cmdData)
 				if err != nil {
 					return err
@@ -148,4 +152,19 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	}
 
 	return argsMap, nil
+}
+
+func getScopeListFromRoot(dep ScopeLevel) []ScopeLevel {
+	var list []ScopeLevel
+	for {
+		if dep == nil {
+			break
+		}
+		list = append(list, dep)
+		dep = dep.GetParent()
+	}
+
+	slices.Reverse(list)
+
+	return list
 }

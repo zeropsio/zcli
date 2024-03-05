@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -13,8 +14,8 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("start").
 		Short(i18n.T(i18n.CmdServiceStart)).
-		ScopeLevel(cmdBuilder.Service).
-		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{serviceName | serviceId}")).
+		ScopeLevel(scope.Service).
+		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{serviceName | serviceId}")).
 		HelpFlag(i18n.T(i18n.ServiceStartHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			startServiceResponse, err := cmdData.RestApiClient.PutServiceStackStart(

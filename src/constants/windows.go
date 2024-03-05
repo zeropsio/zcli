@@ -26,3 +26,11 @@ func getLogFilePathReceivers() []pathReceiver {
 		receiverFromOsFunc(os.UserHomeDir, "Zerops", ZeropsLogFile),
 	}
 }
+
+func getWgConfigFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliWgConfigPathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", WgConfigFile),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", WgConfigFile),
+	}
+}
