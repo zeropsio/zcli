@@ -73,7 +73,7 @@ jobs:
 
       - name: Compress binary
         if: ${{ matrix.compress }}
-        uses: svenstaro/upx-action@v1-release
+        uses: svenstaro/upx-action@v2
         with:
           file: ./builds/${{ matrix.file }}
           strip: ${{ matrix.strip }}
