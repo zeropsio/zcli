@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultRegionUrl      = "https://api.app.zerops.io/api/rest/public/region/zcli"
+	DefaultRegionUrl      = "https://api.app-prg1.zerops.io/api/rest/public/region/zcli"
 	ZeropsDir             = "zerops"
 	ZeropsLogFile         = "zerops.log"
 	WgConfigFile          = "zerops.conf"
