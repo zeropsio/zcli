@@ -2,90 +2,80 @@ package cmd
 
 import (
 	"context"
-	"time"
 
-	"github.com/spf13/cobra"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmd/scope"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/serviceLogs"
+	"github.com/zeropsio/zerops-go/types/enum"
 
-	"github.com/zeropsio/zcli/src/cliAction/serviceLogs"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
 )
 
-func serviceLogCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "log projectNameOrId serviceName [flags]",
-		Short:        i18n.CmdServiceLog,
-		Long:         i18n.CmdServiceLogLong + i18n.ServiceLogAdditional,
-		Args:         ExactNArgs(2),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
-
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
-			}
-			token, err := getToken(storage)
-			if err != nil {
-				return err
-			}
-
-			region, err := createRegionRetriever(ctx)
-			if err != nil {
-				return err
-			}
-
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
-				ctx,
-				reg.GrpcApiAddress,
-				token,
+func serviceLogCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("log").
+		Short(i18n.T(i18n.CmdServiceLog)).
+		Long(i18n.T(i18n.CmdServiceLogLong)+i18n.T(i18n.ServiceLogAdditional)).
+		ScopeLevel(scope.Service).
+		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
+		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
+		StringFlag("messageType", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).
+		StringFlag("format", "FULL", i18n.T(i18n.LogFormatFlag)).
+		StringFlag("formatTemplate", "", i18n.T(i18n.LogFormatTemplateFlag)).
+		BoolFlag("follow", false, i18n.T(i18n.LogFollowFlag)).
+		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
+		HelpFlag(i18n.T(i18n.ServiceLogHelp)).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			handler := serviceLogs.New(
+				serviceLogs.Config{},
+				cmdData.RestApiClient,
 			)
-			if err != nil {
-				return err
+
+			serviceId := cmdData.Service.ID
+			if cmdData.Params.GetBool("showBuildLogs") {
+				appVersions, err := repository.GetLatestAppVersionByService(ctx, cmdData.RestApiClient, *cmdData.Service)
+				if err != nil {
+					return err
+				}
+				if len(appVersions) == 0 {
+					return errors.New(i18n.T(i18n.LogNoBuildFound))
+				}
+
+				app := appVersions[0]
+				status := app.Status
+				if status == enum.AppVersionStatusEnumUploading || app.Build == nil {
+					return errors.New(i18n.T(i18n.LogBuildStatusUploading))
+				}
+
+				var filled bool
+				serviceId, filled = app.Build.ServiceStackId.Get()
+				if !filled {
+					return errors.New(i18n.T(i18n.LogNoBuildFound))
+				}
 			}
-			defer closeFunc()
-
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
-
-			handler := serviceLogs.New(serviceLogs.Config{}, client, apiGrpcClient, sdkConfig.Config{Token: token, RegionUrl: reg.RestApiAddress})
-
-			severityLevel := serviceLogs.Levels{{"EMERGENCY", "0"}, {"ALERT", "1"}, {"CRITICAL", "2"}, {"ERROR", "3"}, {"WARNING", "4"}, {"NOTICE", "5"}, {"INFORMATIONAL", "6"}, {"DEBUG", "7"}}
 
 			return handler.Run(ctx, serviceLogs.RunConfig{
-				ProjectNameOrId: args[0],
-				ServiceName:     args[1],
-				Limit:           params.GetUint32("limit"),
-				MinSeverity:     params.GetString(cmd, "minimumSeverity"),
-				MsgType:         params.GetString(cmd, "messageType"),
-				Format:          params.GetString(cmd, "format"),
-				FormatTemplate:  params.GetString(cmd, "formatTemplate"),
-				Follow:          params.GetBool(cmd, "follow"),
-				Levels:          severityLevel,
+				Project:        *cmdData.Project,
+				ServiceId:      serviceId,
+				Limit:          uint32(cmdData.Params.GetInt("limit")),
+				MinSeverity:    cmdData.Params.GetString("minimumSeverity"),
+				MsgType:        cmdData.Params.GetString("messageType"),
+				Format:         cmdData.Params.GetString("format"),
+				FormatTemplate: cmdData.Params.GetString("formatTemplate"),
+				Follow:         cmdData.Params.GetBool("follow"),
+				// TODO - janhajek better place?
+				Levels: serviceLogs.Levels{
+					{"EMERGENCY", "0"},
+					{"ALERT", "1"},
+					{"CRITICAL", "2"},
+					{"ERROR", "3"},
+					{"WARNING", "4"},
+					{"NOTICE", "5"},
+					{"INFORMATIONAL", "6"},
+					{"DEBUG", "7"},
+				},
 			})
-		},
-	}
-
-	params.RegisterUInt32(cmd, "limit", 100, i18n.LogLimitFlag)
-	params.RegisterString(cmd, "minimumSeverity", "", i18n.LogMinSeverityFlag)
-	params.RegisterString(cmd, "messageType", "APPLICATION", i18n.LogMsgTypeFlag)
-	params.RegisterString(cmd, "format", "FULL", i18n.LogFormatFlag)
-	params.RegisterString(cmd, "formatTemplate", "", i18n.LogFormatTemplateFlag)
-	params.RegisterBool(cmd, "follow", false, i18n.LogFollowFlag)
-
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ServiceLogHelp))
-
-	return cmd
+		})
 }

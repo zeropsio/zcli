@@ -5,24 +5,32 @@ package constants
 
 import (
 	"os"
-	"path/filepath"
 )
 
-var (
-	LogFilePath,
-	DaemonStorageFilePath,
-	DaemonAddress,
-	DaemonInstallDir string
-)
+// this is here to make linter happy
+var _ = ZeropsDir
+var _ = receiverFromPath
 
-const WireguardPath = `C:\Program Files\wireguard`
+func getDataFilePathsReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliDataFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", CliDataFileName),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", CliDataFileName),
+	}
+}
 
-func init() {
-	appData, _ := os.UserConfigDir()
-	zeropsFolder := filepath.Join(appData, "Zerops")
+func getLogFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliLogFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", ZeropsLogFile),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", ZeropsLogFile),
+	}
+}
 
-	LogFilePath = filepath.Join(zeropsFolder, "zerops.log")
-	DaemonAddress = ":45677"
-	DaemonStorageFilePath = filepath.Join(zeropsFolder, "daemon.data")
-	DaemonInstallDir = zeropsFolder
+func getWgConfigFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliWgConfigPathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", WgConfigFile),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", WgConfigFile),
+	}
 }

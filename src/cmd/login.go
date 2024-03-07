@@ -4,97 +4,107 @@ import (
 	"context"
 	"time"
 
-	"github.com/spf13/cobra"
-
-	"github.com/zeropsio/zcli/src/cliAction/login"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cliStorage"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
+	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
-func loginCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "login token [flags]\n  OR\n  zcli login username password [flags]",
-		Short:        i18n.CmdLogin,
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			ctx, cancel := context.WithCancel(cmd.Context())
-			regSignals(cancel)
+func loginCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("login").
+		Short(i18n.T(i18n.CmdLogin)).
+		StringFlag("regionUrl", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
+		StringFlag("region", "", i18n.T(i18n.RegionFlag), cmdBuilder.HiddenFlag()).
+		HelpFlag(i18n.T(i18n.LoginHelp)).
+		Arg("token").
+		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			storage, err := createCliStorage()
+			regionRetriever := region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}))
+
+			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("regionUrl"))
 			if err != nil {
 				return err
 			}
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Second * 60,
-			})
-
-			region, err := createRegionRetriever(ctx)
+			reg, err := getLoginRegion(ctx, uxBlocks, regions, cmdData.Params.GetString("region"))
 			if err != nil {
 				return err
 			}
 
-			regionURL := params.GetString(cmd, "regionURL")
-			regionName := params.GetString(cmd, "region")
+			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], "https://"+reg.Address)
 
-			reg, err := region.RetrieveFromURLAndSave(regionURL, regionName)
+			response, err := restApiClient.GetUserInfo(ctx)
 			if err != nil {
 				return err
 			}
 
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
+			output, err := response.Output()
+			if err != nil {
+				return err
+			}
+
+			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+				data.Token = cmdData.Args["token"][0]
+				data.RegionData = reg
+				return data
 			})
+			if err != nil {
+				return err
+			}
 
-			email, password, token := getCredentials(cmd, args)
+			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email)))
 
-			return login.New(
-				login.Config{
-					RestApiAddress: reg.RestApiAddress,
-					GrpcApiAddress: reg.GrpcApiAddress,
-				},
-				storage,
-				client,
-				apiClientFactory,
-			).Run(ctx, login.RunConfig{
-				ZeropsEmail:    email,
-				ZeropsPassword: password,
-				ZeropsToken:    token,
-			})
-		},
-	}
-
-	params.RegisterString(cmd, "zeropsLogin", "", i18n.ZeropsLoginFlag)
-	params.RegisterString(cmd, "zeropsPassword", "", i18n.ZeropsPwdFlag)
-	params.RegisterString(cmd, "zeropsToken", "", i18n.ZeropsTokenFlag)
-	params.RegisterString(cmd, "region", "", i18n.RegionFlag)
-	params.RegisterString(cmd, "regionURL", defaultRegionUrl, i18n.RegionUrlFlag)
-
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.LoginHelp))
-	cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		if err := command.Flags().MarkHidden("regionURL"); err != nil {
-			return
-		}
-		command.Parent().HelpFunc()(command, strings)
-	})
-
-	return cmd
+			return nil
+		})
 }
 
-func getCredentials(cmd *cobra.Command, args []string) (login, password, token string) {
-	login = params.GetString(cmd, "zeropsLogin")
-	password = params.GetString(cmd, "zeropsPassword")
-	token = params.GetString(cmd, "zeropsToken")
-	if len(args) == 2 {
-		login = args[0]
-		password = args[1]
-		token = ""
+func getLoginRegion(
+	ctx context.Context,
+	uxBlocks uxBlock.UxBlocks,
+	regions []region.RegionItem,
+	selectedRegion string,
+) (region.RegionItem, error) {
+	if selectedRegion != "" {
+		for _, reg := range regions {
+			if reg.Name == selectedRegion {
+				return reg, nil
+			}
+		}
+		return region.RegionItem{}, errors.New(i18n.T(i18n.RegionNotFound, selectedRegion))
 	}
-	if len(args) == 1 {
-		token = args[0]
-		login = ""
-		password = ""
+
+	for _, reg := range regions {
+		if reg.IsDefault {
+			return reg, nil
+		}
 	}
-	return
+
+	header := (&uxBlock.TableRow{}).AddStringCells(i18n.T(i18n.RegionTableColumnName))
+
+	tableBody := &uxBlock.TableBody{}
+	for _, reg := range regions {
+		tableBody.AddStringsRow(
+			reg.Name,
+		)
+	}
+
+	regionIndex, err := uxBlocks.Select(
+		ctx,
+		tableBody,
+		uxBlock.SelectLabel(i18n.T(i18n.ProjectSelectorPrompt)),
+		uxBlock.SelectTableHeader(header),
+	)
+	if err != nil {
+		return region.RegionItem{}, err
+	}
+
+	return regions[regionIndex[0]], nil
 }

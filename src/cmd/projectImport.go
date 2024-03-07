@@ -2,78 +2,108 @@ package cmd
 
 import (
 	"context"
-	"time"
 
-	"github.com/zeropsio/zcli/src/cliAction/importProjectService"
-	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/proto/zBusinessZeropsApiProtocol"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/sdkConfig"
-
-	"github.com/spf13/cobra"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
+	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-func projectImportCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:          "import pathToImportFile [flags]",
-		Short:        i18n.CmdProjectImport,
-		Long:         i18n.ProjectImportLong,
-		Args:         ExactNArgs(1),
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := context.WithCancel(context.Background())
-			regSignals(cancel)
+const projectImportArgName = "importYamlPath"
 
-			storage, err := createCliStorage()
-			if err != nil {
-				return err
-			}
-			token, err := getToken(storage)
-			if err != nil {
-				return err
-			}
+func projectImportCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("project-import").
+		Short(i18n.T(i18n.CmdProjectImport)).
+		Long(i18n.T(i18n.CmdProjectImportLong)).
+		Arg(projectImportArgName).
+		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
+		StringFlag("workingDie", "./", i18n.T(i18n.BuildWorkingDir)).
+		HelpFlag(i18n.T(i18n.ProjectImportHelp)).
+		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			uxBlocks := cmdData.UxBlocks
 
-			region, err := createRegionRetriever(ctx)
+			orgId, err := getOrgId(ctx, cmdData)
 			if err != nil {
 				return err
 			}
 
-			reg, err := region.RetrieveFromFile()
-			if err != nil {
-				return err
-			}
-
-			apiClientFactory := zBusinessZeropsApiProtocol.New(zBusinessZeropsApiProtocol.Config{
-				CaCertificateUrl: reg.CaCertificateUrl,
-			})
-			apiGrpcClient, closeFunc, err := apiClientFactory.CreateClient(
-				ctx,
-				reg.GrpcApiAddress,
-				token,
+			yamlContent, err := yamlReader.ReadContent(
+				uxBlocks,
+				cmdData.Args[projectImportArgName][0],
+				cmdData.Params.GetString("workingDir"),
 			)
 			if err != nil {
 				return err
 			}
-			defer closeFunc()
 
-			client := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
+			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
+				ctx,
+				body.ProjectImport{
+					ClientId: orgId,
+					Yaml:     types.Text(yamlContent),
+				},
+			)
+			if err != nil {
+				return err
+			}
 
-			return importProjectService.New(
-				importProjectService.Config{}, client, apiGrpcClient, sdkConfig.Config{},
-			).Import(ctx, importProjectService.RunConfig{
-				WorkingDir:     constants.WorkingDir,
-				ImportYamlPath: args[0],
-				ClientId:       params.GetString(cmd, "clientId"),
-				ParentCmd:      constants.Project,
-			})
-		},
+			responseOutput, err := importProjectResponse.Output()
+			if err != nil {
+				return err
+			}
+
+			var processes []uxHelpers.Process
+			for _, service := range responseOutput.ServiceStacks {
+				for _, process := range service.Processes {
+					processes = append(processes, uxHelpers.Process{
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient),
+						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
+						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
+						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
+					})
+				}
+			}
+
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.CoreServices)))
+
+			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
+			if err != nil {
+				return err
+			}
+
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ProjectImported)))
+
+			return nil
+		})
+}
+
+func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.ClientId, error) {
+	orgId := uuid.ClientId(cmdData.Params.GetString("orgId"))
+	if orgId != "" {
+		return orgId, nil
 	}
 
-	params.RegisterString(cmd, "clientId", "", i18n.ClientId)
-	cmd.Flags().BoolP("help", "h", false, helpText(i18n.ProjectImportHelp))
+	orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
+	if err != nil {
+		return "", err
+	}
 
-	return cmd
+	if len(orgs) == 1 {
+		return orgs[0].ID, nil
+	}
+
+	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient)
+	if err != nil {
+		return "", err
+	}
+
+	return selectedOrg.ID, nil
 }

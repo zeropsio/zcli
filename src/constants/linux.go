@@ -3,9 +3,35 @@
 
 package constants
 
-const (
-	LogFilePath           = "/var/log/zerops/zerops.log"
-	DaemonAddress         = "/run/zerops/daemon.sock"
-	DaemonStorageFilePath = "/var/lib/zerops/daemon.data"
-	DaemonInstallDir      = "/usr/local/"
+import (
+	"os"
+	"path"
 )
+
+func getDataFilePathsReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliDataFilePathEnvVar),
+		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, CliDataFileName),
+		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, CliDataFileName),
+	}
+}
+
+func getLogFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliLogFilePathEnvVar),
+		receiverFromPath(path.Join("/var/log/", ZeropsLogFile)),
+		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, ZeropsLogFile),
+		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, ZeropsLogFile),
+	}
+}
+
+func getWgConfigFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromEnv(CliWgConfigPathEnvVar),
+		receiverFromPath(path.Join("/etc/wireguard/", WgConfigFile)),
+		receiverFromPath(path.Join("/usr/local/etc/wireguard/", WgConfigFile)),
+		receiverFromPath(path.Join("/opt/homebrew/etc/wireguard/", WgConfigFile)),
+		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, WgConfigFile),
+		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, WgConfigFile),
+	}
+}

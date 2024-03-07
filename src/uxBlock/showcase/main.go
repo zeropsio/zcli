@@ -1,0 +1,168 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/mattn/go-isatty"
+	"github.com/zeropsio/zcli/src/logger"
+	"github.com/zeropsio/zcli/src/uxBlock"
+	. "github.com/zeropsio/zcli/src/uxBlock/styles"
+	"golang.org/x/term"
+)
+
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	regSignals(cancel)
+
+	blocks := createBlocks(cancel)
+
+	do(ctx, blocks)
+}
+
+func do(ctx context.Context, blocks uxBlock.UxBlocks) {
+	prompts(ctx, blocks)
+	spinners(ctx, blocks)
+	texts(ctx, blocks)
+	tables(ctx, blocks)
+}
+
+func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
+	{
+		fmt.Println("========= spinners block =========")
+
+		spinner1 := uxBlock.NewSpinner(NewLine("Running 1"))
+		spinner2 := uxBlock.NewSpinner(NewLine("Running 2"))
+		spinner3 := uxBlock.NewSpinner(NewLine("Running 3"))
+
+		stop := blocks.RunSpinners(ctx, []*uxBlock.Spinner{spinner1, spinner2, spinner3})
+
+		counter := 0
+		tick := time.NewTicker(time.Second * 1)
+		defer tick.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-tick.C:
+				counter++
+				if counter == 2 {
+					spinner2.Finish(SuccessLine("Finished successfully"))
+				}
+				if counter == 4 {
+					spinner1.Finish(ErrorLine("finished with error"))
+				}
+				if counter == 6 {
+					spinner3.Finish(WarningLine("Finish with warning"))
+				}
+			}
+			if counter == 6 {
+				break
+			}
+		}
+
+		stop()
+
+		fmt.Println("========= spinners block end =========")
+	}
+}
+
+func prompts(ctx context.Context, blocks uxBlock.UxBlocks) {
+	fmt.Println("========= prompt block =========")
+	choices := []string{"yes", "no", "maybe"}
+	choice, err := blocks.Prompt(ctx, "Question?", choices)
+	if err != nil {
+		return
+	}
+
+	blocks.PrintInfo(InfoWithValueLine("selected", choices[choice]))
+
+	fmt.Println("========= prompt block end =========")
+}
+
+func texts(_ context.Context, blocks uxBlock.UxBlocks) {
+	fmt.Println("========= texts block =========")
+	blocks.PrintInfo(NewLine("line without style"))
+	blocks.PrintInfo(InfoLine("info line"))
+	blocks.PrintInfo(InfoWithValueLine("info line", "value"))
+	blocks.PrintInfo(SuccessLine("success line"))
+	blocks.PrintWarning(WarningLine("warning line"))
+	blocks.PrintError(ErrorLine("Error line"))
+	blocks.PrintInfo(SelectLine("Select line"))
+	blocks.PrintInfo(NewLine(WarningText("NewLine"), " with ", InfoIcon, InfoText("mixed"), " ", ErrorText("styles")))
+	fmt.Println("========= texts block end =========")
+}
+
+func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
+	fmt.Println("========= table selection block =========")
+
+	tableData := [][]string{
+		{"lorem", "ipsum", "dolor", "sit"},
+		{
+			"amet",
+			"lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+			"adipiscing",
+			"elit",
+		},
+		{"sed", "do", "eiusmod", "tempor"},
+		{"incididunt", "ut", "labore", "et"},
+	}
+
+	body := uxBlock.NewTableBody().AddStringsRows(tableData...)
+
+	line, err := blocks.Select(
+		ctx,
+		body,
+		uxBlock.SelectTableHeader(uxBlock.NewTableRow().AddStringCells("header1", "header2", "header3", "header4")),
+		uxBlock.SelectLabel("Select line"),
+	)
+	if err != nil {
+		return
+	}
+
+	blocks.PrintInfo(InfoWithValueLine("selected", tableData[line[0]][0]))
+
+	fmt.Println("========= table selection end =========")
+	fmt.Println("========= print table block =========")
+
+	blocks.PrintInfo(InfoLine("printing table"))
+	blocks.Table(body, uxBlock.WithTableHeader(uxBlock.NewTableRow().AddStringCells("header1", "header2", "header3", "header4")))
+
+	fmt.Println("========= print table block end =========")
+}
+
+func regSignals(contextCancel func()) {
+	sigs := make(chan os.Signal, 1)
+
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		contextCancel()
+	}()
+}
+
+func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
+	isTerminal := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
+
+	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
+		IsTerminal: isTerminal,
+	})
+
+	width, _, err := term.GetSize(0)
+	if err != nil {
+		width = 100
+	}
+
+	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
+		FilePath: "zerops.log",
+	})
+
+	blocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, contextCancelFunc)
+
+	return blocks
+}

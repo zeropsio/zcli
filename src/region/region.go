@@ -1,63 +1,31 @@
 package region
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"sort"
 
-	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/utils/httpClient"
-	"github.com/zeropsio/zcli/src/utils/storage"
+	"github.com/zeropsio/zcli/src/httpClient"
 )
 
-type Data struct {
-	Name             string `json:"name"`
-	IsDefault        bool   `json:"isDefault"`
-	RestApiAddress   string `json:"restApiAddress"`
-	GrpcApiAddress   string `json:"grpcApiAddress"`
-	VpnApiAddress    string `json:"vpnApiAddress"`
-	CaCertificateUrl string `json:"caCertificateUrl"`
-	S3StorageAddress string `json:"s3StorageAddress"`
+type RegionItem struct {
+	Name      string `json:"name"`
+	IsDefault bool   `json:"isDefault"`
+	Address   string `json:"address"`
 }
 
 type Handler struct {
-	client  *httpClient.Handler
-	storage *storage.Handler[Data]
+	client *httpClient.Handler
 }
 
-func New(client *httpClient.Handler, storage *storage.Handler[Data]) *Handler {
+func New(client *httpClient.Handler) *Handler {
 	return &Handler{
-		storage: storage,
-		client:  client,
+		client: client,
 	}
 }
 
-// RetrieveFromURL retrieves the region from URL, if region is empty, returns a default region
-func (h *Handler) RetrieveFromURL(regionURL, region string) (Data, error) {
-	resp, err := h.client.Get(regionURL)
-	if err != nil {
-		return Data{}, err
-	}
-	reg, err := readRegion(region, resp.Body)
-	if err != nil {
-		return Data{}, err
-	}
-	return reg, nil
-}
-
-// RetrieveFromURLAndSave retrieves the region using RetrieveFromURL and stores it into the file
-func (h *Handler) RetrieveFromURLAndSave(regionURL, region string) (Data, error) {
-	reg, err := h.RetrieveFromURL(regionURL, region)
-	if err != nil {
-		return Data{}, err
-	}
-	return h.storage.Update(func(Data) Data {
-		return reg
-	})
-}
-
-func (h *Handler) RetrieveAllFromURL(regionURL string) ([]Data, error) {
-	resp, err := h.client.Get(regionURL)
+func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]RegionItem, error) {
+	resp, err := h.client.Get(ctx, regionURL)
 	if err != nil {
 		return nil, err
 	}
@@ -77,35 +45,15 @@ func (h *Handler) RetrieveAllFromURL(regionURL string) ([]Data, error) {
 	return regions, nil
 }
 
-func (h *Handler) RetrieveFromFile() (Data, error) {
-	return h.storage.Data(), nil
-}
-
-func readRegions(regionFile json.RawMessage) ([]Data, error) {
-	var regions []Data
-	err := json.Unmarshal(regionFile, &regions)
-	return regions, err
-}
-
-func readRegion(region string, regionFile json.RawMessage) (Data, error) {
-	regions, err := readRegions(regionFile)
+func readRegions(regionFile json.RawMessage) ([]RegionItem, error) {
+	var regionItemsResponse response
+	err := json.Unmarshal(regionFile, &regionItemsResponse)
 	if err != nil {
-		return Data{}, err
+		return nil, err
 	}
-	var reg *Data
-	for _, r := range regions {
-		r := r
-		if r.IsDefault && region == "" {
-			reg = &r
-		}
-		if r.Name == region {
-			reg = &r
-		}
-	}
+	return regionItemsResponse.Items, err
+}
 
-	if reg == nil {
-		return Data{}, errors.New(i18n.RegionNotFound)
-	}
-
-	return *reg, nil
+type response struct {
+	Items []RegionItem `json:"items"`
 }
