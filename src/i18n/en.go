@@ -220,6 +220,13 @@ var en = map[string]string{
 	// debug logs
 	DebugLogsNotFound: "Debug logs not found",
 
+	// vpn
+	VpnConnected:           "VPN connected",
+	VpnDisconnected:        "VPN disconnected",
+	VpnConfigSaved:         "VPN config saved",
+	VpnPrivateKeyCorrupted: "VPN private key corrupted, a new one will be created",
+	VpnPrivateKeyCreated:   "VPN private key created",
+
 	////////////
 	// global //
 	////////////

@@ -258,6 +258,13 @@ const (
 	// debug logs
 	DebugLogsNotFound = "DebugLogsNotFound"
 
+	// vpn
+	VpnConnected           = "VpnConnected"
+	VpnDisconnected        = "VpnDisconnected"
+	VpnConfigSaved         = "VpnConfigSaved"
+	VpnPrivateKeyCorrupted = "VpnPrivateKeyCorrupted"
+	VpnPrivateKeyCreated   = "VpnPrivateKeyCreated"
+
 	////////////
 	// global //
 	////////////

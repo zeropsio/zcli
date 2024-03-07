@@ -38,10 +38,10 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
-			return errorsx.Check(
+			return errorsx.Convert(
 				err,
-				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidScopedProjectId)),
-				errorsx.CheckErrorCode(errorCode.ProjectNotFound, i18n.T(i18n.ScopedProjectNotFound)),
+				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidScopedProjectId)),
+				errorsx.ConvertErrorCode(errorCode.ProjectNotFound, i18n.T(i18n.ScopedProjectNotFound)),
 			)
 		}
 
@@ -51,9 +51,9 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 	if projectId, exists := cmdData.Args[ProjectArgName]; exists {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId[0]))
 		if err != nil {
-			return errorsx.Check(
+			return errorsx.Convert(
 				err,
-				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidProjectId)),
+				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidProjectId)),
 			)
 		}
 
@@ -64,9 +64,9 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 	if projectId := cmdData.Params.GetString(ProjectArgName); projectId != "" {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId))
 		if err != nil {
-			return errorsx.Check(
+			return errorsx.Convert(
 				err,
-				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidProjectId)),
+				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidProjectId)),
 			)
 		}
 

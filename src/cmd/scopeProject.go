@@ -27,14 +27,11 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 			if projectSet {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
-					err = errorsx.Check(
-						err,
-						errorsx.CheckErrorCode(errorCode.ProjectNotFound, i18n.T(i18n.ScopedProjectNotFound)),
-					)
-					if !errorsx.IsUserError(err) {
+					if errorsx.Check(err, errorsx.CheckErrorCode(errorCode.ProjectNotFound)) {
+						cmdData.UxBlocks.PrintWarning(styles.WarningLine(err.Error()))
+					} else {
 						return err
 					}
-					cmdData.UxBlocks.PrintWarning(styles.WarningLine(err.Error()))
 				} else {
 					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.PreviouslyScopedProject), project.Name.String()))
 				}

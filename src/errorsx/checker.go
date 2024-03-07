@@ -8,10 +8,39 @@ import (
 	"github.com/zeropsio/zerops-go/errorCode"
 )
 
-type check func(err error) error
+type convertor func(err error) error
+type check func(err error, errMessage string) error
 
-func CheckErrorCode(errorCode errorCode.ErrorCode, errMessage string) check {
-	return func(err error) error {
+func Check(err error, checks ...check) bool {
+	if err == nil {
+		return false
+	}
+
+	for _, check := range checks {
+		if err := check(err, ""); err != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
+func Convert(err error, convertors ...convertor) error {
+	if err == nil {
+		return nil
+	}
+
+	for _, convertor := range convertors {
+		if err := convertor(err); err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+func CheckErrorCode(errorCode errorCode.ErrorCode) check {
+	return func(err error, errMessage string) error {
 		var apiErr apiError.Error
 		if !errors.As(err, &apiErr) {
 			return nil
@@ -24,8 +53,8 @@ func CheckErrorCode(errorCode errorCode.ErrorCode, errMessage string) check {
 	}
 }
 
-func CheckInvalidUserInput(parameterName string, errMessage string) check {
-	return func(err error) error {
+func CheckInvalidUserInput(parameterName string) check {
+	return func(err error, errMessage string) error {
 		var apiErr apiError.Error
 		if !errors.As(err, &apiErr) {
 			return nil
@@ -54,16 +83,14 @@ func CheckInvalidUserInput(parameterName string, errMessage string) check {
 	}
 }
 
-func Check(err error, checks ...check) error {
-	if err == nil {
-		return nil
+func ConvertErrorCode(errorCode errorCode.ErrorCode, errMessage string) convertor {
+	return func(err error) error {
+		return CheckErrorCode(errorCode)(err, errMessage)
 	}
+}
 
-	for _, check := range checks {
-		if err := check(err); err != nil {
-			return err
-		}
+func ConvertInvalidUserInput(parameterName string, errMessage string) convertor {
+	return func(err error) error {
+		return CheckInvalidUserInput(parameterName)(err, errMessage)
 	}
-
-	return err
 }

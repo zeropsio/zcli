@@ -60,7 +60,7 @@ type LoggedUserCmdData struct {
 	Project *entity.Project
 	Service *entity.Service
 
-	VpnKeys map[uuid.ProjectId]*entity.VpnKey
+	VpnKeys map[uuid.ProjectId]entity.VpnKey
 }
 
 func (b *CmdBuilder) createCmdRunFunc(
@@ -98,6 +98,7 @@ func (b *CmdBuilder) createCmdRunFunc(
 
 			cmdData := &LoggedUserCmdData{
 				GuestCmdData: guestCmdData,
+				VpnKeys:      storedData.VpnKeys,
 			}
 
 			cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+storedData.RegionData.Address)

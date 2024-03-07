@@ -13,6 +13,7 @@ func ExecuteCmd() error {
 	builder.AddCommand(projectCmd())
 	builder.AddCommand(serviceCmd())
 	builder.AddCommand(statusCmd())
+	builder.AddCommand(vpnCmd())
 
 	return builder.CreateAndExecuteRootCobraCmd()
 }

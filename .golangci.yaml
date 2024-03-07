@@ -76,7 +76,6 @@ linters:
     - misspell
     - musttag
     - nakedret
-    - nestif
     - nilerr
     - noctx
     - nosprintfhostport

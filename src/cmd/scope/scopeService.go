@@ -36,9 +36,9 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdD
 	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists {
 		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, cmdData.Project.ID, serviceIdOrName[0])
 		if err != nil {
-			return errorsx.Check(
+			return errorsx.Convert(
 				err,
-				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceIdOrName)),
+				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceIdOrName)),
 			)
 		}
 	}
@@ -51,9 +51,9 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdD
 			uuid.ServiceStackId(serviceId),
 		)
 		if err != nil {
-			return errorsx.Check(
+			return errorsx.Convert(
 				err,
-				errorsx.CheckInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceId)),
+				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceId)),
 			)
 		}
 	}
