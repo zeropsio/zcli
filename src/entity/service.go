@@ -8,10 +8,11 @@ import (
 )
 
 type Service struct {
-	ID                  uuid.ServiceStackId
-	ClientId            uuid.ClientId
-	Name                types.String
-	Status              enum.ServiceStackStatusEnum
-	ServiceTypeId       stringId.ServiceStackTypeId
-	ServiceTypeCategory enum.ServiceStackTypeCategoryEnum
+	ID                          uuid.ServiceStackId
+	ClientId                    uuid.ClientId
+	Name                        types.String
+	Status                      enum.ServiceStackStatusEnum
+	ServiceTypeId               stringId.ServiceStackTypeId
+	ServiceTypeCategory         enum.ServiceStackTypeCategoryEnum
+	ServiceStackTypeVersionName types.String
 }
