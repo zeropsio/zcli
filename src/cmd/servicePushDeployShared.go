@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -136,9 +137,10 @@ func validateZeropsYamlContent(
 	yamlContent []byte,
 ) error {
 	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
-		ServiceStackName:   service.Name,
-		ServiceStackTypeId: service.ServiceTypeId,
-		ZeropsYaml:         types.NewMediumText(string(yamlContent)),
+		ServiceStackTypeVersionName: service.ServiceStackTypeVersionName,
+		ServiceStackName:            service.Name,
+		ServiceStackTypeId:          service.ServiceTypeId,
+		ZeropsYaml:                  types.NewMediumText(string(yamlContent)),
 	})
 	if err != nil {
 		return err

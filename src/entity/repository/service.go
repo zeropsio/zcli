@@ -111,11 +111,12 @@ func serviceFromEsSearch(esServiceStack zeropsRestApiClient.EsServiceStack) enti
 
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
 	return entity.Service{
-		ID:                  service.Id,
-		ClientId:            service.Project.ClientId,
-		Name:                service.Name,
-		Status:              service.Status,
-		ServiceTypeId:       service.ServiceStackTypeId,
-		ServiceTypeCategory: service.ServiceStackTypeInfo.ServiceStackTypeCategory,
+		ID:                          service.Id,
+		ClientId:                    service.Project.ClientId,
+		Name:                        service.Name,
+		Status:                      service.Status,
+		ServiceTypeId:               service.ServiceStackTypeId,
+		ServiceTypeCategory:         service.ServiceStackTypeInfo.ServiceStackTypeCategory,
+		ServiceStackTypeVersionName: service.ServiceStackTypeInfo.ServiceStackTypeVersionName,
 	}
 }
