@@ -6,7 +6,7 @@ import (
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
-	repository2 "github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -61,7 +61,7 @@ func rootCmd() *cmdBuilder.Cmd {
 			if cmdData.CliStorage.Data().ScopeProjectId.Filled() {
 				// project scope is set
 				projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
-				project, err := repository2.GetProjectById(ctx, cmdData.RestApiClient, projectId)
+				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
 					if errorsx.IsUserError(err) {
 						cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ScopedProjectNotFound)))

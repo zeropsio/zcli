@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"context"
+	"os"
 	"os/exec"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/cmdRunner"
+	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
@@ -18,12 +20,24 @@ func vpnDownCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
+			filePath, err := constants.WgConfigFilePath()
+			if err != nil {
+				return err
+			}
+
+			// create empty file if not exists, only thing wg-quick needs is a proper file name
+			f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+
 			// TODO - janhajek check if vpn is connected
 			// TODO - janhajek get somehow a meaningful output
 			// TODO - janhajek check if wg-quick is installed
 			// TODO - janhajek a configurable path to wg-quick
-			c := exec.CommandContext(ctx, "wg-quick", "down", "zerops")
-			_, err := cmdRunner.Run(c)
+			c := exec.CommandContext(ctx, "wg-quick", "down", filePath)
+			_, err = cmdRunner.Run(c)
 			if err != nil {
 				return err
 			}
