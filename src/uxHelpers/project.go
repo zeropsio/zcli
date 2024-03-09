@@ -68,7 +68,7 @@ func PrintProjectList(
 
 func createProjectTableRows(projects []entity.Project) (*uxBlock.TableRow, *uxBlock.TableBody) {
 	// TODO - janhajek translation
-	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Description", "Org ID", "Status")
+	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Description", "Org Name", "Org ID", "Status")
 
 	tableBody := &uxBlock.TableBody{}
 	for _, project := range projects {
@@ -76,7 +76,8 @@ func createProjectTableRows(projects []entity.Project) (*uxBlock.TableRow, *uxBl
 			string(project.ID),
 			project.Name.String(),
 			project.Description.Native(),
-			project.ClientId.Native(),
+			project.OrgName.Native(),
+			project.OrgId.Native(),
 			project.Status.String(),
 		)
 	}

@@ -23,13 +23,13 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-func vpnConnectCmd() *cmdBuilder.Cmd {
+func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
-		Use("connect").
-		Short(i18n.T(i18n.CmdVpnConnect)).
+		Use("up").
+		Short(i18n.T(i18n.CmdVpnUp)).
 		ScopeLevel(scope.Project).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
-		HelpFlag(i18n.T(i18n.VpnConnectHelp)).
+		HelpFlag(i18n.T(i18n.VpnUpHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -115,7 +115,7 @@ func vpnConnectCmd() *cmdBuilder.Cmd {
 
 			// TODO - janhajek ping {{.Ipv4NetworkGateway}}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnConnected)))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnUp)))
 
 			return nil
 		})

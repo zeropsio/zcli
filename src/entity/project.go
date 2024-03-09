@@ -9,7 +9,8 @@ import (
 type Project struct {
 	ID          uuid.ProjectId
 	Name        types.String
-	ClientId    uuid.ClientId
+	OrgId       uuid.ClientId
+	OrgName     types.String
 	Description types.Text
 	Status      enum.ProjectStatusEnum
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func (b *CmdBuilder) buildCobraCmd(
+func buildCobraCmd(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
 	uxBlocks uxBlock.UxBlocks,
@@ -19,6 +19,10 @@ func (b *CmdBuilder) buildCobraCmd(
 	cobraCmd := &cobra.Command{
 		Short:        cmd.short,
 		SilenceUsage: cmd.silenceUsage,
+	}
+
+	if cmd.helpTemplate != "" {
+		cobraCmd.SetHelpTemplate(cmd.helpTemplate)
 	}
 
 	argNames := make([]string, len(cmd.args))
@@ -59,11 +63,11 @@ func (b *CmdBuilder) buildCobraCmd(
 	}
 
 	if cmd.guestRunFunc != nil || cmd.loggedUserRunFunc != nil {
-		cobraCmd.RunE = b.createCmdRunFunc(cmd, flagParams, uxBlocks, cliStorage)
+		cobraCmd.RunE = createCmdRunFunc(cmd, flagParams, uxBlocks, cliStorage)
 	}
 
 	for _, childrenCmd := range cmd.childrenCmds {
-		cobraChildrenCmd, err := b.buildCobraCmd(childrenCmd, flagParams, uxBlocks, cliStorage)
+		cobraChildrenCmd, err := buildCobraCmd(childrenCmd, flagParams, uxBlocks, cliStorage)
 		if err != nil {
 			return nil, err
 		}

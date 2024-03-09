@@ -17,6 +17,7 @@ type Cmd struct {
 	use               string
 	short             string
 	long              string
+	helpTemplate      string
 	loggedUserRunFunc loggedUserRunFunc
 	guestRunFunc      guestRunFunc
 	silenceUsage      bool
@@ -56,6 +57,11 @@ func (cmd *Cmd) AddChildrenCmd(childrenCmd *Cmd) *Cmd {
 
 func (cmd *Cmd) Use(use string) *Cmd {
 	cmd.use = use
+	return cmd
+}
+
+func (cmd *Cmd) SetHelpTemplate(template string) *Cmd {
+	cmd.helpTemplate = template
 	return cmd
 }
 

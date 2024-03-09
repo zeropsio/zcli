@@ -5,6 +5,7 @@ import (
 
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
+	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -33,19 +34,24 @@ func GetAllProjects(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 ) ([]entity.Project, error) {
-	info, err := restApiClient.GetUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	output, err := info.Output()
+	orgs, err := GetAllOrgs(ctx, restApiClient)
 	if err != nil {
 		return nil, err
 	}
 
 	var projects []entity.Project
-	for _, clientUser := range output.ClientUserList {
-		response, err := restApiClient.GetProjectsByClient(ctx, clientUser.ClientId)
+	for _, org := range orgs {
+		esFilter := body.EsFilter{
+			Search: []body.EsSearchItem{
+				{
+					Name:     "clientId",
+					Operator: "eq",
+					Value:    org.ID.TypedString(),
+				},
+			},
+		}
+
+		response, err := restApiClient.PostProjectSearch(ctx, esFilter)
 		if err != nil {
 			return nil, err
 		}
@@ -55,20 +61,21 @@ func GetAllProjects(
 		}
 
 		for _, project := range projectsResponse.Items {
-			projects = append(projects, projectFromEsSearch(project))
+			projects = append(projects, projectFromEsSearch(org, project))
 		}
 	}
 
 	return projects, nil
 }
 
-func projectFromEsSearch(esProject zeropsRestApiClient.EsProject) entity.Project {
+func projectFromEsSearch(org entity.Org, esProject output.EsProject) entity.Project {
 	description, _ := esProject.Description.Get()
 
 	return entity.Project{
 		ID:          esProject.Id,
 		Name:        esProject.Name,
-		ClientId:    esProject.ClientId,
+		OrgId:       org.ID,
+		OrgName:     org.Name,
 		Description: description,
 		Status:      esProject.Status,
 	}
@@ -80,7 +87,7 @@ func projectFromApiOutput(project output.Project) entity.Project {
 	return entity.Project{
 		ID:          project.Id,
 		Name:        project.Name,
-		ClientId:    project.ClientId,
+		OrgId:       project.ClientId,
 		Description: description,
 		Status:      project.Status,
 	}

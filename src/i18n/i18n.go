@@ -15,61 +15,40 @@ func T(textConst string, args ...interface{}) string {
 
 const (
 	// help
-	DisplayHelp              = "DisplayHelp"
-	GroupHelp                = "GroupHelp"
-	DeployHelp               = "DeployHelp"
-	LogShowHelp              = "LogShowHelp"
 	LoginHelp                = "LoginHelp"
 	ProjectHelp              = "ProjectHelp"
-	ProjectStartHelp         = "ProjectStartHelp"
-	ProjectStopHelp          = "ProjectStopHelp"
 	ProjectListHelp          = "ProjectListHelp"
 	ScopeHelp                = "ScopeHelp"
 	ScopeProjectHelp         = "ScopeProjectHelp"
-	ScopeServiceHelp         = "ScopeServiceHelp"
 	ScopeResetHelp           = "ScopeResetHelp"
 	ProjectDeleteHelp        = "ProjectDeleteHelp"
 	ProjectImportHelp        = "ProjectImportHelp"
 	ProjectServiceImportHelp = "ProjectServiceImportHelp"
 	ServiceHelp              = "ServiceHelp"
-	PushHelp                 = "PushHelp"
-	RegionListHelp           = "RegionListHelp"
 	ServiceStartHelp         = "ServiceStartHelp"
 	ServiceStopHelp          = "ServiceStopHelp"
-	ServiceImportHelp        = "ServiceImportHelp"
 	ServiceDeleteHelp        = "ServiceDeleteHelp"
 	ServiceLogHelp           = "ServiceLogHelp"
 	ServiceDeployHelp        = "ServiceDeployHelp"
 	ServiceListHelp          = "ServiceListHelp"
 	ServicePushHelp          = "ServicePushHelp"
-	StatusHelp               = "StatusHelp"
-	StatusInfoHelp           = "StatusInfoHelp"
 	StatusShowDebugLogsHelp  = "StatusShowDebugLogsHelp"
 	VersionHelp              = "VersionHelp"
-	BucketCreateHelp         = "BucketCreateHelp"
-	BucketDeleteHelp         = "BucketDeleteHelp"
 	VpnHelp                  = "VpnHelp"
-	VpnConnectHelp           = "VpnConnectHelp"
-	VpnDisconnectHelp        = "VpnDisconnectHelp"
+	VpnUpHelp                = "VpnUpHelp"
+	VpnDownHelp              = "VpnDownHelp"
 
 	// cmd short
 	CmdDeployDesc          = "CmdDeployDesc"
 	CmdPushDesc            = "CmdPushDesc"
 	CmdLogin               = "CmdLogin"
-	CmdStatus              = "CmdStatus"
-	CmdStatusInfo          = "CmdStatusInfo"
 	CmdStatusShowDebugLogs = "CmdStatusShowDebugLogs"
 	CmdVersion             = "CmdVersion"
-	CmdRegion              = "CmdRegion"
-	CmdRegionList          = "CmdRegionList"
 	CmdProject             = "CmdProject"
 	CmdService             = "CmdService"
-	CmdProjectStart        = "CmdProjectStart"
-	CmdProjectStop         = "CmdProjectStop"
 	CmdProjectList         = "CmdProjectList"
 	CmdScope               = "CmdScope"
 	CmdScopeProject        = "CmdScopeProject"
-	CmdScopeService        = "CmdScopeService"
 	CmdScopeReset          = "CmdScopeReset"
 	CmdProjectDelete       = "CmdProjectDelete"
 	CmdProjectImport       = "CmdProjectImport"
@@ -79,14 +58,9 @@ const (
 	CmdServiceStop         = "CmdServiceStop"
 	CmdServiceDelete       = "CmdServiceDelete"
 	CmdServiceLog          = "CmdServiceLog"
-	CmdBucket              = "CmdBucket"
-	CmdBucketZerops        = "CmdBucketZerops"
-	CmdBucketS3            = ""
-	CmdBucketCreate        = "CmdBucketCreate"
-	CmdBucketDelete        = "CmdBucketDelete"
 	CmdVpn                 = "CmdVpn"
-	CmdVpnConnect          = "CmdVpnConnect"
-	CmdVpnDisconnect       = "CmdVpnDisconnect"
+	CmdVpnUp               = "CmdVpnUp"
+	CmdVpnDown             = "CmdVpnDown"
 
 	// cmd long
 	CmdProjectImportLong = "CmdProjectImportLong"
@@ -116,17 +90,8 @@ const (
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
 
-	// prompt
-	PromptEnterZeropsServiceName = "PromptEnterZeropsServiceName"
-	PromptName                   = "PromptName"
-	PromptInvalidInput           = "PromptInvalidInput"
-	PromptInvalidHostname        = "PromptInvalidHostname"
-
 	// process
-	ProcessInvalidState        = "ProcessInvalidState"
-	ProcessInvalidStateProcess = "ProcessInvalidStateProcess"
-	ProcessStart               = "ProcessStart"
-	ProcessEnd                 = "ProcessEnd"
+	ProcessInvalidState = "ProcessInvalidState"
 
 	// archiveClient
 	ArchClientWorkingDirectory  = "ArchClientWorkingDirectory"
@@ -136,48 +101,26 @@ const (
 	ArchClientFileAlreadyExists = "ArchClientFileAlreadyExists"
 
 	// login
-	LoginSuccess        = "LoginSuccess"
-	LoginIncorrectToken = "LoginIncorrectToken"
-	RegionUrl           = "RegionUrl"
+	LoginSuccess = "LoginSuccess"
 
 	// region
 	RegionNotFound        = "RegionNotFound"
 	RegionTableColumnName = "RegionTableColumnName"
 
-	// client ID
-	MultipleClientIds  = "MultipleClientIds"
-	AvailableClientIds = "AvailableClientIds"
-	MissingClientId    = "MissingClientId"
-
 	// import
-	YamlCheck             = "YamlCheck"
-	ImportYamlOk          = "ImportYamlOk"
-	ImportYamlEmpty       = "ImportYamlEmpty"
-	ImportYamlTooLarge    = "ImportYamlTooLarge"
-	ImportYamlFound       = "ImportYamlFound"
-	ImportYamlNotFound    = "ImportYamlNotFound"
-	ImportYamlCorrupted   = "ImportYamlCorrupted"
-	ServiceCount          = "ServiceCount"
-	QueuedProcesses       = "QueuedProcesses"
-	CoreServices          = "CoreServices"
-	ReadyToImportServices = "ReadyToImportServices"
-
-	// delete cmd
-	DeleteCanceledByUser = "DeleteCanceledByUser"
+	ImportYamlOk        = "ImportYamlOk"
+	ImportYamlEmpty     = "ImportYamlEmpty"
+	ImportYamlTooLarge  = "ImportYamlTooLarge"
+	ImportYamlFound     = "ImportYamlFound"
+	ImportYamlNotFound  = "ImportYamlNotFound"
+	ImportYamlCorrupted = "ImportYamlCorrupted"
+	ServiceCount        = "ServiceCount"
+	QueuedProcesses     = "QueuedProcesses"
+	CoreServices        = "CoreServices"
 
 	// project + service
-	ProjectWrongId       = "ProjectWrongId"
-	ProjectsWithSameName = "ProjectsWithSameName"
-	AvailableProjectIds  = "AvailableProjectIds"
-	ProjectNameOrIdEmpty = "ProjectNameOrIdEmpty"
 	ProjectDeleteConfirm = "ProjectDeleteConfirm"
-	ServiceNameIsEmpty   = "ServiceNameIsEmpty"
 	ServiceDeleteConfirm = "ServiceDeleteConfirm"
-	ProcessInit          = "ProcessInit"
-	ProjectStarting      = "ProjectStarting"
-	ProjectStarted       = "ProjectStarted"
-	ProjectStopping      = "ProjectStopping"
-	ProjectStopped       = "ProjectStopped"
 	ProjectDeleting      = "ProjectDeleting"
 	ProjectDeleted       = "ProjectDeleted"
 	ServiceStarting      = "ServiceStarting"
@@ -197,13 +140,8 @@ const (
 	LogFormatInvalid             = "LogFormatInvalid"
 	LogFormatTemplateMismatch    = "LogFormatTemplateMismatch"
 	LogFormatStreamMismatch      = "LogFormatStreamMismatch"
-	LogServiceNameInvalid        = "LogServiceNameInvalid"
 	LogFormatTemplateInvalid     = "LogFormatTemplateInvalid"
 	LogFormatTemplateNoSpace     = "LogFormatTemplateNoSpace"
-	LogSuffixInvalid             = "LogSuffixInvalid"
-	LogRuntimeOnly               = "LogRuntimeOnly"
-	LogNoContainerFound          = "LogNoContainerFound"
-	LogTooFewContainers          = "LogTooFewContainers"
 	LogNoBuildFound              = "LogNoBuildFound"
 	LogBuildStatusUploading      = "LogBuildStatusUploading"
 	LogAccessFailed              = "LogAccessFailed"
@@ -216,7 +154,6 @@ const (
 
 	// deploy
 	DeployHintPush                   = "DeployHintPush"
-	BuildDeployServiceStatus         = "BuildDeployServiceStatus"
 	BuildDeployCreatingPackageStart  = "BuildDeployCreatingPackageStart"
 	BuildDeployCreatingPackageDone   = "BuildDeployCreatingPackageDone"
 	BuildDeployPackageSavedInto      = "BuildDeployPackageSavedInto"
@@ -229,38 +166,18 @@ const (
 	BuildDeployZeropsYamlFound       = "BuildDeployZeropsYamlFound"
 	BuildDeployZeropsYamlNotFound    = "BuildDeployZeropsYamlNotFound"
 
-	// s3
-	BucketGenericXAmzAcl              = "BucketGenericXAmzAcl"
-	BucketGenericXAmzAclInvalid       = "BucketGenericXAmzAclInvalid"
-	BucketGenericOnlyForObjectStorage = "BucketGenericOnlyForObjectStorage"
-	BucketGenericBucketNamePrefixed   = "BucketGenericBucketNamePrefixed"
-
-	BucketCreated                 = "BucketCreated"
-	BucketCreateCreatingDirect    = "BucketCreateCreatingDirect"
-	BucketCreateCreatingZeropsApi = "BucketCreateCreatingZeropsApi"
-
-	BucketDeleteConfirm           = "BucketDeleteConfirm"
-	BucketDeleted                 = "BucketDeleted"
-	BucketDeleteDeletingDirect    = "BucketDeleteDeletingDirect"
-	BucketDeleteDeletingZeropsApi = "BucketDeleteDeletingZeropsApi"
-
-	BucketS3AccessKeyId         = "AccessKeyId"
-	BucketS3SecretAccessKey     = "SecretAccessKey"
-	BucketS3FlagBothMandatory   = "FlagBothMandatory"
-	BucketS3EnvBothMandatory    = "EnvBothMandatory"
-	BucketS3RequestFailed       = "RequestFailed"
-	BucketS3BucketAlreadyExists = "BucketAlreadyExists"
-
 	// status info
-	StatusInfoCliDataFilePath = "StatusInfoCliDataFilePath"
-	StatusInfoLogFilePath     = "StatusInfoLogFilePath"
+	StatusInfoCliDataFilePath  = "StatusInfoCliDataFilePath"
+	StatusInfoLogFilePath      = "StatusInfoLogFilePath"
+	StatusInfoWgConfigFilePath = "StatusInfoWgConfigFilePath"
+	StatusInfoLoggedUser       = "StatusInfoLoggedUser"
 
 	// debug logs
 	DebugLogsNotFound = "DebugLogsNotFound"
 
 	// vpn
-	VpnConnected           = "VpnConnected"
-	VpnDisconnected        = "VpnDisconnected"
+	VpnUp                  = "VpnUp"
+	VpnDown                = "VpnDown"
 	VpnConfigSaved         = "VpnConfigSaved"
 	VpnPrivateKeyCorrupted = "VpnPrivateKeyCorrupted"
 	VpnPrivateKeyCreated   = "VpnPrivateKeyCreated"
@@ -282,9 +199,6 @@ const (
 	ArgsOnlyOneArrayAllowed    = "ArgsOnlyOneArrayAllowed"
 	ArgsNotEnoughRequiredArgs  = "ArgsNotEnoughRequiredArgs"
 	ArgsTooManyArgs            = "ArgsTooManyArgs"
-
-	// logger
-	LoggerUnableToOpenLogFileWarning = "LoggerUnableToOpenLogFileWarning"
 
 	// ux helpers
 	ProjectSelectorListEmpty       = "ProjectSelectorListEmpty"
@@ -311,17 +225,9 @@ const (
 
 	DestructiveOperationConfirmationFailed = "DestructiveOperationConfirmationFailed"
 
-	HintChangeRegion       = "HintChangeRegion"
-	ScopedServiceNotFound  = "ScopedServiceNotFound"
-	ProjectIdInvalidFormat = "ProjectIdInvalidFormat"
-	ProjectNotFound        = "ProjectNotFound"
-	ServiceIdInvalidFormat = "ServiceIdInvalidFormat"
-	ServiceNotFound        = "ServiceNotFound"
-
 	// errors
 	ErrorInvalidProjectId       = "ErrorInvalidProjectId"
 	ErrorInvalidScopedProjectId = "ErrorInvalidScopedProjectId"
 	ErrorInvalidServiceId       = "ErrorInvalidServiceId"
 	ErrorInvalidServiceIdOrName = "ErrorInvalidServiceIdOrName"
-	ErrorProjectIsNotActive     = "ErrorProjectIsNotActive"
 )

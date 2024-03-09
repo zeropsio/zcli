@@ -14,20 +14,21 @@ func GetAllContainers(
 	restApiClient *zeropsRestApiClient.Handler,
 	service entity.Service,
 ) ([]entity.Container, error) {
-	var searchData []body.EsSearchItem
-	searchData = append(searchData, body.EsSearchItem{
-		Name:     "clientId",
-		Operator: "eq",
-		Value:    service.ClientId.TypedString(),
-	}, body.EsSearchItem{
-		Name:     "serviceStackId",
-		Operator: "eq",
-		Value:    service.ID.TypedString(),
-	})
+	esFilter := body.EsFilter{
+		Search: []body.EsSearchItem{
+			{
+				Name:     "clientId",
+				Operator: "eq",
+				Value:    service.ClientId.TypedString(),
+			}, {
+				Name:     "serviceStackId",
+				Operator: "eq",
+				Value:    service.ID.TypedString(),
+			},
+		},
+	}
 
-	response, err := restApiClient.PostContainerSearch(ctx, body.EsFilter{
-		Search: searchData,
-	})
+	response, err := restApiClient.PostContainerSearch(ctx, esFilter)
 	if err != nil {
 		return nil, err
 	}
