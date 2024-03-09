@@ -10,11 +10,11 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-func vpnDisconnectCmd() *cmdBuilder.Cmd {
+func vpnDownCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
-		Use("disconnect").
-		Short(i18n.T(i18n.CmdVpnDisconnect)).
-		HelpFlag(i18n.T(i18n.VpnDisconnectHelp)).
+		Use("down").
+		Short(i18n.T(i18n.CmdVpnDown)).
+		HelpFlag(i18n.T(i18n.VpnDownHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -28,7 +28,7 @@ func vpnDisconnectCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnDisconnected)))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnDown)))
 
 			return nil
 		})

@@ -6,6 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
+	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
@@ -78,7 +79,22 @@ func GetNonSystemServicesByProject(
 	restApiClient *zeropsRestApiClient.Handler,
 	project entity.Project,
 ) ([]entity.Service, error) {
-	servicesResponse, err := restApiClient.GetServiceStackByProject(ctx, project.ID, project.ClientId)
+	esFilter := body.EsFilter{
+		Search: []body.EsSearchItem{
+			{
+				Name:     "projectId",
+				Operator: "eq",
+				Value:    project.ID.TypedString(),
+			},
+			{
+				Name:     "clientId",
+				Operator: "eq",
+				Value:    project.OrgId.TypedString(),
+			},
+		},
+	}
+
+	servicesResponse, err := restApiClient.PostServiceStackSearch(ctx, esFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +114,7 @@ func GetNonSystemServicesByProject(
 	return services, nil
 }
 
-func serviceFromEsSearch(esServiceStack zeropsRestApiClient.EsServiceStack) entity.Service {
+func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 	return entity.Service{
 		ID:                  esServiceStack.Id,
 		ClientId:            esServiceStack.ClientId,

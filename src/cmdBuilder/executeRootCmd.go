@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/errorsx"
@@ -25,7 +24,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func (b *CmdBuilder) CreateAndExecuteRootCobraCmd() (err error) {
+func ExecuteRootCmd(rootCmd *Cmd) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	regSignals(cancel)
 	ctx = support.Context(ctx)
@@ -54,68 +53,17 @@ func (b *CmdBuilder) CreateAndExecuteRootCobraCmd() (err error) {
 
 	flagParams := flagParams.New()
 
-	rootCmd := createRootCommand()
-
-	for _, cmd := range b.commands {
-		cobraCmd, err := b.buildCobraCmd(cmd, flagParams, uxBlocks, cliStorage)
-		if err != nil {
-			return err
-		}
-		rootCmd.AddCommand(cobraCmd)
+	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage)
+	if err != nil {
+		return err
 	}
 
-	err = rootCmd.ExecuteContext(ctx)
+	err = cobraCmd.ExecuteContext(ctx)
 	if err != nil {
 		printError(err, uxBlocks)
 	}
 
 	return nil
-}
-
-func createRootCommand() *cobra.Command {
-	rootCmd := &cobra.Command{
-		Use:               "zcli",
-		CompletionOptions: cobra.CompletionOptions{HiddenDefaultCmd: true},
-		SilenceErrors:     true,
-	}
-
-	rootCmd.SetHelpTemplate(`` + styles.CobraSectionColor().SetString("Usage:").String() + `{{if .Runnable}}
-  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
-  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
-
-` + styles.CobraSectionColor().SetString("Aliases:").String() + `
-  {{.NameAndAliases}}{{end}}{{if .HasExample}}
-
-` + styles.CobraSectionColor().SetString("Examples:").String() + `
-{{.Example}}{{end}}{{if .HasAvailableSubCommands}}{{$cmds := .Commands}}{{if eq (len .Groups) 0}}
-
-` + styles.CobraSectionColor().SetString("Available Commands:").String() + `{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
-
-{{.Title}}{{range $cmds}}{{if (and (eq .GroupID $group.ID) (or .IsAvailableCommand (eq .Name "help")))}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
-
-` + styles.CobraSectionColor().SetString("Additional Commands:").String() + `{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
-
-` + styles.CobraSectionColor().SetString("Flags:").String() + `
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
-
-` + styles.CobraSectionColor().SetString("Global Flags:").String() + `
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
-
-` + styles.CobraSectionColor().SetString("Additional help topics:").String() + `{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .CommandPath .CommandPathPadding}}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
-
-` + styles.CobraSectionColor().SetString("Global Env Variables:").String() + `
-  ` + styles.CobraItemNameColor().SetString(constants.CliLogFilePathEnvVar).String() + `     ` + i18n.T(i18n.CliLogFilePathEnvVar) + `
-  ` + styles.CobraItemNameColor().SetString(constants.CliDataFilePathEnvVar).String() + `    ` + i18n.T(i18n.CliDataFilePathEnvVar) + `
-  ` + styles.CobraItemNameColor().SetString(constants.CliTerminalMode).String() + `     ` + i18n.T(i18n.CliTerminalModeEnvVar) + `
-
-Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
-`)
-
-	return rootCmd
 }
 
 func printError(err error, uxBlocks uxBlock.UxBlocks) {

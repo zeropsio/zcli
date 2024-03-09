@@ -15,24 +15,25 @@ func GetAllAppVersionByService(
 	restApiClient *zeropsRestApiClient.Handler,
 	service entity.Service,
 ) ([]entity.AppVersion, error) {
-	var searchData []body.EsSearchItem
-	searchData = append(searchData, body.EsSearchItem{
-		Name:     "clientId",
-		Operator: "eq",
-		Value:    service.ClientId.TypedString(),
-	}, body.EsSearchItem{
-		Name:     "serviceStackId",
-		Operator: "eq",
-		Value:    service.ID.TypedString(),
-	}, body.EsSearchItem{
-		Name:     "build.serviceStackId",
-		Operator: "ne",
-		Value:    "",
-	})
+	esFilter := body.EsFilter{
+		Search: []body.EsSearchItem{
+			{
+				Name:     "clientId",
+				Operator: "eq",
+				Value:    service.ClientId.TypedString(),
+			}, {
+				Name:     "serviceStackId",
+				Operator: "eq",
+				Value:    service.ID.TypedString(),
+			}, {
+				Name:     "build.serviceStackId",
+				Operator: "ne",
+				Value:    "",
+			},
+		},
+	}
 
-	response, err := restApiClient.PostAppVersionSearch(ctx, body.EsFilter{
-		Search: searchData,
-	})
+	response, err := restApiClient.PostAppVersionSearch(ctx, esFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -55,31 +56,32 @@ func GetLatestAppVersionByService(
 	restApiClient *zeropsRestApiClient.Handler,
 	service entity.Service,
 ) ([]entity.AppVersion, error) {
-	var searchData []body.EsSearchItem
-	searchData = append(searchData, body.EsSearchItem{
-		Name:     "clientId",
-		Operator: "eq",
-		Value:    service.ClientId.TypedString(),
-	}, body.EsSearchItem{
-		Name:     "serviceStackId",
-		Operator: "eq",
-		Value:    service.ID.TypedString(),
-	}, body.EsSearchItem{
-		Name:     "build.serviceStackId",
-		Operator: "ne",
-		Value:    "",
-	})
-	var sortData []body.EsSortItem
-	sortData = append(sortData, body.EsSortItem{
-		Name:      "sequence",
-		Ascending: types.NewBoolNull(false),
-	})
+	esFilter := body.EsFilter{
+		Search: []body.EsSearchItem{
+			{
+				Name:     "clientId",
+				Operator: "eq",
+				Value:    service.ClientId.TypedString(),
+			}, {
+				Name:     "serviceStackId",
+				Operator: "eq",
+				Value:    service.ID.TypedString(),
+			}, {
+				Name:     "build.serviceStackId",
+				Operator: "ne",
+				Value:    "",
+			},
+		},
+		Sort: []body.EsSortItem{
+			{
+				Name:      "sequence",
+				Ascending: types.NewBoolNull(false),
+			},
+		},
+		Limit: types.NewIntNull(1),
+	}
 
-	response, err := restApiClient.PostAppVersionSearch(ctx, body.EsFilter{
-		Search: searchData,
-		Sort:   sortData,
-		Limit:  types.NewIntNull(1),
-	})
+	response, err := restApiClient.PostAppVersionSearch(ctx, esFilter)
 	if err != nil {
 		return nil, err
 	}

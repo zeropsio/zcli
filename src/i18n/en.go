@@ -36,8 +36,8 @@ var en = map[string]string{
 	BucketCreateHelp:         "the bucket create command.",
 	BucketDeleteHelp:         "the bucket delete command.",
 	VpnHelp:                  "the vpn command.",
-	VpnConnectHelp:           "the vpn connect command.",
-	VpnDisconnectHelp:        "the vpn disconnect command.",
+	VpnUpHelp:                "the vpn up command.",
+	VpnDownHelp:              "the vpn down command.",
 
 	// cmd short
 	CmdDeployDesc:          "Deploys your application to Zerops.",
@@ -72,8 +72,8 @@ var en = map[string]string{
 	CmdBucketCreate:        "Creates a bucket in an existing object storage.",
 	CmdBucketDelete:        "Deletes a bucket from an existing object storage.",
 	CmdVpn:                 "VPN commands group",
-	CmdVpnConnect:          "Connects to the Zerops VPN.",
-	CmdVpnDisconnect:       "Disconnects from the Zerops VPN.",
+	CmdVpnUp:               "Connects to the Zerops VPN.",
+	CmdVpnDown:             "Disconnects from the Zerops VPN.",
 
 	// cmd long
 	CmdProjectImportLong: "Creates a new project with one or more services according to the definition in the import YAML file.",
@@ -214,15 +214,17 @@ var en = map[string]string{
 	BucketS3BucketAlreadyExists: "The bucket name already exists under a different object storage user. Set a different bucket name.",
 
 	// status info
-	StatusInfoCliDataFilePath: "Zerops CLI data file path",
-	StatusInfoLogFilePath:     "Zerops CLI log file path",
+	StatusInfoCliDataFilePath:  "Zerops CLI data file path",
+	StatusInfoLogFilePath:      "Zerops CLI log file path",
+	StatusInfoWgConfigFilePath: "Zerops CLI wg config file path",
+	StatusInfoLoggedUser:       "Logged user",
 
 	// debug logs
 	DebugLogsNotFound: "Debug logs not found",
 
 	// vpn
-	VpnConnected:           "VPN connected",
-	VpnDisconnected:        "VPN disconnected",
+	VpnUp:                  "VPN connected",
+	VpnDown:                "VPN disconnected",
 	VpnConfigSaved:         "VPN config saved",
 	VpnPrivateKeyCorrupted: "VPN private key corrupted, a new one will be created",
 	VpnPrivateKeyCreated:   "VPN private key created",

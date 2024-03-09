@@ -49,8 +49,8 @@ const (
 	BucketCreateHelp         = "BucketCreateHelp"
 	BucketDeleteHelp         = "BucketDeleteHelp"
 	VpnHelp                  = "VpnHelp"
-	VpnConnectHelp           = "VpnConnectHelp"
-	VpnDisconnectHelp        = "VpnDisconnectHelp"
+	VpnUpHelp                = "VpnUpHelp"
+	VpnDownHelp              = "VpnDownHelp"
 
 	// cmd short
 	CmdDeployDesc          = "CmdDeployDesc"
@@ -85,8 +85,8 @@ const (
 	CmdBucketCreate        = "CmdBucketCreate"
 	CmdBucketDelete        = "CmdBucketDelete"
 	CmdVpn                 = "CmdVpn"
-	CmdVpnConnect          = "CmdVpnConnect"
-	CmdVpnDisconnect       = "CmdVpnDisconnect"
+	CmdVpnUp               = "CmdVpnUp"
+	CmdVpnDown             = "CmdVpnDown"
 
 	// cmd long
 	CmdProjectImportLong = "CmdProjectImportLong"
@@ -252,15 +252,17 @@ const (
 	BucketS3BucketAlreadyExists = "BucketAlreadyExists"
 
 	// status info
-	StatusInfoCliDataFilePath = "StatusInfoCliDataFilePath"
-	StatusInfoLogFilePath     = "StatusInfoLogFilePath"
+	StatusInfoCliDataFilePath  = "StatusInfoCliDataFilePath"
+	StatusInfoLogFilePath      = "StatusInfoLogFilePath"
+	StatusInfoWgConfigFilePath = "StatusInfoWgConfigFilePath"
+	StatusInfoLoggedUser       = "StatusInfoLoggedUser"
 
 	// debug logs
 	DebugLogsNotFound = "DebugLogsNotFound"
 
 	// vpn
-	VpnConnected           = "VpnConnected"
-	VpnDisconnected        = "VpnDisconnected"
+	VpnUp                  = "VpnUp"
+	VpnDown                = "VpnDown"
 	VpnConfigSaved         = "VpnConfigSaved"
 	VpnPrivateKeyCorrupted = "VpnPrivateKeyCorrupted"
 	VpnPrivateKeyCreated   = "VpnPrivateKeyCreated"

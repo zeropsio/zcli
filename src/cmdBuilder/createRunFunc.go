@@ -63,7 +63,7 @@ type LoggedUserCmdData struct {
 	VpnKeys map[uuid.ProjectId]entity.VpnKey
 }
 
-func (b *CmdBuilder) createCmdRunFunc(
+func createCmdRunFunc(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
 	uxBlocks uxBlock.UxBlocks,
@@ -88,31 +88,35 @@ func (b *CmdBuilder) createCmdRunFunc(
 			Params:     newCmdParamReader(cobraCmd, flagParams),
 		}
 
-		if cmd.loggedUserRunFunc != nil {
-			storedData := cliStorage.Data()
+		storedData := cliStorage.Data()
 
-			token := storedData.Token
-			if token == "" {
-				return errors.New(i18n.T(i18n.UnauthenticatedUser))
+		token := storedData.Token
+		if token == "" {
+			if cmd.guestRunFunc != nil {
+				return cmd.guestRunFunc(ctx, guestCmdData)
 			}
-
-			cmdData := &LoggedUserCmdData{
-				GuestCmdData: guestCmdData,
-				VpnKeys:      storedData.VpnKeys,
-			}
-
-			cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+storedData.RegionData.Address)
-
-			for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
-				err := dep.LoadSelectedScope(ctx, cmd, cmdData)
-				if err != nil {
-					return err
-				}
-			}
-			return cmd.loggedUserRunFunc(ctx, cmdData)
+			return errors.New(i18n.T(i18n.UnauthenticatedUser))
 		}
 
-		return cmd.guestRunFunc(ctx, guestCmdData)
+		// user is logged in but there is only the guest run func
+		if cmd.loggedUserRunFunc == nil {
+			return cmd.guestRunFunc(ctx, guestCmdData)
+		}
+
+		cmdData := &LoggedUserCmdData{
+			GuestCmdData: guestCmdData,
+			VpnKeys:      storedData.VpnKeys,
+		}
+
+		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+storedData.RegionData.Address)
+
+		for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
+			err := dep.LoadSelectedScope(ctx, cmd, cmdData)
+			if err != nil {
+				return err
+			}
+		}
+		return cmd.loggedUserRunFunc(ctx, cmdData)
 	}
 }
 
