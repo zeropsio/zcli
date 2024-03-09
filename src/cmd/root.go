@@ -43,7 +43,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			body := &uxBlock.TableBody{}
 
-			loggedUser := ""
+			var loggedUser string
 			if info, err := cmdData.RestApiClient.GetUserInfo(ctx); err != nil {
 				loggedUser = err.Error()
 			} else {
