@@ -116,12 +116,13 @@ func GetNonSystemServicesByProject(
 
 func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 	return entity.Service{
-		ID:                  esServiceStack.Id,
-		ClientId:            esServiceStack.ClientId,
-		Name:                esServiceStack.Name,
-		Status:              esServiceStack.Status,
-		ServiceTypeId:       esServiceStack.ServiceStackTypeId,
-		ServiceTypeCategory: esServiceStack.ServiceStackTypeInfo.ServiceStackTypeCategory,
+		ID:                          esServiceStack.Id,
+		ClientId:                    esServiceStack.ClientId,
+		Name:                        esServiceStack.Name,
+		Status:                      esServiceStack.Status,
+		ServiceTypeId:               esServiceStack.ServiceStackTypeId,
+		ServiceTypeCategory:         esServiceStack.ServiceStackTypeInfo.ServiceStackTypeCategory,
+		ServiceStackTypeVersionName: esServiceStack.ServiceStackTypeInfo.ServiceStackTypeVersionName,
 	}
 }
 
