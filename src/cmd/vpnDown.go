@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/cmdRunner"
 	"github.com/zeropsio/zcli/src/constants"
@@ -24,6 +25,11 @@ func vpnDownCmd() *cmdBuilder.Cmd {
 }
 
 func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
+	_, err := exec.LookPath("wg-quick")
+	if err != nil {
+		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
+	}
+
 	filePath, err := constants.WgConfigFilePath()
 	if err != nil {
 		return err
@@ -36,10 +42,6 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
 	}
 	defer f.Close()
 
-	// TODO - janhajek check if vpn is connected
-	// TODO - janhajek get somehow a meaningful output
-	// TODO - janhajek check if wg-quick is installed
-	// TODO - janhajek a configurable path to wg-quick
 	c := exec.CommandContext(ctx, "wg-quick", "down", filePath)
 	_, err = cmdRunner.Run(c)
 	if err != nil {
