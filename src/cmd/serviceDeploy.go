@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/base64"
 	"io"
 	"time"
 
@@ -137,7 +136,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					Id: appVersion.Id,
 				},
 				body.PutAppVersionDeploy{
-					ZeropsYaml: types.NewMediumTextNull(base64.StdEncoding.EncodeToString(configContent)),
+					ZeropsYaml: types.NewMediumTextNull(string(configContent)),
 				},
 			)
 			if err != nil {
