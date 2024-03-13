@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/uxBlock"
-	"github.com/zeropsio/zcli/src/uxHelpers"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/zeropsio/zcli/src/cliStorage"
@@ -20,7 +18,9 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
+	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"

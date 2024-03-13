@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/path"
-
-	"github.com/zeropsio/zcli/src/i18n"
 )
 
 func projectDeleteCmd() *cmdBuilder.Cmd {
