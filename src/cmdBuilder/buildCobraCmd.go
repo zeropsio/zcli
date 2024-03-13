@@ -17,8 +17,9 @@ func buildCobraCmd(
 	cliStorage *cliStorage.Handler,
 ) (*cobra.Command, error) {
 	cobraCmd := &cobra.Command{
-		Short:        cmd.short,
-		SilenceUsage: cmd.silenceUsage,
+		Short:         cmd.short,
+		SilenceUsage:  cmd.silenceUsage,
+		SilenceErrors: cmd.silenceError,
 	}
 
 	if cmd.helpTemplate != "" {

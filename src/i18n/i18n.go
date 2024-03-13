@@ -89,6 +89,7 @@ const (
 	ConfirmFlag           = "ConfirmFlag"
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
+	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
 
 	// process
 	ProcessInvalidState = "ProcessInvalidState"
@@ -171,16 +172,24 @@ const (
 	StatusInfoLogFilePath      = "StatusInfoLogFilePath"
 	StatusInfoWgConfigFilePath = "StatusInfoWgConfigFilePath"
 	StatusInfoLoggedUser       = "StatusInfoLoggedUser"
+	StatusInfoVpnStatus        = "StatusInfoVpnStatus"
 
 	// debug logs
 	DebugLogsNotFound = "DebugLogsNotFound"
 
 	// vpn
-	VpnUp                  = "VpnUp"
-	VpnDown                = "VpnDown"
-	VpnConfigSaved         = "VpnConfigSaved"
-	VpnPrivateKeyCorrupted = "VpnPrivateKeyCorrupted"
-	VpnPrivateKeyCreated   = "VpnPrivateKeyCreated"
+	VpnUp                            = "VpnUp"
+	VpnDown                          = "VpnDown"
+	VpnConfigSaved                   = "VpnConfigSaved"
+	VpnPrivateKeyCorrupted           = "VpnPrivateKeyCorrupted"
+	VpnPrivateKeyCreated             = "VpnPrivateKeyCreated"
+	VpnWgQuickIsNotInstalled         = "VpnWgQuickIsNotInstalled"
+	VpnDisconnectionPrompt           = "VpnDisconnectionPrompt"
+	VpnDisconnectionPromptNo         = "VpnDisconnectionPromptNo"
+	VpnPingFailed                    = "VpnPingFailed"
+	VpnCheckingConnection            = "VpnCheckingConnection"
+	VpnCheckingConnectionIsActive    = "VpnCheckingConnectionIsActive"
+	VpnCheckingConnectionIsNotActive = "VpnCheckingConnectionIsNotActive"
 
 	////////////
 	// global //

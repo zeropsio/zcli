@@ -41,7 +41,6 @@ func ProcessCheckWithSpinner(
 			err := process.F(ctx)
 			if err != nil {
 				spinners[i].Finish(styles.ErrorLine(process.ErrorMessageMessage))
-				stopFunc()
 
 				once.Do(func() {
 					returnErr = err

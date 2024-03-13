@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -21,9 +22,16 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.ProjectDeleteHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			if !cmdData.Params.GetBool("confirm") {
-				err := uxHelpers.YesNoPromptDestructive(ctx, cmdData.UxBlocks, i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name))
+				confirmed, err := uxHelpers.YesNoPrompt(
+					ctx,
+					cmdData.UxBlocks,
+					i18n.T(i18n.ProjectDeleteConfirm, cmdData.Project.Name),
+				)
 				if err != nil {
 					return err
+				}
+				if !confirmed {
+					return errors.New(i18n.T(i18n.DestructiveOperationConfirmationFailed))
 				}
 			}
 

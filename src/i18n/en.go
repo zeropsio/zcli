@@ -76,6 +76,7 @@ var en = map[string]string{
 	ConfirmFlag:           "If set, zCLI will not ask for confirmation of destructive operations.",
 	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
+	VpnAutoDisconnectFlag: "If set, zCLI will automatically disconnect from the VPN if it is already connected.",
 
 	// process
 	ProcessInvalidState: "last command has finished with error, identifier for communication with our support: %s",
@@ -158,16 +159,24 @@ var en = map[string]string{
 	StatusInfoLogFilePath:      "Zerops CLI log file path",
 	StatusInfoWgConfigFilePath: "Zerops CLI wg config file path",
 	StatusInfoLoggedUser:       "Logged user",
+	StatusInfoVpnStatus:        "VPN status",
 
 	// debug logs
 	DebugLogsNotFound: "Debug logs not found",
 
 	// vpn
-	VpnUp:                  "VPN connected",
-	VpnDown:                "VPN disconnected",
-	VpnConfigSaved:         "VPN config saved",
-	VpnPrivateKeyCorrupted: "VPN private key corrupted, a new one will be created",
-	VpnPrivateKeyCreated:   "VPN private key created",
+	VpnUp:                            "VPN connected",
+	VpnDown:                          "VPN disconnected",
+	VpnConfigSaved:                   "VPN config saved",
+	VpnPrivateKeyCorrupted:           "VPN private key corrupted, a new one will be created",
+	VpnPrivateKeyCreated:             "VPN private key created",
+	VpnWgQuickIsNotInstalled:         "wg-quick is not installed, please install it and try again",
+	VpnDisconnectionPrompt:           "VPN is active, do you want to disconnect?",
+	VpnDisconnectionPromptNo:         "VPN is active, you can disconnect using the 'zcli vpn down' command",
+	VpnPingFailed:                    "VPN ping failed, this could indicate a problem with the VPN connection",
+	VpnCheckingConnection:            "Checking VPN connection",
+	VpnCheckingConnectionIsActive:    "VPN connection is active",
+	VpnCheckingConnectionIsNotActive: "VPN connection is not active",
 
 	////////////
 	// global //
