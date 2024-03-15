@@ -45,8 +45,15 @@ func ContentType(contentType string) Option {
 	}
 }
 
+func ContentLength(contentLength int64) Option {
+	return func(cfg *optionConfig) {
+		cfg.contentLength = contentLength
+	}
+}
+
 type optionConfig struct {
-	headers map[string]string
+	contentLength int64
+	headers       map[string]string
 }
 
 func (h *Handler) PutStream(ctx context.Context, url string, body io.Reader, options ...Option) (Response, error) {
@@ -54,7 +61,7 @@ func (h *Handler) PutStream(ctx context.Context, url string, body io.Reader, opt
 }
 
 func (h *Handler) Get(ctx context.Context, url string, options ...Option) (Response, error) {
-	return h.do(ctx, "GET", url, nil)
+	return h.do(ctx, "GET", url, nil, options...)
 }
 
 func (h *Handler) do(ctx context.Context, method string, url string, data []byte, options ...Option) (Response, error) {
@@ -74,6 +81,7 @@ func (h *Handler) doStream(ctx context.Context, method string, url string, body 
 
 	client := &http.Client{Timeout: h.config.HttpTimeout}
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	req.ContentLength = cfg.contentLength
 	if err != nil {
 		return Response{}, err
 	}

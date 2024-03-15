@@ -150,6 +150,7 @@ const (
 
 	// push
 	PushRunning  = "PushRunning"
+	PushFailed   = "PushFailed"
 	PushFinished = "PushFinished"
 
 	// deploy

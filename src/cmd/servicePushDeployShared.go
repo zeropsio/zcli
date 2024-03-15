@@ -81,12 +81,13 @@ func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error
 	return file, nil
 }
 
-func packageUpload(ctx context.Context, client *httpClient.Handler, uploadUrl string, reader io.Reader) error {
-	cephResponse, err := client.PutStream(ctx, uploadUrl, reader, httpClient.ContentType("application/gzip"))
+func packageUpload(ctx context.Context, client *httpClient.Handler, uploadUrl string, reader io.Reader, options ...httpClient.Option) error {
+	options = append(options, httpClient.ContentType("application/gzip"))
+	cephResponse, err := client.PutStream(ctx, uploadUrl, reader, options...)
 	if err != nil {
 		return err
 	}
-	if cephResponse.StatusCode != http.StatusCreated {
+	if cephResponse.StatusCode != http.StatusOK {
 		return errors.New(i18n.T(i18n.BuildDeployUploadPackageFailed))
 	}
 

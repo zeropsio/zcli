@@ -138,6 +138,7 @@ var en = map[string]string{
 	// push
 	PushRunning:  "Push is running",
 	PushFinished: "Push finished",
+	PushFailed:   "Push failed",
 
 	// deploy
 	DeployHintPush:                   "To build your application in Zerops, use the zcli push command instead.",
