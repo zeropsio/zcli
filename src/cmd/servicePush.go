@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"context"
-	"encoding/base64"
 	"io"
+	"os"
+	"path"
 	"time"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
@@ -14,7 +15,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
+	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
 )
 
@@ -54,31 +55,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			files, err := arch.FindGitFiles(cmdData.Params.GetString("workingDir"))
-			if err != nil {
-				return err
-			}
-
-			var reader io.Reader
-			pipeReader, writer := io.Pipe()
-			defer pipeReader.Close()
-			reader = pipeReader
-
-			tarErrChan := make(chan error, 1)
-
-			go arch.TarFiles(writer, files, tarErrChan)
-
-			if cmdData.Params.GetString("archiveFilePath") != "" {
-				packageFile, err := openPackageFile(
-					cmdData.Params.GetString("archiveFilePath"),
-					cmdData.Params.GetString("workingDir"),
-				)
-				if err != nil {
-					return err
-				}
-				reader = io.TeeReader(reader, packageFile)
-			}
-
 			appVersion, err := createAppVersion(
 				ctx,
 				cmdData.RestApiClient,
@@ -89,31 +65,66 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			// TODO - janhajek merge with sdk client
-			httpClient := httpClient.New(ctx, httpClient.Config{
-				HttpTimeout: time.Minute * 15,
-			})
-
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F: func(ctx context.Context) error {
-						if err := packageUpload(ctx, httpClient, appVersion.UploadUrl.String(), reader); err != nil {
-							// if an error occurred while packing the app, return that error
-							select {
-							case err := <-tarErrChan:
-								return err
-							default:
+					F: func(ctx context.Context) (err error) {
+						var size int64
+						var reader io.Reader
+
+						if cmdData.Params.GetString("archiveFilePath") != "" {
+							packageFile, err := openPackageFile(
+								cmdData.Params.GetString("archiveFilePath"),
+								cmdData.Params.GetString("workingDir"),
+							)
+							if err != nil {
 								return err
 							}
+							s, err := packageFile.Stat()
+							if err != nil {
+								return err
+							}
+							size = s.Size()
+							reader = packageFile
+						} else {
+							tempFile := path.Join(os.TempDir(), appVersion.Id.Native())
+							f, err := os.Create(tempFile)
+							if err != nil {
+								return err
+							}
+							defer os.Remove(tempFile)
+							files, err := arch.FindGitFiles(cmdData.Params.GetString("workingDir"))
+							if err != nil {
+								return err
+							}
+							if err := arch.TarFiles(f, files); err != nil {
+								return err
+							}
+							if err := f.Close(); err != nil {
+								return err
+							}
+							readFile, err := os.Open(tempFile)
+							if err != nil {
+								return err
+							}
+							defer readFile.Close()
+							stat, err := readFile.Stat()
+							if err != nil {
+								return err
+							}
+							size = stat.Size()
+							reader = readFile
 						}
 
-						// wait for packing and saving to finish (should already be done after the package upload has finished)
-						if tarErr := <-tarErrChan; tarErr != nil {
-							return tarErr
+						// TODO - janhajek merge with sdk client
+						client := httpClient.New(ctx, httpClient.Config{
+							HttpTimeout: time.Minute * 15,
+						})
+						if err := packageUpload(ctx, client, appVersion.UploadUrl.String(), reader, httpClient.ContentLength(size)); err != nil {
+							// if an error occurred while packing the app, return that error
+							return err
 						}
-
 						return nil
 					},
 					RunningMessage:      i18n.T(i18n.BuildDeployUploadingPackageStart),
@@ -139,11 +150,11 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			}
 
 			deployResponse, err := cmdData.RestApiClient.PutAppVersionBuildAndDeploy(ctx,
-				path.AppVersionId{
+				dtoPath.AppVersionId{
 					Id: appVersion.Id,
 				},
 				body.PutAppVersionBuildAndDeploy{
-					ZeropsYaml: types.MediumText(base64.StdEncoding.EncodeToString(configContent)),
+					ZeropsYaml: types.MediumText(configContent),
 					Source:     types.NewStringNull(sourceName),
 				},
 			)
@@ -162,7 +173,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				[]uxHelpers.Process{{
 					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.PushRunning),
-					ErrorMessageMessage: i18n.T(i18n.PushRunning),
+					ErrorMessageMessage: i18n.T(i18n.PushFailed),
 					SuccessMessage:      i18n.T(i18n.PushFinished),
 				}},
 			)

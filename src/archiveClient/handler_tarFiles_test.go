@@ -13,21 +13,20 @@ import (
 
 func TestSymlink(t *testing.T) {
 	archiver := New(Config{})
-	errChan := make(chan error)
-	reader, writer := io.Pipe()
 
-	go archiver.TarFiles(
-		writer,
+	buf := bytes.NewBuffer(nil)
+
+	require.NoError(t, archiver.TarFiles(
+		buf,
 		[]File{
 			{
 				SourcePath:  "./test/var/www/dir/subDir/file3.3.symlink.txt",
 				ArchivePath: "dir/subDir/file3.3.symlink.txt",
 			},
 		},
-		errChan,
-	)
+	))
 
-	gz, err := gzip.NewReader(reader)
+	gz, err := gzip.NewReader(buf)
 	require.NoError(t, err)
 
 	b, err := io.ReadAll(gz)

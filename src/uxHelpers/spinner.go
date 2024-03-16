@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -26,33 +27,28 @@ func ProcessCheckWithSpinner(
 	}
 
 	stopFunc := uxBlocks.RunSpinners(ctx, spinners)
+	defer stopFunc()
 
 	var returnErr error
-
 	var once sync.Once
 
-	wg := sync.WaitGroup{}
+	var wg sync.WaitGroup
 	for i := range processList {
 		wg.Add(1)
-		go func(i int) {
+		go func(process Process, spinner *uxBlock.Spinner) {
 			defer wg.Done()
-			process := processList[i]
-
 			err := process.F(ctx)
 			if err != nil {
-				spinners[i].Finish(styles.ErrorLine(process.ErrorMessageMessage))
-
+				spinner.Finish(styles.ErrorLine(process.ErrorMessageMessage))
 				once.Do(func() {
 					returnErr = err
 				})
 				return
 			}
-			spinners[i].Finish(styles.SuccessLine(process.SuccessMessage))
-		}(i)
+			spinner.Finish(styles.SuccessLine(process.SuccessMessage))
+		}(processList[i], spinners[i])
 	}
-
 	wg.Wait()
-	stopFunc()
 
 	return returnErr
 }
@@ -89,12 +85,22 @@ func CheckZeropsProcess(
 
 				processStatus := processOutput.Status
 
-				if processStatus == enum.ProcessStatusEnumFinished {
+				switch processStatus {
+				case enum.ProcessStatusEnumPending:
+					continue
+				case enum.ProcessStatusEnumRunning:
+					continue
+				case enum.ProcessStatusEnumFinished:
 					return nil
-				}
-
-				if !(processStatus == enum.ProcessStatusEnumRunning ||
-					processStatus == enum.ProcessStatusEnumPending) {
+				case enum.ProcessStatusEnumRollbacking:
+					fallthrough
+				case enum.ProcessStatusEnumCanceling:
+					fallthrough
+				case enum.ProcessStatusEnumFailed:
+					fallthrough
+				case enum.ProcessStatusEnumCanceled:
+					fallthrough
+				default:
 					return errors.Errorf(i18n.T(i18n.ProcessInvalidState), processId)
 				}
 			}

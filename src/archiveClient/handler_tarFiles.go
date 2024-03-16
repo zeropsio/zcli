@@ -12,10 +12,7 @@ type File struct {
 	ArchivePath string // path to the file in archive using / as separator
 }
 
-func (h *Handler) TarFiles(w io.WriteCloser, files []File, errChan chan<- error) {
-	defer close(errChan)
-	defer w.Close()
-
+func (h *Handler) TarFiles(w io.Writer, files []File) error {
 	gz := gzip.NewWriter(w)
 	defer gz.Close()
 
@@ -25,14 +22,13 @@ func (h *Handler) TarFiles(w io.WriteCloser, files []File, errChan chan<- error)
 	for _, file := range files {
 		fileInfo, err := os.Lstat(file.SourcePath)
 		if err != nil {
-			errChan <- err
-			return
+			return err
 		}
 
 		err = tarFile(archive, file, fileInfo)
 		if err != nil {
-			errChan <- err
-			return
+			return err
 		}
 	}
+	return nil
 }
