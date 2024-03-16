@@ -16,5 +16,6 @@ func serviceCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(serviceStartCmd()).
 		AddChildrenCmd(serviceStopCmd()).
 		AddChildrenCmd(servicePushCmd()).
+		AddChildrenCmd(serviceEnableSubdomainCmd()).
 		AddChildrenCmd(serviceDeployCmd())
 }
