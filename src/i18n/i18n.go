@@ -75,7 +75,6 @@ const (
 	RegionFlag            = "RegionFlag"
 	RegionUrlFlag         = "RegionUrlFlag"
 	BuildVersionName      = "BuildVersionName"
-	SourceName            = "SourceName"
 	BuildWorkingDir       = "BuildWorkingDir"
 	BuildArchiveFilePath  = "BuildArchiveFilePath"
 	ZeropsYamlLocation    = "ZeropsYamlLocation"

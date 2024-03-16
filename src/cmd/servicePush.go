@@ -28,7 +28,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
-		StringFlag("source", "", i18n.T(i18n.SourceName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
 		HelpFlag(i18n.T(i18n.ServicePushHelp)).
@@ -144,18 +143,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployDeployingStart)))
 
-			sourceName := cmdData.Params.GetString("source")
-			if sourceName == "" {
-				sourceName = cmdData.Service.Name.String()
-			}
-
 			deployResponse, err := cmdData.RestApiClient.PutAppVersionBuildAndDeploy(ctx,
 				dtoPath.AppVersionId{
 					Id: appVersion.Id,
 				},
 				body.PutAppVersionBuildAndDeploy{
 					ZeropsYaml: types.MediumText(configContent),
-					Source:     types.NewStringNull(sourceName),
+					Source:     types.NewStringNull("CLI"),
 				},
 			)
 			if err != nil {
