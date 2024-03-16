@@ -21,6 +21,7 @@ type Cmd struct {
 	loggedUserRunFunc loggedUserRunFunc
 	guestRunFunc      guestRunFunc
 	silenceUsage      bool
+	silenceError      bool
 
 	scopeLevel ScopeLevel
 	args       []cmdArg
@@ -87,6 +88,11 @@ func (cmd *Cmd) GuestRunFunc(runFunc guestRunFunc) *Cmd {
 
 func (cmd *Cmd) SilenceUsage(silenceUsage bool) *Cmd {
 	cmd.silenceUsage = silenceUsage
+	return cmd
+}
+
+func (cmd *Cmd) SilenceError(silenceError bool) *Cmd {
+	cmd.silenceError = silenceError
 	return cmd
 }
 

@@ -3,12 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
@@ -21,6 +23,7 @@ func rootCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("zcli").
 		SetHelpTemplate(getRootTemplate()).
+		SilenceError(true).
 		AddChildrenCmd(loginCmd()).
 		AddChildrenCmd(versionCmd()).
 		AddChildrenCmd(scopeCmd()).
@@ -71,6 +74,15 @@ func rootCmd() *cmdBuilder.Cmd {
 				}
 
 				body.AddStringsRow(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.ID.Native()))
+			}
+
+			ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+			defer cancel()
+
+			if err := nettools.Ping(ctx, vpnCheckAddress); err != nil {
+				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsNotActive))
+			} else {
+				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsActive))
 			}
 
 			cmdData.UxBlocks.Table(body)

@@ -3,22 +3,20 @@ package uxHelpers
 import (
 	"context"
 
-	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func YesNoPromptDestructive(ctx context.Context, uxBlocks uxBlock.UxBlocks, message string) error {
+func YesNoPrompt(
+	ctx context.Context,
+	uxBlocks uxBlock.UxBlocks,
+	questionMessage string,
+) (bool, error) {
 	// TODO - janhajek translate
 	choices := []string{"NO", "YES"}
-	choice, err := uxBlocks.Prompt(ctx, message, choices)
+	choice, err := uxBlocks.Prompt(ctx, questionMessage, choices)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if choice == 0 {
-		return errors.New(i18n.T(i18n.DestructiveOperationConfirmationFailed))
-	}
-
-	return nil
+	return choice == 1, nil
 }
