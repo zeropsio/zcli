@@ -3,6 +3,7 @@ package scope
 import (
 	"context"
 
+	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
@@ -38,14 +39,17 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
-			return errorsx.Convert(
-				err,
-				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidScopedProjectId)),
-				errorsx.ConvertErrorCode(errorCode.ProjectNotFound, i18n.T(i18n.ScopedProjectNotFound)),
-			)
+			if errorsx.Check(err, errorsx.CheckErrorCode(errorCode.ProjectNotFound)) {
+				err := ProjectScopeReset(cmdData)
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		} else {
+			infoText = i18n.ScopedProject
 		}
-
-		infoText = i18n.ScopedProject
 	}
 
 	if projectId, exists := cmdData.Args[ProjectArgName]; exists {
@@ -83,6 +87,18 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 
 	cmdData.Project = project
 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), cmdData.Project.Name.String()))
+
+	return nil
+}
+
+func ProjectScopeReset(cmdData *cmdBuilder.LoggedUserCmdData) error {
+	_, err := cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+		data.ScopeProjectId = uuid.ProjectIdNull{}
+		return data
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

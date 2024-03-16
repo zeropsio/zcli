@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity/repository"
@@ -13,6 +14,7 @@ import (
 	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zerops-go/errorCode"
 )
 
 func ExecuteCmd() error {
@@ -66,14 +68,17 @@ func rootCmd() *cmdBuilder.Cmd {
 				projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
-					if errorsx.IsUserError(err) {
-						cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ScopedProjectNotFound)))
+					if errorsx.Check(err, errorsx.CheckErrorCode(errorCode.ProjectNotFound)) {
+						err := scope.ProjectScopeReset(cmdData)
+						if err != nil {
+							return err
+						}
+					} else {
+						body.AddStringsRow(i18n.T(i18n.ScopedProject), err.Error())
 					}
-
-					return err
+				} else {
+					body.AddStringsRow(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.ID.Native()))
 				}
-
-				body.AddStringsRow(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.ID.Native()))
 			}
 
 			ctx, cancel := context.WithTimeout(ctx, time.Second*5)

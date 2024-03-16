@@ -3,11 +3,10 @@ package cmd
 import (
 	"context"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
+	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func scopeResetCmd() *cmdBuilder.Cmd {
@@ -16,10 +15,7 @@ func scopeResetCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdScopeReset)).
 		HelpFlag(i18n.T(i18n.ScopeResetHelp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			_, err := cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
-				data.ScopeProjectId = uuid.ProjectIdNull{}
-				return data
-			})
+			err := scope.ProjectScopeReset(cmdData)
 			if err != nil {
 				return err
 			}

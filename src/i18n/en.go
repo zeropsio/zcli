@@ -60,7 +60,6 @@ var en = map[string]string{
 	RegionFlag:            "Choose one of Zerops regions. Use the \"zcli region list\" command to list all Zerops regions.",
 	RegionUrlFlag:         "Zerops region file url.",
 	BuildVersionName:      "Adds a custom version name. Automatically filled if the VERSIONNAME environment variable exists.",
-	SourceName:            "Override zerops.yml service name.",
 	BuildWorkingDir:       "Sets a custom working directory. Default working directory is the current directory.",
 	BuildArchiveFilePath:  "If set, zCLI creates a tar.gz archive with the application code in the required path relative\nto the working directory. By default, no archive is created.",
 	ZeropsYamlLocation:    "Sets a custom path to the zerops.yml file relative to the working directory. By default zCLI\nlooks for zerops.yml in the working directory.",
