@@ -31,7 +31,7 @@ func (hook *VarLogHook) Fire(entry *logrus.Entry) error {
 		return err
 	}
 
-	f, err := os.OpenFile(hook.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0775)
+	f, err := os.OpenFile(hook.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to open file, %v", err)
 		return err

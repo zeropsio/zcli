@@ -50,6 +50,8 @@ type GuestCmdData struct {
 	UxBlocks   uxBlock.UxBlocks
 	Args       map[string][]string
 	Params     ParamsReader
+
+	PrintHelp func()
 }
 
 type LoggedUserCmdData struct {
@@ -86,6 +88,10 @@ func createCmdRunFunc(
 			UxBlocks:   uxBlocks,
 			Args:       argsMap,
 			Params:     newCmdParamReader(cobraCmd, flagParams),
+
+			PrintHelp: func() {
+				cobraCmd.HelpFunc()(cobraCmd, []string{})
+			},
 		}
 
 		storedData := cliStorage.Data()

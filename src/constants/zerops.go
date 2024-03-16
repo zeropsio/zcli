@@ -95,7 +95,7 @@ func checkPath(filePath string) (string, error) {
 		return "", err
 	}
 
-	f, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return "", err
 	}

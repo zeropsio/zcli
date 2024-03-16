@@ -43,6 +43,9 @@ func rootCmd() *cmdBuilder.Cmd {
 
 			cmdData.UxBlocks.Table(body)
 
+			// print the default command help
+			cmdData.PrintHelp()
+
 			return nil
 		}).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
@@ -91,6 +94,9 @@ func rootCmd() *cmdBuilder.Cmd {
 			}
 
 			cmdData.UxBlocks.Table(body)
+
+			// print the default command help
+			cmdData.PrintHelp()
 
 			return nil
 		})
