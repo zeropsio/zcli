@@ -21,7 +21,6 @@ func GetServiceByIdOrName(
 	projectId uuid.ProjectId,
 	serviceIdOrName string,
 ) (*entity.Service, error) {
-
 	service, err := GetServiceById(ctx, restApiClient, uuid.ServiceStackId(serviceIdOrName))
 	if err != nil {
 		if errorsx.Check(err,
