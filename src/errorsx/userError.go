@@ -16,10 +16,6 @@ func NewUserError(message string, previous error) *UserError {
 	}
 }
 
-func IsUserError(err error) bool {
-	return AsUserError(err) != nil
-}
-
 func AsUserError(err error) *UserError {
 	var userError *UserError
 	if errors.As(err, &userError) {
