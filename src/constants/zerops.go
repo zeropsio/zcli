@@ -71,9 +71,14 @@ func receiverFromOsFunc(osFunc func() (string, error), elem ...string) pathRecei
 		if err != nil {
 			return "", err
 		}
-		elem = append([]string{dir}, elem...)
 
-		return filepath.Join(elem...), nil
+		return checkPath(filepath.Join(append([]string{dir}, elem...)...))
+	}
+}
+
+func receiverFromOsTemp(elem ...string) pathReceiver {
+	return func() (string, error) {
+		return checkPath(filepath.Join(append([]string{os.TempDir()}, elem...)...))
 	}
 }
 
@@ -91,7 +96,7 @@ func findFirstWritablePath(paths []pathReceiver) string {
 func checkPath(filePath string) (string, error) {
 	dir := path.Dir(filePath)
 
-	if err := os.MkdirAll(dir, 0775); err != nil {
+	if err := os.MkdirAll(dir, 0666); err != nil {
 		return "", err
 	}
 

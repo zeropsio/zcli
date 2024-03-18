@@ -16,6 +16,8 @@ func getDataFilePathsReceivers() []pathReceiver {
 		receiverFromEnv(CliDataFilePathEnvVar),
 		receiverFromOsFunc(os.UserConfigDir, "Zerops", CliDataFileName),
 		receiverFromOsFunc(os.UserHomeDir, "Zerops", CliDataFileName),
+		receiverFromOsFunc(os.UserHomeDir, "zerops."+CliDataFileName),
+		receiverFromOsTemp("zerops." + CliDataFileName),
 	}
 }
 
@@ -24,6 +26,8 @@ func getLogFilePathReceivers() []pathReceiver {
 		receiverFromEnv(CliLogFilePathEnvVar),
 		receiverFromOsFunc(os.UserConfigDir, "Zerops", ZeropsLogFile),
 		receiverFromOsFunc(os.UserHomeDir, "Zerops", ZeropsLogFile),
+		receiverFromOsFunc(os.UserHomeDir, "zerops."+ZeropsLogFile),
+		receiverFromOsTemp("zerops." + ZeropsLogFile),
 	}
 }
 
@@ -32,5 +36,7 @@ func getWgConfigFilePathReceivers() []pathReceiver {
 		receiverFromEnv(CliWgConfigPathEnvVar),
 		receiverFromOsFunc(os.UserConfigDir, "Zerops", WgConfigFile),
 		receiverFromOsFunc(os.UserHomeDir, "Zerops", WgConfigFile),
+		receiverFromOsFunc(os.UserHomeDir, WgConfigFile),
+		receiverFromOsTemp("zerops." + WgConfigFile),
 	}
 }
