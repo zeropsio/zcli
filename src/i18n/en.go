@@ -232,5 +232,5 @@ more info: https://docs.zerops.io/documentation/cli/authorization.html`,
 	ErrorInvalidProjectId:       "Invalid project ID [%s]",
 	ErrorInvalidScopedProjectId: "Invalid ID of the scoped project [%s], select a different project using `zcli scope project` command.",
 	ErrorInvalidServiceId:       "Invalid service ID [%s]",
-	ErrorInvalidServiceIdOrName: "Invalid service ID or name [%s]",
+	ErrorServiceNotFound:        "Service [%s] not found",
 }

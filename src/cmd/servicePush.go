@@ -149,7 +149,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				},
 				body.PutAppVersionBuildAndDeploy{
 					ZeropsYaml: types.MediumText(configContent),
-					Source:     types.NewStringNull("CLI"),
 				},
 			)
 			if err != nil {

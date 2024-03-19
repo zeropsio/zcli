@@ -242,5 +242,5 @@ const (
 	ErrorInvalidProjectId       = "ErrorInvalidProjectId"
 	ErrorInvalidScopedProjectId = "ErrorInvalidScopedProjectId"
 	ErrorInvalidServiceId       = "ErrorInvalidServiceId"
-	ErrorInvalidServiceIdOrName = "ErrorInvalidServiceIdOrName"
+	ErrorServiceNotFound        = "ErrorServiceNotFound"
 )
