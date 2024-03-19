@@ -15,6 +15,7 @@ func TestStorage(t *testing.T) {
 	{
 		storage, err := New[dataObject](Config{
 			FilePath: "./test",
+			FileMode: 0666,
 		})
 		require.NoError(t, err)
 
