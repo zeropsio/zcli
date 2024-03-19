@@ -9,6 +9,9 @@ import (
 
 	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
+	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
+
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/errorsx"
@@ -20,8 +23,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/apiError"
-	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
 )
 
 func ExecuteRootCmd(rootCmd *Cmd) (err error) {
@@ -121,13 +122,14 @@ func createLoggers(isTerminal bool) (*logger.Handler, *logger.Handler) {
 		IsTerminal: isTerminal,
 	})
 
-	loggerFilePath, err := constants.LogFilePath()
+	loggerFilePath, fileMode, err := constants.LogFilePath()
 	if err != nil {
 		outputLogger.Warning(styles.WarningLine(err.Error()))
 	}
 
 	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
 		FilePath: loggerFilePath,
+		FileMode: fileMode,
 	})
 
 	return outputLogger, debugFileLogger
@@ -145,13 +147,14 @@ func regSignals(contextCancel func()) {
 }
 
 func createCliStorage() (*cliStorage.Handler, error) {
-	filePath, err := constants.CliDataFilePath()
+	filePath, fileMode, err := constants.CliDataFilePath()
 	if err != nil {
 		return nil, err
 	}
 	s, err := storage.New[cliStorage.Data](
 		storage.Config{
 			FilePath: filePath,
+			FileMode: fileMode,
 		},
 	)
 	return &cliStorage.Handler{Handler: s}, err

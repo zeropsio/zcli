@@ -2,6 +2,7 @@ package logger
 
 import (
 	"io"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
@@ -36,6 +37,7 @@ func NewOutputLogger(config OutputConfig) *Handler {
 
 type DebugFileConfig struct {
 	FilePath string
+	FileMode os.FileMode
 }
 
 func NewDebugFileLogger(config DebugFileConfig) *Handler {
@@ -45,8 +47,9 @@ func NewDebugFileLogger(config DebugFileConfig) *Handler {
 
 	if config.FilePath != "" {
 		l.AddHook(&VarLogHook{
-			path:   config.FilePath,
-			levels: []logrus.Level{logrus.DebugLevel, logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel},
+			path:     config.FilePath,
+			fileMode: config.FileMode,
+			levels:   []logrus.Level{logrus.DebugLevel, logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel},
 			formatter: &logrus.TextFormatter{
 				DisableColors: true,
 			},

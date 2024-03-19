@@ -16,6 +16,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdRunner"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -92,12 +93,12 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			filePath, err := constants.WgConfigFilePath()
+			filePath, fileMode, err := constants.WgConfigFilePath()
 			if err != nil {
 				return err
 			}
 
-			f, err := os.Create(filePath)
+			f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE, fileMode)
 			if err != nil {
 				return err
 			}

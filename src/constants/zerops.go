@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
+	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 )
 
@@ -22,64 +24,69 @@ const (
 	CliTerminalMode       = "ZEROPS_CLI_TERMINAL_MODE"
 )
 
-type pathReceiver func() (path string, err error)
+type pathReceiver func(fileMode os.FileMode) (path string, err error)
 
-func CliDataFilePath() (string, error) {
-	return checkReceivers(getDataFilePathsReceivers(), i18n.UnableToWriteCliData)
+func CliDataFilePath() (string, os.FileMode, error) {
+	return checkReceivers(getDataFilePathsReceivers(), 0600, i18n.UnableToWriteCliData)
 }
 
-func LogFilePath() (string, error) {
-	return checkReceivers(getLogFilePathReceivers(), i18n.UnableToWriteLogFile)
+func LogFilePath() (string, os.FileMode, error) {
+	return checkReceivers(getLogFilePathReceivers(), 0666, i18n.UnableToWriteLogFile)
 }
 
-func WgConfigFilePath() (string, error) {
-	return checkReceivers(getWgConfigFilePathReceivers(), i18n.UnableToWriteLogFile)
+func WgConfigFilePath() (string, os.FileMode, error) {
+	return checkReceivers(getWgConfigFilePathReceivers(), 0600, i18n.UnableToWriteLogFile)
 }
 
-func checkReceivers(pathReceivers []pathReceiver, errorText string) (string, error) {
-	path := findFirstWritablePath(pathReceivers)
+func checkReceivers(pathReceivers []pathReceiver, fileMode os.FileMode, errorText string) (string, os.FileMode, error) {
+	path := findFirstWritablePath(pathReceivers, fileMode)
 	if path == "" {
 		paths := make([]string, 0, len(pathReceivers))
 		for _, p := range pathReceivers {
-			_, err := p()
+			_, err := p(fileMode)
 			paths = append(paths, err.Error())
 		}
-		return "", errors.New(i18n.T(errorText, "\n"+strings.Join(paths, "\n")+"\n"))
+		return "", 0, errors.New(i18n.T(errorText, "\n"+strings.Join(paths, "\n")+"\n"))
 	}
-	return path, nil
+	return path, fileMode, nil
 }
 
 func receiverFromPath(path string) pathReceiver {
-	return func() (string, error) {
-		return checkPath(path)
+	return func(fileMode os.FileMode) (string, error) {
+		return checkPath(path, fileMode)
 	}
 }
 
 func receiverFromEnv(envName string) pathReceiver {
-	return func() (string, error) {
+	return func(fileMode os.FileMode) (string, error) {
 		env := os.Getenv(envName)
 		if env == "" {
 			return "", errors.Errorf("env %s is empty", envName)
 		}
-		return checkPath(env)
+		return checkPath(env, fileMode)
 	}
 }
 
 func receiverFromOsFunc(osFunc func() (string, error), elem ...string) pathReceiver {
-	return func() (string, error) {
+	return func(fileMode os.FileMode) (string, error) {
 		dir, err := osFunc()
 		if err != nil {
 			return "", err
 		}
-		elem = append([]string{dir}, elem...)
 
-		return filepath.Join(elem...), nil
+		return checkPath(filepath.Join(append([]string{dir}, elem...)...), fileMode)
 	}
 }
 
-func findFirstWritablePath(paths []pathReceiver) string {
+func receiverFromOsTemp(elem ...string) pathReceiver {
+	return func(fileMode os.FileMode) (string, error) {
+		return checkPath(filepath.Join(append([]string{os.TempDir()}, elem...)...), fileMode)
+	}
+}
+
+func findFirstWritablePath(paths []pathReceiver, fileMode os.FileMode) string {
 	for _, p := range paths {
-		path, err := p()
+		path, err := p(fileMode)
 		if err == nil {
 			return path
 		}
@@ -88,14 +95,14 @@ func findFirstWritablePath(paths []pathReceiver) string {
 	return ""
 }
 
-func checkPath(filePath string) (string, error) {
+func checkPath(filePath string, fileMode os.FileMode) (string, error) {
 	dir := path.Dir(filePath)
 
-	if err := os.MkdirAll(dir, 0775); err != nil {
+	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
 	}
 
-	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE, fileMode)
 	if err != nil {
 		return "", err
 	}
