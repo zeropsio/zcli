@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/cmdRunner"
 	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -31,13 +32,13 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
 		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
 	}
 
-	filePath, err := constants.WgConfigFilePath()
+	filePath, fileMode, err := constants.WgConfigFilePath()
 	if err != nil {
 		return err
 	}
 
 	// create empty file if not exists, only thing wg-quick needs is a proper file name
-	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0666)
+	f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE, fileMode)
 	if err != nil {
 		return err
 	}

@@ -6,8 +6,11 @@ import (
 	"io"
 	"os"
 
+	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
@@ -18,15 +21,16 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdStatusShowDebugLogs)).
 		HelpFlag(i18n.T(i18n.StatusShowDebugLogsHelp)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
-			logFilePath, err := constants.LogFilePath()
+			logFilePath, fileMode, err := constants.LogFilePath()
 			if err != nil {
 				return err
 			}
 
-			f, err := os.OpenFile(logFilePath, os.O_RDONLY, 0777)
+			f, err := file.Open(logFilePath, os.O_RDONLY, fileMode)
 			if err != nil {
 				return err
 			}
+			defer f.Close()
 
 			line := ""
 			var cursor int64 = 0
@@ -43,13 +47,13 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 				cursor -= 1
 				_, err = f.Seek(cursor, io.SeekEnd)
 				if err != nil {
-					return err
+					return errors.WithStack(err)
 				}
 
 				char := make([]byte, 1)
 				_, err = f.Read(char)
 				if err != nil {
-					return err
+					return errors.WithStack(err)
 				}
 
 				if cursor != -1 && (char[0] == 10 || char[0] == 13) { // stop if we find a line

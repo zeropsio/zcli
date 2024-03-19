@@ -7,10 +7,13 @@ import (
 	"sync"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/zeropsio/zcli/src/file"
 )
 
 type VarLogHook struct {
 	path      string
+	fileMode  os.FileMode
 	levels    []logrus.Level
 	formatter logrus.Formatter
 
@@ -31,7 +34,7 @@ func (hook *VarLogHook) Fire(entry *logrus.Entry) error {
 		return err
 	}
 
-	f, err := os.OpenFile(hook.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	f, err := file.Open(hook.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, hook.fileMode)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to open file, %v", err)
 		return err

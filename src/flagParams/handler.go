@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
 	"github.com/zeropsio/zcli/src/constants"
 )
 
@@ -111,7 +112,7 @@ func (h *Handler) InitViper() {
 	if err == nil {
 		h.viper.AddConfigPath(path)
 	}
-	cliDataPath, err := constants.CliDataFilePath()
+	cliDataPath, _, err := constants.CliDataFilePath()
 	if err == nil {
 		h.viper.AddConfigPath(cliDataPath)
 	}

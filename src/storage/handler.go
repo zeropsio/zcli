@@ -6,11 +6,14 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+
+	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 )
 
 type Config struct {
 	FilePath string
+	FileMode os.FileMode
 }
 
 type Handler[T any] struct {
@@ -39,7 +42,7 @@ func (h *Handler[T]) load() error {
 		return nil
 	}
 
-	f, err := os.Open(h.config.FilePath)
+	f, err := file.Open(h.config.FilePath, os.O_RDONLY, h.config.FileMode)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -79,7 +82,7 @@ func (h *Handler[T]) save(data T) error {
 	h.data = data
 
 	if err := func() error {
-		f, err := os.Create(h.config.FilePath + ".new")
+		f, err := file.Open(h.config.FilePath+".new", os.O_RDWR|os.O_CREATE|os.O_TRUNC, h.config.FileMode)
 		if err != nil {
 			return errors.WithStack(err)
 		}

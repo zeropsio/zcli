@@ -103,19 +103,19 @@ func rootCmd() *cmdBuilder.Cmd {
 }
 
 func guestInfoPart(tableBody *uxBlock.TableBody) {
-	cliDataFilePath, err := constants.CliDataFilePath()
+	cliDataFilePath, _, err := constants.CliDataFilePath()
 	if err != nil {
 		cliDataFilePath = err.Error()
 	}
 	tableBody.AddStringsRow(i18n.T(i18n.StatusInfoCliDataFilePath), cliDataFilePath)
 
-	logFilePath, err := constants.LogFilePath()
+	logFilePath, _, err := constants.LogFilePath()
 	if err != nil {
 		logFilePath = err.Error()
 	}
 	tableBody.AddStringsRow(i18n.T(i18n.StatusInfoLogFilePath), logFilePath)
 
-	wgConfigFilePath, err := constants.WgConfigFilePath()
+	wgConfigFilePath, _, err := constants.WgConfigFilePath()
 	if err != nil {
 		wgConfigFilePath = err.Error()
 	}
