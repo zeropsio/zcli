@@ -184,10 +184,10 @@ func isVpnConnect(ctx context.Context, uxBlocks uxBlock.UxBlocks) bool {
 	p := []uxHelpers.Process{
 		{
 			F: func(ctx context.Context) error {
-				ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+				pingCtx, cancel := context.WithTimeout(ctx, time.Second)
 				defer cancel()
 
-				return nettools.Ping(ctx, vpnCheckAddress)
+				return nettools.Ping(pingCtx, vpnCheckAddress)
 			},
 			RunningMessage:      i18n.T(i18n.VpnCheckingConnection),
 			ErrorMessageMessage: i18n.T(i18n.VpnCheckingConnectionIsNotActive),
