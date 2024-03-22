@@ -84,10 +84,10 @@ func rootCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+			pingCtx, cancel := context.WithTimeout(ctx, time.Second)
 			defer cancel()
 
-			if err := nettools.Ping(ctx, vpnCheckAddress); err != nil {
+			if err := nettools.Ping(pingCtx, vpnCheckAddress); err != nil {
 				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsNotActive))
 			} else {
 				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsActive))
