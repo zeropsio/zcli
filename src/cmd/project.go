@@ -8,8 +8,8 @@ import (
 func projectCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("project").
-		Short(i18n.T(i18n.CmdProject)).
-		HelpFlag(i18n.T(i18n.ProjectHelp)).
+		Short(i18n.T(i18n.CmdDescProject)).
+		HelpFlag(i18n.T(i18n.CmdHelpProject)).
 		AddChildrenCmd(projectListCmd()).
 		AddChildrenCmd(projectDeleteCmd()).
 		AddChildrenCmd(projectServiceImportCmd()).

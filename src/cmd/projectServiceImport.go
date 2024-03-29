@@ -18,10 +18,10 @@ const serviceImportArgName = "importYamlPath"
 func projectServiceImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("service-import").
-		Short(i18n.T(i18n.CmdServiceImport)).
+		Short(i18n.T(i18n.CmdDescProjectServiceImport)).
 		ScopeLevel(scope.Project).
 		Arg(serviceImportArgName).
-		HelpFlag(i18n.T(i18n.ProjectServiceImportHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpProjectServiceImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 

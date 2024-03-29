@@ -11,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -39,7 +40,7 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
-			if errorsx.Check(err, errorsx.CheckErrorCode(errorCode.ProjectNotFound)) {
+			if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
 				err := ProjectScopeReset(cmdData)
 				if err != nil {
 					return err
@@ -57,7 +58,14 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 		if err != nil {
 			return errorsx.Convert(
 				err,
-				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidProjectId)),
+				errorsx.InvalidUserInput(
+					"id",
+					errorsx.InvalidUserInputErrorMessage(
+						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
+							return i18n.T(i18n.ErrorInvalidProjectId, projectId, metaItemTyped["message"])
+						},
+					),
+				),
 			)
 		}
 
@@ -70,7 +78,14 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 		if err != nil {
 			return errorsx.Convert(
 				err,
-				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidProjectId)),
+				errorsx.InvalidUserInput(
+					"id",
+					errorsx.InvalidUserInputErrorMessage(
+						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
+							return i18n.T(i18n.ErrorInvalidProjectId, projectId, metaItemTyped["message"])
+						},
+					),
+				),
 			)
 		}
 

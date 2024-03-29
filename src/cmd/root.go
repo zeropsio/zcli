@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
@@ -11,7 +10,6 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/errorCode"
@@ -71,7 +69,7 @@ func rootCmd() *cmdBuilder.Cmd {
 				projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
-					if errorsx.Check(err, errorsx.CheckErrorCode(errorCode.ProjectNotFound)) {
+					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
 						err := scope.ProjectScopeReset(cmdData)
 						if err != nil {
 							return err
@@ -84,13 +82,10 @@ func rootCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			pingCtx, cancel := context.WithTimeout(ctx, time.Second)
-			defer cancel()
-
-			if err := nettools.Ping(pingCtx, vpnCheckAddress); err != nil {
-				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsNotActive))
-			} else {
+			if isVpnUp(ctx) {
 				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsActive))
+			} else {
+				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsNotActive))
 			}
 
 			cmdData.UxBlocks.Table(body)

@@ -22,8 +22,8 @@ import (
 func serviceDeployCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("deploy").
-		Short(i18n.T(i18n.CmdDeployDesc)).
-		Long(i18n.T(i18n.CmdDeployDesc)+"\n\n"+i18n.T(i18n.DeployDescLong)+"\n\n"+i18n.T(i18n.DeployHintPush)).
+		Short(i18n.T(i18n.CmdDescDeploy)).
+		Long(i18n.T(i18n.CmdDescDeployLong)).
 		ScopeLevel(scope.Service).
 		Arg("pathToFileOrDir", cmdBuilder.ArrayArg()).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
@@ -31,7 +31,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.ZeropsYamlLocation)).
-		HelpFlag(i18n.T(i18n.ServiceDeployHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
@@ -53,7 +53,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployCreatingPackageStart)))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
 
 			appVersion, err := createAppVersion(
 				ctx,
@@ -132,16 +132,22 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 						}
 						return nil
 					},
-					RunningMessage:      i18n.T(i18n.BuildDeployUploadingPackageStart),
-					ErrorMessageMessage: i18n.T(i18n.BuildDeployUploadPackageFailed),
-					SuccessMessage:      i18n.T(i18n.BuildDeployUploadingPackageDone),
+					RunningMessage:      i18n.T(i18n.PushDeployUploadingPackageStart),
+					ErrorMessageMessage: i18n.T(i18n.PushDeployUploadPackageFailed),
+					SuccessMessage:      i18n.T(i18n.PushDeployUploadingPackageDone),
 				}},
 			)
 			if err != nil {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployDeployingStart)))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageDone)))
+
+			if cmdData.Params.GetString("archiveFilePath") != "" {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath"))))
+			}
+
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
 
 			deployResponse, err := cmdData.RestApiClient.PutAppVersionDeploy(
 				ctx,

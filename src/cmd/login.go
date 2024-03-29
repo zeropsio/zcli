@@ -19,10 +19,10 @@ import (
 func loginCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("login").
-		Short(i18n.T(i18n.CmdLogin)).
+		Short(i18n.T(i18n.CmdDescLogin)).
 		StringFlag("regionUrl", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
 		StringFlag("region", "", i18n.T(i18n.RegionFlag), cmdBuilder.HiddenFlag()).
-		HelpFlag(i18n.T(i18n.LoginHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpLogin)).
 		Arg("token").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			uxBlocks := cmdData.UxBlocks

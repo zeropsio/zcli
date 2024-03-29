@@ -14,10 +14,10 @@ import (
 func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("enable-subdomain").
-		Short(i18n.T(i18n.CmdServiceEnableSubdomain)).
+		Short(i18n.T(i18n.CmdDescServiceEnableSubdomain)).
 		ScopeLevel(scope.Service).
 		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
-		HelpFlag(i18n.T(i18n.ServiceEnableSubdomainHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpServiceEnableSubdomain)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			enableSubdomainResponse, err := cmdData.RestApiClient.PutServiceStackEnableSubdomainAccess(
 				ctx,
@@ -42,7 +42,7 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 				[]uxHelpers.Process{{
 					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ServiceEnablingSubdomain),
-					ErrorMessageMessage: i18n.T(i18n.ServiceEnablingSubdomain),
+					ErrorMessageMessage: i18n.T(i18n.ServiceEnableSubdomainFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceEnabledSubdomain),
 				}},
 			)

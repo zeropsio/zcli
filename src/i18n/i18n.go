@@ -13,63 +13,168 @@ func T(textConst string, args ...interface{}) string {
 	return translation
 }
 
+const CustomerSupportLink = "https://support.zerops.io/"
+
 const (
-	// help
-	LoginHelp                  = "LoginHelp"
-	ProjectHelp                = "ProjectHelp"
-	ProjectListHelp            = "ProjectListHelp"
-	ScopeHelp                  = "ScopeHelp"
-	ScopeProjectHelp           = "ScopeProjectHelp"
-	ScopeResetHelp             = "ScopeResetHelp"
-	ProjectDeleteHelp          = "ProjectDeleteHelp"
-	ProjectImportHelp          = "ProjectImportHelp"
-	ProjectServiceImportHelp   = "ProjectServiceImportHelp"
-	ServiceHelp                = "ServiceHelp"
-	ServiceStartHelp           = "ServiceStartHelp"
-	ServiceStopHelp            = "ServiceStopHelp"
-	ServiceDeleteHelp          = "ServiceDeleteHelp"
-	ServiceLogHelp             = "ServiceLogHelp"
-	ServiceDeployHelp          = "ServiceDeployHelp"
-	ServiceListHelp            = "ServiceListHelp"
-	ServicePushHelp            = "ServicePushHelp"
-	ServiceEnableSubdomainHelp = "ServiceEnableSubdomainHelp"
-	StatusShowDebugLogsHelp    = "StatusShowDebugLogsHelp"
-	VersionHelp                = "VersionHelp"
-	VpnHelp                    = "VpnHelp"
-	VpnUpHelp                  = "VpnUpHelp"
-	VpnDownHelp                = "VpnDownHelp"
+	// login
+	CmdHelpLogin          = "CmdHelpLogin"
+	CmdDescLogin          = "CmdDescLogin"
+	LoginSuccess          = "LoginSuccess"
+	RegionNotFound        = "RegionNotFound"
+	RegionTableColumnName = "RegionTableColumnName"
 
-	// cmd short
-	CmdDeployDesc             = "CmdDeployDesc"
-	CmdPushDesc               = "CmdPushDesc"
-	CmdLogin                  = "CmdLogin"
-	CmdStatusShowDebugLogs    = "CmdStatusShowDebugLogs"
-	CmdVersion                = "CmdVersion"
-	CmdProject                = "CmdProject"
-	CmdService                = "CmdService"
-	CmdProjectList            = "CmdProjectList"
-	CmdScope                  = "CmdScope"
-	CmdScopeProject           = "CmdScopeProject"
-	CmdScopeReset             = "CmdScopeReset"
-	CmdProjectDelete          = "CmdProjectDelete"
-	CmdProjectImport          = "CmdProjectImport"
-	CmdServiceList            = "CmdServiceList"
-	CmdServiceImport          = "CmdServiceImport"
-	CmdServiceStart           = "CmdServiceStart"
-	CmdServiceStop            = "CmdServiceStop"
-	CmdServiceDelete          = "CmdServiceDelete"
-	CmdServiceLog             = "CmdServiceLog"
-	CmdServiceEnableSubdomain = "CmdServiceEnableSubdomain"
-	CmdVpn                    = "CmdVpn"
-	CmdVpnUp                  = "CmdVpnUp"
-	CmdVpnDown                = "CmdVpnDown"
+	// scope
+	CmdHelpScope = "CmdHelpScope"
+	CmdDescScope = "CmdDescScope"
 
-	// cmd long
-	CmdProjectImportLong = "CmdProjectImportLong"
-	DeployDescLong       = "DeployDescLong"
-	PushDescLong         = "PushDescLong"
-	CmdServiceLogLong    = "CmdServiceLogLong"
-	ServiceLogAdditional = "ServiceLogAdditional"
+	// scope project
+	CmdHelpScopeProject = "CmdHelpScopeProject"
+	CmdDescScopeProject = "CmdDescScopeProject"
+
+	// scope reset
+	CmdHelpScopeReset = "CmdHelpScopeReset"
+	CmdDescScopeReset = "CmdDescScopeReset"
+
+	// project
+	CmdHelpProject = "CmdHelpProject"
+	CmdDescProject = "CmdDescProject"
+
+	// project lit
+	CmdHelpProjectList = "CmdHelpProjectList"
+	CmdDescProjectList = "CmdDescProjectList"
+
+	// project delete
+	CmdHelpProjectDelete = "CmdHelpProjectDelete"
+	CmdDescProjectDelete = "CmdDescProjectDelete"
+	ProjectDeleteConfirm = "ProjectDeleteConfirm"
+	ServiceDeleteConfirm = "ServiceDeleteConfirm"
+	ProjectDeleting      = "ProjectDeleting"
+	ProjectDeleteFailed  = "ProjectDeleteFailed"
+	ProjectDeleted       = "ProjectDeleted"
+
+	// project import
+	CmdHelpProjectImport     = "CmdHelpProjectImport"
+	CmdDescProjectImport     = "CmdDescProjectImport"
+	CmdDescProjectImportLong = "CmdDescProjectImportLong"
+	ProjectImported          = "ProjectImported"
+
+	// project service import
+	CmdHelpProjectServiceImport = "CmdHelpProjectServiceImport"
+	CmdDescProjectServiceImport = "CmdDescProjectServiceImport"
+	ServiceImported             = "ServiceImported"
+
+	// service
+	CmdHelpService = "CmdHelpService"
+	CmdDescService = "CmdDescService"
+
+	// service start
+	CmdHelpServiceStart = "CmdHelpServiceStart"
+	CmdDescServiceStart = "CmdDescServiceStart"
+	ServiceStarting     = "ServiceStarting"
+	ServiceStartFailed  = "ServiceStartFailed"
+	ServiceStarted      = "ServiceStarted"
+
+	// service stop
+	CmdHelpServiceStop = "CmdHelpServiceStop"
+	CmdDescServiceStop = "CmdDescServiceStop"
+	ServiceStopping    = "ServiceStopping"
+	ServiceStopFailed  = "ServiceStopFailed"
+	ServiceStopped     = "ServiceStopped"
+
+	// service delete
+	CmdHelpServiceDelete = "CmdHelpServiceDelete"
+	CmdDescServiceDelete = "CmdDescServiceDelete"
+	ServiceDeleting      = "ServiceDeleting"
+	ServiceDeleteFailed  = "ServiceDeleteFailed"
+	ServiceDeleted       = "ServiceDeleted"
+
+	// service log
+	CmdHelpServiceLog            = "CmdHelpServiceLog"
+	CmdDescServiceLog            = "CmdDescServiceLog"
+	CmdDescServiceLogLong        = "CmdDescServiceLogLong"
+	LogLimitInvalid              = "LogLimitInvalid"
+	LogMinSeverityInvalid        = "LogMinSeverityInvalid"
+	LogMinSeverityStringLimitErr = "LogMinSeverityStringLimitErr"
+	LogMinSeverityNumLimitErr    = "LogMinSeverityNumLimitErr"
+	LogFormatInvalid             = "LogFormatInvalid"
+	LogFormatTemplateMismatch    = "LogFormatTemplateMismatch"
+	LogFormatStreamMismatch      = "LogFormatStreamMismatch"
+	LogFormatTemplateInvalid     = "LogFormatTemplateInvalid"
+	LogFormatTemplateNoSpace     = "LogFormatTemplateNoSpace"
+	LogNoBuildFound              = "LogNoBuildFound"
+	LogBuildStatusUploading      = "LogBuildStatusUploading"
+	LogAccessFailed              = "LogAccessFailed"
+	LogMsgTypeInvalid            = "LogMsgTypeInvalid"
+	LogReadingFailed             = "LogReadingFailed"
+
+	// service deploy
+	CmdHelpServiceDeploy = "CmdHelpServiceDeploy"
+	CmdDescDeploy        = "CmdDescDeploy"
+	CmdDescDeployLong    = "CmdDescDeployLong"
+
+	// push
+	CmdHelpPush     = "CmdHelpPush"
+	CmdDescPush     = "CmdDescPush"
+	CmdDescPushLong = "CmdDescPushLong"
+	PushRunning     = "PushRunning"
+	PushFailed      = "PushFailed"
+	PushFinished    = "PushFinished"
+
+	// push && deploy
+	PushDeployCreatingPackageStart  = "PushDeployCreatingPackageStart"
+	PushDeployCreatingPackageDone   = "PushDeployCreatingPackageDone"
+	PushDeployPackageSavedInto      = "PushDeployPackageSavedInto"
+	PushDeployUploadingPackageStart = "PushDeployUploadingPackageStart"
+	PushDeployUploadingPackageDone  = "PushDeployUploadingPackageDone"
+	PushDeployUploadPackageFailed   = "PushDeployUploadPackageFailed"
+	PushDeployDeployingStart        = "PushDeployDeployingStart"
+	PushDeployZeropsYamlEmpty       = "PushDeployZeropsYamlEmpty"
+	PushDeployZeropsYamlTooLarge    = "PushDeployZeropsYamlTooLarge"
+	PushDeployZeropsYamlFound       = "PushDeployZeropsYamlFound"
+	PushDeployZeropsYamlNotFound    = "PushDeployZeropsYamlNotFound"
+
+	// service list
+	CmdHelpServiceList = "CmdHelpServiceList"
+	CmdDescServiceList = "CmdDescServiceList"
+
+	// service enable subdomain
+	CmdHelpServiceEnableSubdomain = "CmdHelpServiceEnableSubdomain"
+	CmdDescServiceEnableSubdomain = "CmdDescServiceEnableSubdomain"
+	ServiceEnablingSubdomain      = "ServiceEnablingSubdomain"
+	ServiceEnableSubdomainFailed  = "ServiceEnableSubdomainFailed"
+	ServiceEnabledSubdomain       = "ServiceEnabledSubdomain"
+
+	// status show debug logs
+	CmdHelpStatusShowDebugLogs = "CmdHelpStatusShowDebugLogs"
+	CmdDescStatusShowDebugLogs = "CmdDescStatusShowDebugLogs"
+	DebugLogsNotFound          = "DebugLogsNotFound"
+
+	// version
+	CmdHelpVersion = "CmdHelpVersion"
+	CmdDescVersion = "CmdDescVersion"
+
+	// vpn
+	CmdHelpVpn = "CmdHelpVpn"
+	CmdDescVpn = "CmdDescVpn"
+
+	// vpn up
+	CmdHelpVpnUp             = "CmdHelpVpnUp"
+	CmdDescVpnUp             = "CmdDescVpnUp"
+	VpnUp                    = "VpnUp"
+	VpnConfigSaved           = "VpnConfigSaved"
+	VpnPrivateKeyCorrupted   = "VpnPrivateKeyCorrupted"
+	VpnPrivateKeyCreated     = "VpnPrivateKeyCreated"
+	VpnDisconnectionPrompt   = "VpnDisconnectionPrompt"
+	VpnDisconnectionPromptNo = "VpnDisconnectionPromptNo"
+	VpnPingFailed            = "VpnPingFailed"
+
+	// vpn down
+	CmdHelpVpnDown = "CmdHelpVpnDown"
+	CmdDescVpnDown = "CmdDescVpnDown"
+	VpnDown        = "VpnDown"
+
+	// vpn shared
+	VpnWgQuickIsNotInstalled = "VpnWgQuickIsNotInstalled"
 
 	// flags description
 	RegionFlag            = "RegionFlag"
@@ -92,22 +197,12 @@ const (
 	ProjectIdFlag         = "ProjectIdFlag"
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
 
-	// process
-	ProcessInvalidState = "ProcessInvalidState"
-
 	// archiveClient
 	ArchClientWorkingDirectory  = "ArchClientWorkingDirectory"
 	ArchClientMaxOneTilde       = "ArchClientMaxOneTilde"
 	ArchClientPackingDirectory  = "ArchClientPackingDirectory"
 	ArchClientPackingFile       = "ArchClientPackingFile"
 	ArchClientFileAlreadyExists = "ArchClientFileAlreadyExists"
-
-	// login
-	LoginSuccess = "LoginSuccess"
-
-	// region
-	RegionNotFound        = "RegionNotFound"
-	RegionTableColumnName = "RegionTableColumnName"
 
 	// import
 	ImportYamlOk        = "ImportYamlOk"
@@ -120,84 +215,20 @@ const (
 	QueuedProcesses     = "QueuedProcesses"
 	CoreServices        = "CoreServices"
 
-	// project + service
-	ProjectDeleteConfirm     = "ProjectDeleteConfirm"
-	ServiceDeleteConfirm     = "ServiceDeleteConfirm"
-	ProjectDeleting          = "ProjectDeleting"
-	ProjectDeleted           = "ProjectDeleted"
-	ServiceStarting          = "ServiceStarting"
-	ServiceStarted           = "ServiceStarted"
-	ServiceStopping          = "ServiceStopping"
-	ServiceStopped           = "ServiceStopped"
-	ServiceEnablingSubdomain = "ServiceEnablingSubdomain"
-	ServiceEnabledSubdomain  = "ServiceEnabledSubdomain"
-	ServiceDeleting          = "ServiceDeleting"
-	ServiceDeleted           = "ServiceDeleted"
-	ProjectImported          = "ProjectImported"
-	ServiceImported          = "ServiceImported"
-
-	// service logs
-	LogLimitInvalid              = "LogLimitInvalid"
-	LogMinSeverityInvalid        = "LogMinSeverityInvalid"
-	LogMinSeverityStringLimitErr = "LogMinSeverityStringLimitErr"
-	LogMinSeverityNumLimitErr    = "LogMinSeverityNumLimitErr"
-	LogFormatInvalid             = "LogFormatInvalid"
-	LogFormatTemplateMismatch    = "LogFormatTemplateMismatch"
-	LogFormatStreamMismatch      = "LogFormatStreamMismatch"
-	LogFormatTemplateInvalid     = "LogFormatTemplateInvalid"
-	LogFormatTemplateNoSpace     = "LogFormatTemplateNoSpace"
-	LogNoBuildFound              = "LogNoBuildFound"
-	LogBuildStatusUploading      = "LogBuildStatusUploading"
-	LogAccessFailed              = "LogAccessFailed"
-	LogMsgTypeInvalid            = "LogMsgTypeInvalid"
-	LogReadingFailed             = "LogReadingFailed"
-
-	// push
-	PushRunning  = "PushRunning"
-	PushFailed   = "PushFailed"
-	PushFinished = "PushFinished"
-
-	// deploy
-	DeployHintPush                   = "DeployHintPush"
-	BuildDeployCreatingPackageStart  = "BuildDeployCreatingPackageStart"
-	BuildDeployCreatingPackageDone   = "BuildDeployCreatingPackageDone"
-	BuildDeployPackageSavedInto      = "BuildDeployPackageSavedInto"
-	BuildDeployUploadingPackageStart = "BuildDeployUploadingPackageStart"
-	BuildDeployUploadingPackageDone  = "BuildDeployUploadingPackageDone"
-	BuildDeployUploadPackageFailed   = "BuildDeployUploadPackageFailed"
-	BuildDeployDeployingStart        = "BuildDeployDeployingStart"
-	BuildDeployZeropsYamlEmpty       = "BuildDeployZeropsYamlEmpty"
-	BuildDeployZeropsYamlTooLarge    = "BuildDeployZeropsYamlTooLarge"
-	BuildDeployZeropsYamlFound       = "BuildDeployZeropsYamlFound"
-	BuildDeployZeropsYamlNotFound    = "BuildDeployZeropsYamlNotFound"
-
 	// status info
-	StatusInfoCliDataFilePath  = "StatusInfoCliDataFilePath"
-	StatusInfoLogFilePath      = "StatusInfoLogFilePath"
-	StatusInfoWgConfigFilePath = "StatusInfoWgConfigFilePath"
-	StatusInfoLoggedUser       = "StatusInfoLoggedUser"
-	StatusInfoVpnStatus        = "StatusInfoVpnStatus"
-
-	// debug logs
-	DebugLogsNotFound = "DebugLogsNotFound"
-
-	// vpn
-	VpnUp                            = "VpnUp"
-	VpnDown                          = "VpnDown"
-	VpnConfigSaved                   = "VpnConfigSaved"
-	VpnPrivateKeyCorrupted           = "VpnPrivateKeyCorrupted"
-	VpnPrivateKeyCreated             = "VpnPrivateKeyCreated"
-	VpnWgQuickIsNotInstalled         = "VpnWgQuickIsNotInstalled"
-	VpnDisconnectionPrompt           = "VpnDisconnectionPrompt"
-	VpnDisconnectionPromptNo         = "VpnDisconnectionPromptNo"
-	VpnPingFailed                    = "VpnPingFailed"
-	VpnCheckingConnection            = "VpnCheckingConnection"
+	StatusInfoCliDataFilePath        = "StatusInfoCliDataFilePath"
+	StatusInfoLogFilePath            = "StatusInfoLogFilePath"
+	StatusInfoWgConfigFilePath       = "StatusInfoWgConfigFilePath"
+	StatusInfoLoggedUser             = "StatusInfoLoggedUser"
+	StatusInfoVpnStatus              = "StatusInfoVpnStatus"
 	VpnCheckingConnectionIsActive    = "VpnCheckingConnectionIsActive"
 	VpnCheckingConnectionIsNotActive = "VpnCheckingConnectionIsNotActive"
 
 	////////////
 	// global //
 	////////////
+	ProcessInvalidState = "ProcessInvalidState"
+
 	CliTerminalModeEnvVar = "TerminalModeEnv"
 	CliLogFilePathEnvVar  = "CliLogFilePathEnvVar"
 	CliDataFilePathEnvVar = "CliDataFilePathEnvVar"

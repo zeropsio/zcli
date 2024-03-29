@@ -8,8 +8,8 @@ import (
 func scopeCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("scope").
-		Short(i18n.T(i18n.CmdScope)).
-		HelpFlag(i18n.T(i18n.ScopeHelp)).
+		Short(i18n.T(i18n.CmdDescScope)).
+		HelpFlag(i18n.T(i18n.CmdHelpScope)).
 		AddChildrenCmd(scopeProjectCmd()).
 		AddChildrenCmd(scopeResetCmd())
 }

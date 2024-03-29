@@ -12,8 +12,8 @@ import (
 func scopeResetCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("reset").
-		Short(i18n.T(i18n.CmdScopeReset)).
-		HelpFlag(i18n.T(i18n.ScopeResetHelp)).
+		Short(i18n.T(i18n.CmdDescScopeReset)).
+		HelpFlag(i18n.T(i18n.CmdHelpScopeReset)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			err := scope.ProjectScopeReset(cmdData)
 			if err != nil {

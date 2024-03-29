@@ -6,21 +6,21 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
-
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
+	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 )
-
-const ZeropsYamlFileName = "zerops.yml"
 
 func createAppVersion(
 	ctx context.Context,
@@ -88,39 +88,49 @@ func packageUpload(ctx context.Context, client *httpClient.Handler, uploadUrl st
 		return err
 	}
 	if cephResponse.StatusCode != http.StatusOK {
-		return errors.New(i18n.T(i18n.BuildDeployUploadPackageFailed))
+		return errors.New(i18n.T(i18n.PushDeployUploadPackageFailed))
 	}
 
 	return nil
 }
 
-func getValidConfigContent(uxBlocks uxBlock.UxBlocks, workingDir string, zeropsYamlPath string) ([]byte, error) {
-	workingDir, err := filepath.Abs(workingDir)
+func getValidConfigContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string) ([]byte, error) {
+	workingDir, err := filepath.Abs(selectedWorkingDir)
 	if err != nil {
 		return nil, err
 	}
 
-	if zeropsYamlPath != "" {
-		workingDir = filepath.Join(workingDir, zeropsYamlPath)
-	}
-
-	zeropsYamlPath = filepath.Join(workingDir, ZeropsYamlFileName)
-
-	zeropsYamlStat, err := os.Stat(zeropsYamlPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlNotFound, zeropsYamlPath))
+	var pathsToCheck []string
+	if selectedZeropsYamlPath != "" {
+		if filepath.IsAbs(selectedZeropsYamlPath) {
+			pathsToCheck = append(pathsToCheck, selectedZeropsYamlPath)
+		} else {
+			pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, selectedZeropsYamlPath))
 		}
+	} else {
+		pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, "zerops.yaml"))
+		pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, "zerops.yml"))
+	}
+
+	zeropsYamlPath, err := func() (string, error) {
+		for _, path := range pathsToCheck {
+			zeropsYamlStat, err := os.Stat(path)
+			if err == nil {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployZeropsYamlFound, path)))
+
+				if zeropsYamlStat.Size() == 0 {
+					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlEmpty))
+				}
+				if zeropsYamlStat.Size() > 10*1024 {
+					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlTooLarge))
+				}
+				return path, nil
+			}
+		}
+		return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlNotFound, strings.Join(pathsToCheck, ", ")))
+	}()
+	if err != nil {
 		return nil, err
-	}
-
-	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.BuildDeployZeropsYamlFound, zeropsYamlPath)))
-
-	if zeropsYamlStat.Size() == 0 {
-		return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlEmpty))
-	}
-	if zeropsYamlStat.Size() > 10*1024 {
-		return nil, errors.New(i18n.T(i18n.BuildDeployZeropsYamlTooLarge))
 	}
 
 	yamlContent, err := os.ReadFile(zeropsYamlPath)
@@ -147,7 +157,18 @@ func validateZeropsYamlContent(
 		return err
 	}
 	if _, err = resp.Output(); err != nil {
-		return err
+		return errorsx.Convert(
+			err,
+			errorsx.And(
+				errorsx.ErrorCode("zeropsYamlServiceNotFound"),
+				errorsx.Meta(func(_ apiError.Error, metaItem map[string]interface{}) string {
+					if name, ok := metaItem["name"]; ok {
+						return i18n.T(i18n.ErrorServiceNotFound, name)
+					}
+					return ""
+				}),
+			),
+		)
 	}
 
 	return nil

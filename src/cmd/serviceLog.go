@@ -16,8 +16,8 @@ import (
 func serviceLogCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("log").
-		Short(i18n.T(i18n.CmdServiceLog)).
-		Long(i18n.T(i18n.CmdServiceLogLong)+i18n.T(i18n.ServiceLogAdditional)).
+		Short(i18n.T(i18n.CmdDescServiceLog)).
+		Long(i18n.T(i18n.CmdDescServiceLogLong)).
 		ScopeLevel(scope.Service).
 		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
 		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
@@ -26,7 +26,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		StringFlag("formatTemplate", "", i18n.T(i18n.LogFormatTemplateFlag)).
 		BoolFlag("follow", false, i18n.T(i18n.LogFollowFlag)).
 		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
-		HelpFlag(i18n.T(i18n.ServiceLogHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpServiceLog)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			handler := serviceLogs.New(
 				serviceLogs.Config{},

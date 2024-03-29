@@ -14,10 +14,10 @@ import (
 func serviceStopCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("stop").
-		Short(i18n.T(i18n.CmdServiceStop)).
+		Short(i18n.T(i18n.CmdDescServiceStop)).
 		ScopeLevel(scope.Service).
 		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
-		HelpFlag(i18n.T(i18n.ServiceStopHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpServiceStop)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			stopServiceResponse, err := cmdData.RestApiClient.PutServiceStackStop(
 				ctx,
@@ -42,7 +42,7 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 				[]uxHelpers.Process{{
 					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ServiceStopping),
-					ErrorMessageMessage: i18n.T(i18n.ServiceStopping),
+					ErrorMessageMessage: i18n.T(i18n.ServiceStopFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceStopped),
 				}},
 			)

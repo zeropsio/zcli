@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -50,7 +51,14 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdD
 		if err != nil {
 			return errorsx.Convert(
 				err,
-				errorsx.ConvertInvalidUserInput("id", i18n.T(i18n.ErrorInvalidServiceId)),
+				errorsx.InvalidUserInput(
+					"id",
+					errorsx.InvalidUserInputErrorMessage(
+						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
+							return i18n.T(i18n.ErrorInvalidServiceId, serviceId, metaItemTyped["message"])
+						},
+					),
+				),
 			)
 		}
 	}
