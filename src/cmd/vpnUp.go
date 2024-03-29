@@ -19,7 +19,6 @@ import (
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
-	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
@@ -33,20 +32,15 @@ const vpnCheckAddress = "logger.core.zerops"
 func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("up").
-		Short(i18n.T(i18n.CmdVpnUp)).
+		Short(i18n.T(i18n.CmdDescVpnUp)).
 		ScopeLevel(scope.Project).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("auto-disconnect", false, i18n.T(i18n.VpnAutoDisconnectFlag)).
-		HelpFlag(i18n.T(i18n.VpnUpHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpVpnUp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			_, err := exec.LookPath("wg-quick")
-			if err != nil {
-				return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
-			}
-
-			if !isVpnDisconnect(ctx, uxBlocks) {
+			if isVpnUp(ctx) {
 				if cmdData.Params.GetBool("auto-disconnect") {
 					err := disconnectVpn(ctx, uxBlocks)
 					if err != nil {
@@ -142,20 +136,33 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			_, err = exec.LookPath("wg-quick")
+			if err != nil {
+				return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
+			}
+
 			c := exec.CommandContext(ctx, "wg-quick", "up", filePath)
 			_, err = cmdRunner.Run(c)
 			if err != nil {
 				return err
 			}
 
-			if !isVpnConnect(ctx, uxBlocks) {
+			if isVpnUp(ctx) {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnUp)))
+			} else {
 				uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnUp)))
-
 			return nil
 		})
+}
+
+func isVpnUp(ctx context.Context) bool {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	err := nettools.Ping(ctx, vpnCheckAddress)
+	return err == nil
 }
 
 func getOrCreatePrivateVpnKey(cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Key, error) {
@@ -178,52 +185,6 @@ func getOrCreatePrivateVpnKey(cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Ke
 	cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnPrivateKeyCreated)))
 
 	return vpnKey, nil
-}
-
-func isVpnConnect(ctx context.Context, uxBlocks uxBlock.UxBlocks) bool {
-	p := []uxHelpers.Process{
-		{
-			F: func(ctx context.Context) error {
-				pingCtx, cancel := context.WithTimeout(ctx, time.Second)
-				defer cancel()
-
-				return nettools.Ping(pingCtx, vpnCheckAddress)
-			},
-			RunningMessage:      i18n.T(i18n.VpnCheckingConnection),
-			ErrorMessageMessage: i18n.T(i18n.VpnCheckingConnectionIsNotActive),
-			SuccessMessage:      i18n.T(i18n.VpnCheckingConnectionIsActive),
-		},
-	}
-
-	err := uxHelpers.ProcessCheckWithSpinner(ctx, uxBlocks, p)
-
-	return err == nil
-}
-
-func isVpnDisconnect(ctx context.Context, uxBlocks uxBlock.UxBlocks) bool {
-	p := []uxHelpers.Process{
-		{
-			F: func(ctx context.Context) error {
-				ctx, cancel := context.WithTimeout(ctx, time.Second*5)
-				defer cancel()
-
-				err := nettools.Ping(ctx, vpnCheckAddress)
-				if err != nil {
-					//nolint:nilerr // Why: error is good in this case
-					return nil
-				} else {
-					return errors.New("vpn is connected")
-				}
-			},
-			RunningMessage:      i18n.T(i18n.VpnCheckingConnection),
-			ErrorMessageMessage: i18n.T(i18n.VpnCheckingConnectionIsActive),
-			SuccessMessage:      i18n.T(i18n.VpnCheckingConnectionIsNotActive),
-		},
-	}
-
-	err := uxHelpers.ProcessCheckWithSpinner(ctx, uxBlocks, p)
-
-	return err == nil
 }
 
 var vpnTmpl = `

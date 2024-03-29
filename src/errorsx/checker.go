@@ -1,81 +1,34 @@
 package errorsx
 
-import (
-	"fmt"
+type Check func(err error) error
 
-	"github.com/pkg/errors"
-	"github.com/zeropsio/zerops-go/apiError"
-	"github.com/zeropsio/zerops-go/errorCode"
-)
-
-type convertor func(err error) error
-type check func(err error, errMessage string) error
-
-func Check(err error, checks ...check) bool {
-	if err == nil {
+func Is(err error, check Check) bool {
+	if check == nil {
 		return false
 	}
-
-	for _, check := range checks {
-		if err := check(err, ""); err != nil {
-			return true
-		}
-	}
-
-	return false
+	return check(err) != nil
 }
 
-func Convert(err error, convertors ...convertor) error {
-	if err == nil {
-		return nil
+func Convert(err error, check Check) error {
+	if check == nil {
+		return err
 	}
 
-	for _, convertor := range convertors {
-		if err := convertor(err); err != nil {
-			return err
-		}
+	if newErr := check(err); newErr != nil {
+		return newErr
 	}
-
 	return err
 }
 
-func CheckErrorCode(errorCode errorCode.ErrorCode) check {
-	return func(err error, errMessage string) error {
-		var apiErr apiError.Error
-		if !errors.As(err, &apiErr) {
-			return nil
-		}
-		if string(errorCode) != apiErr.GetErrorCode() {
+func Or(checks ...Check) Check {
+	return func(err error) error {
+		if err == nil {
 			return nil
 		}
 
-		return NewUserError(errMessage, err)
-	}
-}
-
-func CheckInvalidUserInput(parameterName string) check {
-	return func(err error, errMessage string) error {
-		var apiErr apiError.Error
-		if !errors.As(err, &apiErr) {
-			return nil
-		}
-
-		if string(errorCode.InvalidUserInput) != apiErr.GetErrorCode() {
-			return nil
-		}
-
-		meta, ok := apiErr.GetMeta().([]interface{})
-		if !ok {
-			return nil
-		}
-
-		for _, metaItem := range meta {
-			if metaItemTyped, ok := metaItem.(map[string]interface{}); ok {
-				if parameterValue, ok := metaItemTyped["parameter"]; ok {
-					if parameterValue == parameterName {
-						return NewUserError(fmt.Sprintf(errMessage, metaItemTyped["message"]), err)
-					}
-				}
+		for _, convertor := range checks {
+			if err := convertor(err); err != nil {
+				return err
 			}
 		}
 
@@ -83,14 +36,15 @@ func CheckInvalidUserInput(parameterName string) check {
 	}
 }
 
-func ConvertErrorCode(errorCode errorCode.ErrorCode, errMessage string) convertor {
+func And(checks ...Check) Check {
 	return func(err error) error {
-		return CheckErrorCode(errorCode)(err, errMessage)
-	}
-}
-
-func ConvertInvalidUserInput(parameterName string, errMessage string) convertor {
-	return func(err error) error {
-		return CheckInvalidUserInput(parameterName)(err, errMessage)
+		var lastResponse error
+		for _, check := range checks {
+			lastResponse = check(err)
+			if lastResponse == nil {
+				return nil
+			}
+		}
+		return lastResponse
 	}
 }

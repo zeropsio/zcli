@@ -15,11 +15,11 @@ import (
 func serviceDeleteCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("delete").
-		Short(i18n.T(i18n.CmdServiceDelete)).
+		Short(i18n.T(i18n.CmdDescServiceDelete)).
 		ScopeLevel(scope.Service).
 		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
-		HelpFlag(i18n.T(i18n.ServiceDeleteHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpServiceDelete)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			if !cmdData.Params.GetBool("confirm") {
 				confirmed, err := uxHelpers.YesNoPrompt(
@@ -58,7 +58,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 				[]uxHelpers.Process{{
 					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ServiceDeleting),
-					ErrorMessageMessage: i18n.T(i18n.ServiceDeleting),
+					ErrorMessageMessage: i18n.T(i18n.ServiceDeleteFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceDeleted),
 				}},
 			)

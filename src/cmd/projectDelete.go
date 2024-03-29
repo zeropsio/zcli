@@ -15,11 +15,11 @@ import (
 func projectDeleteCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("delete").
-		Short(i18n.T(i18n.CmdProjectDelete)).
+		Short(i18n.T(i18n.CmdDescProjectDelete)).
 		ScopeLevel(scope.Project).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
-		HelpFlag(i18n.T(i18n.ProjectDeleteHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpProjectDelete)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			if !cmdData.Params.GetBool("confirm") {
 				confirmed, err := uxHelpers.YesNoPrompt(
@@ -58,7 +58,7 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 				[]uxHelpers.Process{{
 					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
 					RunningMessage:      i18n.T(i18n.ProjectDeleting),
-					ErrorMessageMessage: i18n.T(i18n.ProjectDeleting),
+					ErrorMessageMessage: i18n.T(i18n.ProjectDeleteFailed),
 					SuccessMessage:      i18n.T(i18n.ProjectDeleted),
 				}},
 			)

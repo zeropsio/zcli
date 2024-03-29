@@ -8,8 +8,8 @@ import (
 func serviceCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("service").
-		Short(i18n.T(i18n.CmdService)).
-		HelpFlag(i18n.T(i18n.ServiceHelp)).
+		Short(i18n.T(i18n.CmdDescService)).
+		HelpFlag(i18n.T(i18n.CmdHelpService)).
 		AddChildrenCmd(serviceDeleteCmd()).
 		AddChildrenCmd(serviceListCmd()).
 		AddChildrenCmd(serviceLogCmd()).

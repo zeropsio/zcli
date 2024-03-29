@@ -19,15 +19,15 @@ import (
 func scopeProjectCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("project").
-		Short(i18n.T(i18n.CmdScopeProject)).
+		Short(i18n.T(i18n.CmdDescScopeProject)).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
-		HelpFlag(i18n.T(i18n.ScopeProjectHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpScopeProject)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			projectId, projectSet := cmdData.CliStorage.Data().ScopeProjectId.Get()
 			if projectSet {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
-					if errorsx.Check(err, errorsx.CheckErrorCode(errorCode.ProjectNotFound)) {
+					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
 						cmdData.UxBlocks.PrintWarning(styles.WarningLine(err.Error()))
 					} else {
 						return err

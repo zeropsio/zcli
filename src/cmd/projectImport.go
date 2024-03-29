@@ -19,12 +19,12 @@ const projectImportArgName = "importYamlPath"
 func projectImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("project-import").
-		Short(i18n.T(i18n.CmdProjectImport)).
-		Long(i18n.T(i18n.CmdProjectImportLong)).
+		Short(i18n.T(i18n.CmdDescProjectImport)).
+		Long(i18n.T(i18n.CmdDescProjectImportLong)).
 		Arg(projectImportArgName).
 		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
 		StringFlag("workingDie", "./", i18n.T(i18n.BuildWorkingDir)).
-		HelpFlag(i18n.T(i18n.ProjectImportHelp)).
+		HelpFlag(i18n.T(i18n.CmdHelpProjectImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
