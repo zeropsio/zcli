@@ -3,11 +3,10 @@ package cmd
 import (
 	"context"
 	"os"
-	"os/exec"
-	"text/template"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/uxBlock"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/zeropsio/zcli/src/cliStorage"
@@ -21,6 +20,7 @@ import (
 	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -40,7 +40,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			if isVpnUp(ctx) {
+			if isVpnUp(ctx, uxBlocks, 1) {
 				if cmdData.Params.GetBool("auto-disconnect") {
 					err := disconnectVpn(ctx, uxBlocks)
 					if err != nil {
@@ -92,28 +92,12 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE, fileMode)
+			f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
 			if err != nil {
 				return err
 			}
-			err = func() error {
-				defer f.Close()
 
-				templ := template.Must(template.New("wg template").Parse(vpnTmpl))
-
-				return templ.Execute(f, map[string]interface{}{
-					"PrivateKey":                privateKey.String(),
-					"PublicKey":                 vpnSettings.Project.PublicKey,
-					"AssignedIpv4Address":       vpnSettings.Peer.Ipv4.AssignedIpAddress,
-					"AssignedIpv6Address":       vpnSettings.Peer.Ipv6.AssignedIpAddress,
-					"Ipv4NetworkGateway":        vpnSettings.Project.Ipv4.Network.Gateway,
-					"ProjectIpv4Network":        vpnSettings.Project.Ipv4.Network.Network,
-					"ProjectIpv6Network":        vpnSettings.Project.Ipv6.Network.Network,
-					"Ipv4Network":               vpnSettings.Peer.Ipv4.Network.Network,
-					"Ipv6Network":               vpnSettings.Peer.Ipv6.Network.Network,
-					"ProjectIpv4SharedEndpoint": vpnSettings.Project.Ipv4.SharedEndpoint,
-				})
-			}()
+			err = wg.GenerateConfig(f, privateKey, vpnSettings)
 			if err != nil {
 				return err
 			}
@@ -136,18 +120,19 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			_, err = exec.LookPath("wg-quick")
+			err = wg.CheckWgInstallation()
 			if err != nil {
-				return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
+				return err
 			}
 
-			c := exec.CommandContext(ctx, "wg-quick", "up", filePath)
+			c := wg.UpCmd(ctx, filePath)
 			_, err = cmdRunner.Run(c)
 			if err != nil {
 				return err
 			}
 
-			if isVpnUp(ctx) {
+			// wait for the vpn to be up
+			if isVpnUp(ctx, uxBlocks, 6) {
 				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnUp)))
 			} else {
 				uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
@@ -157,11 +142,28 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 		})
 }
 
-func isVpnUp(ctx context.Context) bool {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
+func isVpnUp(ctx context.Context, uxBlocks uxBlock.UxBlocks, attempts int) bool {
+	p := []uxHelpers.Process{
+		{
+			F: func(ctx context.Context) error {
+				for i := 0; i < attempts; i++ {
+					err := nettools.Ping(ctx, vpnCheckAddress)
+					if err == nil {
+						return nil
+					}
 
-	err := nettools.Ping(ctx, vpnCheckAddress)
+					time.Sleep(time.Millisecond * 500)
+				}
+				return errors.New(i18n.T(i18n.VpnPingFailed))
+			},
+			RunningMessage:      i18n.T(i18n.VpnCheckingConnection),
+			ErrorMessageMessage: "",
+			SuccessMessage:      "",
+		},
+	}
+
+	err := uxHelpers.ProcessCheckWithSpinner(ctx, uxBlocks, p)
+
 	return err == nil
 }
 
@@ -186,20 +188,3 @@ func getOrCreatePrivateVpnKey(cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Ke
 
 	return vpnKey, nil
 }
-
-var vpnTmpl = `
-[Interface]
-PrivateKey = {{.PrivateKey}}
-
-Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
-DNS = {{.Ipv4NetworkGateway}}, zerops
-
-[Peer]
-PublicKey = {{.PublicKey}}
-
-AllowedIPs = {{if .ProjectIpv4Network}}{{.ProjectIpv4Network}},{{end}} {{.ProjectIpv6Network}}, {{if .Ipv4Network}}{{.Ipv4Network}}, {{end}}{{.Ipv6Network}}
-
-Endpoint = {{.ProjectIpv4SharedEndpoint}}
-
-PersistentKeepalive = 5
-`

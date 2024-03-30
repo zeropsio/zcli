@@ -3,9 +3,6 @@ package cmd
 import (
 	"context"
 	"os"
-	"os/exec"
-
-	"github.com/pkg/errors"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/cmdRunner"
@@ -14,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/wg"
 )
 
 func vpnDownCmd() *cmdBuilder.Cmd {
@@ -27,9 +25,9 @@ func vpnDownCmd() *cmdBuilder.Cmd {
 }
 
 func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
-	_, err := exec.LookPath("wg-quick")
+	err := wg.CheckWgInstallation()
 	if err != nil {
-		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
+		return err
 	}
 
 	filePath, fileMode, err := constants.WgConfigFilePath()
@@ -44,7 +42,7 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
 	}
 	defer f.Close()
 
-	c := exec.CommandContext(ctx, "wg-quick", "down", filePath)
+	c := wg.DownCmd(ctx, filePath)
 	_, err = cmdRunner.Run(c)
 	if err != nil {
 		return err
