@@ -120,7 +120,10 @@ func (m *spinnerModel) View() string {
 		if m.canceled {
 			s += "canceled\n"
 		} else {
-			s += spinner.view() + spinner.line.String() + "\n"
+			line := spinner.line.String()
+			if line != "" {
+				s += spinner.view() + spinner.line.String() + "\n"
+			}
 		}
 	}
 

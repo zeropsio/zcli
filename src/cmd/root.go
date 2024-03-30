@@ -82,7 +82,7 @@ func rootCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			if isVpnUp(ctx) {
+			if isVpnUp(ctx, cmdData.UxBlocks, 1) {
 				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsActive))
 			} else {
 				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsNotActive))

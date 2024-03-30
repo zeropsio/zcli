@@ -166,6 +166,7 @@ const (
 	VpnPrivateKeyCreated     = "VpnPrivateKeyCreated"
 	VpnDisconnectionPrompt   = "VpnDisconnectionPrompt"
 	VpnDisconnectionPromptNo = "VpnDisconnectionPromptNo"
+	VpnCheckingConnection    = "VpnCheckingConnection"
 	VpnPingFailed            = "VpnPingFailed"
 
 	// vpn down
@@ -174,7 +175,8 @@ const (
 	VpnDown        = "VpnDown"
 
 	// vpn shared
-	VpnWgQuickIsNotInstalled = "VpnWgQuickIsNotInstalled"
+	VpnWgQuickIsNotInstalled        = "VpnWgQuickIsNotInstalled"
+	VpnWgQuickIsNotInstalledWindows = "VpnWgQuickIsNotInstalledWindows"
 
 	// flags description
 	RegionFlag            = "RegionFlag"

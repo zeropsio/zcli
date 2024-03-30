@@ -39,10 +39,18 @@ func ProcessCheckWithSpinner(
 			defer wg.Done()
 			err := process.F(ctx)
 			if err != nil {
-				spinner.Finish(styles.ErrorLine(process.ErrorMessageMessage))
+				if process.ErrorMessageMessage == "" {
+					spinner.Finish(styles.NewLine())
+				} else {
+					spinner.Finish(styles.ErrorLine(process.ErrorMessageMessage))
+				}
 				once.Do(func() {
 					returnErr = err
 				})
+				return
+			}
+			if process.SuccessMessage == "" {
+				spinner.Finish(styles.NewLine())
 				return
 			}
 			spinner.Finish(styles.SuccessLine(process.SuccessMessage))

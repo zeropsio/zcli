@@ -171,6 +171,7 @@ var en = map[string]string{
 	VpnPrivateKeyCreated:     "VPN private key created",
 	VpnDisconnectionPrompt:   "VPN is active, do you want to disconnect?",
 	VpnDisconnectionPromptNo: "VPN is active, you can disconnect using the 'zcli vpn down' command",
+	VpnCheckingConnection:    "Checking VPN connection",
 	VpnPingFailed: fmt.Sprintf("Wireguard adapter was created, but we are not able to establish a connection,"+
 		"this could indicate a problem on our side. Please contact our support team %s.", CustomerSupportLink),
 
@@ -180,7 +181,8 @@ var en = map[string]string{
 	VpnDown:        "VPN disconnected",
 
 	// vpn shared
-	VpnWgQuickIsNotInstalled: "wg-quick is not installed, please install it and try again",
+	VpnWgQuickIsNotInstalled:        "wg-quick is not installed, please visit https://www.wireguard.com/install/",
+	VpnWgQuickIsNotInstalledWindows: "wireguard is not installed, please visit https://www.wireguard.com/install/",
 
 	// flags description
 	RegionFlag:            "Choose one of Zerops regions. Use the \"zcli region list\" command to list all Zerops regions.",
