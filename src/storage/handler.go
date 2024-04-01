@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -34,41 +35,32 @@ func New[T any](config Config) (*Handler[T], error) {
 }
 
 func (h *Handler[T]) load() error {
-	storageFileExists, err := FileExists(h.config.FilePath)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	if !storageFileExists {
-		return nil
+	{
+		f, err := os.Stat(h.config.FilePath)
+		if os.IsNotExist(err) {
+			return nil
+		}
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		if f.Size() == 0 {
+			if err := os.Remove(h.config.FilePath); err != nil {
+				return errors.WithStack(err)
+			}
+			return nil
+		}
 	}
 
-	f, err := file.Open(h.config.FilePath, os.O_RDONLY, h.config.FileMode)
+	f, err := os.Open(h.config.FilePath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	defer f.Close()
 
-	// If the file is empty, set the default value and save it.
-	fi, err := f.Stat()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	if fi.Size() == 0 {
-		return h.Clear()
-	}
-
 	if err := json.NewDecoder(f).Decode(&h.data); err != nil {
 		return errors.WithMessagef(err, i18n.T(i18n.UnableToDecodeJsonFile, h.config.FilePath))
 	}
-
 	return nil
-}
-
-func (h *Handler[T]) Clear() error {
-	h.lock.Lock()
-	defer h.lock.Unlock()
-	var data T
-	return h.save(data)
 }
 
 func (h *Handler[T]) Update(callback func(T) T) (T, error) {
@@ -82,6 +74,9 @@ func (h *Handler[T]) save(data T) error {
 	h.data = data
 
 	if err := func() error {
+		if err := os.MkdirAll(filepath.Dir(h.config.FilePath), 0755); err != nil {
+			return errors.WithStack(err)
+		}
 		f, err := file.Open(h.config.FilePath+".new", os.O_RDWR|os.O_CREATE|os.O_TRUNC, h.config.FileMode)
 		if err != nil {
 			return errors.WithStack(err)
@@ -95,6 +90,7 @@ func (h *Handler[T]) save(data T) error {
 	}(); err != nil {
 		return err
 	}
+	os.Remove(h.config.FilePath)
 	if err := os.Rename(h.config.FilePath+".new", h.config.FilePath); err != nil {
 		return errors.WithStack(err)
 	}

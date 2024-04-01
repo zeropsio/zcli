@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/uxBlock"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+
+	"github.com/zeropsio/zcli/src/uxBlock"
 
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmd/scope"
@@ -92,13 +93,19 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
-			if err != nil {
-				return err
-			}
+			if err := func() error {
+				f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
 
-			err = wg.GenerateConfig(f, privateKey, vpnSettings)
-			if err != nil {
+				err = wg.GenerateConfig(f, privateKey, vpnSettings)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
 				return err
 			}
 
