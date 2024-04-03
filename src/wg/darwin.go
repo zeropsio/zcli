@@ -38,7 +38,7 @@ func UpCmd(ctx context.Context, filePath string) (err *exec.Cmd) {
 	return exec.CommandContext(ctx, "wg-quick", "up", filePath)
 }
 
-func DownCmd(ctx context.Context, filePath string) (err *exec.Cmd) {
+func DownCmd(ctx context.Context, filePath, _ string) (err *exec.Cmd) {
 	return exec.CommandContext(ctx, "wg-quick", "down", filePath)
 }
 

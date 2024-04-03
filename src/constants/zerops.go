@@ -2,7 +2,6 @@ package constants
 
 import (
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -17,6 +16,7 @@ const (
 	ZeropsDir             = "zerops"
 	ZeropsLogFile         = "zerops.log"
 	WgConfigFile          = "zerops.conf"
+	WgInterfaceName       = "zerops"
 	CliDataFileName       = "cli.data"
 	CliDataFilePathEnvVar = "ZEROPS_CLI_DATA_FILE_PATH"
 	CliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
@@ -35,7 +35,7 @@ func LogFilePath() (string, os.FileMode, error) {
 }
 
 func WgConfigFilePath() (string, os.FileMode, error) {
-	return checkReceivers(getWgConfigFilePathReceivers(), 0600, i18n.UnableToWriteLogFile)
+	return checkReceivers(getWgConfigFilePathReceivers(), 0600, i18n.UnableToWriteWgConfigFile)
 }
 
 func checkReceivers(pathReceivers []pathReceiver, fileMode os.FileMode, errorText string) (string, os.FileMode, error) {
@@ -96,7 +96,7 @@ func findFirstWritablePath(paths []pathReceiver, fileMode os.FileMode) string {
 }
 
 func checkPath(filePath string, fileMode os.FileMode) (string, error) {
-	dir := path.Dir(filePath)
+	dir := filepath.Dir(filePath)
 
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err

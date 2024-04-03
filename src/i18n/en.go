@@ -106,6 +106,9 @@ var en = map[string]string{
 		"directory. The working directory is by default the current directory and can be changed\n" +
 		"using the --workingDir flag. zCLI deploys selected directories and/or files to Zerops. \n\n" +
 		"To build your application in Zerops, use the zcli push command instead.",
+	DeployRunning:  "Deploy is running",
+	DeployFailed:   "Deploy failed",
+	DeployFinished: "Deploy finished",
 
 	// push
 	CmdHelpPush: "the service push command.",
@@ -242,10 +245,11 @@ var en = map[string]string{
 	CliLogFilePathEnvVar:  "Path to a log file.",
 	CliDataFilePathEnvVar: "Path to data file.",
 
-	UnknownTerminalMode:    "Unknown terminal mode: %s. Falling back to auto-discovery. Possible values: auto, enabled, disabled.",
-	UnableToDecodeJsonFile: "Unable to decode json file: %s",
-	UnableToWriteCliData:   "Unable to write zcli data, paths tested: %s",
-	UnableToWriteLogFile:   "Unable to write zcli debug log file, paths tested: %s",
+	UnknownTerminalMode:       "Unknown terminal mode: %s. Falling back to auto-discovery. Possible values: auto, enabled, disabled.",
+	UnableToDecodeJsonFile:    "Unable to decode json file: %s",
+	UnableToWriteCliData:      "Unable to write zcli data, paths tested: %s",
+	UnableToWriteLogFile:      "Unable to write zcli debug log file, paths tested: %s",
+	UnableToWriteWgConfigFile: "Unable to write zcli wireguard config file, paths tested: %s",
 
 	// args
 	ArgsOnlyOneOptionalAllowed: "optional arg %s can be only the last one",
