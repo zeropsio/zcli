@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
@@ -92,7 +92,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 							size = s.Size()
 							reader = packageFile
 						} else {
-							tempFile := path.Join(os.TempDir(), appVersion.Id.Native())
+							tempFile := filepath.Join(os.TempDir(), appVersion.Id.Native())
 							f, err := os.Create(tempFile)
 							if err != nil {
 								return err

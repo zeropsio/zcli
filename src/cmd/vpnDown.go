@@ -42,7 +42,7 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
 	}
 	defer f.Close()
 
-	c := wg.DownCmd(ctx, filePath)
+	c := wg.DownCmd(ctx, filePath, constants.WgInterfaceName)
 	_, err = cmdRunner.Run(c)
 	if err != nil {
 		return err

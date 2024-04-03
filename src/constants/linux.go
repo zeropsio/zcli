@@ -5,7 +5,7 @@ package constants
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 )
 
 func getDataFilePathsReceivers() []pathReceiver {
@@ -21,7 +21,7 @@ func getDataFilePathsReceivers() []pathReceiver {
 func getLogFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
 		receiverFromEnv(CliLogFilePathEnvVar),
-		receiverFromPath(path.Join("/var/log/", ZeropsLogFile)),
+		receiverFromPath(filepath.Join("/var/log/", ZeropsLogFile)),
 		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, ZeropsLogFile),
 		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, ZeropsLogFile),
 		receiverFromOsFunc(os.UserHomeDir, "zerops."+ZeropsLogFile),
@@ -32,9 +32,9 @@ func getLogFilePathReceivers() []pathReceiver {
 func getWgConfigFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
 		receiverFromEnv(CliWgConfigPathEnvVar),
-		receiverFromPath(path.Join("/etc/wireguard/", WgConfigFile)),
-		receiverFromPath(path.Join("/usr/local/etc/wireguard/", WgConfigFile)),
-		receiverFromPath(path.Join("/opt/homebrew/etc/wireguard/", WgConfigFile)),
+		receiverFromPath(filepath.Join("/etc/wireguard/", WgConfigFile)),
+		receiverFromPath(filepath.Join("/usr/local/etc/wireguard/", WgConfigFile)),
+		receiverFromPath(filepath.Join("/opt/homebrew/etc/wireguard/", WgConfigFile)),
 		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, WgConfigFile),
 		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, WgConfigFile),
 		receiverFromOsFunc(os.UserHomeDir, WgConfigFile),

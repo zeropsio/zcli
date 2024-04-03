@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
@@ -93,7 +93,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 							size = s.Size()
 							reader = packageFile
 						} else {
-							tempFile := path.Join(os.TempDir(), appVersion.Id.Native())
+							tempFile := filepath.Join(os.TempDir(), appVersion.Id.Native())
 							f, err := os.Create(tempFile)
 							if err != nil {
 								return err
@@ -178,9 +178,9 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
-					RunningMessage:      i18n.T(i18n.PushRunning),
-					ErrorMessageMessage: i18n.T(i18n.PushFailed),
-					SuccessMessage:      i18n.T(i18n.PushFinished),
+					RunningMessage:      i18n.T(i18n.DeployRunning),
+					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
+					SuccessMessage:      i18n.T(i18n.DeployFinished),
 				}},
 			)
 

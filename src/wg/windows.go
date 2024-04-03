@@ -37,8 +37,8 @@ func UpCmd(ctx context.Context, filePath string) (err *exec.Cmd) {
 	return exec.CommandContext(ctx, "wireguard", "/installtunnelservice", filePath)
 }
 
-func DownCmd(ctx context.Context, filePath string) (err *exec.Cmd) {
-	return exec.CommandContext(ctx, "wireguard", "/uninstalltunnelservice", filePath)
+func DownCmd(ctx context.Context, _, interfaceName string) (err *exec.Cmd) {
+	return exec.CommandContext(ctx, "wireguard", "/uninstalltunnelservice", interfaceName)
 }
 
 var vpnTmpl = `
