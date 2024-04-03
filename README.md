@@ -15,4 +15,4 @@ for **CI/CD** development and CLI lovers.
 
 ## Additional documentation
 
-https://docs.zerops.io/documentation/cli/installation.html
+https://docs.zerops.io/references/cli
