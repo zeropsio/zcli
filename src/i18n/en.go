@@ -204,6 +204,7 @@ var en = map[string]string{
 	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
 	VpnAutoDisconnectFlag: "If set, zCLI will automatically disconnect from the VPN if it is already connected.",
+	ZeropsYamlSetup:       "Choose setup to be used from zerops.yml.",
 
 	// archiveClient
 	ArchClientWorkingDirectory:  "working directory: %s",
@@ -232,9 +233,9 @@ var en = map[string]string{
 	VpnCheckingConnectionIsActive:    "VPN connection is active",
 	VpnCheckingConnectionIsNotActive: "VPN connection is not active",
 
-	////////////
+	// //////////
 	// global //
-	////////////
+	// //////////
 	ProcessInvalidState: "last command has finished with error, identifier for communication with our support: %s",
 
 	CliTerminalModeEnvVar: "If enabled provides a rich UI to communicate with a user. Possible values: auto, enabled, disabled. Default value is auto.",

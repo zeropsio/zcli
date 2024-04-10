@@ -198,6 +198,7 @@ const (
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
+	ZeropsYamlSetup       = "ZeropsYamlSetup"
 
 	// archiveClient
 	ArchClientWorkingDirectory  = "ArchClientWorkingDirectory"
@@ -226,9 +227,9 @@ const (
 	VpnCheckingConnectionIsActive    = "VpnCheckingConnectionIsActive"
 	VpnCheckingConnectionIsNotActive = "VpnCheckingConnectionIsNotActive"
 
-	////////////
+	// //////////
 	// global //
-	////////////
+	// //////////
 	ProcessInvalidState = "ProcessInvalidState"
 
 	CliTerminalModeEnvVar = "TerminalModeEnv"

@@ -30,6 +30,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
+		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.ZeropsYamlLocation)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
@@ -48,7 +49,11 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, configContent)
+			setup := cmdData.Service.Name
+			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
+				setup = types.NewString(setupParam)
+			}
+			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, setup, configContent)
 			if err != nil {
 				return err
 			}
@@ -155,7 +160,8 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					Id: appVersion.Id,
 				},
 				body.PutAppVersionDeploy{
-					ZeropsYaml: types.NewMediumTextNull(string(configContent)),
+					ZeropsYaml:      types.NewMediumTextNull(string(configContent)),
+					ZeropsYamlSetup: setup.StringNull(),
 				},
 			)
 			if err != nil {
