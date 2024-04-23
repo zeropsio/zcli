@@ -23,6 +23,12 @@ const (
 	RegionNotFound        = "RegionNotFound"
 	RegionTableColumnName = "RegionTableColumnName"
 
+    // logout
+	CmdHelpLogout          = "CmdHelpLogout"
+	CmdDescLogout          = "CmdDescLogout"
+	LogoutVpnDisconnecting = "LogoutVpnDisconnecting"
+	LogoutSuccess          = "LogoutSuccess"
+
 	// scope
 	CmdHelpScope = "CmdHelpScope"
 	CmdDescScope = "CmdDescScope"
@@ -155,6 +161,14 @@ const (
 	// version
 	CmdHelpVersion = "CmdHelpVersion"
 	CmdDescVersion = "CmdDescVersion"
+
+	// support
+	CmdHelpSupport = "CmdHelpSupport"
+	CmdDescSupport = "CmdDescSupport"
+
+	// support
+	CmdHelpEnv = "CmdHelpEnv"
+	CmdDescEnv = "CmdDescEnv"
 
 	// vpn
 	CmdHelpVpn = "CmdHelpVpn"

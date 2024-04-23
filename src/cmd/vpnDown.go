@@ -48,7 +48,7 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
 		return err
 	}
 
-	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnDown)))
+	uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnDown)))
 
 	return nil
 }
