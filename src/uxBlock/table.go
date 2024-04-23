@@ -90,7 +90,7 @@ func (b *uxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
 	}
 
 	t := table.New().
-		BorderStyle(styles.InfoColor()).
+		BorderStyle(styles.TableBorderStyle()).
 		Border(lipgloss.NormalBorder()).
 		StyleFunc(func(row, col int) lipgloss.Style {
 			return styles.TableRow()

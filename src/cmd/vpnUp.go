@@ -132,12 +132,14 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+
 			// wait for the vpn to be up
 			if isVpnUp(ctx, uxBlocks, 6) {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnUp)))
+				uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnUp)))
 			} else {
 				uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
 			}
+
 
 			return nil
 		})

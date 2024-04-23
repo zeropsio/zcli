@@ -25,6 +25,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		SetHelpTemplate(getRootTemplate()).
 		SilenceError(true).
 		AddChildrenCmd(loginCmd()).
+		AddChildrenCmd(logoutCmd()).
 		AddChildrenCmd(versionCmd()).
 		AddChildrenCmd(scopeCmd()).
 		AddChildrenCmd(projectCmd()).
@@ -32,14 +33,22 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(vpnCmd()).
 		AddChildrenCmd(statusShowDebugLogsCmd()).
 		AddChildrenCmd(servicePushCmd()).
+		AddChildrenCmd(envCmd()).
+        AddChildrenCmd(supportCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
-			body := &uxBlock.TableBody{}
+            	fmt.Println(`Welcome to zCli by Zerops!
 
-			body.AddStringsRow(i18n.T(i18n.StatusInfoLoggedUser), "-")
+To unlock the full potential of zCLI, you need to log in using your Zerops account.
+Logging in enables you to access various features and interact with Zerops services seamlessly.
 
-			guestInfoPart(body)
+To log in, simply use the following command: zcli login <your_token>
+Replace <your_token> with the authentication token generated from your Zerops account.
+Once logged in, you'll be able to manage projects, deploy applications, configure VPN,
+and much more directly from the command line interface.
 
-			cmdData.UxBlocks.Table(body)
+If you encounter any issues during the login process or have any questions,
+feel free to find out how to contact our support team by running 'zcli support'.
+`)
 
 			// print the default command help
 			cmdData.PrintHelp()
@@ -47,7 +56,6 @@ func rootCmd() *cmdBuilder.Cmd {
 			return nil
 		}).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			body := &uxBlock.TableBody{}
 
 			var loggedUser string
 			if info, err := cmdData.RestApiClient.GetUserInfo(ctx); err != nil {
@@ -60,10 +68,8 @@ func rootCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			body.AddStringsRow(i18n.T(i18n.StatusInfoLoggedUser), loggedUser)
 
-			guestInfoPart(body)
-
+            // TODO: krls - check whole block
 			if cmdData.CliStorage.Data().ScopeProjectId.Filled() {
 				// project scope is set
 				projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
@@ -75,20 +81,21 @@ func rootCmd() *cmdBuilder.Cmd {
 							return err
 						}
 					} else {
-						body.AddStringsRow(i18n.T(i18n.ScopedProject), err.Error())
+						fmt.Print(i18n.T(i18n.ScopedProject), err.Error())
 					}
 				} else {
-					body.AddStringsRow(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.ID.Native()))
+					fmt.Print(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.ID.Native()))
 				}
 			}
 
+            var vpnStatusText string
 			if isVpnUp(ctx, cmdData.UxBlocks, 1) {
-				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsActive))
+				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsActive)
 			} else {
-				body.AddStringsRow(i18n.T(i18n.StatusInfoVpnStatus), i18n.T(i18n.VpnCheckingConnectionIsNotActive))
+				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsNotActive)
 			}
 
-			cmdData.UxBlocks.Table(body)
+            fmt.Printf("Welcome in Zerops!\nYou are loged as %s \nand your %s.\n\n", loggedUser, vpnStatusText)
 
 			// print the default command help
 			cmdData.PrintHelp()
@@ -119,23 +126,23 @@ func guestInfoPart(tableBody *uxBlock.TableBody) {
 
 func getRootTemplate() string {
 	return styles.CobraSectionColor().SetString("Usage:").String() + `{{if .Runnable}}
-  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
-  {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
+{{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+{{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
 
 ` + styles.CobraSectionColor().SetString("Aliases:").String() + `
-  {{.NameAndAliases}}{{end}}{{if .HasExample}}
+{{.NameAndAliases}}{{end}}{{if .HasExample}}
 
 ` + styles.CobraSectionColor().SetString("Examples:").String() + `
 {{.Example}}{{end}}{{if .HasAvailableSubCommands}}{{$cmds := .Commands}}{{if eq (len .Groups) 0}}
 
 ` + styles.CobraSectionColor().SetString("Available Commands:").String() + `{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
+` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
 
 {{.Title}}{{range $cmds}}{{if (and (eq .GroupID $group.ID) (or .IsAvailableCommand (eq .Name "help")))}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
+` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
 
 ` + styles.CobraSectionColor().SetString("Additional Commands:").String() + `{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
 
 ` + styles.CobraSectionColor().SetString("Flags:").String() + `
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
@@ -144,12 +151,7 @@ func getRootTemplate() string {
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
 
 ` + styles.CobraSectionColor().SetString("Additional help topics:").String() + `{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-  ` + styles.CobraItemNameColor().SetString("{{rpad .CommandPath .CommandPathPadding}}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
-
-` + styles.CobraSectionColor().SetString("Global Env Variables:").String() + `
-  ` + styles.CobraItemNameColor().SetString(constants.CliLogFilePathEnvVar).String() + `     ` + i18n.T(i18n.CliLogFilePathEnvVar) + `
-  ` + styles.CobraItemNameColor().SetString(constants.CliDataFilePathEnvVar).String() + `    ` + i18n.T(i18n.CliDataFilePathEnvVar) + `
-  ` + styles.CobraItemNameColor().SetString(constants.CliTerminalMode).String() + `     ` + i18n.T(i18n.CliTerminalModeEnvVar) + `
+` + styles.CobraItemNameColor().SetString("{{rpad .CommandPath .CommandPathPadding}}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
 
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `

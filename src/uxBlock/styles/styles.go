@@ -7,12 +7,39 @@ import (
 )
 
 const (
+    // SYMBOLS
 	SuccessIcon = "✔"
 	ErrorIcon   = "✗"
 	SelectIcon  = "➔"
 	InfoIcon    = "➤"
 	WarningIcon = "!"
+
+    // COLORS
+    prefixTextColorLight = "15"
+    prefixTextColorDark = "16"
+
+    successColorLight = "28"
+    successColorDark = "10"
+
+    warningColorLight = "142"
+    warningColorDark = "11"
+
+    selectColorLight = "33"
+    selectColorDark = "45"
+
+    infoColorLight = "16"
+    infoColorDark = "15"
+
+    errorColorLight = "196"
+    errorColorDark = "196"
+
+    cobraSectionColorLight = "4"
+    cobraSectionColorDark = "139"
+
+    cobraItemColorLight = "5"
+    cobraItemColorDark = "51"
 )
+
 
 var defaultRender = lipgloss.NewRenderer(os.Stdout)
 
@@ -22,128 +49,80 @@ func defaultStyle() lipgloss.Style {
 
 func SuccessPrefix() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#FFFFFF", ANSI256: "231", ANSI: "97"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#000000", ANSI256: "0", ANSI: "0"},
-		}).
-		Background(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#66bb6a", ANSI256: "114", ANSI: "32"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#66bb6a", ANSI256: "114", ANSI: "32"},
-		}).
+		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: successColorLight, Dark: successColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("DONE")
 }
 
 func SuccessColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#66bb6a", ANSI256: "114", ANSI: "32"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#66bb6a", ANSI256: "114", ANSI: "32"},
-		})
+		Foreground(lipgloss.AdaptiveColor{Light: successColorLight, Dark: successColorDark})
 }
 
 func ErrorPrefix() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#FFFFFF", ANSI256: "231", ANSI: "97"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#000000", ANSI256: "0", ANSI: "0"},
-		}).
-		Background(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#ff1b16", ANSI256: "196", ANSI: "91"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#ff1b16", ANSI256: "196", ANSI: "91"},
-		}).
+		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: errorColorLight, Dark: errorColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("ERR")
 }
 
 func ErrorColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#ff1b16", ANSI256: "196", ANSI: "91"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#ff1b16", ANSI256: "196", ANSI: "91"},
-		})
+		Foreground(lipgloss.AdaptiveColor{Light: errorColorLight, Dark: errorColorDark})
 }
 
 func WarningPrefix() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#FFFFFF", ANSI256: "231", ANSI: "97"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#000000", ANSI256: "0", ANSI: "0"},
-		}).
-		Background(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#ffa726", ANSI256: "216", ANSI: "93"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#ffa726", ANSI256: "216", ANSI: "93"},
-		}).
+	    Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+        Background(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("WARN")
 }
 
 func WarningColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#ffa726", ANSI256: "216", ANSI: "93"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#ffa726", ANSI256: "216", ANSI: "93"},
-		})
+	    Foreground(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark})
 }
 
 func InfoPrefix() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#FFFFFF", ANSI256: "231", ANSI: "97"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#000000", ANSI256: "0", ANSI: "0"},
-		}).
-		Background(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#e6e7ec", ANSI256: "231", ANSI: "37"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#e6e7ec", ANSI256: "231", ANSI: "37"},
-		}).
+	    Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+        Background(lipgloss.AdaptiveColor{Light: infoColorLight, Dark: infoColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("INFO")
 }
 
 func InfoColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#e6e7ec", ANSI256: "231", ANSI: "37"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#e6e7ec", ANSI256: "231", ANSI: "37"},
-		})
+		Foreground(lipgloss.AdaptiveColor{Light: infoColorLight, Dark: infoColorDark})
 }
 
 func SelectPrefix() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#FFFFFF", ANSI256: "231", ANSI: "97"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#000000", ANSI256: "0", ANSI: "0"},
-		}).
-		Background(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#07c", ANSI256: "27", ANSI: "30"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#07c", ANSI256: "27", ANSI: "30"},
-		}).
+		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: selectColorLight, Dark: selectColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("SELECT")
 }
 
 func SelectColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#07c", ANSI256: "27", ANSI: "30"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#07c", ANSI256: "27", ANSI: "30"},
-		})
+	    Foreground(lipgloss.AdaptiveColor{Light: selectColorLight, Dark: selectColorDark})
 }
 
 func CobraSectionColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#cc0077", ANSI256: "162", ANSI: "31"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#cc0077", ANSI256: "162", ANSI: "31"},
-		})
+        Foreground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark}).
+        BorderBottom(true).
+        BorderStyle(lipgloss.NormalBorder()).
+        BorderForeground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark})
 }
 
 func CobraItemNameColor() lipgloss.Style {
 	return defaultStyle().
-		Foreground(lipgloss.CompleteAdaptiveColor{
-			Light: lipgloss.CompleteColor{TrueColor: "#00ccbb", ANSI256: "44", ANSI: "36"},
-			Dark:  lipgloss.CompleteColor{TrueColor: "#00ccbb", ANSI256: "44", ANSI: "36"},
-		})
+	    Foreground(lipgloss.AdaptiveColor{Light: cobraItemColorLight, Dark: cobraItemColorDark})
 }
 
 func DialogBox() lipgloss.Style {
@@ -168,9 +147,12 @@ func DialogButton() lipgloss.Style {
 
 func ActiveDialogButton() lipgloss.Style {
 	return DialogButton().
-		Foreground(SelectPrefix().
-			GetForeground()).
+		Foreground(SelectPrefix().GetForeground()).
 		Background(SelectPrefix().GetBackground())
+}
+
+func TableBorderStyle() lipgloss.Style {
+	return InfoColor()
 }
 
 func TableRow() lipgloss.Style {

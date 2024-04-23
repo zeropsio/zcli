@@ -5,10 +5,16 @@ import "fmt"
 var en = map[string]string{
 	// login
 	CmdHelpLogin:          "the login command.",
-	CmdDescLogin:          "Logs you into Zerops. Use a generated Zerops token or your login e-mail and password.",
+	CmdDescLogin:          "Login into Zerops with generated Zerops token",
 	LoginSuccess:          "You are logged as %s <%s>",
 	RegionNotFound:        "Selected region %s not found",
 	RegionTableColumnName: "Name",
+
+	// logout
+    CmdHelpLogout:          "the logout command.",
+    CmdDescLogout:          "Disconnect from VPN and log out from your Zerops account",
+    LogoutVpnDisconnecting: "Disconnecting from VPN. Please provide your password if prompted.",
+    LogoutSuccess:          "Successfully logged out. You are now disconnected from Zerops services.",
 
 	// scope
 	CmdHelpScope: "the scope command.",
@@ -24,7 +30,7 @@ var en = map[string]string{
 
 	// project
 	CmdHelpProject: "the project command.",
-	CmdDescProject: "Project commands group.",
+	CmdDescProject: "Project commands group",
 
 	// project lit
 	CmdHelpProjectList: "the project list command.",
@@ -52,7 +58,7 @@ var en = map[string]string{
 
 	// service
 	CmdHelpService: "the service command.",
-	CmdDescService: "Zerops service commands group.",
+	CmdDescService: "Zerops service commands group",
 
 	// service start
 	CmdHelpServiceStart: "the service start command.",
@@ -112,7 +118,7 @@ var en = map[string]string{
 
 	// push
 	CmdHelpPush: "the service push command.",
-	CmdDescPush: "Builds your application in Zerops and deploys it.",
+	CmdDescPush: "Builds your application in Zerops and deploys it",
 	CmdDescPushLong: "Builds your application in Zerops and deploys it. \n\n" +
 		"The command triggers the build pipeline defined in zerops.yml. Zerops.yml must be in the working\n" +
 		"directory. The working directory is by default the current directory and can be changed\n" +
@@ -153,12 +159,20 @@ var en = map[string]string{
 
 	// status show debug logs
 	CmdHelpStatusShowDebugLogs: "the status show debug logs command.",
-	CmdDescStatusShowDebugLogs: "Shows zCLI debug logs.",
+	CmdDescStatusShowDebugLogs: "Shows zCLI debug logs",
 	DebugLogsNotFound:          "Debug logs not found",
 
 	// version
 	CmdHelpVersion: "the version command.",
-	CmdDescVersion: "Shows the current zCLI version.",
+	CmdDescVersion: "Shows the current zCLI version",
+
+	// support
+	CmdHelpSupport: "the support command.",
+	CmdDescSupport: "How to contact Zerops support for assistance",
+
+	// env
+	CmdHelpEnv: "the support command.",
+	CmdDescEnv: "Displays global environment variables, their paths and additional options",
 
 	// vpn
 	CmdHelpVpn: "the vpn command.",
