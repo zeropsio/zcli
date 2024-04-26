@@ -10,9 +10,10 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/dto/output"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 func CheckWgInstallation() error {
@@ -46,7 +47,9 @@ var vpnTmpl = `
 PrivateKey = {{.PrivateKey}}
 
 Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
+PostUp = mkdir -p /etc/resolver 
 PostUp = echo "nameserver {{.Ipv4NetworkGateway}}" > /etc/resolver/zerops 
+PostUp = echo "domain zerops" >> /etc/resolver/zerops 
 PostDown = rm /etc/resolver/zerops 
 
 [Peer]
