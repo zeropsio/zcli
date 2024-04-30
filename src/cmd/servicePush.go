@@ -98,7 +98,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 								return err
 							}
 							defer os.Remove(tempFile)
-							files, err := arch.FindGitFiles(cmdData.Params.GetString("workingDir"))
+							files, err := arch.FindGitFiles(ctx, cmdData.Params.GetString("workingDir"))
 							if err != nil {
 								return err
 							}

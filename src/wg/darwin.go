@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/cmdRunner"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/zeropsio/zcli/src/i18n"
@@ -34,12 +35,12 @@ func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.Proj
 	return template.Must(template.New("wg template").Parse(vpnTmpl)).Execute(f, data)
 }
 
-func UpCmd(ctx context.Context, filePath string) (err *exec.Cmd) {
-	return exec.CommandContext(ctx, "wg-quick", "up", filePath)
+func UpCmd(ctx context.Context, filePath string) (err *cmdRunner.ExecCmd) {
+	return cmdRunner.CommandContext(ctx, "wg-quick", "up", filePath)
 }
 
-func DownCmd(ctx context.Context, filePath, _ string) (err *exec.Cmd) {
-	return exec.CommandContext(ctx, "wg-quick", "down", filePath)
+func DownCmd(ctx context.Context, filePath, _ string) (err *cmdRunner.ExecCmd) {
+	return cmdRunner.CommandContext(ctx, "wg-quick", "down", filePath)
 }
 
 var vpnTmpl = `

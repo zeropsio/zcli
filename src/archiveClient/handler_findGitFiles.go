@@ -3,9 +3,9 @@ package archiveClient
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -13,7 +13,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdRunner"
 )
 
-func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
+func (h *Handler) FindGitFiles(ctx context.Context, workingDir string) (res []File, _ error) {
 	workingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return nil, err
@@ -28,8 +28,8 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 		}
 	}
 
-	createCmd := func(name string, arg ...string) *exec.Cmd {
-		cmd := exec.Command(name, arg...)
+	createCmd := func(name string, arg ...string) *cmdRunner.ExecCmd {
+		cmd := cmdRunner.CommandContext(ctx, name, arg...)
 		cmd.Dir = workingDir
 		return cmd
 	}
@@ -102,7 +102,7 @@ func (h *Handler) FindGitFiles(workingDir string) (res []File, _ error) {
 	return res, nil
 }
 
-func (h *Handler) listFiles(cmd *exec.Cmd, fn func(path string) error) error {
+func (h *Handler) listFiles(cmd *cmdRunner.ExecCmd, fn func(path string) error) error {
 	output, err := cmdRunner.Run(cmd)
 	if err != nil {
 		return err

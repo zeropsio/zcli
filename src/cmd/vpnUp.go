@@ -92,19 +92,14 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if err := func() error {
-				f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
-				if err != nil {
-					return err
-				}
-				defer f.Close()
+			f, err := file.Open(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
 
-				err = wg.GenerateConfig(f, privateKey, vpnSettings)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
+			err = wg.GenerateConfig(f, privateKey, vpnSettings)
+			if err != nil {
 				return err
 			}
 

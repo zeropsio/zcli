@@ -12,13 +12,8 @@ var ErrIpAlreadySet = errors.New("RTNETLINK answers: File exists")
 var ErrCannotFindDevice = errors.New(`Cannot find device "wg0"`)
 var ErrOperationNotPermitted = errors.New(`Operation not permitted`)
 
-type ExecErrInterface interface {
-	error
-	ExitCode() int
-}
-
 type execError struct {
-	cmd      *exec.Cmd
+	cmd      *ExecCmd
 	prev     error
 	exitCode int
 }
@@ -39,12 +34,16 @@ func (e execError) Is(target error) bool {
 	return errors.Is(e.prev, target)
 }
 
-func Run(cmd *exec.Cmd) ([]byte, ExecErrInterface) {
+func Run(cmd *ExecCmd) ([]byte, error) {
 	output := &bytes.Buffer{}
 	errOutput := &bytes.Buffer{}
 	cmd.Stdout = output
 	cmd.Stderr = errOutput
 	cmd.Env = append(os.Environ(), cmd.Env...)
+
+	if err := cmd.execBefore(); err != nil {
+		return nil, err
+	}
 
 	if err := cmd.Run(); err != nil {
 		exitCode := 0
@@ -79,6 +78,10 @@ func Run(cmd *exec.Cmd) ([]byte, ExecErrInterface) {
 
 		execError.prev = errors.New(errOutputString)
 		return nil, execError
+	}
+
+	if err := cmd.execAfter(); err != nil {
+		return nil, err
 	}
 
 	return output.Bytes(), nil
