@@ -1,4 +1,5 @@
 .idea
+.sandbox
 include/
 .sandbox/
 .tool-versions
