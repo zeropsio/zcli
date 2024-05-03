@@ -1,5 +1,7 @@
 .idea
 include/
+.sandbox/
+.tool-versions
 zcli.config.yml
 zcli.data
 tools/npm/node_modules
