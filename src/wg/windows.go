@@ -66,6 +66,7 @@ func beforeUp(zeropsConfPath string) cmdRunner.Func {
 		wgConfigDir := filepath.Join(programFiles, "WireGuard", "Data", "Configurations")
 		stat, err := os.Stat(wgConfigDir)
 		if err != nil {
+			//nolint:nilerr
 			return nil
 		}
 		if !stat.IsDir() {
@@ -79,6 +80,7 @@ func beforeUp(zeropsConfPath string) cmdRunner.Func {
 
 		wgConf, err := os.OpenFile(filepath.Join(wgConfigDir, constants.WgConfigFile), os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
+			//nolint:nilerr
 			return nil
 		}
 		defer wgConf.Close()
@@ -86,6 +88,7 @@ func beforeUp(zeropsConfPath string) cmdRunner.Func {
 		zeropsConf, err := os.OpenFile(zeropsConfPath, os.O_RDONLY, 0666)
 		if err != nil {
 			_ = os.Remove(wgConfFile)
+			//nolint:nilerr
 			return nil
 		}
 		defer zeropsConf.Close()
@@ -93,6 +96,7 @@ func beforeUp(zeropsConfPath string) cmdRunner.Func {
 		_, err = io.Copy(wgConf, zeropsConf)
 		if err != nil {
 			_ = os.Remove(wgConfFile)
+			//nolint:nilerr
 			return nil
 		}
 
