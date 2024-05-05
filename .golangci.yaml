@@ -1,11 +1,12 @@
-concurrency: 16
 run:
-  deadline: 10m
+  timeout: 10m
+  concurrency: 16
   issues-exit-code: 1
   tests: true
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
 
 linters-settings:
   godox:
@@ -17,25 +18,12 @@ issues:
 
 linters:
   enable:
-    - scopelint
-    - govet
-    - ineffassign
-    - varcheck
-    - unused
-    - deadcode
-    - bodyclose
-    - structcheck
-    - staticcheck
-    - godox
-    - rowserrcheck
-    - prealloc
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - containedctx
     - contextcheck
-    - deadcode
     - decorder
     - dogsled
     - dupword
@@ -86,11 +74,9 @@ linters:
     - protogetter
     - reassign
     - rowserrcheck
-    - scopelint
     - sloglint
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - tagalign
     - tagliatelle
     - tenv
@@ -103,7 +89,6 @@ linters:
     - unparam
     - unused
     - usestdlibvars
-    - varcheck
     - wastedassign
     - whitespace
     - zerologlint
