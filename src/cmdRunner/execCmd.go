@@ -16,6 +16,7 @@ func CommandContext(ctx context.Context, cmd string, args ...string) *ExecCmd {
 
 type ExecCmd struct {
 	*exec.Cmd
+	//nolint:containedctx
 	ctx    context.Context
 	before Func
 	after  Func
