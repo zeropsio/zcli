@@ -67,24 +67,27 @@ func (m *promptModel) Init() tea.Cmd {
 
 func (m *promptModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
-		switch msg.String() {
-		case "ctrl+c":
+		//nolint:exhaustive
+		switch msg.Type {
+		case tea.KeyCtrlC:
 			m.canceled = true
 			return m, tea.Quit
 
-		case "left":
+		case tea.KeyLeft:
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
-		case "right":
+		case tea.KeyRight:
 			if m.cursor < len(m.choices)-1 {
 				m.cursor++
 			}
-		case "enter":
+
+		case tea.KeyEnter:
 			m.quiting = true
 
 			return m, tea.Quit
+		default:
 		}
 	}
 
@@ -96,7 +99,7 @@ func (m *promptModel) View() string {
 		return ""
 	}
 
-	buttonsTexts := []string{}
+	var buttonsTexts []string
 	for i, choice := range m.choices {
 		if i == m.cursor {
 			buttonsTexts = append(buttonsTexts, styles.ActiveDialogButton().Render(choice))
