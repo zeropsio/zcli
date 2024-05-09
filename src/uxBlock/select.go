@@ -96,21 +96,36 @@ func (m *selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !ok {
 		return m, nil
 	}
-	switch keyMsg.String() {
-	case "ctrl+c":
+
+	//nolint:exhaustive
+	switch keyMsg.Type {
+	case tea.KeyCtrlC:
 		m.canceled = true
 		return m, tea.Quit
 
-	case "up":
+	case tea.KeyUp:
 		if m.cursor > 0 {
 			m.cursor--
 		}
 
-	case "down":
+	case tea.KeyDown:
 		if m.cursor < len(m.tableBody.rows)-1 {
 			m.cursor++
 		}
-	case "enter":
+
+	case tea.KeyPgUp:
+		m.cursor -= 5
+		if m.cursor < 0 {
+			m.cursor = 0
+		}
+
+	case tea.KeyPgDown:
+		m.cursor += 5
+		if lastItemIndex := len(m.tableBody.rows) - 1; m.cursor > lastItemIndex {
+			m.cursor = lastItemIndex
+		}
+
+	case tea.KeyEnter:
 		m.quiting = true
 
 		if !m.cfg.multiSelect {

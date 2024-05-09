@@ -79,7 +79,7 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case tea.KeyMsg:
-		if msg.String() == "ctrl+c" {
+		if msg.Type == tea.KeyCtrlC {
 			m.canceled = true
 			m.quiting = true
 			return m, tea.Quit
