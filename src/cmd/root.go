@@ -30,6 +30,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(projectCmd()).
 		AddChildrenCmd(serviceCmd()).
 		AddChildrenCmd(vpnCmd()).
+		AddChildrenCmd(initCmd()).
 		AddChildrenCmd(statusShowDebugLogsCmd()).
 		AddChildrenCmd(servicePushCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
