@@ -32,31 +32,33 @@ func projectImportCmd() *cmdBuilder.Cmd {
                 return err
             }
 
-            workingDir := cmdData.Params.GetString("workingDir")
-            yamlFilePath := filepath.Join(workingDir, defaultYamlFileName)
-            yamlContent, err := yamlReader.ReadContent(uxBlocks, yamlFilePath, workingDir)
-            if err != nil {
-                uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.NoYamlFound)))
+			workingDir := cmdData.Params.GetString("workingDir")
+			yamlFilePath := filepath.Join(workingDir, defaultYamlFileName)
+			if err != nil {
+				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.NoYamlFound)))
 				return err
-            }
+			}
+			yamlContent, err := yamlReader.ReadContent(uxBlocks, yamlFilePath, workingDir)
+			if err != nil {
+				return err
+			}
 
-            importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
-                ctx,
-                body.ProjectImport{
-                    ClientId: orgId,
-                    Yaml:     types.Text(yamlContent),
-                },
-            )
-            if err != nil {
-                uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
-                return err
-            }
+			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
+				ctx,
+				body.ProjectImport{
+					ClientId: orgId,
+					Yaml: types.Text(yamlContent),
+				},
+			)
+			if err != nil {
+				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
+				return err
+			}
 
-            projectOutput, err := importProjectResponse.Output()
-            if err != nil {
-                uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
-                return err
-            }
+			projectOutput, err := importProjectResponse.Output()
+			if err != nil {
+				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
+			} 
 
             var processes []uxHelpers.Process
             for _, service := range projectOutput.ServiceStacks {
