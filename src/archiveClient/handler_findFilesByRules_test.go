@@ -8,7 +8,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/mocks"
 )
 
-var testErrorResponseDataProvider = []struct {
+var findByRulesTestCases = []struct {
 	name       string
 	workingDir string
 	input      []string
@@ -33,6 +33,7 @@ var testErrorResponseDataProvider = []struct {
 			"test/var/www/dir/subDir/file3.2.txt",
 			"test/var/www/dir/subDir/file3.3.symlink.txt",
 			"test/var/www/file1.1.txt",
+			"test/var/www/non–ascii.txt",
 		},
 	},
 	{
@@ -137,6 +138,7 @@ var testErrorResponseDataProvider = []struct {
 			"dir/subDir/file3.2.txt",
 			"dir/subDir/file3.3.symlink.txt",
 			"file1.1.txt",
+			"non–ascii.txt",
 		},
 	},
 	{
@@ -220,25 +222,23 @@ var testErrorResponseDataProvider = []struct {
 	},
 }
 
-func TestValidation(t *testing.T) {
+func TestFindFilesByRules(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	uxBlocks := mocks.NewMockUxBlocks(ctrl)
 	uxBlocks.EXPECT().PrintInfo(gomock.Any()).AnyTimes()
 
-	for _, test := range testErrorResponseDataProvider {
+	for _, test := range findByRulesTestCases {
 		test := test // scope lint
-		t.Run(test.name+" in "+test.workingDir, func(t *testing.T) {
+		t.Run(test.name+"-in-"+test.workingDir, func(t *testing.T) {
 			archiver := New(Config{})
 
 			files, err := archiver.FindFilesByRules(uxBlocks, test.workingDir, test.input)
 			require.NoError(t, err)
 
-			output := func() (res []string) {
-				for _, f := range files {
-					res = append(res, f.ArchivePath)
-				}
-				return
-			}()
+			output := make([]string, 0, len(files))
+			for _, f := range files {
+				output = append(output, f.ArchivePath)
+			}
 
 			require.Equal(t, test.output, output)
 		})
