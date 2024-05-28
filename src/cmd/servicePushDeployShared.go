@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -19,7 +20,9 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/output"
+	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
+	"gopkg.in/yaml.v3"
 )
 
 func createAppVersion(
@@ -162,7 +165,7 @@ func validateZeropsYamlContent(
 		return errorsx.Convert(
 			err,
 			errorsx.And(
-				errorsx.ErrorCode("zeropsYamlServiceNotFound"),
+				errorsx.ErrorCode(errorCode.ZeropsYamlServiceNotFound),
 				errorsx.Meta(func(_ apiError.Error, metaItem map[string]interface{}) string {
 					if name, ok := metaItem["name"]; ok {
 						return i18n.T(i18n.ErrorServiceNotFound, name)
@@ -174,4 +177,35 @@ func validateZeropsYamlContent(
 	}
 
 	return nil
+}
+
+type zeropsYamlLight struct {
+	Setups []setupLight `yaml:"zerops"`
+}
+
+type setupLight struct {
+	Setup string `yaml:"setup"`
+}
+
+func zeropsYamlLightFromContent(content []byte) (zeropsYamlLight, error) {
+	var yml zeropsYamlLight
+	err := yaml.Unmarshal(content, &yml)
+	if err != nil {
+		return zeropsYamlLight{}, err
+	}
+	return yml, nil
+}
+
+func (y zeropsYamlLight) hasSetup(setupName string) bool {
+	return slices.ContainsFunc(y.Setups, func(s setupLight) bool {
+		return s.Setup == setupName
+	})
+}
+
+func (y zeropsYamlLight) getSetups() []string {
+	ret := make([]string, 0, len(y.Setups))
+	for _, s := range y.Setups {
+		ret = append(ret, s.Setup)
+	}
+	return ret
 }

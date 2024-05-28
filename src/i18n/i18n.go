@@ -5,7 +5,7 @@ import "fmt"
 func T(textConst string, args ...interface{}) string {
 	translation, exists := en[textConst]
 	if !exists {
-		return "[missing translation] " + textConst
+		return "[missing translation] " + fmt.Sprintf(textConst, args...)
 	}
 	if len(args) > 0 {
 		return fmt.Sprintf(translation, args...)
@@ -149,6 +149,9 @@ const (
 	PushDeployZeropsYamlTooLarge    = "PushDeployZeropsYamlTooLarge"
 	PushDeployZeropsYamlFound       = "PushDeployZeropsYamlFound"
 	PushDeployZeropsYamlNotFound    = "PushDeployZeropsYamlNotFound"
+	MissingZeropsYamlSetup          = "MissingZeropsYamlSetup"
+	SelectZeropsYamlSetup           = "SelectZeropsYamlSetup"
+	SelectedZeropsYamlSetup         = "SelectedZeropsYamlSetup"
 
 	// service list
 	CmdHelpServiceList = "CmdHelpServiceList"
@@ -206,6 +209,7 @@ const (
 	VpnWgQuickIsNotInstalledWindows = "VpnWgQuickIsNotInstalledWindows"
 
 	// flags description
+	DryRun                = "DryRun"
 	RegionFlag            = "RegionFlag"
 	RegionUrlFlag         = "RegionUrlFlag"
 	BuildVersionName      = "BuildVersionName"

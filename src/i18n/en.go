@@ -161,11 +161,14 @@ and your %s.`,
 	PushDeployDeployingStart:        "deploying service",
 	PushDeployZeropsYamlEmpty:       "config file zerops.yml is empty",
 	PushDeployZeropsYamlTooLarge:    "max. size of zerops.yml is 10 KB",
-	PushDeployZeropsYamlFound:       "File zerops.yml found. Path: %s.",
+	PushDeployZeropsYamlFound:       "File zerops.yml found. Path: %s",
 	PushDeployZeropsYamlNotFound: "File zerops.yml not found. Checked paths: [%s]. \n" +
 		" Please, create a zerops.yml file in the root directory of your project. \n" +
 		" Alternatively you can use the --zeropsYaml flag to specify the path to the zerops.yml file or \n" +
 		" use the --workingDir flag to set the working directory to the directory where the zerops.yml file is located.",
+	MissingZeropsYamlSetup:  "Setup %s not found in zerops.yaml",
+	SelectZeropsYamlSetup:   "Please select setup from zerops.yml",
+	SelectedZeropsYamlSetup: "Selected setup",
 
 	// service list
 	CmdHelpServiceList: "the service list command.",
@@ -226,6 +229,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	VpnWgQuickIsNotInstalledWindows: "wireguard is not installed, please visit https://www.wireguard.com/install/",
 
 	// flags description
+	DryRun:                "Dry run.",
 	RegionFlag:            "Choose one of Zerops regions. Use the \"zcli region list\" command to list all Zerops regions.",
 	RegionUrlFlag:         "Zerops region file url.",
 	BuildVersionName:      "Adds a custom version name. Automatically filled if the VERSIONNAME environment variable exists.",

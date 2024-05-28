@@ -12,6 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
@@ -31,6 +32,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
+		BoolFlag("dryRun", false, i18n.T(i18n.DryRun)).
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -50,10 +52,35 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			yamlLight, err := zeropsYamlLightFromContent(configContent)
+
 			setup := cmdData.Service.Name
 			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
 				setup = types.NewString(setupParam)
+			} else if !yamlLight.hasSetup(setup.Native()) {
+				setups := yamlLight.getSetups()
+				table := uxBlock.NewTableBody()
+				for _, s := range setups {
+					table.AddRow(uxBlock.NewTableRow(uxBlock.NewTableCell(s)))
+				}
+				selection, err := uxBlocks.Select(
+					ctx,
+					table,
+					uxBlock.WarningLabel(i18n.T(i18n.MissingZeropsYamlSetup, setup)),
+					uxBlock.SelectLabel(i18n.T(i18n.SelectZeropsYamlSetup)),
+					uxBlock.SelectTableHeader(uxBlock.NewTableRow(uxBlock.NewTableCell("setup"))),
+				)
+				if err != nil {
+					return err
+				}
+				setup = types.NewString(setups[selection[0]])
 			}
+			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedZeropsYamlSetup), setup.Native()))
+
+			if cmdData.Params.GetBool("dryRun") {
+				return nil
+			}
+
 			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, setup, configContent)
 			if err != nil {
 				return err

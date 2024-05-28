@@ -17,8 +17,10 @@ type TableBody struct {
 	rows []*TableRow
 }
 
-func NewTableBody() *TableBody {
-	return &TableBody{}
+func NewTableBody(rows ...*TableRow) *TableBody {
+	return &TableBody{
+		rows: rows,
+	}
 }
 
 func (b *TableBody) AddRow(row *TableRow) {
@@ -43,8 +45,10 @@ type TableRow struct {
 	cells []*TableCell
 }
 
-func NewTableRow() *TableRow {
-	return &TableRow{}
+func NewTableRow(cells ...*TableCell) *TableRow {
+	return &TableRow{
+		cells: cells,
+	}
 }
 
 func (r *TableRow) AddCell(cell *TableCell) *TableRow {

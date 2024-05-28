@@ -14,14 +14,20 @@ import (
 )
 
 type selectConfig struct {
-	label       string
+	labels      []string
 	multiSelect bool
 	header      *TableRow
 }
 
+func WarningLabel(label string) SelectOption {
+	return func(cfg *selectConfig) {
+		cfg.labels = append(cfg.labels, styles.WarningLine(label).String())
+	}
+}
+
 func SelectLabel(label string) SelectOption {
 	return func(cfg *selectConfig) {
-		cfg.label = label
+		cfg.labels = append(cfg.labels, styles.SelectLine(label).String())
 	}
 }
 
@@ -46,7 +52,9 @@ func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 	}
 
 	if !b.isTerminal {
-		b.PrintInfo(styles.InfoLine(cfg.label))
+		if len(cfg.labels) > 0 {
+			b.PrintInfo(styles.InfoLine(cfg.labels[0]))
+		}
 		return nil, errors.New(i18n.T(i18n.SelectorAllowedOnlyInTerminal))
 	}
 
@@ -193,11 +201,11 @@ func (m *selectModel) View() string {
 	}
 
 	s := ""
-	if m.cfg.label != "" {
-		s = styles.SelectLine(m.cfg.label).String() + "\n"
+	if len(m.cfg.labels) > 0 {
+		s = strings.Join(m.cfg.labels, "\n") + "\n"
 	}
 
 	t.Width(calculateTableWidth(t, m.uxBlocks.terminalWidth))
 
-	return s + t.String()
+	return s + t.String() + "\n"
 }
