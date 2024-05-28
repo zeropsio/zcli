@@ -14,7 +14,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("start").
 		Short(i18n.T(i18n.CmdDescServiceStart)).
-		ScopeLevel(scope.Service).
+		ScopeLevel(scope.Service()).
 		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{serviceName | serviceId}")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceStart)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

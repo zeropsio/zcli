@@ -11,11 +11,13 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/apiError"
+	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 type service struct {
-	parent cmdBuilder.ScopeLevel
+	parent                      cmdBuilder.ScopeLevel
+	serviceCategoryRestrictions []enum.ServiceStackTypeCategoryEnum
 }
 
 func (s *service) GetParent() cmdBuilder.ScopeLevel {
@@ -65,7 +67,11 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdD
 
 	// interactive selector of service
 	if service == nil {
-		service, err = uxHelpers.PrintServiceSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient, *cmdData.Project)
+		service, err = uxHelpers.PrintServiceSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient, *cmdData.Project,
+			uxHelpers.WithPrintServicesFilter(func(in entity.Service) bool {
+				return in.ServiceTypeCategory.Is(s.serviceCategoryRestrictions...)
+			}),
+		)
 		if err != nil {
 			return err
 		}

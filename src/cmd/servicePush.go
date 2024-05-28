@@ -17,6 +17,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
 )
 
 func servicePushCmd() *cmdBuilder.Cmd {
@@ -24,7 +25,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		Use("push").
 		Short(i18n.T(i18n.CmdDescPush)).
 		Long(i18n.T(i18n.CmdDescPushLong)).
-		ScopeLevel(scope.Service).
+		ScopeLevel(scope.Service(scope.WithServiceCategoryRestriction(enum.ServiceStackTypeCategoryEnumUser))).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).

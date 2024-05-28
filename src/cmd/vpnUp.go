@@ -33,7 +33,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("up").
 		Short(i18n.T(i18n.CmdDescVpnUp)).
-		ScopeLevel(scope.Project).
+		ScopeLevel(scope.Project()).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("auto-disconnect", false, i18n.T(i18n.VpnAutoDisconnectFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpVpnUp)).

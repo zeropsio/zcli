@@ -6,18 +6,33 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/generic"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
+type printServiceConfig struct {
+	filters []generic.FilterFunc[entity.Service]
+}
+type PrintServiceOption generic.Option[printServiceConfig]
+
+func WithPrintServicesFilter(f generic.FilterFunc[entity.Service]) PrintServiceOption {
+	return func(p *printServiceConfig) {
+		p.filters = append(p.filters, f)
+	}
+}
+
 func PrintServiceSelector(
 	ctx context.Context,
 	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
 	project entity.Project,
+	opts ...PrintServiceOption,
 ) (*entity.Service, error) {
+	c := generic.ApplyOptions(opts...)
+
 	services, err := repository.GetNonSystemServicesByProject(ctx, restApiClient, project)
 	if err != nil {
 		return nil, err
@@ -26,6 +41,12 @@ func PrintServiceSelector(
 	if len(services) == 0 {
 		uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ServiceSelectorListEmpty)))
 		return nil, nil
+	}
+
+	if len(c.filters) > 0 {
+		for _, filter := range c.filters {
+			services = generic.FilterSlice(services, filter)
+		}
 	}
 
 	header, rows := createServiceTableRows(services)
@@ -56,10 +77,19 @@ func PrintServiceList(
 	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
 	project entity.Project,
+	opts ...PrintServiceOption,
 ) error {
+	c := generic.ApplyOptions(opts...)
+
 	services, err := repository.GetNonSystemServicesByProject(ctx, restApiClient, project)
 	if err != nil {
 		return err
+	}
+
+	if len(c.filters) > 0 {
+		for _, filter := range c.filters {
+			services = generic.FilterSlice(services, filter)
+		}
 	}
 
 	header, tableBody := createServiceTableRows(services)
