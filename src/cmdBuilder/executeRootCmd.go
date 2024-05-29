@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/terminal"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 
@@ -16,7 +16,6 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/flagParams"
-	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zcli/src/support"
@@ -25,12 +24,12 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 )
 
-func ExecuteRootCmd(rootCmd *Cmd) (err error) {
+func ExecuteRootCmd(rootCmd *Cmd) {
 	ctx, cancel := context.WithCancel(context.Background())
 	regSignals(cancel)
 	ctx = support.Context(ctx)
 
-	isTerminal := isTerminal()
+	isTerminal := terminal.IsTerminal()
 
 	width, _, err := term.GetSize(0)
 	if err != nil {
@@ -41,33 +40,28 @@ func ExecuteRootCmd(rootCmd *Cmd) (err error) {
 
 	uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, cancel)
 
-	defer func() {
-		if err != nil {
-			printError(err, uxBlocks)
-		}
-	}()
-
 	cliStorage, err := createCliStorage()
 	if err != nil {
-		return err
+		printError(err, uxBlocks)
 	}
 
 	flagParams := flagParams.New()
 
 	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage)
 	if err != nil {
-		return err
+		printError(err, uxBlocks)
 	}
 
 	err = cobraCmd.ExecuteContext(ctx)
 	if err != nil {
 		printError(err, uxBlocks)
 	}
-
-	return nil
 }
 
 func printError(err error, uxBlocks uxBlock.UxBlocks) {
+	if err == nil {
+		return
+	}
 	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
@@ -90,31 +84,7 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	}
 
 	uxBlocks.PrintError(styles.ErrorLine(err.Error()))
-}
-
-type terminalMode string
-
-const (
-	TerminalModeAuto     terminalMode = "auto"
-	TerminalModeDisabled terminalMode = "disabled"
-	TerminalModeEnabled  terminalMode = "enabled"
-)
-
-func isTerminal() bool {
-	env := os.Getenv(constants.CliTerminalMode)
-
-	switch terminalMode(env) {
-	case TerminalModeAuto, "":
-		return isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
-	case TerminalModeDisabled:
-		return false
-	case TerminalModeEnabled:
-		return true
-	default:
-		os.Stdout.WriteString(styles.WarningLine(i18n.T(i18n.UnknownTerminalMode, env)).String())
-
-		return isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
-	}
+	os.Exit(1)
 }
 
 func createLoggers(isTerminal bool) (*logger.Handler, *logger.Handler) {

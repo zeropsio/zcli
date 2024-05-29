@@ -2,6 +2,7 @@ package cmdBuilder
 
 import (
 	"fmt"
+	"os"
 	"slices"
 
 	"github.com/pkg/errors"
@@ -10,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -50,6 +52,8 @@ type GuestCmdData struct {
 	UxBlocks   uxBlock.UxBlocks
 	Args       map[string][]string
 	Params     ParamsReader
+	Stdout     printer.Printer
+	Stderr     printer.Printer
 
 	PrintHelp func()
 }
@@ -88,6 +92,8 @@ func createCmdRunFunc(
 			UxBlocks:   uxBlocks,
 			Args:       argsMap,
 			Params:     newCmdParamReader(cobraCmd, flagParams),
+			Stdout:     printer.NewPrinter(os.Stdout),
+			Stderr:     printer.NewPrinter(os.Stderr),
 
 			PrintHelp: func() {
 				cobraCmd.HelpFunc()(cobraCmd, []string{})
