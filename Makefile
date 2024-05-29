@@ -1,8 +1,18 @@
 ## help             show this help
 .PHONY: help
 
+define helpMessage
+possible values:
+	test
+ 	lint
+ 	build-for-windows-amd
+ 	build-for-linux-amd
+ 	build-for-darwin-arm
+endef
+export helpMessage
+
 help:
-	@printf "possible values: test, lint"
+	@echo "$$helpMessage"
 
 test:
 	 go test -v ./cmd/... ./src/...

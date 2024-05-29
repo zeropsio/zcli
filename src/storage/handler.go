@@ -67,6 +67,13 @@ func (h *Handler[T]) Update(callback func(T) T) (T, error) {
 	return h.data, h.save(h.data)
 }
 
+func (h *Handler[T]) Clear() (T, error) {
+	h.lock.Lock()
+	defer h.lock.Unlock()
+	var t T
+	return h.data, h.save(t)
+}
+
 func (h *Handler[T]) save(data T) error {
 	h.data = data
 

@@ -2,8 +2,10 @@ package styles
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/zeropsio/zcli/src/terminal"
 )
 
 type Line struct {
@@ -35,11 +37,11 @@ func (l Line) NotEmpty() bool {
 }
 
 func (l Line) String() string {
-	args := l.args
+	args := slices.Clone(l.args)
 
 	for i, arg := range args {
 		if typed, ok := arg.(lipgloss.Style); ok {
-			if l.styles {
+			if l.styles && terminal.IsTerminal() {
 				args[i] = typed.String()
 			} else {
 				args[i] = typed.Value()

@@ -25,7 +25,7 @@ func NewOutputLogger(config OutputConfig) *Handler {
 		formatter = &logrus.TextFormatter{DisableColors: true}
 	}
 
-	l.AddHook(&StdoutHook{
+	l.AddHook(&TerminalHook{
 		levels:    []logrus.Level{logrus.DebugLevel, logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel},
 		formatter: formatter,
 	})

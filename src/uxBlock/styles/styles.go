@@ -7,39 +7,38 @@ import (
 )
 
 const (
-    // SYMBOLS
+	// SYMBOLS
 	SuccessIcon = "✔"
 	ErrorIcon   = "✗"
 	SelectIcon  = "➔"
 	InfoIcon    = "➤"
 	WarningIcon = "!"
 
-    // COLORS
-    prefixTextColorLight = "15"
-    prefixTextColorDark = "16"
+	// COLORS
+	prefixTextColorLight = "15"
+	prefixTextColorDark  = "16"
 
-    successColorLight = "28"
-    successColorDark = "10"
+	successColorLight = "28"
+	successColorDark  = "10"
 
-    warningColorLight = "142"
-    warningColorDark = "11"
+	warningColorLight = "142"
+	warningColorDark  = "11"
 
-    selectColorLight = "33"
-    selectColorDark = "45"
+	selectColorLight = "33"
+	selectColorDark  = "45"
 
-    infoColorLight = "16"
-    infoColorDark = "15"
+	infoColorLight = "16"
+	infoColorDark  = "15"
 
-    errorColorLight = "196"
-    errorColorDark = "196"
+	errorColorLight = "196"
+	errorColorDark  = "196"
 
-    cobraSectionColorLight = "4"
-    cobraSectionColorDark = "139"
+	cobraSectionColorLight = "4"
+	cobraSectionColorDark  = "139"
 
-    cobraItemColorLight = "5"
-    cobraItemColorDark = "51"
+	cobraItemColorLight = "5"
+	cobraItemColorDark  = "51"
 )
-
 
 var defaultRender = lipgloss.NewRenderer(os.Stdout)
 
@@ -75,21 +74,21 @@ func ErrorColor() lipgloss.Style {
 
 func WarningPrefix() lipgloss.Style {
 	return defaultStyle().
-	    Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-        Background(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark}).
+		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("WARN")
 }
 
 func WarningColor() lipgloss.Style {
 	return defaultStyle().
-	    Foreground(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark})
+		Foreground(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark})
 }
 
 func InfoPrefix() lipgloss.Style {
 	return defaultStyle().
-	    Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-        Background(lipgloss.AdaptiveColor{Light: infoColorLight, Dark: infoColorDark}).
+		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: infoColorLight, Dark: infoColorDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("INFO")
 }
@@ -109,20 +108,20 @@ func SelectPrefix() lipgloss.Style {
 
 func SelectColor() lipgloss.Style {
 	return defaultStyle().
-	    Foreground(lipgloss.AdaptiveColor{Light: selectColorLight, Dark: selectColorDark})
+		Foreground(lipgloss.AdaptiveColor{Light: selectColorLight, Dark: selectColorDark})
 }
 
 func CobraSectionColor() lipgloss.Style {
 	return defaultStyle().
-        Foreground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark}).
-        BorderBottom(true).
-        BorderStyle(lipgloss.NormalBorder()).
-        BorderForeground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark})
+		Foreground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark}).
+		BorderBottom(true).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark})
 }
 
 func CobraItemNameColor() lipgloss.Style {
 	return defaultStyle().
-	    Foreground(lipgloss.AdaptiveColor{Light: cobraItemColorLight, Dark: cobraItemColorDark})
+		Foreground(lipgloss.AdaptiveColor{Light: cobraItemColorLight, Dark: cobraItemColorDark})
 }
 
 func DialogBox() lipgloss.Style {

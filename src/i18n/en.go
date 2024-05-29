@@ -3,6 +3,27 @@ package i18n
 import "fmt"
 
 var en = map[string]string{
+	// root
+	GuestWelcome: `Welcome to zCli by Zerops!
+
+To unlock the full potential of zCLI, you need to log in using your Zerops account.
+Logging in enables you to access various features and interact with Zerops services seamlessly.
+
+To log in, simply use the following command: zcli login <your_token>
+Replace <your_token> with the authentication token generated from your Zerops account.
+Once logged in, you'll be able to manage projects, deploy applications, configure VPN,
+and much more directly from the command line interface.
+
+If you encounter any issues during the login process or have any questions,
+feel free to find out how to contact our support team by running 'zcli support'.`,
+	LoggedWelcome: `Welcome in Zerops!
+You are loged as %s
+and your %s.`,
+
+	// env
+	GlobalEnvVariables:        "Global Env Variables:",
+	CurrentlyUsedEnvVariables: "Curently used variables:",
+
 	// login
 	CmdHelpLogin:          "the login command.",
 	CmdDescLogin:          "Login into Zerops with generated Zerops token",
@@ -11,10 +32,10 @@ var en = map[string]string{
 	RegionTableColumnName: "Name",
 
 	// logout
-    CmdHelpLogout:          "the logout command.",
-    CmdDescLogout:          "Disconnect from VPN and log out from your Zerops account",
-    LogoutVpnDisconnecting: "Disconnecting from VPN. Please provide your password if prompted.",
-    LogoutSuccess:          "Successfully logged out. You are now disconnected from Zerops services.",
+	CmdHelpLogout:          "the logout command.",
+	CmdDescLogout:          "Disconnect from VPN and log out from your Zerops account",
+	LogoutVpnDisconnecting: "Disconnecting from VPN. Please provide your password if prompted.",
+	LogoutSuccess:          "Successfully logged out. You are now disconnected from Zerops services.",
 
 	// scope
 	CmdHelpScope: "the scope command.",
@@ -169,9 +190,12 @@ var en = map[string]string{
 	// support
 	CmdHelpSupport: "the support command.",
 	CmdDescSupport: "How to contact Zerops support for assistance",
+	Contact:        "You can contact Zerops support via:",
+	Documentation: `Additionally, you can explore our documentation
+at https://docs.zerops.io/references/cli for further details.`,
 
 	// env
-	CmdHelpEnv: "the support command.",
+	CmdHelpEnv: "the env command.",
 	CmdDescEnv: "Displays global environment variables, their paths and additional options",
 
 	// vpn
@@ -286,7 +310,7 @@ var en = map[string]string{
 
 	UnauthenticatedUser: `unauthenticated user, login before proceeding with this command
 zcli login {token}
-more info: https://docs.zerops.io/documentation/cli/authorization.html`,
+more info: https://docs.zerops.io/references/cli/`,
 
 	// scope
 	SelectedProject:         "Selected project",

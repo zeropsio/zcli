@@ -16,6 +16,14 @@ func T(textConst string, args ...interface{}) string {
 const CustomerSupportLink = "https://support.zerops.io/"
 
 const (
+	// root
+	GuestWelcome  = "GuestWelcome"
+	LoggedWelcome = "LoggedWelcome"
+
+	// env
+	GlobalEnvVariables        = "GlobalEnvVariables"
+	CurrentlyUsedEnvVariables = "CurrentlyUsedEnvVariables"
+
 	// login
 	CmdHelpLogin          = "CmdHelpLogin"
 	CmdDescLogin          = "CmdDescLogin"
@@ -23,7 +31,7 @@ const (
 	RegionNotFound        = "RegionNotFound"
 	RegionTableColumnName = "RegionTableColumnName"
 
-    // logout
+	// logout
 	CmdHelpLogout          = "CmdHelpLogout"
 	CmdDescLogout          = "CmdDescLogout"
 	LogoutVpnDisconnecting = "LogoutVpnDisconnecting"
@@ -167,8 +175,10 @@ const (
 	CmdDescSupport = "CmdDescSupport"
 
 	// support
-	CmdHelpEnv = "CmdHelpEnv"
-	CmdDescEnv = "CmdDescEnv"
+	CmdHelpEnv    = "CmdHelpEnv"
+	CmdDescEnv    = "CmdDescEnv"
+	Contact       = "Contact"
+	Documentation = "Documentation"
 
 	// vpn
 	CmdHelpVpn = "CmdHelpVpn"
