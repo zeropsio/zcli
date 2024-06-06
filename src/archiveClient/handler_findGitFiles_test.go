@@ -2,6 +2,7 @@ package archiveClient
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,6 +31,12 @@ var findGitFilesTestCases = []struct {
 }
 
 func TestFindGitFiles(t *testing.T) {
+	def, err := createNonAsciiFile()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer def()
+
 	ctx := context.TODO()
 	for _, test := range findGitFilesTestCases {
 		t.Run(test.name+"-in-"+test.workingDir, func(t *testing.T) {
@@ -47,4 +54,17 @@ func TestFindGitFiles(t *testing.T) {
 			assert.Equal(test.output, output)
 		})
 	}
+}
+
+// creates a non ascii file and returns a function to clean it up afterward
+// needs to be done like this, otherwise `go get` fails on "malformed file path"
+func createNonAsciiFile() (func(), error) {
+	file, err := os.Create("./test/var/www/non–ascii.txt")
+	if err != nil {
+		return nil, err
+	}
+	return func() {
+		file.Close()
+		os.Remove(file.Name())
+	}, nil
 }

@@ -223,6 +223,12 @@ var findByRulesTestCases = []struct {
 }
 
 func TestFindFilesByRules(t *testing.T) {
+	def, err := createNonAsciiFile()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer def()
+
 	ctrl := gomock.NewController(t)
 	uxBlocks := mocks.NewMockUxBlocks(ctrl)
 	uxBlocks.EXPECT().PrintInfo(gomock.Any()).AnyTimes()
