@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.19] - 2023-06-06
+
+### Fixed
+- `go get` would fail due to the `non–ascii.txt` file in one of the test cases. File is now created ad-hoc during the test and then cleaned up.
+
 ## [v0.12.19] - 2023-02-24
 
 ### Fixed
