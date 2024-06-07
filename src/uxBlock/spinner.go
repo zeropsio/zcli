@@ -58,7 +58,7 @@ type spinnerModel struct {
 
 type MergeMessage []tea.Cmd
 
-func XXX(cmdList ...tea.Cmd) func() tea.Msg {
+func sequence(cmdList ...tea.Cmd) func() tea.Msg {
 	return func() tea.Msg {
 		return MergeMessage(cmdList)
 	}
@@ -69,7 +69,7 @@ func (m *spinnerModel) Init() tea.Cmd {
 		ticks[i] = m.spinners[i].init()
 	}
 
-	return XXX(ticks...)
+	return sequence(ticks...)
 }
 
 func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -109,7 +109,7 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}(i)
 		}
 		wg.Wait()
-		return m, XXX(cmdList...)
+		return m, sequence(cmdList...)
 	}
 	return m, nil
 }
