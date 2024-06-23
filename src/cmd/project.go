@@ -13,5 +13,6 @@ func projectCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(projectListCmd()).
 		AddChildrenCmd(projectDeleteCmd()).
 		AddChildrenCmd(projectServiceImportCmd()).
-		AddChildrenCmd(projectImportCmd())
+		AddChildrenCmd(projectImportCmd()).
+		AddChildrenCmd(projectServiceAddCmd())
 }
