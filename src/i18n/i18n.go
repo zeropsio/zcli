@@ -95,6 +95,10 @@ const (
 	ServiceStartFailed  = "ServiceStartFailed"
 	ServiceStarted      = "ServiceStarted"
 
+	// service env
+	CmdDescServiceEnv = "CmdDescServiceEnv"
+	CmdHelpServiceEnv = "CmdHelpServiceEnv"
+
 	// service stop
 	CmdHelpServiceStop = "CmdHelpServiceStop"
 	CmdDescServiceStop = "CmdDescServiceStop"
@@ -213,6 +217,8 @@ const (
 	VpnWgQuickIsNotInstalledWindows = "VpnWgQuickIsNotInstalledWindows"
 
 	// flags description
+	ServiceEnvNameFlag    = "ServiceEnvNameFlag"
+	ServiceEnvFormatFlag  = "ServiceEnvFormatFlag"
 	RegionFlag            = "RegionFlag"
 	RegionUrlFlag         = "RegionUrlFlag"
 	BuildVersionName      = "BuildVersionName"
