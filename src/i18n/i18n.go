@@ -80,9 +80,9 @@ const (
 	// project service add
 	CmdHelpProjectServiceAdd = "CmdHelpProjectServiceAdd"
 	CmdDescProjectServiceAdd = "CmdDescProjectServiceAdd"
-	ServiceAdded             = "Service added"
-	ServiceAdding            = "Service adding"
-	ServiceAddFailed         = "Service add failed"
+	ServiceAdded             = "ServiceAdded"
+	ServiceAdding            = "ServiceAdding"
+	ServiceAddFailed         = "ServiceAddFailed"
 
 	// service
 	CmdHelpService = "CmdHelpService"
@@ -231,7 +231,8 @@ const (
 	ConfirmFlag           = "ConfirmFlag"
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
-	ServiceTypeFlag       = "ServiceTypeFlag"
+	ServiceAddTypeFlag    = "ServiceAddTypeFlag"
+	ServiceAddHaFlag      = "ServiceAddTypeHa"
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
 	ZeropsYamlSetup       = "ZeropsYamlSetup"
 
@@ -289,7 +290,6 @@ const (
 	ProjectSelectorPrompt                          = "ProjectSelectorPrompt"
 	ProjectSelectorOutOfRangeError                 = "ProjectSelectorOutOfRangeError"
 	ServiceSelectorListEmpty                       = "ServiceSelectorListEmpty"
-	ServiceStackTypesSelectorListEmpty             = "ServiceStackTypeSelectorListEmpty"
 	ServiceSelectorPrompt                          = "ServiceSelectorPrompt"
 	ServiceStackTypeSelectorPrompt                 = "ServiceStackTypeSelectorPrompt"
 	ServiceStackTypeSelectorOutOfRangeError        = "ServiceStackTypeSelectorOutOfRangeError"

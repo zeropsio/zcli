@@ -12,11 +12,13 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/stringId"
 )
 
 const serviceAddArgName = "serviceAddName"
 const serviceAddArgType = "type"
+const serviceAddArgHa = "ha"
 
 func projectServiceAddCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
@@ -24,7 +26,8 @@ func projectServiceAddCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescProjectServiceAdd)).
 		ScopeLevel(scope.Project).
 		Arg(serviceAddArgName).
-		StringFlag(serviceAddArgType, "", i18n.T(i18n.ServiceTypeFlag)).
+		StringFlag(serviceAddArgType, "", i18n.T(i18n.ServiceAddTypeFlag)).
+		BoolFlag(serviceAddArgHa, false, i18n.T(i18n.ServiceAddHaFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectServiceAdd)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			name := cmdData.Args[serviceAddArgName][0]
@@ -57,6 +60,11 @@ func projectServiceAddCmd() *cmdBuilder.Cmd {
 				typeNameVersionId = serviceStackType.Versions[0].ID
 			}
 
+			mode := enum.ServiceStackModeEnumNonHa
+			if cmdData.Params.GetBool(serviceAddArgHa) {
+				mode = enum.ServiceStackModeEnumHa
+			}
+
 			serviceAddResponse, err := cmdData.RestApiClient.PostServiceStack(ctx,
 				path.ServiceStackServiceStackTypeVersionId{
 					ServiceStackTypeVersionId: typeNameVersionId,
@@ -64,6 +72,7 @@ func projectServiceAddCmd() *cmdBuilder.Cmd {
 				body.PostStandardServiceStack{
 					ProjectId: cmdData.Project.ID,
 					Name:      types.NewString(name),
+					Mode:      &mode,
 				},
 			)
 			if err != nil {
