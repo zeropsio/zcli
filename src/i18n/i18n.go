@@ -77,6 +77,13 @@ const (
 	CmdDescProjectServiceImport = "CmdDescProjectServiceImport"
 	ServiceImported             = "ServiceImported"
 
+	// project service add
+	CmdHelpProjectServiceAdd = "CmdHelpProjectServiceAdd"
+	CmdDescProjectServiceAdd = "CmdDescProjectServiceAdd"
+	ServiceAdded             = "Service added"
+	ServiceAdding            = "Service adding"
+	ServiceAddFailed         = "Service add failed"
+
 	// service
 	CmdHelpService = "CmdHelpService"
 	CmdDescService = "CmdDescService"
@@ -224,6 +231,7 @@ const (
 	ConfirmFlag           = "ConfirmFlag"
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
+	ServiceTypeFlag       = "ServiceTypeFlag"
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
 	ZeropsYamlSetup       = "ZeropsYamlSetup"
 
@@ -277,17 +285,22 @@ const (
 	ArgsTooManyArgs            = "ArgsTooManyArgs"
 
 	// ux helpers
-	ProjectSelectorListEmpty       = "ProjectSelectorListEmpty"
-	ProjectSelectorPrompt          = "ProjectSelectorPrompt"
-	ProjectSelectorOutOfRangeError = "ProjectSelectorOutOfRangeError"
-	ServiceSelectorListEmpty       = "ServiceSelectorListEmpty"
-	ServiceSelectorPrompt          = "ServiceSelectorPrompt"
-	ServiceSelectorOutOfRangeError = "ServiceSelectorOutOfRangeError"
-	OrgSelectorListEmpty           = "OrgSelectorListEmpty"
-	OrgSelectorPrompt              = "OrgSelectorPrompt"
-	OrgSelectorOutOfRangeError     = "OrgSelectorOutOfRangeError"
-	SelectorAllowedOnlyInTerminal  = "SelectorAllowedOnlyInTerminal"
-	PromptAllowedOnlyInTerminal    = "PromptAllowedOnlyInTerminal"
+	ProjectSelectorListEmpty                       = "ProjectSelectorListEmpty"
+	ProjectSelectorPrompt                          = "ProjectSelectorPrompt"
+	ProjectSelectorOutOfRangeError                 = "ProjectSelectorOutOfRangeError"
+	ServiceSelectorListEmpty                       = "ServiceSelectorListEmpty"
+	ServiceStackTypesSelectorListEmpty             = "ServiceStackTypeSelectorListEmpty"
+	ServiceSelectorPrompt                          = "ServiceSelectorPrompt"
+	ServiceStackTypeSelectorPrompt                 = "ServiceStackTypeSelectorPrompt"
+	ServiceStackTypeSelectorOutOfRangeError        = "ServiceStackTypeSelectorOutOfRangeError"
+	ServiceStackTypeVersionSelectorPrompt          = "ServiceStackTypeVersionSelectorPrompt"
+	ServiceStackTypeVersionSelectorOutOfRangeError = "ServiceStackTypeVersionSelectorOutOfRangeError"
+	ServiceSelectorOutOfRangeError                 = "ServiceSelectorOutOfRangeError"
+	OrgSelectorListEmpty                           = "OrgSelectorListEmpty"
+	OrgSelectorPrompt                              = "OrgSelectorPrompt"
+	OrgSelectorOutOfRangeError                     = "OrgSelectorOutOfRangeError"
+	SelectorAllowedOnlyInTerminal                  = "SelectorAllowedOnlyInTerminal"
+	PromptAllowedOnlyInTerminal                    = "PromptAllowedOnlyInTerminal"
 
 	UnauthenticatedUser = "UnauthenticatedUser"
 
