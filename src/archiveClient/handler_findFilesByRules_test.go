@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+
 	"github.com/zeropsio/zcli/src/uxBlock/mocks"
 )
 
@@ -238,7 +239,7 @@ func TestFindFilesByRules(t *testing.T) {
 		t.Run(test.name+"-in-"+test.workingDir, func(t *testing.T) {
 			archiver := New(Config{})
 
-			files, err := archiver.FindFilesByRules(uxBlocks, test.workingDir, test.input)
+			files, err := archiver.FindFilesByRules(uxBlocks, test.workingDir, test.input, nil)
 			require.NoError(t, err)
 
 			output := make([]string, 0, len(files))
