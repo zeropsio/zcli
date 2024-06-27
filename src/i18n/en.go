@@ -253,6 +253,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	ArchClientPackingDirectory:  "packing directory: %s",
 	ArchClientPackingFile:       "packing file: %s",
 	ArchClientFileAlreadyExists: "file [%s] already exists",
+	ArchClientFileIgnored:       "file ignored: %s",
 
 	// import
 	ImportYamlOk:        "Yaml file was checked",

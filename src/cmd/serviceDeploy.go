@@ -99,10 +99,15 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 								return err
 							}
 							defer os.Remove(tempFile)
+							ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("workingDir"))
+							if err != nil {
+								return err
+							}
 							files, err := arch.FindFilesByRules(
 								uxBlocks,
 								cmdData.Params.GetString("workingDir"),
 								cmdData.Args["pathToFileOrDir"],
+								ignorer,
 							)
 							if err != nil {
 								return err

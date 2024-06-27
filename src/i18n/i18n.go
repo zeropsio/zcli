@@ -233,6 +233,7 @@ const (
 	ArchClientPackingDirectory  = "ArchClientPackingDirectory"
 	ArchClientPackingFile       = "ArchClientPackingFile"
 	ArchClientFileAlreadyExists = "ArchClientFileAlreadyExists"
+	ArchClientFileIgnored       = "ArchClientFileIgnored"
 
 	// import
 	ImportYamlOk        = "ImportYamlOk"

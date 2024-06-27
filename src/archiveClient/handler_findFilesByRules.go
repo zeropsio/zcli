@@ -11,7 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string, sources []string) ([]File, error) {
+func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string, sources []string, ignorer FileIgnorer) ([]File, error) {
 	workingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return nil, err
@@ -79,6 +79,11 @@ func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string,
 
 			file := createFile(filePath)
 			if file.ArchivePath != "" {
+				if ignorer != nil && ignorer.MatchesPath(file.ArchivePath) {
+					// TODO: PrintDebug.
+					uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientFileIgnored, file.ArchivePath)))
+					return nil
+				}
 				files = append(files, file)
 			}
 
