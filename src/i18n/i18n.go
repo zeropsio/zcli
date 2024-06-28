@@ -57,6 +57,15 @@ const (
 	CmdHelpProjectList = "CmdHelpProjectList"
 	CmdDescProjectList = "CmdDescProjectList"
 
+	// project create
+	CmdHelpProjectCreate  = "CmdHelpProjectCreate"
+	CmdDescProjectCreate  = "CmdDescProjectCreate"
+	ProjectCreateConfirm  = "ProjectCreateConfirm"
+	ServiceCreateConfirm  = "ServiceCreateConfirm"
+	ProjectCreation       = "ProjectCreation"
+	ProjectCreationFailed = "ProjectCreationFailed"
+	ProjectCreated 		  = "ProjectCreated"
+
 	// project delete
 	CmdHelpProjectDelete = "CmdHelpProjectDelete"
 	CmdDescProjectDelete = "CmdDescProjectDelete"
@@ -71,6 +80,8 @@ const (
 	CmdDescProjectImport     = "CmdDescProjectImport"
 	CmdDescProjectImportLong = "CmdDescProjectImportLong"
 	ProjectImported          = "ProjectImported"
+	NoYamlFound			 	 = "NoYamlFound"
+	ProjectImportFailed    	 = "ProjectImportFailed"
 
 	// project service import
 	CmdHelpProjectServiceImport = "CmdHelpProjectServiceImport"
