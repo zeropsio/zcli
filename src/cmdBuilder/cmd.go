@@ -15,6 +15,7 @@ type ScopeLevel interface {
 
 type Cmd struct {
 	use               string
+	aliases           []string
 	short             string
 	long              string
 	helpTemplate      string
@@ -58,6 +59,11 @@ func (cmd *Cmd) AddChildrenCmd(childrenCmd *Cmd) *Cmd {
 
 func (cmd *Cmd) Use(use string) *Cmd {
 	cmd.use = use
+	return cmd
+}
+
+func (cmd *Cmd) Alias(aliases ...string) *Cmd {
+	cmd.aliases = append(cmd.aliases, aliases...)
 	return cmd
 }
 

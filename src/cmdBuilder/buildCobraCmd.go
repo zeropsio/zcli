@@ -38,6 +38,7 @@ func buildCobraCmd(
 		argNames[i] = argName
 	}
 	cobraCmd.Use = strings.Join(append([]string{cmd.use}, argNames...), " ")
+	cobraCmd.Aliases = cmd.aliases
 
 	for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
 		dep.AddCommandFlags(cmd)

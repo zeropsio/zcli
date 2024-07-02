@@ -199,8 +199,9 @@ at https://docs.zerops.io/references/cli for further details.`,
 	CmdDescEnv: "Displays global environment variables, their paths and additional options",
 
 	// vpn
-	CmdHelpVpn: "the vpn command.",
-	CmdDescVpn: "VPN commands group",
+	CmdHelpVpn:       "the vpn command.",
+	CmdDescVpn:       "VPN commands group",
+	WarnVpnInterface: "Error getting vpn network interface: %s",
 
 	// vpn up
 	CmdHelpVpnUp: "the vpn up command.",
