@@ -113,7 +113,7 @@ jobs:
       - run: |
           cd tools/npm
           npm ci --ignore-scripts
-          npm i -g replace-in-files-cli
+          npm i -g replace-in-files-cli@2.2.0
           replace-in-files --string='v0.0.0-zerops' --replacement='${{ github.event.release.tag_name }}' package.json
           npm publish --access=public
         env:
