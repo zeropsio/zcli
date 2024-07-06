@@ -57,6 +57,15 @@ and your %s.`,
 	CmdHelpProjectList: "the project list command.",
 	CmdDescProjectList: "Lists all projects.",
 
+	// project create
+	CmdHelpProjectCreate:  "the project create command.",
+	CmdDescProjectCreate:  "Creates an empty project.",
+	ProjectCreateConfirm:  "Creating %s a new empty project ? \n Are you sure?",
+	ServiceCreateConfirm:  "Would you like to create a new service? \n y/n",
+	ProjectCreation:       "Project is being created.",
+	ProjectCreationFailed: "Creation of a new project failed.",
+	ProjectCreated:        "Project created successfully",
+
 	// project delete
 	CmdHelpProjectDelete: "the project delete command.",
 	CmdDescProjectDelete: "Deletes a project and all of its services.",
@@ -68,9 +77,11 @@ and your %s.`,
 
 	// project import
 	CmdHelpProjectImport:     "the project import command.",
-	CmdDescProjectImport:     "Creates a new project with one or more services.",
+	CmdDescProjectImport:     "Initializes a new project with one or more services with foo.yaml.",
 	CmdDescProjectImportLong: "Creates a new project with one or more services according to the definition in the import YAML file.",
-	ProjectImported:          "project imported",
+	ProjectImported:          "Project imported",
+	NoYamlFound:              "No foo.yml file detected in your directory. For more information, please visit https://docs.zerops.io/references/import/.",
+	ProjectImportFailed: 	  "Failed while importing, seems like there's an issue try reaching out at https://discord.com/invite/WDvCZ54",
 
 	// project service import
 	CmdHelpProjectServiceImport: "the project service import command.",
@@ -257,7 +268,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 
 	// import
 	ImportYamlOk:        "Yaml file was checked",
-	ImportYamlEmpty:     "Config file import yaml is empty",
+	ImportYamlEmpty:     "The config foo.yml file is empty. For more information, please visit https://docs.zerops.io/references/import/",
 	ImportYamlTooLarge:  "Max. size of import yaml is 100 KB",
 	ImportYamlFound:     "Import yaml found",
 	ImportYamlNotFound:  "Import yaml not found",
