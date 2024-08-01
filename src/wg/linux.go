@@ -17,11 +17,13 @@ import (
 )
 
 func CheckWgInstallation() error {
-	_, err := exec.LookPath("wg-quick")
-	if err != nil {
+	if _, err := exec.LookPath("wg-quick"); err != nil {
 		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
 	}
-
+	// Debian does not have it by default anymore
+	if _, err := exec.LookPath("resolvectl"); err != nil {
+		return errors.New(i18n.T(i18n.VpnResolveCtlIsNotInstalled))
+	}
 	return nil
 }
 

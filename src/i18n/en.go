@@ -223,6 +223,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 
 	// vpn shared
 	VpnWgQuickIsNotInstalled:        "wg-quick is not installed, please visit https://www.wireguard.com/install/",
+	VpnResolveCtlIsNotInstalled:     "resolvectl is not installed, please install system-resolved or equivalent for your distribution",
 	VpnWgQuickIsNotInstalledWindows: "wireguard is not installed, please visit https://www.wireguard.com/install/",
 
 	// flags description

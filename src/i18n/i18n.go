@@ -203,6 +203,7 @@ const (
 
 	// vpn shared
 	VpnWgQuickIsNotInstalled        = "VpnWgQuickIsNotInstalled"
+	VpnResolveCtlIsNotInstalled     = "VpnResolveCtlIsNotInstalled"
 	VpnWgQuickIsNotInstalledWindows = "VpnWgQuickIsNotInstalledWindows"
 
 	// flags description
