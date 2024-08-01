@@ -66,6 +66,7 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
 		uxBlocks.PrintError(styles.ErrorLine(err.Error()))
+		os.Exit(1)
 		return
 	}
 
@@ -80,6 +81,7 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 			uxBlocks.PrintError(styles.ErrorLine(string(meta)))
 		}
 
+		os.Exit(1)
 		return
 	}
 
