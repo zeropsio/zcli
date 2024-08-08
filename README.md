@@ -16,15 +16,15 @@ for **CI/CD** development and CLI lovers.
 ## Install zCLI
 
 ### Windows
-Execute following line in PowerShell
+Execute following command in PowerShell
 ```powershell
-irm https://raw.githubusercontent.com/zeropsio/zcli/main/install.ps1 | iex
+irm https://zerops.io/zcli/install.ps1 | iex
 ```
 
 ### Linux/MacOS
-Execute following line in Terminal
+Execute following command in Terminal
 ```shell
-curl -L https://raw.githubusercontent.com/zeropsio/zcli/main/install.sh | sh
+curl -L https://zerops.io/zcli/install.sh | sh
 ```
 
 ### Package managers
