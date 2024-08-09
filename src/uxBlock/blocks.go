@@ -13,8 +13,11 @@ import (
 type UxBlocks interface {
 	LogDebug(message string)
 	PrintInfo(line styles.Line)
+	PrintInfoLine(text string)
 	PrintWarning(line styles.Line)
+	PrintWarningLine(text string)
 	PrintError(line styles.Line)
+	PrintErrorLine(text string)
 	Table(body *TableBody, auxOptions ...TableOption)
 	Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error)
 	Prompt(

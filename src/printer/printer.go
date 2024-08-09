@@ -24,6 +24,10 @@ func NewPrinter(out io.Writer) Printer {
 	}
 }
 
+func (p Printer) Write(d []byte) (int, error) {
+	return p.out.Write(d)
+}
+
 func (p Printer) Printf(format string, args ...any) {
 	fmt.Fprintf(p.out, format, args...)
 }

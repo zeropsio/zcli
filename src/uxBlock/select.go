@@ -199,5 +199,5 @@ func (m *selectModel) View() string {
 
 	t.Width(calculateTableWidth(t, m.uxBlocks.terminalWidth))
 
-	return s + t.String()
+	return s + t.String() + "\n"
 }
