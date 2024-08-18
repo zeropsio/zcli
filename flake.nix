@@ -14,7 +14,12 @@
     perSystem = { config, pkgs, system, ... }: {
       packages.default = (import ./default.nix { inherit pkgs self; });
       devShells.default = pkgs.mkShell {
-        nativeBuildInputs = with pkgs; [ got ];
+        nativeBuildInputs = with pkgs; [ go ];
+        shellHook = ''
+          go mod vendor
+          git add vendor/.
+          echo -e '\033[0;33mprepared vendor files\033[0m'
+        '';
       };
     };
   };
