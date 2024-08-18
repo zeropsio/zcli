@@ -7,7 +7,7 @@
   src = self; #zcli;
 
   nativeBuildInputs = with pkgs; [ go ];
-  vendorHash = "sha256-XRnhK5vakEniRsgeEyBR+8RNwRO92KC9AXXMaYPs7Qc=";
+  vendorHash = null;
 
   installPhase = ''
   mkdir -p $out/bin
