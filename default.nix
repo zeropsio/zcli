@@ -7,7 +7,6 @@
   src = self; #zcli;
 
   nativeBuildInputs = with pkgs; [ go ];
-  patches = [ ./nix-patch/disable-git-filecheck.patch ];
   vendorHash = "sha256-XRnhK5vakEniRsgeEyBR+8RNwRO92KC9AXXMaYPs7Qc=";
 
   installPhase = ''

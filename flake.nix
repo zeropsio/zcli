@@ -3,18 +3,19 @@
 
   inputs = {
       nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+      flake-parts.url = "github:hercules-ci/flake-parts";
     };
 
   outputs = { self, nixpkgs, ... }@inputs:
-  let
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
-  in
-  {
-    packages.${system}.default = (import ./default.nix { inherit pkgs self; });
-
-    devShells = pkgs.mkShell {
-        nativeBuildInputs = [ pkgs.go ];
+  inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+    flake = {
+    };
+    systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
+    perSystem = { config, pkgs, system, ... }: {
+      packages.default = (import ./default.nix { inherit pkgs self; });
+      devShells.default = pkgs.mkShell {
+        nativeBuildInputs = with pkgs; [ got ];
       };
+    };
   };
 }
