@@ -1,14 +1,12 @@
 { pkgs, self}:
 
-# pkgs.stdenv.mkDerivation {
-
   pkgs.buildGoModule {
   pname = "zcli";
   version = "0..1";
 
   src = self; #zcli;
 
-  nativeBuildInputs = with pkgs; [ go ];
+  nativeBuildInputs = with pkgs; [ go git ];
 
   vendorHash = "sha256-XRnhK5vakEniRsgeEyBR+8RNwRO92KC9AXXMaYPs7Qc=";
 
