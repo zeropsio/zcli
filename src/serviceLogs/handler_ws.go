@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -36,7 +37,7 @@ func (h *Handler) getLogStream(
 
 	done := make(chan interface{}) // Channel to indicate that the receiverHandler is done
 
-	go h.receiveHandler(conn, inputs.format, done)
+	go h.receiveHandler(conn, inputs.format, inputs.formatTemplate, done)
 
 	for {
 		select {
@@ -81,7 +82,7 @@ func (h *Handler) updateUri(uri, query string) string {
 	return WSS + uri + query + from
 }
 
-func (h *Handler) receiveHandler(connection *websocket.Conn, format string, done chan interface{}) {
+func (h *Handler) receiveHandler(connection *websocket.Conn, format, formatTemplate string, done chan interface{}) {
 	defer close(done)
 
 	for {
@@ -100,17 +101,17 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format string, done
 			return
 		}
 
-		h.printStreamLog(msg, format)
+		h.printStreamLog(msg, format, formatTemplate)
 	}
 }
 
-func (h *Handler) printStreamLog(data []byte, format string) {
+func (h *Handler) printStreamLog(data []byte, format, formatTemplate string) {
 	jsonData, _ := parseResponse(data)
 	// only if there is a new message coming
 	if len(jsonData.Items) > 0 {
 		// update last msg ID for ws reconnection
 		h.lastMsgId = jsonData.Items[len(jsonData.Items)-1].Id
-		err := parseResponseByFormat(jsonData, format, "", STREAM)
+		err := parseResponseByFormat(jsonData, format, formatTemplate, STREAM)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
