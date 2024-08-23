@@ -1,5 +1,5 @@
 {
-  description = "Arbel's zcli flake";
+  description = "Zerops CLI utility";
 
   inputs = {
       nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
