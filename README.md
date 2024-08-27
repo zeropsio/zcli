@@ -25,7 +25,6 @@
 [![NPM Downloads](https://img.shields.io/npm/d18m/%40zerops%2Fzcli)](https://www.npmjs.com/package/@zerops/zcli)
 [![npm version](https://badge.fury.io/js/@zerops%2Fzcli.svg)](https://badge.fury.io/js/@zerops%2Fzcli)
 [![Discord](https://img.shields.io/discord/735781031147208777)](https://discord.gg/xxzmJSDKPT)
-[![npm bundle size](https://img.shields.io/bundlephobia/min/%40zerops%2Fzcli)](https://www.npmjs.com/package/@zerops/zcli)
 
 </div>
 
@@ -36,16 +35,20 @@
 <br/>
 </h3>
 
-## Supported platforms
+### Supported platforms
 
 - Windows
 - Linux
 - MacOS (arm64, amd64)
 - NixOS
 
-## Requirements
+### Optional requirements
 
 - [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
+
+
+<br/>
+
 
 ## Install zCLI
 
@@ -82,12 +85,23 @@ curl -L https://zerops.io/zcli/install.sh | sh
 
 Currently, the zCLI is distributed for Linux (x86 & x64 architecture), macOS (x64 & M1 architecture) and Windows (x64 architecture).
 
+
+
+<br/>
+
+<br/>
+
+
 > [!TIP]
-> To download the zCLI directly, use the [latest release](https://github.com/zeropsio/zcli/releases/latest/) on GitHub.
+> To download the zCLI directly, locate the binary for your OS in the [latest release](https://github.com/zeropsio/zcli/releases/latest/) on GitHub.
+
+
+<br/>
+
 
 ## Quick Start
 
-- Create a new personal access token from [settings/token-management](http://app.zerops.io/settings/token-management).
+- Create a new personal access token at [settings/token-management](http://app.zerops.io/settings/token-management) in Zerops GUI.
 
 - Login to zCLI using the personal access token using the following command:
 
@@ -95,20 +109,31 @@ Currently, the zCLI is distributed for Linux (x86 & x64 architecture), macOS (x6
 zcli login <token>
 ```
 
-- Push your project using the following command:
+- Run zcli to list commands and the current status
 
 ```Shell
-zcli push
+zcli
 ```
+
+
+<br/>
+
 
 
 ## Additional Documentation
 
 For more information go through https://docs.zerops.io/references/cli.
 
+
+<br/>
+
+
 ## Want to Contribute?
 
 Contributions to zCLI are welcome and highly appreciated. However, We would like you to go through [CONTRIBUTING.md](https://github.com/zeropsio/zcli/blob/main/CONTRIBUTING.md).
+
+
+<br/>
 
 ## Community
 
