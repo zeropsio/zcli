@@ -45,7 +45,7 @@
 
 ## Requirements
 
-- [Wireguard](https://www.wireguard.com/install/) - utilized by zerops vpn command.
+- [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
 
 ## Install zCLI
 
