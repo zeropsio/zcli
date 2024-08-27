@@ -8,7 +8,7 @@
 
 <p align="center">
   <br/>
-   A <b>Command Line Utility / Command Line Interface</b> is used for interacting with <a href="https://zerops.io/">Zerops</a> platform.
+   A <b>Command Line Utility / Command Line Interface</b> is used for interacting with <a href="https://zerops.io/" target="_blank">Zerops</a> platform.
   <br/>
 </p>
 
@@ -32,7 +32,7 @@
 <br/>
 
 <h3 align="end">
-<a href="https://docs.zerops.io/">Read the docs →</a>
+<a href="https://docs.zerops.io/" target="_blank">Read the docs →</a>
 <br/>
 </h3>
 
