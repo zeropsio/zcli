@@ -1,4 +1,5 @@
 # Zerops zCLI
+~[Zerops](https://github.com/zeropsio/recipe-shared-assets/blob/main/covers/svg/cover-zcli.svg)
 
 Zerops zCLI is a command line utility for working with [zerops.io](https://zerops.io). It's used 
 for **CI/CD** development and CLI lovers.
