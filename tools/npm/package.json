@@ -1,6 +1,7 @@
 {
   "name": "@zerops/zcli",
   "version": "v0.0.0-zerops",
+  "description": "The command-line interface used for interacting with Zerops Platform.",
   "main": "./utils/binary.js",
   "license": "MIT",
   "private": false,
@@ -18,7 +19,8 @@
   },
   "files": [
     "/utils",
-    "package.json"
+    "package.json",
+    "README.md"
   ],
   "scripts": {
     "postinstall": "node ./utils/install.js",
