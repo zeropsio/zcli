@@ -36,54 +36,20 @@
 <br/>
 </h3>
 
-## Supported platforms
-
-- Windows
-- Linux
-- MacOS (arm64, amd64)
-- NixOS
-
-## Requirements
-
-- [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
-
-## Install zCLI
-
-### Package managers
-
-#### Npm
+## Install
 
 ```sh
 npm i -g @zerops/zcli
 ```
 
-### Windows
+Check out more installation ways at [zeropsio/zcli](https://github.com/zeropsio/zcli).
 
-Execute following command in PowerShell:
-
-```powershell
-irm https://zerops.io/zcli/install.ps1 | iex
-```
-
-### Linux/MacOS
-
-Execute following command in Terminal:
-
-```shell
-curl -L https://zerops.io/zcli/install.sh | sh
-```
-
-### NixOS
-
-- Clone this repository
-- `cd zcli` into the root of the cloned repository and run `nix develop`.
-- Run `nix build` to build the binary / execuetable of zCli.
-- zCLI's binary / execuetable will be present in `./result/bin/zcli`.
-
-Currently, the zCLI is distributed for Linux (x86 & x64 architecture), macOS (x64 & M1 architecture) and Windows (x64 architecture).
-
-> [!TIP]
+[!TIP]
 > To download the zCLI directly, use the [latest release](https://github.com/zeropsio/zcli/releases/latest/) on GitHub.
+
+## Requirements
+
+- [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
 
 ## Quick Start
 
@@ -101,16 +67,16 @@ zcli login <token>
 zcli push
 ```
 
+## Support
+
+Having trouble? Get help in the official [Zerops Discord Server](https://discord.gg/xxzmJSDKPT).
+
 
 ## Additional Documentation
 
-For more information go through https://docs.zerops.io/references/cli.
+For more information go through [zCLI Documentation](https://docs.zerops.io/references/cli).
 
 ## Want to Contribute?
 
 Contributions to zCLI are welcome and highly appreciated. However, We would like you to go through [CONTRIBUTING.md](https://github.com/zeropsio/zcli/blob/main/CONTRIBUTING.md).
-
-## Community
-
-To chat with other community members, you can join the [Zerops Discord Server](https://discord.gg/xxzmJSDKPT).
 
