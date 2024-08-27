@@ -42,12 +42,14 @@
 npm i -g @zerops/zcli
 ```
 
-## Requirements
-
-- [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
+Check out more installation ways at [zeropsio/zcli](https://github.com/zeropsio/zcli).
 
 [!TIP]
 > To download the zCLI directly, use the [latest release](https://github.com/zeropsio/zcli/releases/latest/) on GitHub.
+
+## Requirements
+
+- [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
 
 ## Quick Start
 
