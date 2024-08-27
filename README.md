@@ -1,7 +1,35 @@
-# Zerops zCLI
+![Zerops](https://github.com/zeropsio/recipe-shared-assets/blob/main/covers/svg/cover-zcli.svg)
 
-Zerops zCLI is a command line utility for working with [zerops.io](https://zerops.io). It's used 
-for **CI/CD** development and CLI lovers.
+<h2 align="center">
+   Zerops zCLI
+  <br/>
+  <br/>
+</h2>
+
+<p align="center">
+  <br/>
+   A <b>Command Line Utility / Command Line Interface</b> is used for interacting with <a href="https://zerops.io/">Zerops</a> platform.
+  <br/>
+</p> 
+
+<p align="center">
+<b>Made with</b> ❤️ for <b>CI/CD</b> development and <b>CLI</b> lovers.
+<br/>
+</p>
+
+<br />
+
+<div align="center">
+
+[![CI](https://github.com/zeropsio/zcli/actions/workflows/main.yml/badge.svg)](https://github.com/zeropsio/zcli/actions/workflows/ci.yml)
+[![NPM Downloads](https://img.shields.io/npm/d18m/%40zerops%2Fzcli)](https://www.npmjs.com/package/@zerops/zcli)
+[![npm version](https://badge.fury.io/js/@zerops%2Fzcli.svg)](https://badge.fury.io/js/@zerops%2Fzcli)
+[![Discord](https://img.shields.io/discord/735781031147208777)](https://discord.gg/xxzmJSDKPT)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/%40zerops%2Fzcli)](https://www.npmjs.com/package/@zerops/zcli)
+
+</div>
+
+<br/>
 
 ## Supported platforms
 
