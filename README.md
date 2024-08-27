@@ -40,7 +40,7 @@
 
 ## Requirements
 
-* [wireguard](https://www.wireguard.com/install/)
+* [Wireguard](https://www.wireguard.com/install/)
 
 
 ## Install zCLI
