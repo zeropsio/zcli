@@ -21,7 +21,7 @@
 
 <div align="center">
 
-[![CI](https://github.com/zeropsio/zcli/actions/workflows/main.yml/badge.svg)](https://github.com/zeropsio/zcli/actions/workflows/ci.yml)
+[![CI](https://github.com/zeropsio/zcli/actions/workflows/main.yml/badge.svg)](https://github.com/zeropsio/zcli/actions/workflows/main.yml)
 [![NPM Downloads](https://img.shields.io/npm/d18m/%40zerops%2Fzcli)](https://www.npmjs.com/package/@zerops/zcli)
 [![npm version](https://badge.fury.io/js/@zerops%2Fzcli.svg)](https://badge.fury.io/js/@zerops%2Fzcli)
 [![Discord](https://img.shields.io/discord/735781031147208777)](https://discord.gg/xxzmJSDKPT)
