@@ -25,7 +25,6 @@
 [![NPM Downloads](https://img.shields.io/npm/d18m/%40zerops%2Fzcli?labelColor=EDEFF3&color=8F9DA8)](https://www.npmjs.com/package/@zerops/zcli)
 [![npm version](https://img.shields.io/badge/dynamic/json?color=8F9DA8&labelColor=EDEFF3&label=@zerops/zcli&query=version&url=https%3A%2F%2Fbadge.fury.io%2Fjs%2F@zerops%252Fzcli.json)](https://badge.fury.io/js/@zerops%2Fzcli)
 [![CPU](https://img.shields.io/badge/CPU-x86%2C%20x64%2C%20ARM%2C%20ARM64-8F9DA8?labelColor=EDEFF3)](https://docs.abblix.com/docs/technical-requirements)
-
 [![Discord](https://img.shields.io/discord/735781031147208777?labelColor=EDEFF3&color=8F9DA8)](https://discord.gg/xxzmJSDKPT)
 
 </div>
