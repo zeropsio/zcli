@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.24] - 2024-09-08
+
+### Changed
+- Removed the need to provide the --projectId flag for service scope commands when the --serviceId flag is provided.
+
 ## [v1.0.22] - 2024-08-05
 
 ### Added
