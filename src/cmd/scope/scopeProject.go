@@ -21,10 +21,6 @@ type project struct {
 
 const ProjectArgName = "projectId"
 
-func (p *project) GetParent() cmdBuilder.ScopeLevel {
-	return nil
-}
-
 func (p *project) AddCommandFlags(cmd *cmdBuilder.Cmd) {
 	cmd.StringFlag(ProjectArgName, "", i18n.T(i18n.ProjectIdFlag))
 }

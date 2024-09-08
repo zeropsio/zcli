@@ -39,8 +39,8 @@ func buildCobraCmd(
 	}
 	cobraCmd.Use = strings.Join(append([]string{cmd.use}, argNames...), " ")
 
-	for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
-		dep.AddCommandFlags(cmd)
+	if cmd.scopeLevel != nil {
+		cmd.scopeLevel.AddCommandFlags(cmd)
 	}
 
 	for _, flag := range cmd.flags {

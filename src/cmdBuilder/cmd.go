@@ -10,7 +10,6 @@ type guestRunFunc func(ctx context.Context, cmdData *GuestCmdData) error
 type ScopeLevel interface {
 	AddCommandFlags(*Cmd)
 	LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData *LoggedUserCmdData) error
-	GetParent() ScopeLevel
 }
 
 type Cmd struct {

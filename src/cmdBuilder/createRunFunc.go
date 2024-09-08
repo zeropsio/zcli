@@ -3,7 +3,6 @@ package cmdBuilder
 import (
 	"fmt"
 	"os"
-	"slices"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -122,12 +121,12 @@ func createCmdRunFunc(
 
 		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+storedData.RegionData.Address)
 
-		for _, dep := range getScopeListFromRoot(cmd.scopeLevel) {
-			err := dep.LoadSelectedScope(ctx, cmd, cmdData)
-			if err != nil {
+		if cmd.scopeLevel != nil {
+			if err := cmd.scopeLevel.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
 				return err
 			}
 		}
+
 		return cmd.loggedUserRunFunc(ctx, cmdData)
 	}
 }
@@ -169,19 +168,4 @@ func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
 	}
 
 	return argsMap, nil
-}
-
-func getScopeListFromRoot(dep ScopeLevel) []ScopeLevel {
-	var list []ScopeLevel
-	for {
-		if dep == nil {
-			break
-		}
-		list = append(list, dep)
-		dep = dep.GetParent()
-	}
-
-	slices.Reverse(list)
-
-	return list
 }

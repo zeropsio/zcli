@@ -18,28 +18,18 @@ type service struct {
 	parent cmdBuilder.ScopeLevel
 }
 
-func (s *service) GetParent() cmdBuilder.ScopeLevel {
-	return s.parent
-}
-
 const ServiceArgName = "serviceIdOrName"
 const serviceFlagName = "serviceId"
 
 func (s *service) AddCommandFlags(cmd *cmdBuilder.Cmd) {
 	cmd.StringFlag(serviceFlagName, "", i18n.T(i18n.ServiceIdFlag))
+	s.parent.AddCommandFlags(cmd)
 }
 
-func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdData *cmdBuilder.LoggedUserCmdData) error {
+func (s *service) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cmdData *cmdBuilder.LoggedUserCmdData) error {
 	infoText := i18n.SelectedService
 	var service *entity.Service
 	var err error
-
-	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists {
-		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, cmdData.Project.ID, serviceIdOrName[0])
-		if err != nil {
-			return err
-		}
-	}
 
 	// service id is passed as a flag
 	if serviceId := cmdData.Params.GetString(serviceFlagName); serviceId != "" {
@@ -60,6 +50,20 @@ func (s *service) LoadSelectedScope(ctx context.Context, _ *cmdBuilder.Cmd, cmdD
 					),
 				),
 			)
+		}
+	}
+
+	// now we have to load project, because we need projectId going forwards
+	if service == nil {
+		if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
+			return err
+		}
+	}
+
+	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists && service == nil {
+		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, cmdData.Project.ID, serviceIdOrName[0])
+		if err != nil {
+			return err
 		}
 	}
 
