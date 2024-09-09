@@ -15,7 +15,7 @@ type RunConfig struct {
 	Project        entity.Project
 	ServiceId      uuid.ServiceStackId
 	Container      entity.Container
-	Limit          uint32
+	Limit          int
 	MinSeverity    string
 	MsgType        string
 	Format         string

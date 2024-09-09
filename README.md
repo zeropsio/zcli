@@ -46,6 +46,7 @@
 ### Optional requirements
 
 - [Wireguard](https://www.wireguard.com/install/) - utilized by `zcli vpn` command.
+- ping - utilized by `zcli vpn` command.
 
 
 <br/>

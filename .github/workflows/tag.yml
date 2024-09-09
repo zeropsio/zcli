@@ -54,14 +54,16 @@ jobs:
 
     steps:
 
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v3
-        with:
-          go-version: ~1.22
-        id: go
-
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+        id: go
+        env:
+          CGO_ENABLED: 0
 
       - name: Get dependencies
         run: |
@@ -100,6 +102,17 @@ jobs:
           asset_path: ./builds/${{ matrix.file }}
           asset_name: ${{ matrix.file }}
           asset_content_type: application/octet-stream
+
+      - name: Notify discord about new release
+        uses: sarisia/actions-status-discord@v1.15.0
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "New version of `zcli` is ready!"
+          description: |
+            Version `${{ github.event.release.tag_name }}`
+            Changelog [here](${{ github.event.release.html_url }})
+          color: 0xff91a4
+          username: GitHub
 
   publish-npm:
     needs: build

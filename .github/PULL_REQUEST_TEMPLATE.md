@@ -3,8 +3,8 @@
 #### What Type of Change is this?
 
 - [ ] New Feature
-- [ ] Minor Fix
-- [ ] Major Improvement
+- [ ] Fix
+- [ ] Improvement
 - [ ] Other
 
 #### Description (required)

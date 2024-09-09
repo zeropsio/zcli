@@ -44,7 +44,7 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 		}
 	}
 	return InputValues{
-		limit:          int(limit),
+		limit:          limit,
 		minSeverity:    severity,
 		facility:       facility,
 		format:         format,
@@ -53,7 +53,7 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 	}, nil
 }
 
-func (h *Handler) getLimit(config RunConfig) (limit uint32, err error) {
+func (h *Handler) getLimit(config RunConfig) (limit int, err error) {
 	limit = config.Limit
 
 	if limit < 1 || limit > 1000 {
