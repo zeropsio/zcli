@@ -43,7 +43,6 @@ npm i -g @zerops/zcli
 
 Check out more installation ways at [zeropsio/zcli](https://github.com/zeropsio/zcli).
 
-[!TIP]
 > To download the zCLI directly, use the [latest release](https://github.com/zeropsio/zcli/releases/latest/) on GitHub.
 
 ## Requirements
