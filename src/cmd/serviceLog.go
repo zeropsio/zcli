@@ -59,7 +59,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 			return handler.Run(ctx, serviceLogs.RunConfig{
 				Project:        *cmdData.Project,
 				ServiceId:      serviceId,
-				Limit:          uint32(cmdData.Params.GetInt("limit")),
+				Limit:          cmdData.Params.GetInt("limit"),
 				MinSeverity:    cmdData.Params.GetString("minimumSeverity"),
 				MsgType:        cmdData.Params.GetString("messageType"),
 				Format:         cmdData.Params.GetString("format"),

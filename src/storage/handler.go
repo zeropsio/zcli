@@ -55,7 +55,7 @@ func (h *Handler[T]) load() error {
 	defer f.Close()
 
 	if err := json.NewDecoder(f).Decode(&h.data); err != nil {
-		return errors.WithMessagef(err, i18n.T(i18n.UnableToDecodeJsonFile, h.config.FilePath))
+		return errors.WithMessage(err, i18n.T(i18n.UnableToDecodeJsonFile, h.config.FilePath))
 	}
 	return nil
 }

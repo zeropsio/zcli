@@ -43,7 +43,7 @@ func (hook *VarLogHook) Fire(entry *logrus.Entry) error {
 
 	defer f.Close()
 
-	_, err = io.WriteString(f, string(msg))
+	_, err = io.Copy(f, bytes.NewReader(msg))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to write message, %v", err)
 		return err

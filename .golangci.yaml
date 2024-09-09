@@ -53,10 +53,8 @@ linters:
     - gosmopolitan
     - govet
     - grouper
-    - ifshort
     - importas
     - ineffassign
-    - interfacer
     - loggercheck
     - maintidx
     - makezero
@@ -67,7 +65,6 @@ linters:
     - nilerr
     - noctx
     - nosprintfhostport
-    - perfsprint
     - prealloc
     - predeclared
     - promlinter
