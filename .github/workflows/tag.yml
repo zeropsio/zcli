@@ -1,4 +1,4 @@
-name: Upload build asset
+name: Tag
 
 on:
   release:
@@ -6,8 +6,10 @@ on:
 
 jobs:
   build:
-    name: Upload build asset for ${{ matrix.name }}
+    name: Build & upload ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    env:
+      CGO_ENABLED: '0'
     strategy:
       matrix:
         include:
@@ -19,6 +21,7 @@ jobs:
             strip: true
             runLint: true
             runTests: true
+
           - name: linux 386
             os: ubuntu-latest
             buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
@@ -27,6 +30,7 @@ jobs:
             strip: true
             runLint: true
             runTests: true
+
           - name: darwin amd64
             os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
@@ -35,6 +39,7 @@ jobs:
             strip: false
             runLint: true
             runTests: true
+
           - name: darwin arm64
             os: macos-latest
             buildCmd: env GOOS=darwin GOARCH=arm64 go build -o builds/zcli-darwin-arm64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
@@ -43,6 +48,7 @@ jobs:
             strip: false
             runLint: false
             runTests: false
+
           - name: windows amd64
             os: ubuntu-latest
             buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-x64.exe -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
@@ -53,7 +59,6 @@ jobs:
             runTests: false
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -62,8 +67,6 @@ jobs:
         with:
           go-version-file: "go.mod"
         id: go
-        env:
-          CGO_ENABLED: 0
 
       - name: Get dependencies
         run: |
@@ -103,17 +106,6 @@ jobs:
           asset_name: ${{ matrix.file }}
           asset_content_type: application/octet-stream
 
-      - name: Notify discord about new release
-        uses: sarisia/actions-status-discord@v1.15.0
-        with:
-          webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          title: "New version of `zcli` is ready!"
-          description: |
-            Version `${{ github.event.release.tag_name }}`
-            Changelog [here](${{ github.event.release.html_url }})
-          color: 0xff91a4
-          username: GitHub
-
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
@@ -131,3 +123,19 @@ jobs:
           npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+  report:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify discord about new release
+        uses: sarisia/actions-status-discord@v1.15.0
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "New version of `zcli` is ready!"
+          nocontext: 'true'
+          description: |
+            Version `${{ github.event.release.tag_name }}`
+            Changelog [here](${{ github.event.release.html_url }})
+          color: 0xff91a4
+          username: GitHub
