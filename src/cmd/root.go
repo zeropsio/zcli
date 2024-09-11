@@ -34,6 +34,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(servicePushCmd()).
 		AddChildrenCmd(envCmd()).
 		AddChildrenCmd(supportCmd()).
+		AddChildrenCmd(updateCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			cmdData.Stdout.PrintLines(
 				i18n.T(i18n.GuestWelcome),
