@@ -71,6 +71,9 @@ const (
 	CmdDescProjectImport     = "CmdDescProjectImport"
 	CmdDescProjectImportLong = "CmdDescProjectImportLong"
 	ProjectImported          = "ProjectImported"
+	NoYamlFound			 	 = "NoYamlFound"
+	ProjectImportFailed    	 = "ProjectImportFailed"
+
 
 	// project service import
 	CmdHelpProjectServiceImport = "CmdHelpProjectServiceImport"
