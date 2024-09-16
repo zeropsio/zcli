@@ -72,7 +72,7 @@ and your %s.`,
 	CmdDescProjectImportLong: "Creates a new project with one or more services according to the definition in the import YAML file.",
 	ProjectImported:          "Project is successfully imported",
 	NoYamlFound:              "No import yaml file detected in your directory. For more information, please visit https://docs.zerops.io/references/import/.",
-	ProjectImportFailed: 	  "Failed while importing, seems like there's an issue try reaching out at https://discord.com/invite/WDvCZ54",
+	ProjectImportFailed:      "Failed while importing, seems like there's an issue try reaching out at https://discord.com/invite/WDvCZ54",
 
 	// project service import
 	CmdHelpProjectServiceImport: "the project service import command.",
