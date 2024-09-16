@@ -14,7 +14,7 @@ import (
     "path/filepath"
 )
 
-const defaultYamlFileName = "project-import.yml"
+const defaultYamlFilePattern = "*import.yml"
 
 func projectImportCmd() *cmdBuilder.Cmd {
     return cmdBuilder.NewCmd().
@@ -32,33 +32,38 @@ func projectImportCmd() *cmdBuilder.Cmd {
                 return err
             }
 
-			workingDir := cmdData.Params.GetString("workingDir")
-			yamlFilePath := filepath.Join(workingDir, defaultYamlFileName)
-			if err != nil {
-				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.NoYamlFound)))
-				return err
-			}
-			yamlContent, err := yamlReader.ReadContent(uxBlocks, yamlFilePath, workingDir)
-			if err != nil {
-				return err
-			}
+            workingDir := cmdData.Params.GetString("workingDir")
 
-			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
-				ctx,
-				body.ProjectImport{
-					ClientId: orgId,
-					Yaml: types.Text(yamlContent),
-				},
-			)
-			if err != nil {
-				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
-				return err
-			}
+            yamlFiles, err := filepath.Glob(filepath.Join(workingDir, defaultYamlFilePattern))
+            if err != nil || len(yamlFiles) == 0 {
+                uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.NoYamlFound)))
+                return err
+            }
 
-			projectOutput, err := importProjectResponse.Output()
-			if err != nil {
-				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
-			} 
+            yamlFilePath := yamlFiles[0]
+            uxBlocks.PrintInfo(styles.InfoLine("Using YAML file: " + yamlFilePath))
+
+            yamlContent, err := yamlReader.ReadContent(uxBlocks, yamlFilePath, workingDir)
+            if err != nil {
+                return err
+            }
+
+            importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
+                ctx,
+                body.ProjectImport{
+                    ClientId: orgId,
+                    Yaml: types.Text(yamlContent),
+                },
+            )
+            if err != nil {
+                uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
+                return err
+            }
+
+            projectOutput, err := importProjectResponse.Output()
+            if err != nil {
+                uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
+            } 
 
             var processes []uxHelpers.Process
             for _, service := range projectOutput.ServiceStacks {
