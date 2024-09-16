@@ -10,3 +10,7 @@ go run cmd/zcli/main.go
 ```
 gofmt -s -w ./
 ```
+
+```
+goimports -w ./
+```

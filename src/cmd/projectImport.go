@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"path/filepath"
+
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -11,7 +13,6 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
-	"path/filepath"
 )
 
 const defaultYamlFilePattern = "*import.yml"
