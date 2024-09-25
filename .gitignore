@@ -14,4 +14,3 @@ tools/npm/node_modules
 *.DS_Store
 # ignore built binary in root dir
 /zcli
-vendor
