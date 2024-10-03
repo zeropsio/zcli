@@ -77,7 +77,7 @@ func rootCmd() *cmdBuilder.Cmd {
 			}
 
 			var vpnStatusText string
-			if isVpnUp(cmdData.UxBlocks) {
+			if isVpnUp(ctx, cmdData.UxBlocks, 1) {
 				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsActive)
 			} else {
 				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsNotActive)

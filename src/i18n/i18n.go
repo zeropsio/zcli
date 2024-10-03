@@ -2,11 +2,10 @@ package i18n
 
 import "fmt"
 
-func T(textConst string, args ...any) string {
+func T(textConst string, args ...interface{}) string {
 	translation, exists := en[textConst]
 	if !exists {
-		format := textConst
-		return "[missing translation] " + fmt.Sprintf(format, args...)
+		return "[missing translation] " + textConst
 	}
 	if len(args) > 0 {
 		return fmt.Sprintf(translation, args...)
@@ -182,9 +181,8 @@ const (
 	Documentation = "Documentation"
 
 	// vpn
-	CmdHelpVpn       = "CmdHelpVpn"
-	CmdDescVpn       = "CmdDescVpn"
-	WarnVpnInterface = "WarnVpnInterface"
+	CmdHelpVpn = "CmdHelpVpn"
+	CmdDescVpn = "CmdDescVpn"
 
 	// vpn up
 	CmdHelpVpnUp             = "CmdHelpVpnUp"

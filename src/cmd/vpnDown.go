@@ -17,7 +17,6 @@ import (
 func vpnDownCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("down").
-		Alias("d", "stop").
 		Short(i18n.T(i18n.CmdDescVpnDown)).
 		HelpFlag(i18n.T(i18n.CmdHelpVpnDown)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
