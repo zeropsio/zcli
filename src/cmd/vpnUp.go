@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"context"
-	"net"
 	"os"
 	"time"
 
 	"github.com/pkg/errors"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
@@ -15,6 +16,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/nettools"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -23,13 +25,13 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
+
+const vpnCheckAddress = "logger.core.zerops"
 
 func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("up").
-		Alias("u", "start").
 		Short(i18n.T(i18n.CmdDescVpnUp)).
 		ScopeLevel(scope.Project).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
@@ -38,7 +40,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			if isVpnUp(uxBlocks) {
+			if isVpnUp(ctx, uxBlocks, 1) {
 				if cmdData.Params.GetBool("auto-disconnect") {
 					err := disconnectVpn(ctx, uxBlocks)
 					if err != nil {
@@ -131,7 +133,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 			}
 
 			// wait for the vpn to be up
-			if isVpnUp(uxBlocks) {
+			if isVpnUp(ctx, uxBlocks, 6) {
 				uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnUp)))
 			} else {
 				uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
@@ -141,16 +143,28 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 		})
 }
 
-// errNoSuchInterface copied from 'net' package, because it's private :)
-var errNoSuchInterface = errors.New("no such network interface")
+func isVpnUp(ctx context.Context, uxBlocks uxBlock.UxBlocks, attempts int) bool {
+	p := []uxHelpers.Process{
+		{
+			F: func(ctx context.Context) error {
+				for i := 0; i < attempts; i++ {
+					err := nettools.Ping(ctx, vpnCheckAddress)
+					if err == nil {
+						return nil
+					}
 
-func isVpnUp(uxBlocks uxBlock.UxBlocks) bool {
-	_, err := net.InterfaceByName(constants.WgInterfaceName)
-	opError := &net.OpError{}
-	// cannot use errors.Is(), because std error package does not implement Is() interface, so we have this abomination
-	if errors.As(err, &opError) && opError.Err.Error() != errNoSuchInterface.Error() {
-		uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.WarnVpnInterface, opError.Err.Error())))
+					time.Sleep(time.Millisecond * 500)
+				}
+				return errors.New(i18n.T(i18n.VpnPingFailed))
+			},
+			RunningMessage:      i18n.T(i18n.VpnCheckingConnection),
+			ErrorMessageMessage: "",
+			SuccessMessage:      "",
+		},
 	}
+
+	err := uxHelpers.ProcessCheckWithSpinner(ctx, uxBlocks, p)
+
 	return err == nil
 }
 

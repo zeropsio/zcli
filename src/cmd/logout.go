@@ -27,7 +27,7 @@ func logoutCmd() *cmdBuilder.Cmd {
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.LogoutVpnDisconnecting)))
-			if isVpnUp(uxBlocks) {
+			if isVpnUp(ctx, uxBlocks, 1) {
 				_ = disconnectVpn(ctx, uxBlocks)
 			}
 			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LogoutSuccess)))
