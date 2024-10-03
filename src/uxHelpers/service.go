@@ -8,7 +8,6 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
-	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
@@ -24,8 +23,7 @@ func PrintServiceSelector(
 	}
 
 	if len(services) == 0 {
-		uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.ServiceSelectorListEmpty)))
-		return nil, nil
+		return nil, errors.New(i18n.T(i18n.ServiceSelectorListEmpty))
 	}
 
 	header, rows := createServiceTableRows(services)
