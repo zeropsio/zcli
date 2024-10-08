@@ -17,7 +17,7 @@ and much more directly from the command line interface.
 If you encounter any issues during the login process or have any questions,
 feel free to find out how to contact our support team by running 'zcli support'.`,
 	LoggedWelcome: `Welcome in Zerops!
-You are loged as %s
+You are logged as %s
 and your %s.`,
 
 	// env
