@@ -25,39 +25,61 @@ func loginCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpLogin)).
 		Arg("token").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			// Check if token is provided
+			if len(cmdData.Args["token"]) == 0 {
+				return errors.New("token is required")
+			}
+			token := cmdData.Args["token"][0]
+			if token == "" {
+				return errors.New("token cannot be empty")
+			}
+
 			uxBlocks := cmdData.UxBlocks
 
 			regionRetriever := region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}))
 
-			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("regionUrl"))
+			regionUrl := cmdData.Params.GetString("regionUrl")
+			if regionUrl == "" {
+				return errors.New("regionUrl is empty")
+			}
+
+			regions, err := regionRetriever.RetrieveAllFromURL(ctx, regionUrl)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to retrieve regions")
+			}
+
+			if len(regions) == 0 {
+				return errors.New("no regions available")
 			}
 
 			reg, err := getLoginRegion(ctx, uxBlocks, regions, cmdData.Params.GetString("region"))
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to get login region")
 			}
 
-			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], "https://"+reg.Address)
+			restApiClient := zeropsRestApiClient.NewAuthorizedClient(token, "https://"+reg.Address)
 
 			response, err := restApiClient.GetUserInfo(ctx)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to get user info")
 			}
 
 			output, err := response.Output()
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to process user info output")
+			}
+
+			if output.FullName == "" || output.Email == "" {
+				return errors.New("incomplete user info: missing full name or email")
 			}
 
 			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
-				data.Token = cmdData.Args["token"][0]
+				data.Token = token
 				data.RegionData = reg
 				return data
 			})
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to update CLI storage")
 			}
 
 			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email)))
@@ -72,6 +94,10 @@ func getLoginRegion(
 	regions []region.RegionItem,
 	selectedRegion string,
 ) (region.RegionItem, error) {
+	if len(regions) == 0 {
+		return region.RegionItem{}, errors.New("no regions available")
+	}
+
 	if selectedRegion != "" {
 		for _, reg := range regions {
 			if reg.Name == selectedRegion {
@@ -103,7 +129,15 @@ func getLoginRegion(
 		uxBlock.SelectTableHeader(header),
 	)
 	if err != nil {
-		return region.RegionItem{}, err
+		return region.RegionItem{}, errors.Wrap(err, "failed to select region")
+	}
+
+	if len(regionIndex) == 0 {
+		return region.RegionItem{}, errors.New("no region selected")
+	}
+
+	if regionIndex[0] < 0 || regionIndex[0] >= len(regions) {
+		return region.RegionItem{}, errors.New("invalid region index selected")
 	}
 
 	return regions[regionIndex[0]], nil
