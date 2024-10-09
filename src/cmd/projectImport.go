@@ -19,7 +19,7 @@ const defaultYamlFilePattern = "*import.yml"
 
 func projectImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
-		Use("import-project").
+		Use("project-import").
 		Aliases("import").
 		Short(i18n.T(i18n.CmdDescProjectImport)).
 		Long(i18n.T(i18n.CmdDescProjectImportLong)).
