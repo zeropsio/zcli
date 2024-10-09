@@ -20,6 +20,7 @@ func buildCobraCmd(
 		Short:         cmd.short,
 		SilenceUsage:  cmd.silenceUsage,
 		SilenceErrors: cmd.silenceError,
+		Aliases:       cmd.aliases,
 	}
 
 	if cmd.helpTemplate != "" {

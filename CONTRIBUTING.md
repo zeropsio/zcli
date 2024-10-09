@@ -1,3 +1,3 @@
 ## Contributing Guide
 
-work in progress
+work-in-progress
