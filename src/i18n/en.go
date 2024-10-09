@@ -214,7 +214,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	VpnDisconnectionPromptNo: "VPN is active, you can disconnect using the 'zcli vpn down' command",
 	VpnCheckingConnection:    "Checking VPN connection",
 	VpnPingFailed: fmt.Sprintf("Wireguard adapter was created, but we are not able to establish a connection,"+
-		"this could indicate a problem on our side. Please contact our support team %s or join our discord %s.", CustomerSupportLink, DiscordCommunityLink),
+		"this could indicate a problem on our side. Please contact our support team via %s, %s or join our discord %s.", CustomerSupportLink, CustomerSupportEmail, DiscordCommunityLink),
 
 	// vpn down
 	CmdHelpVpnDown: "the vpn down command.",
