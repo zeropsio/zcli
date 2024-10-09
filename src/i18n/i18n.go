@@ -13,7 +13,8 @@ func T(textConst string, args ...interface{}) string {
 	return translation
 }
 
-const CustomerSupportLink = "support@zerops.io"
+const CustomerSupportLink = "https://support.zerops.io"
+const CustomerSupportEmail = "support@zerops.io"
 const DiscordCommunityLink = "https://discord.com/invite/WDvCZ54"
 
 const (
