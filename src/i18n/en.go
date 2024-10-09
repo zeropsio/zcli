@@ -260,7 +260,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 
 	// import
 	ImportYamlOk:        "Yaml file was checked",
-	ImportYamlEmpty:     "The config foo.yml file is empty. For more information, please visit https://docs.zerops.io/references/import/.",
+	ImportYamlEmpty:     "The config import yaml file is empty. For more information, please visit https://docs.zerops.io/references/import/.",
 	ImportYamlTooLarge:  "Max. size of import yaml is 100 KB",
 	ImportYamlFound:     "Import yaml found",
 	ImportYamlNotFound:  "Import yaml not found",

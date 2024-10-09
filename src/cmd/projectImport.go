@@ -65,6 +65,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			projectOutput, err := importProjectResponse.Output()
 			if err != nil {
 				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
+				return err
 			}
 
 			var processes []uxHelpers.Process
