@@ -1,5 +1,10 @@
 ## Contributing Guide
 
+**Note**: Please follow conventional commits specifications.
+
+Before submitting a pull request, ensure that you check for any existing PRs related to your changes. If one exists, try to collaborate if it's work in progress.
+
+
 - Test
 
 ```
