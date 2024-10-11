@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💁 Support
+    url: https://discord.gg/xxzmJSDKPT
+    about: 'This issue tracker is not for support questions. Join us on Discord for assistance!'
+  - name: 📘 Documentation
+    url: https://github.com/zeropsio/zcli
+    about: File an issue or make an improvement to our cli.
+  - name: 💡 Share Your Thoughts with Us - New Features, Improvements, and Questions
+    url: https://github.com/zeropsio/community/discussions
+    about: Propose and discuss future improvements to Zerops
