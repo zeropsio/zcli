@@ -15,7 +15,7 @@ help:
 	@echo "$$helpMessage"
 
 test:
-	 go test -v ./cmd/... ./src/...
+	go test -v ./cmd/... ./src/...
 
 lint:
 	GOOS=darwin GOARCH=arm64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
