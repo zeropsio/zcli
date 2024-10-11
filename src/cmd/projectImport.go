@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
@@ -14,16 +15,16 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-const projectImportArgName = "importYamlPath"
+const defaultYamlFilePattern = "*import.yml"
 
 func projectImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("project-import").
+		Aliases("import").
 		Short(i18n.T(i18n.CmdDescProjectImport)).
 		Long(i18n.T(i18n.CmdDescProjectImportLong)).
-		Arg(projectImportArgName).
 		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
-		StringFlag("workingDie", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -33,11 +34,18 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			yamlContent, err := yamlReader.ReadContent(
-				uxBlocks,
-				cmdData.Args[projectImportArgName][0],
-				cmdData.Params.GetString("workingDir"),
-			)
+			workingDir := cmdData.Params.GetString("workingDir")
+
+			yamlFiles, err := filepath.Glob(filepath.Join(workingDir, defaultYamlFilePattern))
+			if err != nil || len(yamlFiles) == 0 {
+				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.NoYamlFound)))
+				return err
+			}
+
+			yamlFilePath := yamlFiles[0]
+			uxBlocks.PrintInfo(styles.InfoLine("Using YAML file: " + yamlFilePath))
+
+			yamlContent, err := yamlReader.ReadContent(uxBlocks, yamlFilePath, workingDir)
 			if err != nil {
 				return err
 			}
@@ -50,16 +58,18 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				},
 			)
 			if err != nil {
+				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
 				return err
 			}
 
-			responseOutput, err := importProjectResponse.Output()
+			projectOutput, err := importProjectResponse.Output()
 			if err != nil {
+				uxBlocks.PrintError(styles.ErrorLine(i18n.T(i18n.ProjectImportFailed)))
 				return err
 			}
 
 			var processes []uxHelpers.Process
-			for _, service := range responseOutput.ServiceStacks {
+			for _, service := range projectOutput.ServiceStacks {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
 						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient),
@@ -70,7 +80,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(projectOutput.ServiceStacks))))
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.CoreServices)))
 
@@ -80,7 +90,6 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ProjectImported)))
-
 			return nil
 		})
 }

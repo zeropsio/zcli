@@ -68,9 +68,11 @@ and your %s.`,
 
 	// project import
 	CmdHelpProjectImport:     "the project import command.",
-	CmdDescProjectImport:     "Creates a new project with one or more services.",
+	CmdDescProjectImport:     "Initializes a new project with one or more services with project-import.yaml.",
 	CmdDescProjectImportLong: "Creates a new project with one or more services according to the definition in the import YAML file.",
-	ProjectImported:          "project imported",
+	ProjectImported:          "Project is successfully imported",
+	NoYamlFound:              "No import yaml file detected in your directory. For more information, please visit https://docs.zerops.io/references/import/.",
+	ProjectImportFailed:      "Failed while importing, seems like there's an issue try reaching out at https://discord.com/invite/WDvCZ54",
 
 	// project service import
 	CmdHelpProjectServiceImport: "the project service import command.",
@@ -258,7 +260,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 
 	// import
 	ImportYamlOk:        "Yaml file was checked",
-	ImportYamlEmpty:     "Config file import yaml is empty",
+	ImportYamlEmpty:     "The config import yaml file is empty. For more information, please visit https://docs.zerops.io/references/import/.",
 	ImportYamlTooLarge:  "Max. size of import yaml is 100 KB",
 	ImportYamlFound:     "Import yaml found",
 	ImportYamlNotFound:  "Import yaml not found",
