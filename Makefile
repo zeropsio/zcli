@@ -8,6 +8,7 @@ possible values:
 	windows-amd
  	linux-amd
  	darwin-arm
+	darwin-amd
 endef
 export helpMessage
 
@@ -19,6 +20,7 @@ test:
 
 lint:
 	GOOS=darwin GOARCH=arm64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
+	GOOS=darwin GOARCH=amd64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 	GOOS=linux GOARCH=amd64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 	GOOS=windows GOARCH=amd64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 
@@ -30,3 +32,6 @@ linux-amd:
 
 darwin-arm:
 	 GOOS=darwin GOARCH=arm64 go build -o bin/zcli cmd/zcli/main.go
+
+darwin-amd:
+	 GOOS=darwin GOARCH=amd64 go build -o bin/zcli cmd/zcli/main.go
