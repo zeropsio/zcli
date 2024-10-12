@@ -1,0 +1,46 @@
+name: ⚡ zCLI
+description: Report any issues or suggest improvements for our cli.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Hello 👋
+
+        Thank you for taking the time to report an issue or suggest an improvement. Please complete the sections below to help the Zerops team understand and address your feedback quickly.
+
+        Useful links:
+
+        - [Contribution Guidelines](https://github.com/zeropsio/zcli/blob/main/CONTRIBUTING.md)
+        - [Documentation](https://docs.zerops.io/)
+        - [Discord Server](https://discord.gg/3yZknaRhxK)
+  - type: checkboxes
+    attributes:
+      label: Preliminary Checks
+      description: Please review and check each box before submitting.
+      options:
+        - label: "I have searched for similar issues: https://github.com/zeropsio/zcli/issues"
+          required: true
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Issue Summary
+      description: |
+        Please describe the issue or improvement you'd like to report.
+  - type: textarea
+    validations:
+      required: false
+    attributes:
+      label: Suggested Solution
+      description: If you have ideas for how this issue could be fixed or improved, outline the steps below.
+      value: |
+        1.
+        2.
+        3.
+  - type: checkboxes
+    attributes:
+      label: Would you like to help fix this issue?
+      description: If you're interested in contributing a solution, check the box below.
+      options:
+        - label: "I would like to work on this"
+          required: false
