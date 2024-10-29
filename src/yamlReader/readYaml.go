@@ -1,11 +1,14 @@
 package yamlReader
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -51,4 +54,23 @@ func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir st
 
 	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ImportYamlOk)))
 	return yamlContent, nil
+}
+
+func ReadContentFromStdin(uxBlocks uxBlock.UxBlocks) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	size, err := io.Copy(buf, os.Stdin)
+	if err != nil {
+		return nil, fmt.Errorf("copying from stdin failed: %w", err)
+	}
+
+	if size == 0 {
+		return nil, errors.New(i18n.T(i18n.ImportYamlEmpty))
+	}
+
+	if size > 100*1024 {
+		return nil, errors.New(i18n.T(i18n.ImportYamlTooLarge))
+	}
+
+	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ImportYamlOk)))
+	return buf.Bytes(), nil
 }
