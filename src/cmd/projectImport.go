@@ -23,7 +23,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 		Long(i18n.T(i18n.CmdDescProjectImportLong)).
 		Arg(projectImportArgName).
 		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
-		StringFlag("workingDie", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -33,13 +33,21 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			yamlContent, err := yamlReader.ReadContent(
-				uxBlocks,
-				cmdData.Args[projectImportArgName][0],
-				cmdData.Params.GetString("workingDir"),
-			)
-			if err != nil {
-				return err
+			var yamlContent []byte
+			if cmdData.Args[projectImportArgName][0] == "-" {
+				yamlContent, err = yamlReader.ReadContentFromStdin(uxBlocks)
+				if err != nil {
+					return err
+				}
+			} else {
+				yamlContent, err = yamlReader.ReadContent(
+					uxBlocks,
+					cmdData.Args[projectImportArgName][0],
+					cmdData.Params.GetString("workingDir"),
+				)
+				if err != nil {
+					return err
+				}
 			}
 
 			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(

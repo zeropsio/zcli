@@ -25,9 +25,22 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			yamlContent, err := yamlReader.ReadContent(uxBlocks, cmdData.Args[serviceImportArgName][0], "./")
-			if err != nil {
-				return err
+			var err error
+			var yamlContent []byte
+			if cmdData.Args[serviceImportArgName][0] == "-" {
+				yamlContent, err = yamlReader.ReadContentFromStdin(uxBlocks)
+				if err != nil {
+					return err
+				}
+			} else {
+				yamlContent, err = yamlReader.ReadContent(
+					uxBlocks,
+					cmdData.Args[serviceImportArgName][0],
+					"./",
+				)
+				if err != nil {
+					return err
+				}
 			}
 
 			importServiceResponse, err := cmdData.RestApiClient.PostServiceStackImport(
