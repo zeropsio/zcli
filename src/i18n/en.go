@@ -67,13 +67,13 @@ and your %s.`,
 	ProjectDeleted:       "Project was deleted",
 
 	// project import
-	CmdHelpProjectImport:     "the project import command.",
+	CmdHelpProjectImport:     "The project import command. Use \"-\" as importYamlPath for taking yaml content from stdin.",
 	CmdDescProjectImport:     "Creates a new project with one or more services.",
 	CmdDescProjectImportLong: "Creates a new project with one or more services according to the definition in the import YAML file.",
 	ProjectImported:          "project imported",
 
 	// project service import
-	CmdHelpProjectServiceImport: "the project service import command.",
+	CmdHelpProjectServiceImport: "The project service import command. Use \"-\" as importYamlPath for taking yaml content from stdin.",
 	CmdDescProjectServiceImport: "Creates one or more Zerops services in an existing project.",
 	ServiceImported:             "service(s) imported",
 
