@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
@@ -36,13 +38,25 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(supportCmd()).
 		AddChildrenCmd(updateCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
-			// run the zcli update command
+
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("failed to get home directory: %v", err)
+			}
+			
+			zcliPath := fmt.Sprintf("%s/.local/bin/zcli", homeDir)
+			cmd := exec.CommandContext(ctx, zcliPath, "update")
+			cmd.Stdout = cmdData.Stdout.GetWriter()
+			cmd.Stdin = os.Stdin 
+			fmt.Println(cmd.Stdout)
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("failed to execute 'zcli update': %v", err)
+			}
+			
 			cmdData.Stdout.PrintLines(
 				i18n.T(i18n.GuestWelcome),
 				printer.EmptyLine,
 			)
-
-			// print the default command help
 			cmdData.PrintHelp()
 
 			return nil
