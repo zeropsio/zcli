@@ -57,6 +57,8 @@ func rootCmd() *cmdBuilder.Cmd {
 				i18n.T(i18n.GuestWelcome),
 				printer.EmptyLine,
 			)
+
+			// print the default command help
 			cmdData.PrintHelp()
 
 			return nil
