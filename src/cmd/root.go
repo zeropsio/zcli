@@ -48,7 +48,6 @@ func rootCmd() *cmdBuilder.Cmd {
 			cmd := exec.CommandContext(ctx, zcliPath, "update")
 			cmd.Stdout = cmdData.Stdout.GetWriter()
 			cmd.Stdin = os.Stdin 
-			fmt.Println(cmd.Stdout)
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed to execute 'zcli update': %v", err)
 			}
