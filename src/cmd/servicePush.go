@@ -25,6 +25,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescPush)).
 		Long(i18n.T(i18n.CmdDescPushLong)).
 		ScopeLevel(scope.Service).
+		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
