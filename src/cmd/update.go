@@ -26,66 +26,70 @@ func updateCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpUpdate)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			// print the current version of zcli
-			latestVersion, err := getLatestGitHubRelease(ctx)
-			if err != nil {
-				return err
-			}
-
-			if latestVersion.TagName != version {
-				fmt.Println("There is a new version available:", latestVersion.TagName)
-				fmt.Println("Do you want to update? (y/n)")
-				var input string
-				fmt.Scanln(&input)
-
-				if input == "y" {
-					fmt.Println("Updating zcli...")
-
-					// Set the target based on system architecture
-					var target string
-					switch runtime.GOOS + " " + runtime.GOARCH {
-					case "darwin amd64":
-						target = "darwin-amd64"
-					case "darwin arm64":
-						target = "darwin-arm64"
-					case "linux 386":
-						target = "linux-i386"
-					default:
-						target = "linux-amd64"
-					}
-
-					// Determine the URI for the download based on the target
-					var zcliURI = fmt.Sprintf("https://github.com/zeropsio/zcli/releases/latest/download/zcli-%s", target)
-
-					// Define installation path
-					binDir := os.ExpandEnv("$HOME/.local/bin")
-					binPath := fmt.Sprintf("%s/zcli", binDir)
-
-					// Create binDir if it doesn't exist
-					if _, err := os.Stat(binDir); os.IsNotExist(err) {
-						if err := os.MkdirAll(binDir, 0755); err != nil {
-							return fmt.Errorf("failed to create directory %s: %v", binDir, err)
-						}
-					}
-
-					// Download zcli binary
-					curlCmd := fmt.Sprintf("curl --fail --location --progress-bar --output %s %s", binPath, zcliURI)
-					cmd := exec.Command("sh", "-c", curlCmd)
-
-					if err := cmd.Run(); err != nil {
-						return fmt.Errorf("failed to download zcli: %v", err)
-					}
-
-					// Make binary executable
-					if err := os.Chmod(binPath, 0755); err != nil {
-						return fmt.Errorf("failed to make zcli executable: %v", err)
-					}
-
-					fmt.Println("zCLI was installed successfully to", binPath)
-				} else {
-					fmt.Println("Update canceled.")
+			if version != "" {
+				latestVersion, err := getLatestGitHubRelease(ctx)
+				if err != nil {
+					return err
 				}
-			} else {
-				fmt.Println("You are using the latest version of zcli")
+	
+				if latestVersion.TagName != version {
+					fmt.Println("There is a new version available:", latestVersion.TagName)
+					fmt.Println("Do you want to update? (y/n)")
+					var input string
+					fmt.Scanln(&input)
+	
+					if input == "y" {
+						fmt.Println("Updating zcli...")
+	
+						// Set the target based on system architecture
+						var target string
+						switch runtime.GOOS + " " + runtime.GOARCH {
+						case "darwin amd64":
+							target = "darwin-amd64"
+						case "darwin arm64":
+							target = "darwin-arm64"
+						case "linux 386":
+							target = "linux-i386"
+						default:
+							target = "linux-amd64"
+						}
+	
+						// Determine the URI for the download based on the target
+						var zcliURI = fmt.Sprintf("https://github.com/zeropsio/zcli/releases/latest/download/zcli-%s", target)
+	
+						// Define installation path
+						binDir := os.ExpandEnv("$HOME/.local/bin")
+						binPath := fmt.Sprintf("%s/zcli", binDir)
+	
+						// Create binDir if it doesn't exist
+						if _, err := os.Stat(binDir); os.IsNotExist(err) {
+							if err := os.MkdirAll(binDir, 0755); err != nil {
+								return fmt.Errorf("failed to create directory %s: %v", binDir, err)
+							}
+						}
+	
+						// Download zcli binary
+						curlCmd := fmt.Sprintf("curl --fail --location --progress-bar --output %s %s", binPath, zcliURI)
+						cmd := exec.Command("sh", "-c", curlCmd)
+	
+						if err := cmd.Run(); err != nil {
+							return fmt.Errorf("failed to download zcli: %v", err)
+						}
+	
+						// Make binary executable
+						if err := os.Chmod(binPath, 0755); err != nil {
+							return fmt.Errorf("failed to make zcli executable: %v", err)
+						}
+	
+						fmt.Println("zCLI was installed successfully to", binPath)
+					} else {
+						fmt.Println("Update canceled.")
+					}
+				} else {
+					fmt.Println("You are using the latest version of zcli")
+				}
+			}else{
+				fmt.Println("You are using the development environment of zcli")
 			}
 			return nil
 		})

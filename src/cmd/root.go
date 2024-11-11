@@ -36,6 +36,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(supportCmd()).
 		AddChildrenCmd(updateCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			// run the zcli update command
 			cmdData.Stdout.PrintLines(
 				i18n.T(i18n.GuestWelcome),
 				printer.EmptyLine,
