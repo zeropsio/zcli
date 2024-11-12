@@ -184,7 +184,7 @@ and your %s.`,
 	DebugLogsNotFound:          "Debug logs not found",
 
 	// update
-	CmdHelpUpdate :"the update command",
+	CmdHelpUpdate: "the update command",
 	CmdDescUpdate: "Updates zCLI to the latest version",
 
 	// version

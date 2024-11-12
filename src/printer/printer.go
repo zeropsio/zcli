@@ -48,5 +48,5 @@ func Style(s lipgloss.Style, text string) string {
 }
 
 func (p *Printer) GetWriter() io.Writer {
-    return p.out
+	return p.out
 }

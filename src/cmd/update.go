@@ -31,26 +31,26 @@ func updateCmd() *cmdBuilder.Cmd {
 				if err != nil {
 					return err
 				}
-	
+
 				if latestVersion.TagName != version {
 					fmt.Println("There is a new version available:", latestVersion.TagName)
 					fmt.Println("Do you want to update? (y/n)")
 					var input string
 					fmt.Scanln(&input)
-	
+
 					if input == "y" {
 						target := determineTargetArchitecture()
 						if err := downloadAndInstallZCLI(ctx, target); err != nil {
 							return err
 						}
-						fmt.Println("zCLI was updated successfully to",latestVersion.TagName)
+						fmt.Println("zCLI was updated successfully to", latestVersion.TagName)
 					} else {
 						fmt.Println("Update canceled.")
 					}
 				} else {
 					fmt.Println("You are using the latest version of zcli")
 				}
-			}else{
+			} else {
 				fmt.Println("You are using the development environment of zcli")
 			}
 			return nil
@@ -100,45 +100,45 @@ func getLatestGitHubRelease(ctx context.Context) (GitHubRelease, error) {
 }
 
 func determineTargetArchitecture() string {
-    switch runtime.GOOS + " " + runtime.GOARCH {
-    case "darwin amd64":
-        return "darwin-amd64"
-    case "darwin arm64":
-        return "darwin-arm64"
-    case "linux 386":
-        return "linux-i386"
-    default:
-        return "linux-amd64"
-    }
+	switch runtime.GOOS + " " + runtime.GOARCH {
+	case "darwin amd64":
+		return "darwin-amd64"
+	case "darwin arm64":
+		return "darwin-arm64"
+	case "linux 386":
+		return "linux-i386"
+	default:
+		return "linux-amd64"
+	}
 }
 
 func downloadAndInstallZCLI(ctx context.Context, target string) error {
-    homeDir, err := os.UserHomeDir()
-    if err != nil {
-        return fmt.Errorf("failed to get home directory: %v", err)
-    }
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
 
-    binDir := fmt.Sprintf("%s/.local/bin", homeDir)
-    binPath := fmt.Sprintf("%s/zcli", binDir)
+	binDir := fmt.Sprintf("%s/.local/bin", homeDir)
+	binPath := fmt.Sprintf("%s/zcli", binDir)
 
-    if _, err := os.Stat(binDir); os.IsNotExist(err) {
-        if err := os.MkdirAll(binDir, 0755); err != nil {
-            return fmt.Errorf("failed to create directory %s: %v", binDir, err)
-        }
-    }
+	if _, err := os.Stat(binDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(binDir, 0755); err != nil {
+			return fmt.Errorf("failed to create directory %s: %w", binDir, err)
+		}
+	}
 
-    zcliURI := fmt.Sprintf("https://github.com/zeropsio/zcli/releases/latest/download/zcli-%s", target)
-    curlCmd := fmt.Sprintf("curl --fail --location --progress-bar --output %s %s", binPath, zcliURI)
-    cmd := exec.CommandContext(ctx, "sh", "-c", curlCmd)
+	zcliURI := fmt.Sprintf("https://github.com/zeropsio/zcli/releases/latest/download/zcli-%s", target)
+	curlCmd := fmt.Sprintf("curl --fail --location --progress-bar --output %s %s", binPath, zcliURI)
+	cmd := exec.CommandContext(ctx, "sh", "-c", curlCmd)
 
-    if err := cmd.Run(); err != nil {
-        return fmt.Errorf("failed to download zcli: %v", err)
-    }
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to download zcli: %w", err)
+	}
 
-    if err := os.Chmod(binPath, 0755); err != nil {
-        return fmt.Errorf("failed to make zcli executable: %v", err)
-    }
+	if err := os.Chmod(binPath, 0755); err != nil {
+		return fmt.Errorf("failed to make zcli executable: %w", err)
+	}
 
-    fmt.Printf("zCLI was installed successfully to %s\n", binPath)
-    return nil
+	fmt.Printf("zCLI was installed successfully to %s\n", binPath)
+	return nil
 }

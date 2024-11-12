@@ -43,15 +43,15 @@ func rootCmd() *cmdBuilder.Cmd {
 			if err != nil {
 				return fmt.Errorf("failed to get home directory: %v", err)
 			}
-			
+
 			zcliPath := fmt.Sprintf("%s/.local/bin/zcli", homeDir)
 			cmd := exec.CommandContext(ctx, zcliPath, "update")
 			cmd.Stdout = cmdData.Stdout.GetWriter()
-			cmd.Stdin = os.Stdin 
+			cmd.Stdin = os.Stdin
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed to execute 'zcli update': %v", err)
 			}
-			
+
 			cmdData.Stdout.PrintLines(
 				i18n.T(i18n.GuestWelcome),
 				printer.EmptyLine,
