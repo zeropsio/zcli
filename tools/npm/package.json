@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "@cloudflare/binary-install": "^0.2.0",
+    "@cloudflare/binary-install": "0.2.0",
     "@octokit/core": "^6.1.2",
     "actions-toolkit": "^6.0.1",
     "yargs": "^17.7.2"
