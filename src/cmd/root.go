@@ -38,10 +38,9 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(supportCmd()).
 		AddChildrenCmd(updateCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
-
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
-				return fmt.Errorf("failed to get home directory: %v", err)
+				return fmt.Errorf("failed to get home directory: %w", err)
 			}
 
 			zcliPath := fmt.Sprintf("%s/.local/bin/zcli", homeDir)
@@ -49,7 +48,7 @@ func rootCmd() *cmdBuilder.Cmd {
 			cmd.Stdout = cmdData.Stdout.GetWriter()
 			cmd.Stdin = os.Stdin
 			if err := cmd.Run(); err != nil {
-				return fmt.Errorf("failed to execute 'zcli update': %v", err)
+				return fmt.Errorf("failed to execute 'zcli update': %w", err)
 			}
 
 			cmdData.Stdout.PrintLines(

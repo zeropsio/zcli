@@ -36,7 +36,10 @@ func updateCmd() *cmdBuilder.Cmd {
 					fmt.Println("There is a new version available:", latestVersion.TagName)
 					fmt.Println("Do you want to update? (y/n)")
 					var input string
-					fmt.Scanln(&input)
+					if _, err := fmt.Scanln(&input); err != nil {
+						fmt.Println("Failed to read input:", err)
+						return err
+					}
 
 					if input == "y" {
 						target := determineTargetArchitecture()
@@ -58,7 +61,7 @@ func updateCmd() *cmdBuilder.Cmd {
 }
 
 type GitHubRelease struct {
-	TagName string `json:"tag_name"`
+	TagName string `json:"tagName"`
 	Body    string `json:"body"`
 }
 
@@ -73,7 +76,7 @@ func getLatestGitHubRelease(ctx context.Context) (GitHubRelease, error) {
 		Timeout: 4 * time.Second,
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
 	if err != nil {
 		return GitHubRelease{}, err
 	}
