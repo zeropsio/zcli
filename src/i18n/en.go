@@ -183,6 +183,10 @@ and your %s.`,
 	CmdDescStatusShowDebugLogs: "Shows zCLI debug logs",
 	DebugLogsNotFound:          "Debug logs not found",
 
+	// update
+	CmdHelpUpdate: "the update command",
+	CmdDescUpdate: "Updates zCLI to the latest version",
+
 	// version
 	CmdHelpVersion: "the version command.",
 	CmdDescVersion: "Shows the current zCLI version",
