@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/terminal"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zcli/src/support"
+	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/apiError"
@@ -30,15 +30,10 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 	ctx = support.Context(ctx)
 
 	isTerminal := terminal.IsTerminal()
-
-	width, _, err := term.GetSize(0)
-	if err != nil {
-		width = 100
-	}
-
+	terminalWidth, _, _ := term.GetSize(0)
 	outputLogger, debugFileLogger := createLoggers(isTerminal)
 
-	uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, cancel)
+	uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, terminalWidth, cancel)
 
 	cliStorage, err := createCliStorage()
 	if err != nil {
