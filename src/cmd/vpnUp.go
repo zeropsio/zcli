@@ -35,6 +35,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescVpnUp)).
 		ScopeLevel(scope.Project).
 		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
+		IntFlag("mtu", 1420, i18n.T(i18n.VpnMtuFlag)).
 		BoolFlag("auto-disconnect", false, i18n.T(i18n.VpnAutoDisconnectFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpVpnUp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
@@ -98,7 +99,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 			}
 			defer f.Close()
 
-			err = wg.GenerateConfig(f, privateKey, vpnSettings)
+			err = wg.GenerateConfig(f, privateKey, vpnSettings, cmdData.Params.GetInt("mtu"))
 			if err != nil {
 				return err
 			}

@@ -246,6 +246,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
 	VpnAutoDisconnectFlag: "If set, zCLI will automatically disconnect from the VPN if it is already connected.",
+	VpnMtuFlag:            "If set, Wireguard interface will use this value for MTU. If VPN is not working, try a lower value.",
 	ZeropsYamlSetup:       "Choose setup to be used from zerops.yml.",
 
 	// archiveClient

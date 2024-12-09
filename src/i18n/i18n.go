@@ -228,6 +228,7 @@ const (
 	ServiceIdFlag         = "ServiceIdFlag"
 	ProjectIdFlag         = "ProjectIdFlag"
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
+	VpnMtuFlag            = "VpnMtuFlag"
 	ZeropsYamlSetup       = "ZeropsYamlSetup"
 
 	// archiveClient
