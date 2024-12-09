@@ -2,13 +2,14 @@ package wg
 
 import (
 	"net"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
-func defaultTemplateData(privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem) (map[string]string, error) {
+func defaultTemplateData(privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int) (map[string]string, error) {
 	projectIpv4Network := ""
 	if vpnSettings.Project.Ipv4.Network.Network != "" {
 		_, n, err := net.ParseCIDR(string(vpnSettings.Project.Ipv4.Network.Network))
@@ -46,6 +47,7 @@ func defaultTemplateData(privateKey wgtypes.Key, vpnSettings output.ProjectVpnIt
 	}
 
 	return map[string]string{
+		"Mtu":                       strconv.Itoa(mtu),
 		"PrivateKey":                privateKey.String(),
 		"PublicKey":                 string(vpnSettings.Project.PublicKey),
 		"AssignedIpv4Address":       string(vpnSettings.Peer.Ipv4.AssignedIpAddress),

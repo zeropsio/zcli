@@ -26,8 +26,8 @@ func CheckWgInstallation() error {
 	return nil
 }
 
-func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem) error {
-	data, err := defaultTemplateData(privateKey, vpnSettings)
+func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int) error {
+	data, err := defaultTemplateData(privateKey, vpnSettings, mtu)
 	if err != nil {
 		return err
 	}
@@ -46,6 +46,7 @@ func DownCmd(ctx context.Context, filePath, _ string) (err *cmdRunner.ExecCmd) {
 var vpnTmpl = `
 [Interface]
 PrivateKey = {{.PrivateKey}}
+MTU = {{.Mtu}}
 
 Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
 PostUp = mkdir -p /etc/resolver 
