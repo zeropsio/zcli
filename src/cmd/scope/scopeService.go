@@ -66,6 +66,10 @@ func (s *service) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 
 	// interactive selector of service
 	if service == nil {
+		// we have to load project, because we need projectId
+		if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
+			return err
+		}
 		service, err = uxHelpers.PrintServiceSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient, *cmdData.Project)
 		if err != nil {
 			return err
