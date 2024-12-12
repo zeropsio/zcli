@@ -30,6 +30,15 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 	var project *entity.Project
 	var err error
 
+	// service scope is set - use project from it
+	if cmdData.Service != nil {
+		project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, cmdData.Service.ProjectID)
+		if err == nil {
+			cmdData.Project = project
+			return nil
+		}
+	}
+
 	// project scope is set
 	if cmdData.CliStorage.Data().ScopeProjectId.Filled() {
 		projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
@@ -68,7 +77,7 @@ func (p *project) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 		infoText = i18n.SelectedProject
 	}
 
-	// service id is passed as a flag
+	// project id is passed as a flag
 	if projectId := cmdData.Params.GetString(ProjectArgName); projectId != "" {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId))
 		if err != nil {
