@@ -130,6 +130,7 @@ func GetNonSystemServicesByProject(
 func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 	return entity.Service{
 		ID:                          esServiceStack.Id,
+		ProjectID:                   esServiceStack.ProjectId,
 		ClientId:                    esServiceStack.ClientId,
 		Name:                        esServiceStack.Name,
 		Status:                      esServiceStack.Status,
@@ -142,6 +143,7 @@ func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
 	return entity.Service{
 		ID:                          service.Id,
+		ProjectID:                   service.ProjectId,
 		ClientId:                    service.Project.ClientId,
 		Name:                        service.Name,
 		Status:                      service.Status,

@@ -53,14 +53,11 @@ func (s *service) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 		}
 	}
 
-	// now we have to load project, because we need projectId going forwards
-	if service == nil {
+	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists && service == nil {
+		// we have to load project, because we need projectId
 		if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
 			return err
 		}
-	}
-
-	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists && service == nil {
 		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, cmdData.Project.ID, serviceIdOrName[0])
 		if err != nil {
 			return err
@@ -77,5 +74,13 @@ func (s *service) LoadSelectedScope(ctx context.Context, cmd *cmdBuilder.Cmd, cm
 
 	cmdData.Service = service
 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), cmdData.Service.Name.String()))
+
+	// Load parent scope from selected service if it wasn't loaded already above
+	if cmdData.Project == nil {
+		if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

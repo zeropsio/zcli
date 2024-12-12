@@ -9,6 +9,7 @@ import (
 
 type Service struct {
 	ID                          uuid.ServiceStackId
+	ProjectID                   uuid.ProjectId
 	ClientId                    uuid.ClientId
 	Name                        types.String
 	Status                      enum.ServiceStackStatusEnum
