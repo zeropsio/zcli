@@ -14,6 +14,10 @@ import (
 )
 
 func getFullWithTemplate(logData []Data, formatTemplate string) error {
+	if len(logData) == 0 {
+		return NewInvalidRequestError("getFullWithTemplate", "no log data available", nil)
+	}
+
 	ft, err := fixTemplate(formatTemplate)
 	if err != nil {
 		return err
@@ -31,12 +35,13 @@ func formatDataByTemplate(data Data, formatTemplate string) error {
 	var b bytes.Buffer
 	t, err := template.New("").Parse(formatTemplate)
 	if err != nil {
-		return err
+		return NewInvalidRequestError("formatDataByTemplate", "failed to parse template", err)
 	}
-	err = t.Execute(&b, data)
-	if err != nil {
-		return err
+	
+	if err = t.Execute(&b, data); err != nil {
+		return NewInvalidRequestError("formatDataByTemplate", "failed to execute template", err)
 	}
+	
 	fmt.Println(b.String())
 	return nil
 }
