@@ -31,24 +31,24 @@ func loginCmd() *cmdBuilder.Cmd {
 
 			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("regionUrl"))
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ErrorRetrievingRegions))
 			}
 
 			reg, err := getLoginRegion(ctx, uxBlocks, regions, cmdData.Params.GetString("region"))
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ErrorSelectingRegion))
 			}
 
 			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], "https://"+reg.Address)
 
 			response, err := restApiClient.GetUserInfo(ctx)
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ErrorGettingUserInfo))
 			}
 
 			output, err := response.Output()
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ErrorParsingUserInfo))
 			}
 
 			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
@@ -57,7 +57,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return data
 			})
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ErrorUpdatingCliStorage))
 			}
 
 			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email)))
@@ -103,7 +103,11 @@ func getLoginRegion(
 		uxBlock.SelectTableHeader(header),
 	)
 	if err != nil {
-		return region.RegionItem{}, err
+		return region.RegionItem{}, errors.Wrap(err, i18n.T(i18n.ErrorSelectingRegion))
+	}
+
+	if regionIndex[0] < 0 || regionIndex[0] >= len(regions) {
+		return region.RegionItem{}, errors.New(i18n.T(i18n.ErrorInvalidRegionIndex))
 	}
 
 	return regions[regionIndex[0]], nil
