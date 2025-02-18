@@ -1,4 +1,4 @@
-const { Binary } = require("@cloudflare/binary-install");
+const Binary = require("./binary-source");
 const os = require("os");
 
 function getPlatform() {

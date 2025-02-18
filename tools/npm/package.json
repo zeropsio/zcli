@@ -6,13 +6,15 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "@cloudflare/binary-install": "0.2.0",
-    "@octokit/core": "^6.1.2",
+    "@octokit/core": "6.1.2",
     "actions-toolkit": "^6.0.1",
-    "yargs": "^17.7.2"
+    "axios": "1.7.9",
+    "rimraf": "3.0.2",
+    "tar": "^6.2.1",
+    "yargs": "17.7.2"
   },
   "devDependencies": {
-    "standard": "^17.1.0"
+    "standard": "17.1.0"
   },
   "bin": {
     "zcli": "utils/run.js"
