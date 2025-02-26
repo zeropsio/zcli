@@ -31,6 +31,7 @@ type uxBlocks struct {
 	debugFileLogger logger.Logger
 	isTerminal      bool
 	terminalWidth   int
+	terminalHeight  int
 
 	// ctxCancel is used to cancel the context of the command.
 	// Bubbles package that we use to render graphic components steals the signal handler.
@@ -45,6 +46,7 @@ func NewBlock(
 	debugFileLogger logger.Logger,
 	isTerminal bool,
 	terminalWidth int,
+	terminalHeight int,
 	ctxCancel context.CancelFunc,
 ) *uxBlocks {
 	// safety check
@@ -57,6 +59,7 @@ func NewBlock(
 		debugFileLogger: debugFileLogger,
 		isTerminal:      isTerminal,
 		terminalWidth:   terminalWidth,
+		terminalHeight:  terminalHeight,
 		ctxCancel:       ctxCancel,
 	}
 }

@@ -30,10 +30,10 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 	ctx = support.Context(ctx)
 
 	isTerminal := terminal.IsTerminal()
-	terminalWidth, _, _ := term.GetSize(0)
+	terminalWidth, terminalHeight, _ := term.GetSize(0)
 	outputLogger, debugFileLogger := createLoggers(isTerminal)
 
-	uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, terminalWidth, cancel)
+	uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
 	cliStorage, err := createCliStorage()
 	if err != nil {

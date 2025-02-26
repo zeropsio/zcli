@@ -3,6 +3,8 @@ package uxBlock
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math"
 	"slices"
 	"strings"
 
@@ -55,6 +57,8 @@ func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 		uxBlocks:  b,
 		tableBody: tableBody,
 		selected:  make(map[int]struct{}),
+		width:     b.terminalWidth,
+		height:    b.terminalHeight,
 	}
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
 
@@ -84,6 +88,9 @@ type selectModel struct {
 	selected  map[int]struct{}
 	quiting   bool
 	canceled  bool
+
+	width  int
+	height int
 }
 
 func (m *selectModel) Init() tea.Cmd {
@@ -91,12 +98,21 @@ func (m *selectModel) Init() tea.Cmd {
 }
 
 func (m *selectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Make sure these keys always quiting
-	keyMsg, ok := msg.(tea.KeyMsg)
-	if !ok {
+	var keyMsg tea.KeyMsg
+
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		// update terminal size on resize
+		m.width = msg.Width
+		m.height = msg.Height
+	case tea.KeyMsg:
+		// continue below
+		keyMsg = msg
+	default:
 		return m, nil
 	}
 
+	// Make sure these keys always quiting
 	//nolint:exhaustive
 	switch keyMsg.Type {
 	case tea.KeyCtrlC:
@@ -154,18 +170,33 @@ func (m *selectModel) View() string {
 		return ""
 	}
 
+	totalRows := len(m.tableBody.rows)
+
+	// we have 1 row with "Please select xyz", so always -1, and we also need to remove 2 more rows for top and bottom border
+	maxRows := m.height - 3
+	// if header is present, it takes additional 2 rows (1 for text and 1 for border between header and content)
+	if m.cfg.header != nil {
+		maxRows -= 2
+	}
+	// remove 1 more row for pagination
+	if totalRows > maxRows {
+		maxRows -= 1
+	}
+	if maxRows <= 0 {
+		return "Your terminal window is too small to render the table."
+	}
+
 	t := table.New().
 		BorderStyle(styles.InfoColor()).
 		Border(lipgloss.NormalBorder()).
 		StyleFunc(func(row, col int) lipgloss.Style {
-			// in case that header is present, we need to adjust row index
-			if m.cfg.header != nil {
-				row -= 1
+			if col == 0 {
+				// first col is cursor and a pager - they can always be Active
+				return styles.TableRowActive().AlignHorizontal(lipgloss.Center)
 			}
-			if row == m.cursor {
+			if row == m.cursor%maxRows {
 				return styles.TableRowActive()
 			}
-
 			return styles.TableRow()
 		})
 
@@ -178,7 +209,24 @@ func (m *selectModel) View() string {
 		t = t.Headers(headers...)
 	}
 
+	addPager := func(currentPage, maxPages int) {
+		t = t.Row(fmt.Sprintf("%d/%d", currentPage, maxPages))
+	}
+
+	maxPages := int(math.Ceil(float64(totalRows) / float64(maxRows)))
 	for rowIndex, row := range m.tableBody.rows {
+		page := m.cursor / maxRows // starts at 0 for math operations (needs +1 for rendering)
+
+		// do not render rows at the beginning of the table if we go past them
+		if rowIndex < page*maxRows {
+			continue
+		}
+		// do not render rows past the limit
+		if rowIndex >= (page+1)*maxRows {
+			addPager(page+1, maxPages)
+			break
+		}
+
 		cells := make([]string, 0, len(row.cells)+1)
 		icon := " "
 		if rowIndex == m.cursor {
@@ -190,6 +238,11 @@ func (m *selectModel) View() string {
 			cells = append(cells, cell.Text)
 		}
 		t = t.Row(cells...)
+
+		// Add pager to the last page
+		if page > 0 && rowIndex == len(m.tableBody.rows)-1 {
+			addPager(page+1, maxPages)
+		}
 	}
 
 	s := ""
@@ -197,7 +250,7 @@ func (m *selectModel) View() string {
 		s = styles.SelectLine(m.cfg.label).String() + "\n"
 	}
 
-	t.Width(calculateTableWidth(t, m.uxBlocks.terminalWidth))
+	t.Width(calculateTableWidth(t, m.width))
 
 	return s + t.String()
 }

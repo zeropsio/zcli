@@ -153,16 +153,17 @@ func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
 		IsTerminal: isTerminal,
 	})
 
-	width, _, err := term.GetSize(0)
+	width, height, err := term.GetSize(0)
 	if err != nil {
 		width = 100
+		height = 25
 	}
 
 	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
 		FilePath: "zerops.log",
 	})
 
-	blocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, contextCancelFunc)
+	blocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, height, contextCancelFunc)
 
 	return blocks
 }
