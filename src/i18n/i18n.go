@@ -168,6 +168,10 @@ const (
 	CmdDescStatusShowDebugLogs = "CmdDescStatusShowDebugLogs"
 	DebugLogsNotFound          = "DebugLogsNotFound"
 
+	// update
+	CmdHelpUpdate = "CmdHelpUpdate"
+	CmdDescUpdate = "CmdDescUpdate"
+
 	// version
 	CmdHelpVersion = "CmdHelpVersion"
 	CmdDescVersion = "CmdDescVersion"
