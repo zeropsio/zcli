@@ -51,8 +51,10 @@ func fixTimestamp(timestamp string) string {
 		return timestamp
 	}
 	splitVal := strings.Split(timestamp, ".")
-	millis := strings.Split(splitVal[1], "Z")[0]
-
+	millis := ""
+	if len(splitVal) == 2 {
+		millis = strings.Split(splitVal[1], "Z")[0]
+	}
 	for len(millis) < 6 {
 		millis += "0"
 	}
