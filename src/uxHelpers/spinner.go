@@ -2,6 +2,7 @@ package uxHelpers
 
 import (
 	"context"
+	"io"
 	"sync"
 	"time"
 
@@ -28,7 +29,6 @@ func ProcessCheckWithSpinner(
 	for _, process := range processList {
 		spinners = append(spinners, uxBlock.NewSpinner(styles.NewLine(styles.InfoText(process.RunningMessage))))
 	}
-
 	stopFunc := uxBlocks.RunSpinners(ctx, spinners)
 	defer stopFunc()
 
@@ -40,7 +40,7 @@ func ProcessCheckWithSpinner(
 		wg.Add(1)
 		go func(process Process, spinner *uxBlock.Spinner) {
 			defer wg.Done()
-			err := process.F(ctx)
+			err := process.F(ctx, &process)
 			if err != nil {
 				if process.ErrorMessageMessage == "" {
 					spinner.Finish(styles.NewLine())
@@ -65,29 +65,30 @@ func ProcessCheckWithSpinner(
 }
 
 type Process struct {
-	F                   func(ctx context.Context) error
+	F                   func(ctx context.Context, process *Process) error
+	ViewPortWriter      io.Writer
 	RunningMessage      string
 	ErrorMessageMessage string
 	SuccessMessage      string
 }
 
-func CheckZeropsProcessWithProcessOutputCallback(callback func(output.Process)) generic.Option[checkZeropsProcessSetup] {
+func CheckZeropsProcessWithProcessOutputCallback(callback func(*Process, output.Process)) generic.Option[checkZeropsProcessSetup] {
 	return func(c *checkZeropsProcessSetup) {
 		c.processOutputCallback = optional.New(callback)
 	}
 }
 
 type checkZeropsProcessSetup struct {
-	processOutputCallback optional.Null[func(output.Process)]
+	processOutputCallback optional.Null[func(*Process, output.Process)]
 }
 
 func CheckZeropsProcess(
 	processId uuid.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
 	options ...generic.Option[checkZeropsProcessSetup],
-) func(ctx context.Context) error {
+) func(ctx context.Context, process *Process) error {
 	setup := generic.ApplyOptions(options...)
-	return func(ctx context.Context) error {
+	return func(ctx context.Context, process *Process) error {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 
@@ -107,7 +108,7 @@ func CheckZeropsProcess(
 				}
 
 				if callback, exists := setup.processOutputCallback.Get(); exists {
-					callback(processOutput)
+					callback(process, processOutput)
 				}
 
 				processStatus := processOutput.Status
@@ -117,8 +118,9 @@ func CheckZeropsProcess(
 					continue
 				case enum.ProcessStatusEnumRunning:
 					continue
+					///FIXME jsaidl
 				case enum.ProcessStatusEnumFinished:
-					return nil
+					continue
 				case enum.ProcessStatusEnumRollbacking:
 					fallthrough
 				case enum.ProcessStatusEnumCanceling:
