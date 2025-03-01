@@ -22,6 +22,7 @@ type RunConfig struct {
 	FormatTemplate string
 	Follow         bool
 	Levels         Levels
+	Tags           []string
 }
 
 type Handler struct {

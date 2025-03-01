@@ -46,6 +46,10 @@ func makeQueryParams(inputs InputValues, serviceId uuid.ServiceStackId, containe
 		query += fmt.Sprintf("&minimumSeverity=%d", inputs.minSeverity)
 	}
 
+	if len(inputs.tags) > 0 {
+		query += fmt.Sprintf("&tags=%s", strings.Join(inputs.tags, ","))
+	}
+
 	if containerId != "" {
 		query += fmt.Sprintf("&containerId=%s", containerId)
 	}

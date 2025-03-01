@@ -12,10 +12,12 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/serviceLogs"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 )
 
@@ -34,6 +36,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+
 			uxBlocks := cmdData.UxBlocks
 
 			arch := archiveClient.New(archiveClient.Config{
@@ -167,11 +170,57 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			buildLogs := make(chan *output.AppVersionJsonObject)
+			defer close(buildLogs)
+			go func() {
+				appVersion := <-buildLogs
+				serviceId, _ := appVersion.Build.ServiceStackId.Get()
+				handler := serviceLogs.New(
+					serviceLogs.Config{},
+					cmdData.RestApiClient,
+				)
+
+				if err := handler.Run(ctx, serviceLogs.RunConfig{
+					Project:        *cmdData.Project,
+					ServiceId:      serviceId,
+					Limit:          100,
+					MinSeverity:    "DEBUG",
+					MsgType:        "APPLICATION",
+					Format:         "FULL",
+					FormatTemplate: "{{.message}}",
+					Follow:         true,
+					Tags: []string{
+						"zbuilder@" + appVersion.Id.Native(),
+					},
+					// TODO - janhajek better place?
+					Levels: serviceLogs.Levels{
+						{"EMERGENCY", "0"},
+						{"ALERT", "1"},
+						{"CRITICAL", "2"},
+						{"ERROR", "3"},
+						{"WARNING", "4"},
+						{"NOTICE", "5"},
+						{"INFORMATIONAL", "6"},
+						{"DEBUG", "7"},
+					},
+				}); err != nil {
+					panic(err)
+				}
+			}()
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
+					F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient,
+						uxHelpers.CheckZeropsProcessWithProcessOutputCallback(func(process output.Process) {
+							if _, exists := process.AppVersion.Build.ServiceStackId.Get(); exists {
+								select {
+								case buildLogs <- process.AppVersion:
+								default:
+								}
+							}
+						}),
+					),
 					RunningMessage:      i18n.T(i18n.PushRunning),
 					ErrorMessageMessage: i18n.T(i18n.PushFailed),
 					SuccessMessage:      i18n.T(i18n.PushFinished),

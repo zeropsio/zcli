@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/optional"
+	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -68,10 +71,22 @@ type Process struct {
 	SuccessMessage      string
 }
 
+func CheckZeropsProcessWithProcessOutputCallback(callback func(output.Process)) generic.Option[checkZeropsProcessSetup] {
+	return func(c *checkZeropsProcessSetup) {
+		c.processOutputCallback = optional.New(callback)
+	}
+}
+
+type checkZeropsProcessSetup struct {
+	processOutputCallback optional.Null[func(output.Process)]
+}
+
 func CheckZeropsProcess(
 	processId uuid.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
+	options ...generic.Option[checkZeropsProcessSetup],
 ) func(ctx context.Context) error {
+	setup := generic.ApplyOptions(options...)
 	return func(ctx context.Context) error {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
@@ -89,6 +104,10 @@ func CheckZeropsProcess(
 				processOutput, err := getProcessResponse.Output()
 				if err != nil {
 					return err
+				}
+
+				if callback, exists := setup.processOutputCallback.Get(); exists {
+					callback(processOutput)
 				}
 
 				processStatus := processOutput.Status

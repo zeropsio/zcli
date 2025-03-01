@@ -16,6 +16,7 @@ type InputValues struct {
 	format         string
 	formatTemplate string
 	mode           string
+	tags           []string
 }
 
 func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, err error) {
@@ -36,6 +37,11 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 		return inputValues, err
 	}
 
+	tags, err := h.getTags(config)
+	if err != nil {
+		return inputValues, err
+	}
+
 	mode := RESPONSE
 	if config.Follow {
 		mode = STREAM
@@ -50,6 +56,7 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 		format:         format,
 		formatTemplate: formatTemplate,
 		mode:           mode,
+		tags:           tags,
 	}, nil
 }
 
@@ -112,6 +119,10 @@ func (h *Handler) getFormat(config RunConfig) (string, string, error) {
 		return "", "", err
 	}
 	return f, formatTemplate, nil
+}
+
+func (h *Handler) getTags(config RunConfig) ([]string, error) {
+	return config.Tags, nil
 }
 
 // e.g. --formatTemplate="{{.timestamp}} {{.priority}} {{.facility}} {{.message}}"
