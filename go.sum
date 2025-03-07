@@ -101,6 +101,8 @@ github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSW
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/zeropsio/zerops-go v1.0.10 h1:42zD02HQVKFu8Fc7NC+TtOaSdIIGdzl3Wm1XpR/Brao=
 github.com/zeropsio/zerops-go v1.0.10/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
+github.com/zeropsio/zerops-go v1.0.11 h1:fEghFiEX32pR6LHmshfga/p+oT3Tv+k/JQ6lRLXQLvY=
+github.com/zeropsio/zerops-go v1.0.11/go.mod h1:Nuqf1xWt53IRLyVoXgR4hF4ICc9jlfOfQgnN3ZhJR3E=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

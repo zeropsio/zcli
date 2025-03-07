@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.39] - 2025-03-20
+
+### Fixed
+- `deploy` and `push` commands now correctly interpret `archiveFilePath` flag
+
+### Improved
+- `deploy` and `push` no longer stores the entire file on disk, instead streams them directly to Zerops
+
+### Added
+- `-g` shorthand for `--deployGitFolder` flag to `deploy` and `push` commands
+- `--workspaceState` (shorthand `-w`) flag to `push` command which allows selection of what will be deployed:
+  - `all` - deploys all files in the work space, including modified and unstaged *(default)*
+  - `staged` - deploys only staged changes 
+  - `clean` - deploys current clean `HEAD`
+
 ## [v1.0.38] - 2025-03-17
 
 ### Added

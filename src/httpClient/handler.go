@@ -81,7 +81,9 @@ func (h *Handler) doStream(ctx context.Context, method string, url string, body 
 
 	client := &http.Client{Timeout: h.config.HttpTimeout}
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
-	req.ContentLength = cfg.contentLength
+	if cfg.contentLength > 0 {
+		req.ContentLength = cfg.contentLength
+	}
 	if err != nil {
 		return Response{}, err
 	}
