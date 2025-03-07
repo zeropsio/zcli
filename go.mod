@@ -2,7 +2,7 @@ module github.com/zeropsio/zcli
 
 go 1.24
 
-require github.com/zeropsio/zerops-go v1.0.10
+require github.com/zeropsio/zerops-go v1.0.11
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0

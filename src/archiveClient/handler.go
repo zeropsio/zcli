@@ -1,7 +1,14 @@
 package archiveClient
 
+const (
+	WorkspaceAll    = "all"
+	WorkspaceStaged = "staged"
+	WorkspaceClean  = "clean"
+)
+
 type Config struct {
-	DeployGitFolder bool
+	DeployGitFolder    bool
+	PushWorkspaceState string
 }
 
 type Handler struct {
