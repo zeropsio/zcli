@@ -11,15 +11,16 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/errorsx"
-	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func createAppVersion(
@@ -49,6 +50,10 @@ func createAppVersion(
 	}
 
 	return appVersion, nil
+}
+
+func OpenPackageFile(archiveFilePath string, workingDir string) (*os.File, error) {
+	return openPackageFile(archiveFilePath, workingDir)
 }
 
 func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error) {
@@ -81,16 +86,18 @@ func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error
 	return file, nil
 }
 
-func packageUpload(ctx context.Context, client *httpClient.Handler, uploadUrl string, reader io.Reader, options ...httpClient.Option) error {
-	options = append(options, httpClient.ContentType("application/gzip"))
-	cephResponse, err := client.PutStream(ctx, uploadUrl, reader, options...)
+func packageStream(ctx context.Context, restApiClient *zeropsRestApiClient.Handler, appVersionId uuid.AppVersionId, reader io.Reader) error {
+	// TODO(ms): content-type: application/octet-stream
+	upload, err := restApiClient.PutAppVersionUpload(ctx, path.AppVersionId{Id: appVersionId}, reader)
 	if err != nil {
 		return err
 	}
-	if cephResponse.StatusCode != http.StatusOK {
+	if _, err := upload.Output(); err != nil {
+		return err
+	}
+	if upload.StatusCode() != http.StatusOK {
 		return errors.New(i18n.T(i18n.PushDeployUploadPackageFailed))
 	}
-
 	return nil
 }
 

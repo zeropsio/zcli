@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
-	"time"
+	"sync"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -35,14 +32,16 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
-		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
+		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
+		StringFlag("workspaceState", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
 		BoolFlag("disableLogs", false, "disable logs").
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
 			arch := archiveClient.New(archiveClient.Config{
-				DeployGitFolder: cmdData.Params.GetBool("deployGitFolder"),
+				DeployGitFolder:    cmdData.Params.GetBool("deployGitFolder"),
+				PushWorkspaceState: cmdData.Params.GetString("workspaceState"),
 			})
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
@@ -80,9 +79,8 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F: func(ctx context.Context, _ *uxHelpers.Process) (err error) {
-						var size int64
-						var reader io.Reader
-
+						reader, writer := io.Pipe()
+						var finalReader io.Reader = reader
 						if cmdData.Params.GetString("archiveFilePath") != "" {
 							packageFile, err := openPackageFile(
 								cmdData.Params.GetString("archiveFilePath"),
@@ -91,51 +89,33 @@ func servicePushCmd() *cmdBuilder.Cmd {
 							if err != nil {
 								return err
 							}
-							s, err := packageFile.Stat()
-							if err != nil {
-								return err
-							}
-							size = s.Size()
-							reader = packageFile
-						} else {
-							tempFile := filepath.Join(os.TempDir(), appVersion.Id.Native())
-							f, err := os.Create(tempFile)
-							if err != nil {
-								return err
-							}
-							defer os.Remove(tempFile)
-							files, err := arch.FindGitFiles(ctx, cmdData.Params.GetString("workingDir"))
-							if err != nil {
-								return err
-							}
-							if err := arch.TarFiles(f, files); err != nil {
-								return err
-							}
-							if err := f.Close(); err != nil {
-								return err
-							}
-							readFile, err := os.Open(tempFile)
-							if err != nil {
-								return err
-							}
-							defer readFile.Close()
-							stat, err := readFile.Stat()
-							if err != nil {
-								return err
-							}
-							size = stat.Size()
-							reader = readFile
+
+							finalReader = io.TeeReader(reader, packageFile)
 						}
 
-						// TODO - janhajek merge with sdk client
-						client := httpClient.New(ctx, httpClient.Config{
-							HttpTimeout: time.Minute * 15,
-						})
-						if err := packageUpload(ctx, client, appVersion.UploadUrl.String(), reader, httpClient.ContentLength(size)); err != nil {
-							// if an error occurred while packing the app, return that error
+						wg := sync.WaitGroup{}
+						wg.Add(1)
+						var uploadErr error
+						go func() {
+							defer wg.Done()
+
+							// if error occurred during upload, return it (it could be even auth error, before upload starts)
+							if err := packageStream(ctx, cmdData.RestApiClient, appVersion.Id, finalReader); err != nil {
+								_ = reader.CloseWithError(err)
+								uploadErr = err // in case reader is already closed with EOF, sometimes happened with timeouts
+							}
+						}()
+
+						// if an error occurred while packing the app, return that error
+						if err := arch.ArchiveGitFiles(ctx, cmdData.Params.GetString("workingDir"), writer); err != nil {
+							_ = writer.CloseWithError(err)
 							return err
 						}
-						return nil
+						_ = writer.Close()
+
+						// Wait for upload to finish
+						wg.Wait()
+						return uploadErr
 					},
 					RunningMessage:      i18n.T(i18n.PushDeployUploadingPackageStart),
 					ErrorMessageMessage: i18n.T(i18n.PushDeployUploadPackageFailed),

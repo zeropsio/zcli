@@ -216,6 +216,7 @@ const (
 	BuildArchiveFilePath  = "BuildArchiveFilePath"
 	ZeropsYamlLocation    = "ZeropsYamlLocation"
 	UploadGitFolder       = "UploadGitFolder"
+	PushWorkspaceState    = "PushWorkspaceState"
 	OrgIdFlag             = "OrgIdFlag"
 	LogLimitFlag          = "LogLimitFlag"
 	LogMinSeverityFlag    = "LogMinSeverityFlag"
