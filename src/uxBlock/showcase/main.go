@@ -35,9 +35,10 @@ func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
 	{
 		fmt.Println("========= spinners block =========")
 
-		spinner1 := uxBlock.NewSpinner(NewLine("Running 1"))
-		spinner2 := uxBlock.NewSpinner(NewLine("Running 2"))
-		spinner3 := uxBlock.NewSpinner(NewLine("Running 3"))
+		width, height, _ := term.GetSize(0)
+		spinner1 := uxBlock.NewSpinner(NewLine("Running 1"), width, height)
+		spinner2 := uxBlock.NewSpinner(NewLine("Running 2"), width, height)
+		spinner3 := uxBlock.NewSpinner(NewLine("Running 3"), width, height)
 
 		stop := blocks.RunSpinners(ctx, []*uxBlock.Spinner{spinner1, spinner2, spinner3})
 
@@ -163,7 +164,7 @@ func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
 		FilePath: "zerops.log",
 	})
 
-	blocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, width, height, contextCancelFunc)
+	blocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, width, height, contextCancelFunc)
 
 	return blocks
 }

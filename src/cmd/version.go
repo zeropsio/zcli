@@ -17,7 +17,6 @@ func versionCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpVersion)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			cmdData.Stdout.Printf("zcli version %s (%s) %s/%s\n", version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
-
 			return nil
 		})
 }

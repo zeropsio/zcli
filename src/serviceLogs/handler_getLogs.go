@@ -33,7 +33,7 @@ type Data struct {
 	Message        string `json:"message"`
 }
 
-func getLogs(ctx context.Context, method, url, format, formatTemplate, mode string) error {
+func (h *Handler) getLogs(ctx context.Context, method, url, format, formatTemplate, mode string) error {
 	c := http.Client{Timeout: time.Duration(1) * time.Minute}
 
 	req, err := http.NewRequest(method, url, nil)
@@ -60,17 +60,13 @@ func getLogs(ctx context.Context, method, url, format, formatTemplate, mode stri
 	if err != nil {
 		return err
 	}
-	err = parseResponseByFormat(jsonData, format, formatTemplate, mode)
-	if err != nil {
-		return err
-	}
-	return nil
+	return h.parseResponseByFormat(jsonData, format, formatTemplate, mode)
 }
 
 func parseResponse(body []byte) (Response, error) {
 	var jsonData Response
 	err := json.Unmarshal(body, &jsonData)
-	if err != nil || len(jsonData.Items) == 0 {
+	if err != nil {
 		return Response{}, err
 	}
 	return jsonData, nil

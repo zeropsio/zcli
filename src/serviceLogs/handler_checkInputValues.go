@@ -16,6 +16,7 @@ type InputValues struct {
 	format         string
 	formatTemplate string
 	mode           string
+	tags           []string
 }
 
 func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, err error) {
@@ -50,6 +51,7 @@ func (h *Handler) checkInputValues(config RunConfig) (inputValues InputValues, e
 		format:         format,
 		formatTemplate: formatTemplate,
 		mode:           mode,
+		tags:           h.getTags(config),
 	}, nil
 }
 
@@ -112,6 +114,10 @@ func (h *Handler) getFormat(config RunConfig) (string, string, error) {
 		return "", "", err
 	}
 	return f, formatTemplate, nil
+}
+
+func (h *Handler) getTags(config RunConfig) []string {
+	return config.Tags
 }
 
 // e.g. --formatTemplate="{{.timestamp}} {{.priority}} {{.facility}} {{.message}}"

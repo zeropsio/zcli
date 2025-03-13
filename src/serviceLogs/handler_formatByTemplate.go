@@ -13,13 +13,13 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 )
 
-func getFullWithTemplate(logData []Data, formatTemplate string) error {
+func (h *Handler) getFullWithTemplate(logData []Data, formatTemplate string) error {
 	ft, err := fixTemplate(formatTemplate)
 	if err != nil {
 		return err
 	}
 	for _, o := range logData {
-		err := formatDataByTemplate(o, ft)
+		err := h.formatDataByTemplate(o, ft)
 		if err != nil {
 			return errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
 		}
@@ -27,7 +27,7 @@ func getFullWithTemplate(logData []Data, formatTemplate string) error {
 	return nil
 }
 
-func formatDataByTemplate(data Data, formatTemplate string) error {
+func (h *Handler) formatDataByTemplate(data Data, formatTemplate string) error {
 	var b bytes.Buffer
 	t, err := template.New("").Parse(formatTemplate)
 	if err != nil {
@@ -37,8 +37,8 @@ func formatDataByTemplate(data Data, formatTemplate string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(b.String())
-	return nil
+	_, err = fmt.Fprintln(h.out, b.String())
+	return err
 }
 
 // test if there are any merged template items and return error

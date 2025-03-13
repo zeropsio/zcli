@@ -230,6 +230,7 @@ const (
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
 	VpnMtuFlag            = "VpnMtuFlag"
 	ZeropsYamlSetup       = "ZeropsYamlSetup"
+	DisableLogs           = "DisableLogs"
 
 	// archiveClient
 	ArchClientWorkingDirectory  = "ArchClientWorkingDirectory"

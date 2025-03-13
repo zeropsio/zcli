@@ -105,22 +105,17 @@ func (mr *MockUxBlocksMockRecorder) Prompt(ctx, message, choices interface{}, au
 }
 
 // RunSpinners mocks base method.
-func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner, auxOptions ...uxBlock.SpinnerOption) func() {
+func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) func() {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, spinners}
-	for _, a := range auxOptions {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "RunSpinners", varargs...)
+	ret := m.ctrl.Call(m, "RunSpinners", ctx, spinners)
 	ret0, _ := ret[0].(func())
 	return ret0
 }
 
 // RunSpinners indicates an expected call of RunSpinners.
-func (mr *MockUxBlocksMockRecorder) RunSpinners(ctx, spinners interface{}, auxOptions ...interface{}) *gomock.Call {
+func (mr *MockUxBlocksMockRecorder) RunSpinners(ctx, spinners interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, spinners}, auxOptions...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSpinners", reflect.TypeOf((*MockUxBlocks)(nil).RunSpinners), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSpinners", reflect.TypeOf((*MockUxBlocks)(nil).RunSpinners), ctx, spinners)
 }
 
 // Select mocks base method.

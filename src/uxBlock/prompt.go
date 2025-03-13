@@ -15,7 +15,7 @@ type promptConfig struct {
 
 type PromptOption = func(cfg *promptConfig)
 
-func (b *uxBlocks) Prompt(
+func (b *Blocks) Prompt(
 	ctx context.Context,
 	message string,
 	choices []string,
@@ -53,7 +53,7 @@ func (b *uxBlocks) Prompt(
 
 type promptModel struct {
 	cfg      promptConfig
-	uxBlocks *uxBlocks
+	uxBlocks *Blocks
 	message  string
 	choices  []string
 	cursor   int

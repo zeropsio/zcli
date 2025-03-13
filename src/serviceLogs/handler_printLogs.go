@@ -23,14 +23,14 @@ func (h *Handler) printLogs(
 	query := makeQueryParams(inputs, serviceId, containerId)
 
 	if inputs.mode == RESPONSE {
-		err = getLogs(ctx, method, HTTPS+url+query, inputs.format, inputs.formatTemplate, inputs.mode)
+		err = h.getLogs(ctx, method, HTTPS+url+query, inputs.format, inputs.formatTemplate, inputs.mode)
 		if err != nil {
 			return err
 		}
 	}
 	if inputs.mode == STREAM {
 		wsUrl := getWsUrl(url)
-		err := h.getLogStream(ctx, inputs, projectId, serviceId, containerId, wsUrl, query)
+		err := h.getLogStream(ctx, inputs, wsUrl, query)
 		if err != nil {
 			return err
 		}
@@ -44,6 +44,10 @@ func makeQueryParams(inputs InputValues, serviceId uuid.ServiceStackId, containe
 
 	if inputs.minSeverity != -1 {
 		query += fmt.Sprintf("&minimumSeverity=%d", inputs.minSeverity)
+	}
+
+	if len(inputs.tags) > 0 {
+		query += fmt.Sprintf("&tags=%s", strings.Join(inputs.tags, ","))
 	}
 
 	if containerId != "" {

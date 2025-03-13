@@ -13,7 +13,7 @@ import (
 func buildCobraCmd(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
-	uxBlocks uxBlock.UxBlocks,
+	uxBlocks *uxBlock.Blocks,
 	cliStorage *cliStorage.Handler,
 ) (*cobra.Command, error) {
 	cobraCmd := &cobra.Command{

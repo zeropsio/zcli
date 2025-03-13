@@ -2,10 +2,14 @@ package uxHelpers
 
 import (
 	"context"
+	"io"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/optional"
+	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -18,14 +22,19 @@ import (
 
 func ProcessCheckWithSpinner(
 	ctx context.Context,
-	uxBlocks uxBlock.UxBlocks,
+	uxBlocks *uxBlock.Blocks,
 	processList []Process,
 ) error {
 	spinners := make([]*uxBlock.Spinner, 0, len(processList))
 	for _, process := range processList {
-		spinners = append(spinners, uxBlock.NewSpinner(styles.NewLine(styles.InfoText(process.RunningMessage))))
+		spinners = append(spinners,
+			uxBlock.NewSpinner(
+				styles.NewLine(styles.InfoText(process.RunningMessage)),
+				uxBlocks.TerminalWidth,
+				uxBlocks.TerminalHeight,
+			),
+		)
 	}
-
 	stopFunc := uxBlocks.RunSpinners(ctx, spinners)
 	defer stopFunc()
 
@@ -34,15 +43,16 @@ func ProcessCheckWithSpinner(
 
 	var wg sync.WaitGroup
 	for i := range processList {
+		processList[i].spinner = spinners[i]
 		wg.Add(1)
-		go func(process Process, spinner *uxBlock.Spinner) {
+		go func(process *Process) {
 			defer wg.Done()
-			err := process.F(ctx)
+			err := process.F(ctx, process)
 			if err != nil {
 				if process.ErrorMessageMessage == "" {
-					spinner.Finish(styles.NewLine())
+					process.spinner.Finish(styles.NewLine())
 				} else {
-					spinner.Finish(styles.ErrorLine(process.ErrorMessageMessage))
+					process.spinner.FinishWithError(styles.ErrorLine(process.ErrorMessageMessage))
 				}
 				once.Do(func() {
 					returnErr = err
@@ -50,29 +60,49 @@ func ProcessCheckWithSpinner(
 				return
 			}
 			if process.SuccessMessage == "" {
-				spinner.Finish(styles.NewLine())
+				process.spinner.Finish(styles.NewLine())
 				return
 			}
-			spinner.Finish(styles.SuccessLine(process.SuccessMessage))
-		}(processList[i], spinners[i])
+			process.spinner.Finish(styles.SuccessLine(process.SuccessMessage))
+		}(&processList[i])
 	}
 	wg.Wait()
 
 	return returnErr
 }
 
+type ProcessFunc func(ctx context.Context, process *Process) error
+type ProcessCallback func(ctx context.Context, process *Process, apiProcess output.Process) error
+
 type Process struct {
-	F                   func(ctx context.Context) error
+	F                   ProcessFunc
 	RunningMessage      string
 	ErrorMessageMessage string
 	SuccessMessage      string
+	spinner             *uxBlock.Spinner
+}
+
+func (p *Process) LogView() io.WriteCloser {
+	return p.spinner.LogView()
+}
+
+func CheckZeropsProcessWithProcessOutputCallback(callback ProcessCallback) generic.Option[checkZeropsProcessSetup] {
+	return func(c *checkZeropsProcessSetup) {
+		c.processOutputCallback = optional.New(callback)
+	}
+}
+
+type checkZeropsProcessSetup struct {
+	processOutputCallback optional.Null[ProcessCallback]
 }
 
 func CheckZeropsProcess(
 	processId uuid.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
-) func(ctx context.Context) error {
-	return func(ctx context.Context) error {
+	options ...generic.Option[checkZeropsProcessSetup],
+) ProcessFunc {
+	setup := generic.ApplyOptions(options...)
+	return func(ctx context.Context, process *Process) error {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 
@@ -89,6 +119,12 @@ func CheckZeropsProcess(
 				processOutput, err := getProcessResponse.Output()
 				if err != nil {
 					return err
+				}
+
+				if callback, exists := setup.processOutputCallback.Get(); exists {
+					if err := callback(ctx, process, processOutput); err != nil {
+						return err
+					}
 				}
 
 				processStatus := processOutput.Status
