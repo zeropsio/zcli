@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,13 +13,16 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/serviceLogs"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 )
 
+//nolint:maintidx // TODO (lh): remove after refactoring
 func servicePushCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("push").
@@ -32,6 +36,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
+		BoolFlag("disableLogs", false, "disable logs").
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -74,7 +79,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F: func(ctx context.Context) (err error) {
+					F: func(ctx context.Context, _ *uxHelpers.Process) (err error) {
 						var size int64
 						var reader io.Reader
 
@@ -167,17 +172,84 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			var buildPhase bool
+			var preparePhase bool
+			var logsHandler *serviceLogs.Handler
+			if err := uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
-					RunningMessage:      i18n.T(i18n.PushRunning),
-					ErrorMessageMessage: i18n.T(i18n.PushFailed),
-					SuccessMessage:      i18n.T(i18n.PushFinished),
-				}},
-			)
-			if err != nil {
+				[]uxHelpers.Process{
+					{
+						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient,
+							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
+								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
+									if cmdData.Params.GetBool("disableLogs") {
+										return nil
+									}
+									if logsHandler == nil {
+										logsHandler = serviceLogs.New(
+											process.LogView(),
+											serviceLogs.Config{},
+											cmdData.RestApiClient,
+										)
+									}
+									if !buildPhase {
+										buildPhase = true
+										buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
+										go func() {
+											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
+												Project:        *cmdData.Project,
+												ServiceId:      buildServiceId,
+												Limit:          100,
+												MinSeverity:    "DEBUG",
+												MsgType:        "APPLICATION",
+												Format:         "FULL",
+												FormatTemplate: "{{.message}}",
+												Follow:         true,
+												Tags: []string{
+													"zbuilder@" + appVersion.Id.Native(),
+												},
+												Levels: serviceLogs.DefaultLevels,
+											}); err != nil {
+												fmt.Fprintf(logsHandler.Writer(), "\nbuild logs error: %s\n", err.Error())
+											}
+										}()
+									}
+									if !preparePhase {
+										if apiProcess.AppVersion.PrepareCustomRuntime == nil {
+											return nil
+										}
+										prepareServiceId, ok := apiProcess.AppVersion.PrepareCustomRuntime.ServiceStackId.Get()
+										if !ok {
+											return nil
+										}
+										preparePhase = true
+										go func() {
+											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
+												Project:        *cmdData.Project,
+												ServiceId:      prepareServiceId,
+												Limit:          100,
+												MinSeverity:    "DEBUG",
+												MsgType:        "APPLICATION",
+												Format:         "FULL",
+												FormatTemplate: "{{.message}}",
+												Follow:         true,
+												Levels:         serviceLogs.DefaultLevels,
+											}); err != nil {
+												fmt.Fprintf(logsHandler.Writer(), "\nprepare runtime logs error: %s\n", err.Error())
+											}
+										}()
+									}
+									return nil
+								},
+							),
+						),
+						RunningMessage:      i18n.T(i18n.PushRunning),
+						ErrorMessageMessage: i18n.T(i18n.PushFailed),
+						SuccessMessage:      i18n.T(i18n.PushFinished),
+					},
+				},
+			); err != nil {
 				return err
 			}
 

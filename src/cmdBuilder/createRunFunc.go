@@ -48,7 +48,7 @@ func (r *CmdParamReader) GetBool(name string) bool {
 
 type GuestCmdData struct {
 	CliStorage *cliStorage.Handler
-	UxBlocks   uxBlock.UxBlocks
+	UxBlocks   *uxBlock.Blocks
 	Args       map[string][]string
 	Params     ParamsReader
 	Stdout     printer.Printer
@@ -71,7 +71,7 @@ type LoggedUserCmdData struct {
 func createCmdRunFunc(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
-	uxBlocks uxBlock.UxBlocks,
+	uxBlocks *uxBlock.Blocks,
 	cliStorage *cliStorage.Handler,
 ) func(*cobra.Command, []string) error {
 	return func(cobraCmd *cobra.Command, args []string) (err error) {

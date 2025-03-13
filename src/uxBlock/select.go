@@ -41,7 +41,7 @@ func SelectTableHeader(header *TableRow) SelectOption {
 
 type SelectOption = func(cfg *selectConfig)
 
-func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error) {
+func (b *Blocks) Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error) {
 	cfg := selectConfig{}
 	for _, opt := range auxOptions {
 		opt(&cfg)
@@ -57,8 +57,8 @@ func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 		uxBlocks:  b,
 		tableBody: tableBody,
 		selected:  make(map[int]struct{}),
-		width:     b.terminalWidth,
-		height:    b.terminalHeight,
+		width:     b.TerminalWidth,
+		height:    b.TerminalHeight,
 	}
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
 
@@ -82,7 +82,7 @@ func (b *uxBlocks) Select(ctx context.Context, tableBody *TableBody, auxOptions 
 
 type selectModel struct {
 	cfg       selectConfig
-	uxBlocks  *uxBlocks
+	uxBlocks  *Blocks
 	tableBody *TableBody
 	cursor    int
 	selected  map[int]struct{}

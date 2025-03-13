@@ -28,7 +28,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceLog)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			handler := serviceLogs.New(
+			handler := serviceLogs.NewStdout(
 				serviceLogs.Config{},
 				cmdData.RestApiClient,
 			)
@@ -66,16 +66,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 				FormatTemplate: cmdData.Params.GetString("formatTemplate"),
 				Follow:         cmdData.Params.GetBool("follow"),
 				// TODO - janhajek better place?
-				Levels: serviceLogs.Levels{
-					{"EMERGENCY", "0"},
-					{"ALERT", "1"},
-					{"CRITICAL", "2"},
-					{"ERROR", "3"},
-					{"WARNING", "4"},
-					{"NOTICE", "5"},
-					{"INFORMATIONAL", "6"},
-					{"DEBUG", "7"},
-				},
+				Levels: serviceLogs.DefaultLevels,
 			})
 		})
 }

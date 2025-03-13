@@ -74,7 +74,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F: func(ctx context.Context) error {
+					F: func(ctx context.Context, _ *uxHelpers.Process) error {
 						var size int64
 						var reader io.Reader
 

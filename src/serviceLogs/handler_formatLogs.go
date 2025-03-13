@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func parseResponseByFormat(jsonData Response, format, formatTemplate, mode string) error {
+func (h *Handler) parseResponseByFormat(jsonData Response, format, formatTemplate, mode string) error {
 	var err error
 
 	logs := jsonData.Items
@@ -16,18 +16,22 @@ func parseResponseByFormat(jsonData Response, format, formatTemplate, mode strin
 	switch format {
 	case FULL:
 		if formatTemplate != "" {
-			if err = getFullWithTemplate(logs, formatTemplate); err != nil {
+			if err = h.getFullWithTemplate(logs, formatTemplate); err != nil {
 				return err
 			}
 			return nil
 		} else {
 			// TODO get rfc from config when implemented as flag
-			getFullByRfc(logs, RFC5424)
+			if err := h.getFullByRfc(logs, RFC5424); err != nil {
+				return err
+			}
 			return nil
 		}
 	case SHORT:
 		for _, o := range logs {
-			fmt.Printf("%v %s \n", o.Timestamp, o.Content)
+			if _, err := fmt.Fprintf(h.out, "%v %s \n", o.Timestamp, o.Content); err != nil {
+				return err
+			}
 		}
 	case JSONSTREAM:
 		for _, o := range logs {
@@ -35,14 +39,18 @@ func parseResponseByFormat(jsonData Response, format, formatTemplate, mode strin
 			if err != nil {
 				return err
 			}
-			fmt.Println(string(val))
+			if _, err := fmt.Fprintln(h.out, string(val)); err != nil {
+				return err
+			}
 		}
 	default:
 		val, err := json.Marshal(logs)
 		if err != nil {
 			return err
 		}
-		fmt.Println(string(val))
+		if _, err := fmt.Fprintln(h.out, string(val)); err != nil {
+			return err
+		}
 	}
 
 	return nil

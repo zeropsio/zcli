@@ -19,30 +19,34 @@ import (
 	"time"
 )
 
-func getFullByRfc(logData []Data, rfc string) {
-	if rfc == RFC3164 {
-		for _, data := range logData {
-			fmt.Printf("<%d>%s %s %s: %s\n",
+func (h *Handler) getFullByRfc(logData []Data, rfc string) error {
+	for _, data := range logData {
+		if rfc == RFC3164 {
+			if _, err := fmt.Fprintf(h.out, "<%d>%s %s %s: %s\n",
 				data.Priority,
 				rfc3164TimeFormat(fixTimestamp(data.Timestamp)),
 				data.Hostname,
 				data.Tag,
 				data.Message,
-			)
+			); err != nil {
+				return err
+			}
+			continue
 		}
-	} else {
-		for _, data := range logData {
-			fmt.Printf("<%d>1 %v %s %s %s %s - %s\n",
-				data.Priority,
-				fixTimestamp(data.Timestamp),
-				data.Hostname,
-				getVal(data.AppName),
-				getVal(data.ProcId),
-				getVal(data.MsgId),
-				data.Message,
-			)
+		// RFC5425
+		if _, err := fmt.Fprintf(h.out, "<%d>1 %v %s %s %s %s - %s\n",
+			data.Priority,
+			fixTimestamp(data.Timestamp),
+			data.Hostname,
+			getVal(data.AppName),
+			getVal(data.ProcId),
+			getVal(data.MsgId),
+			data.Message,
+		); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 // add missing 0 to have the same length for all timestamps

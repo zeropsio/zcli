@@ -33,7 +33,7 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 	terminalWidth, terminalHeight, _ := term.GetSize(0)
 	outputLogger, debugFileLogger := createLoggers(isTerminal)
 
-	uxBlocks := uxBlock.NewBlock(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
+	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
 	cliStorage, err := createCliStorage()
 	if err != nil {

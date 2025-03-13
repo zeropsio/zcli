@@ -83,7 +83,7 @@ func WithTableHeader(header *TableRow) TableOption {
 
 type TableOption = func(cfg *tableConfig)
 
-func (b *uxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
+func (b *Blocks) Table(body *TableBody, auxOptions ...TableOption) {
 	cfg := tableConfig{}
 	for _, opt := range auxOptions {
 		opt(&cfg)
@@ -114,7 +114,7 @@ func (b *uxBlocks) Table(body *TableBody, auxOptions ...TableOption) {
 	}
 	t = t.Rows(rows...)
 
-	t.Width(calculateTableWidth(t, b.terminalWidth))
+	t.Width(calculateTableWidth(t, b.TerminalWidth))
 
 	fmt.Println(t)
 }

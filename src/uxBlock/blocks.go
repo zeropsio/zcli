@@ -23,15 +23,15 @@ type UxBlocks interface {
 		choices []string,
 		auxOptions ...PromptOption,
 	) (int, error)
-	RunSpinners(ctx context.Context, spinners []*Spinner, auxOptions ...SpinnerOption) func()
+	RunSpinners(ctx context.Context, spinners []*Spinner) func()
 }
 
-type uxBlocks struct {
+type Blocks struct {
 	outputLogger    logger.Logger
 	debugFileLogger logger.Logger
 	isTerminal      bool
-	terminalWidth   int
-	terminalHeight  int
+	TerminalWidth   int
+	TerminalHeight  int
 
 	// ctxCancel is used to cancel the context of the command.
 	// Bubbles package that we use to render graphic components steals the signal handler.
@@ -41,25 +41,25 @@ type uxBlocks struct {
 	ctxCancel context.CancelFunc
 }
 
-func NewBlock(
+func NewBlocks(
 	outputLogger logger.Logger,
 	debugFileLogger logger.Logger,
 	isTerminal bool,
 	terminalWidth int,
 	terminalHeight int,
 	ctxCancel context.CancelFunc,
-) *uxBlocks {
+) *Blocks {
 	// safety check
 	if ctxCancel == nil {
 		ctxCancel = func() {}
 	}
 
-	return &uxBlocks{
+	return &Blocks{
 		outputLogger:    outputLogger,
 		debugFileLogger: debugFileLogger,
 		isTerminal:      isTerminal,
-		terminalWidth:   terminalWidth,
-		terminalHeight:  terminalHeight,
+		TerminalWidth:   terminalWidth,
+		TerminalHeight:  terminalHeight,
 		ctxCancel:       ctxCancel,
 	}
 }

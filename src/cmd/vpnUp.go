@@ -144,10 +144,10 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 		})
 }
 
-func isVpnUp(ctx context.Context, uxBlocks uxBlock.UxBlocks, attempts int) bool {
+func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 	p := []uxHelpers.Process{
 		{
-			F: func(ctx context.Context) error {
+			F: func(ctx context.Context, _ *uxHelpers.Process) error {
 				for i := 0; i < attempts; i++ {
 					err := nettools.Ping(ctx, vpnCheckAddress)
 					if err == nil {

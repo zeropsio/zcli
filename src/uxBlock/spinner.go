@@ -2,19 +2,15 @@ package uxBlock
 
 import (
 	"context"
-	"sync"
+	"io"
 
 	bubblesSpinner "github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOptions ...SpinnerOption) func() {
-	cfg := spinnerConfig{}
-	for _, opt := range auxOptions {
-		opt(&cfg)
-	}
-
+func (b *Blocks) RunSpinners(ctx context.Context, spinners []*Spinner) func() {
 	if !b.isTerminal {
 		return func() {
 			for _, spinner := range spinners {
@@ -24,12 +20,11 @@ func (b *uxBlocks) RunSpinners(ctx context.Context, spinners []*Spinner, auxOpti
 	}
 
 	model := &spinnerModel{
-		cfg:      cfg,
 		uxBlocks: b,
 		spinners: spinners,
 	}
 
-	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx))
+	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx), tea.WithFPS(100))
 	go func() {
 		//nolint:errcheck // Why: I'm not interest in the error
 		p.Run()
@@ -48,28 +43,19 @@ type spinnerEndCmd struct {
 }
 
 type spinnerModel struct {
-	cfg      spinnerConfig
 	spinners []*Spinner
-	uxBlocks *uxBlocks
+	uxBlocks *Blocks
 
 	quiting  bool
 	canceled bool
 }
 
-type MergeMessage []tea.Cmd
-
-func XXX(cmdList ...tea.Cmd) func() tea.Msg {
-	return func() tea.Msg {
-		return MergeMessage(cmdList)
-	}
-}
 func (m *spinnerModel) Init() tea.Cmd {
 	ticks := make([]tea.Cmd, len(m.spinners))
 	for i := range m.spinners {
 		ticks[i] = m.spinners[i].init()
 	}
-
-	return XXX(ticks...)
+	return tea.Batch(ticks...)
 }
 
 func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -84,34 +70,12 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quiting = true
 			return m, tea.Quit
 		}
-
-	case MergeMessage:
-		cmdList := make([]tea.Cmd, len(msg))
-
-		var lock sync.Mutex
-
-		wg := sync.WaitGroup{}
-		for i := range msg {
-			wg.Add(1)
-			go func(i int) {
-				defer wg.Done()
-
-				var teaMsg tea.Msg
-				if msg[i] != nil {
-					teaMsg = msg[i]()
-				}
-
-				cmd := m.spinners[i].update(teaMsg)
-
-				lock.Lock()
-				cmdList[i] = cmd
-				lock.Unlock()
-			}(i)
-		}
-		wg.Wait()
-		return m, XXX(cmdList...)
 	}
-	return m, nil
+	cmds := make([]tea.Cmd, 0, len(m.spinners))
+	for _, s := range m.spinners {
+		cmds = append(cmds, s.update(msg))
+	}
+	return m, tea.Batch(cmds...)
 }
 
 func (m *spinnerModel) View() string {
@@ -120,31 +84,27 @@ func (m *spinnerModel) View() string {
 		if m.canceled {
 			s += "canceled\n"
 		} else {
-			line := spinner.line.String()
-			if line != "" {
-				s += spinner.view() + spinner.line.String() + "\n"
-			}
+			s += spinner.view() + "\n"
 		}
 	}
 
 	return s
 }
 
-type spinnerConfig struct {
-}
-
-type SpinnerOption = func(cfg *spinnerConfig)
-
 type Spinner struct {
-	line     styles.Line
-	finished bool
-	spinner  bubblesSpinner.Model
+	line           styles.Line
+	finished       bool
+	endedWithError bool
+	spinner        bubblesSpinner.Model
+	enableLogView  bool
+	logView        *logView.Model
 }
 
-func NewSpinner(line styles.Line) *Spinner {
+func NewSpinner(line styles.Line, width, height int) *Spinner {
 	return &Spinner{
 		line:    line,
 		spinner: bubblesSpinner.New(bubblesSpinner.WithSpinner(bubblesSpinner.MiniDot)),
+		logView: logView.New(width, height, logView.WithHorizontalOffset(5)),
 	}
 }
 
@@ -154,28 +114,59 @@ func (s *Spinner) SetMessage(text styles.Line) *Spinner {
 	return s
 }
 
+func (s *Spinner) LogView() io.WriteCloser {
+	s.enableLogView = true
+	r, w := io.Pipe()
+	go func() {
+		defer r.Close()
+		_, err := io.Copy(s.logView, r)
+		if err != nil {
+			panic(err)
+		}
+	}()
+	return w
+}
+
 func (s *Spinner) Finish(text styles.Line) *Spinner {
 	s.line = text
 	s.finished = true
-
 	return s
 }
 
-func (s *Spinner) init() func() tea.Msg {
-	return s.spinner.Tick
+func (s *Spinner) FinishWithError(text styles.Line) *Spinner {
+	s.line = text
+	s.finished = true
+	s.endedWithError = true
+	return s
+}
+
+func (s *Spinner) init() tea.Cmd {
+	return tea.Sequence(
+		s.spinner.Tick,
+		s.logView.Init(),
+	)
 }
 
 func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
+	var cmds []tea.Cmd
 	if !s.finished {
 		s.spinner, cmd = s.spinner.Update(msg)
+		cmds = append(cmds, cmd)
+		s.logView, cmd = s.logView.Update(msg)
+		cmds = append(cmds, cmd)
 	}
-	return
+	return tea.Batch(cmds...)
 }
 
 func (s *Spinner) view() string {
-	if !s.finished {
-		return s.spinner.View() + " "
+	var l string
+	if s.finished {
+		if s.endedWithError {
+			l += s.logView.View() + "\n"
+			return l + s.line.String()
+		}
+		return s.line.String()
 	}
-
-	return ""
+	l += s.logView.View() + "\n"
+	return l + s.spinner.View() + " " + s.line.String()
 }
