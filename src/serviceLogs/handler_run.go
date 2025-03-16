@@ -7,12 +7,21 @@ import (
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	inputs, err := h.checkInputValues(config)
 	if err != nil {
-		return err
+		return NewInvalidRequestError("Run", "invalid input values", err)
 	}
 
-	// TODO - janhajek check empty containerID
+	if config.Container.ID == "" {
+		return NewInvalidRequestError("Run", "container ID is required", nil)
+	}
+
 	if err = h.printLogs(ctx, inputs, config.Project.ID, config.ServiceId, config.Container.ID); err != nil {
-		return err
+		if IsInvalidRequestError(err) {
+			return err
+		}
+		if IsLogResponseError(err) {
+			return err
+		}
+		return NewLogResponseError(0, "failed to print logs", err)
 	}
 
 	return nil
