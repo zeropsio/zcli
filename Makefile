@@ -5,9 +5,10 @@ define helpMessage
 possible values:
 	test
  	lint
- 	build-for-windows-amd
- 	build-for-linux-amd
- 	build-for-darwin-arm
+	windows-amd
+ 	linux-amd
+ 	darwin-arm
+	darwin-amd
 endef
 export helpMessage
 
@@ -15,18 +16,22 @@ help:
 	@echo "$$helpMessage"
 
 test:
-	 go test -v ./cmd/... ./src/...
+	go test -v ./cmd/... ./src/...
 
 lint:
 	GOOS=darwin GOARCH=arm64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
+	GOOS=darwin GOARCH=amd64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 	GOOS=linux GOARCH=amd64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 	GOOS=windows GOARCH=amd64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
 
-build-for-windows-amd:
+windows-amd:
 	 GOOS=windows GOARCH=amd64 go build -o bin/zcli.exe cmd/zcli/main.go
 
-build-for-linux-amd:
+linux-amd:
 	 GOOS=linux GOARCH=amd64 go build -o bin/zcli cmd/zcli/main.go
 
-build-for-darwin-arm:
+darwin-arm:
 	 GOOS=darwin GOARCH=arm64 go build -o bin/zcli cmd/zcli/main.go
+
+darwin-amd:
+	 GOOS=darwin GOARCH=amd64 go build -o bin/zcli cmd/zcli/main.go
