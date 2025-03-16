@@ -330,4 +330,13 @@ more info: https://docs.zerops.io/references/cli/`,
 	ErrorInvalidScopedProjectId: "Invalid ID of the scoped project [%s], select a different project using `zcli scope project` command.",
 	ErrorInvalidServiceId:       "Invalid service ID [%s], %s", // values: serviceId, message
 	ErrorServiceNotFound:        "Service [%s] not found",
+
+	// login errors
+	ErrorRetrievingRegions:  "Error retrieving regions",
+	ErrorSelectingRegion:    "Error selecting region",
+	ErrorGettingUserInfo:    "Error getting user information",
+	ErrorParsingUserInfo:    "Error parsing user information",
+	ErrorUpdatingCliStorage: "Error updating CLI storage",
+
+	ErrorInvalidRegionIndex: "Invalid region index selected",
 }

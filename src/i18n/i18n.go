@@ -310,4 +310,13 @@ const (
 	ErrorInvalidScopedProjectId = "ErrorInvalidScopedProjectId"
 	ErrorInvalidServiceId       = "ErrorInvalidServiceId"
 	ErrorServiceNotFound        = "ErrorServiceNotFound"
+
+	// login errors
+	ErrorRetrievingRegions  = "ErrorRetrievingRegions"
+	ErrorSelectingRegion    = "ErrorSelectingRegion"
+	ErrorGettingUserInfo    = "ErrorGettingUserInfo"
+	ErrorParsingUserInfo    = "ErrorParsingUserInfo"
+	ErrorUpdatingCliStorage = "ErrorUpdatingCliStorage"
+
+	ErrorInvalidRegionIndex = "ErrorInvalidRegionIndex"
 )
