@@ -31,7 +31,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
-		BoolFlag("deployGitFolder", false, i18n.T(i18n.ZeropsYamlLocation)).
+		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
