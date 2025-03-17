@@ -5,6 +5,7 @@
 - [ ] New Feature
 - [ ] Fix
 - [ ] Improvement
+- [ ] Release
 - [ ] Other
 
 #### Description (required)
