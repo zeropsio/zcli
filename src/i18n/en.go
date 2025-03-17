@@ -330,4 +330,26 @@ more info: https://docs.zerops.io/references/cli/`,
 	ErrorInvalidScopedProjectId: "Invalid ID of the scoped project [%s], select a different project using `zcli scope project` command.",
 	ErrorInvalidServiceId:       "Invalid service ID [%s], %s", // values: serviceId, message
 	ErrorServiceNotFound:        "Service [%s] not found",
+
+	// Project service import
+	CmdDescProjectServiceImportLong: "Creates one or more Zerops services in an existing project according to the definition in the import YAML file.\n\n" +
+		"The YAML file should contain the service configurations including:\n" +
+		"- Service type and version\n" +
+		"- Resource allocations\n" +
+		"- Environment variables\n" +
+		"- Dependencies\n\n" +
+		"Example usage: zcli service-import services.yml",
+	ServiceImportYamlPathMissing:      "YAML file path is missing. Usage: zcli service-import <path_to_yaml_file>",
+	ServiceImportYamlReadFailed:       "Failed to read the YAML file. Please check if the file exists and has correct permissions",
+	ServiceImportFailed:               "Failed to import services. Please check your YAML configuration",
+	ServiceImportResponseParseFailed:  "Failed to parse the import response from server",
+	ServiceImportProcessCheckFailed:   "Failed to check import processes",
+	ServiceImportYamlValidationFailed: "YAML validation failed. Please check your service configuration",
+	ServiceImportAvailableCommands: `Available commands after service import:
+  zcli service list - List all services in the project
+  zcli service start <service_name> - Start a service
+  zcli service stop <service_name> - Stop a service
+  zcli service log <service_name> - View service logs
+  zcli service deploy <service_name> - Deploy to service
+For more information, use 'zcli --help' or visit our documentation.`,
 }

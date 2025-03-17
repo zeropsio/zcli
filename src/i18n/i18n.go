@@ -310,4 +310,14 @@ const (
 	ErrorInvalidScopedProjectId = "ErrorInvalidScopedProjectId"
 	ErrorInvalidServiceId       = "ErrorInvalidServiceId"
 	ErrorServiceNotFound        = "ErrorServiceNotFound"
+
+	// Project service import
+	CmdDescProjectServiceImportLong   = "CmdDescProjectServiceImportLong"
+	ServiceImportYamlPathMissing      = "ServiceImportYamlPathMissing"
+	ServiceImportYamlReadFailed       = "ServiceImportYamlReadFailed"
+	ServiceImportFailed               = "ServiceImportFailed"
+	ServiceImportResponseParseFailed  = "ServiceImportResponseParseFailed"
+	ServiceImportProcessCheckFailed   = "ServiceImportProcessCheckFailed"
+	ServiceImportAvailableCommands    = "ServiceImportAvailableCommands"
+	ServiceImportYamlValidationFailed = "ServiceImportYamlValidationFailed"
 )
