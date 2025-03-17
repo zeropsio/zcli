@@ -22,30 +22,6 @@ type ParamsReader interface {
 	GetBool(name string) bool
 }
 
-type CmdParamReader struct {
-	cobraCmd      *cobra.Command
-	paramsHandler *flagParams.Handler
-}
-
-func newCmdParamReader(cobraCmd *cobra.Command, paramsHandler *flagParams.Handler) *CmdParamReader {
-	return &CmdParamReader{
-		cobraCmd:      cobraCmd,
-		paramsHandler: paramsHandler,
-	}
-}
-
-func (r *CmdParamReader) GetString(name string) string {
-	return r.paramsHandler.GetString(r.cobraCmd, name)
-}
-
-func (r *CmdParamReader) GetInt(name string) int {
-	return r.paramsHandler.GetInt(r.cobraCmd, name)
-}
-
-func (r *CmdParamReader) GetBool(name string) bool {
-	return r.paramsHandler.GetBool(r.cobraCmd, name)
-}
-
 type GuestCmdData struct {
 	CliStorage *cliStorage.Handler
 	UxBlocks   *uxBlock.Blocks
@@ -79,7 +55,7 @@ func createCmdRunFunc(
 
 		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
-		flagParams.InitViper()
+		flagParams.Bind(cobraCmd)
 
 		argsMap, err := convertArgs(cmd, args)
 		if err != nil {
@@ -90,7 +66,7 @@ func createCmdRunFunc(
 			CliStorage: cliStorage,
 			UxBlocks:   uxBlocks,
 			Args:       argsMap,
-			Params:     newCmdParamReader(cobraCmd, flagParams),
+			Params:     flagParams,
 			Stdout:     printer.NewPrinter(os.Stdout),
 			Stderr:     printer.NewPrinter(os.Stderr),
 

@@ -41,3 +41,10 @@ func getWgConfigFilePathReceivers() []pathReceiver {
 		receiverFromOsTemp("zerops." + WgConfigFile),
 	}
 }
+
+func getZcliYamlFilePathsReceivers() []pathReceiver {
+	return []pathReceiver{
+		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, CliZcliYamlFileName),
+		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, CliZcliYamlFileName),
+	}
+}

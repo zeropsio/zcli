@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"sort"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/httpClient"
 )
 
@@ -49,7 +50,7 @@ func readRegions(regionFile json.RawMessage) ([]RegionItem, error) {
 	var regionItemsResponse response
 	err := json.Unmarshal(regionFile, &regionItemsResponse)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unmarshal regions")
 	}
 	return regionItemsResponse.Items, err
 }

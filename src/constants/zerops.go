@@ -18,6 +18,7 @@ const (
 	WgConfigFile          = "zerops.conf"
 	WgInterfaceName       = "zerops"
 	CliDataFileName       = "cli.data"
+	CliZcliYamlFileName   = ".zcli.yml"
 	CliDataFilePathEnvVar = "ZEROPS_CLI_DATA_FILE_PATH"
 	CliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
 	CliWgConfigPathEnvVar = "ZEROPS_WG_CONFIG_FILE_PATH"
@@ -36,6 +37,10 @@ func LogFilePath() (string, os.FileMode, error) {
 
 func WgConfigFilePath() (string, os.FileMode, error) {
 	return checkReceivers(getWgConfigFilePathReceivers(), 0600, i18n.UnableToWriteWgConfigFile)
+}
+
+func ZcliYamlFilePath() (string, os.FileMode, error) {
+	return checkReceivers(getZcliYamlFilePathsReceivers(), 0600, i18n.UnableToWriteCliData)
 }
 
 func checkReceivers(pathReceivers []pathReceiver, fileMode os.FileMode, errorText string) (string, os.FileMode, error) {
