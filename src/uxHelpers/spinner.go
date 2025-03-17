@@ -3,12 +3,14 @@ package uxHelpers
 import (
 	"context"
 	"io"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/generic"
 	"github.com/zeropsio/zcli/src/optional"
+	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
@@ -82,7 +84,10 @@ type Process struct {
 	spinner             *uxBlock.Spinner
 }
 
-func (p *Process) LogView() io.WriteCloser {
+func (p *Process) LogView() io.Writer {
+	if !terminal.IsTerminal() {
+		return os.Stdout
+	}
 	return p.spinner.LogView()
 }
 
