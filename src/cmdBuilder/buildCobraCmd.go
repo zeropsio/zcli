@@ -44,19 +44,20 @@ func buildCobraCmd(
 	}
 
 	for _, flag := range cmd.flags {
+		flagSet := cobraCmd.Flags()
 		switch defaultValue := flag.defaultValue.(type) {
 		case string:
-			flagParams.RegisterString(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
+			flagSet.StringP(flag.name, flag.shorthand, defaultValue, flag.description)
 		case int:
-			flagParams.RegisterInt(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
+			flagSet.IntP(flag.name, flag.shorthand, defaultValue, flag.description)
 		case bool:
-			flagParams.RegisterBool(cobraCmd, flag.name, flag.shorthand, defaultValue, flag.description)
+			flagSet.BoolP(flag.name, flag.shorthand, defaultValue, flag.description)
 		default:
 			panic(fmt.Sprintf("unexpected type %T", flag.defaultValue))
 		}
 
 		if flag.hidden {
-			err := cobraCmd.Flags().MarkHidden(flag.name)
+			err := flagSet.MarkHidden(flag.name)
 			if err != nil {
 				return nil, err
 			}

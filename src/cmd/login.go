@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
@@ -72,39 +72,45 @@ func getLoginRegion(
 	regions []region.RegionItem,
 	selectedRegion string,
 ) (region.RegionItem, error) {
+	if selectedRegion == "" {
+		for _, reg := range regions {
+			if reg.IsDefault {
+				return reg, nil
+			}
+		}
+	}
+
 	if selectedRegion != "" {
 		for _, reg := range regions {
 			if reg.Name == selectedRegion {
 				return reg, nil
 			}
 		}
-		return region.RegionItem{}, errors.New(i18n.T(i18n.RegionNotFound, selectedRegion))
 	}
 
-	for _, reg := range regions {
-		if reg.IsDefault {
-			return reg, nil
-		}
-	}
+	uxBlocks.PrintWarning(styles.WarningLine(fmt.Sprintf("Region '%s' was not found", selectedRegion)))
 
-	header := (&uxBlock.TableRow{}).AddStringCells(i18n.T(i18n.RegionTableColumnName))
+	header := (&uxBlock.TableRow{}).AddStringCells(i18n.T(i18n.RegionTableColumnName), "default")
 
 	tableBody := &uxBlock.TableBody{}
 	for _, reg := range regions {
 		tableBody.AddStringsRow(
 			reg.Name,
+			fmt.Sprintf("%t", reg.IsDefault),
 		)
 	}
 
 	regionIndex, err := uxBlocks.Select(
 		ctx,
 		tableBody,
-		uxBlock.SelectLabel(i18n.T(i18n.ProjectSelectorPrompt)),
+		uxBlock.SelectLabel("Select region"),
 		uxBlock.SelectTableHeader(header),
 	)
 	if err != nil {
 		return region.RegionItem{}, err
 	}
 
-	return regions[regionIndex[0]], nil
+	reg := regions[regionIndex[0]]
+	uxBlocks.PrintInfo(styles.InfoWithValueLine("Selected region", reg.Name))
+	return reg, nil
 }
