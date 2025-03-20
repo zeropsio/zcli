@@ -12,17 +12,18 @@ import (
 )
 
 const (
-	DefaultRegionUrl      = "https://api.app-prg1.zerops.io/api/rest/public/region/zcli"
-	ZeropsDir             = "zerops"
-	ZeropsLogFile         = "zerops.log"
-	WgConfigFile          = "zerops.conf"
-	WgInterfaceName       = "zerops"
-	CliDataFileName       = "cli.data"
-	CliZcliYamlFileName   = ".zcli.yml"
-	CliDataFilePathEnvVar = "ZEROPS_CLI_DATA_FILE_PATH"
-	CliLogFilePathEnvVar  = "ZEROPS_CLI_LOG_FILE_PATH"
-	CliWgConfigPathEnvVar = "ZEROPS_WG_CONFIG_FILE_PATH"
-	CliTerminalMode       = "ZEROPS_CLI_TERMINAL_MODE"
+	DefaultRegionUrl        = "https://api.app-prg1.zerops.io/api/rest/public/region/zcli"
+	ZeropsDir               = "zerops"
+	ZeropsLogFile           = "zerops.log"
+	WgConfigFile            = "zerops.conf"
+	WgInterfaceName         = "zerops"
+	CliDataFileName         = "cli.data"
+	CliZcliYamlBaseFileName = ".zcli"
+	CliZcliYamlFileName     = CliZcliYamlBaseFileName + ".yml"
+	CliDataFilePathEnvVar   = "ZEROPS_CLI_DATA_FILE_PATH"
+	CliLogFilePathEnvVar    = "ZEROPS_CLI_LOG_FILE_PATH"
+	CliWgConfigPathEnvVar   = "ZEROPS_WG_CONFIG_FILE_PATH"
+	CliTerminalMode         = "ZEROPS_CLI_TERMINAL_MODE"
 )
 
 type pathReceiver func(fileMode os.FileMode) (path string, err error)
