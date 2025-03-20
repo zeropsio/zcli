@@ -27,7 +27,7 @@ func New() *Handler {
 	}
 
 	v.AddConfigPath(".")
-	v.SetConfigName(constants.CliZcliYamlFileName)
+	v.SetConfigName(constants.CliZcliYamlBaseFileName)
 	v.SetConfigType("yaml")
 	if err := v.MergeInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr

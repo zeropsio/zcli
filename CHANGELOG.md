@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v1.0.39] - 2025-03-20
 
 ### Fixed
+- local zCLI config file now correctly allows for `.zcli`, `.zcli.yml` and `.zcli.yaml`
 - `deploy` and `push` commands now correctly interpret `archiveFilePath` flag
 
 ### Improved
