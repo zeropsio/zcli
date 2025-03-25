@@ -96,7 +96,6 @@ type Spinner struct {
 	finished       bool
 	endedWithError bool
 	spinner        bubblesSpinner.Model
-	enableLogView  bool
 	logView        *logView.Model
 }
 
@@ -104,7 +103,11 @@ func NewSpinner(line styles.Line, width, height int) *Spinner {
 	return &Spinner{
 		line:    line,
 		spinner: bubblesSpinner.New(bubblesSpinner.WithSpinner(bubblesSpinner.MiniDot)),
-		logView: logView.New(width, height, logView.WithHorizontalOffset(5)),
+		logView: logView.New(
+			width,
+			height,
+			logView.WithVerticalOffset(2),
+		),
 	}
 }
 
@@ -115,7 +118,7 @@ func (s *Spinner) SetMessage(text styles.Line) *Spinner {
 }
 
 func (s *Spinner) LogView() io.WriteCloser {
-	s.enableLogView = true
+	s.logView.Enable()
 	r, w := io.Pipe()
 	go func() {
 		defer r.Close()
@@ -149,24 +152,27 @@ func (s *Spinner) init() tea.Cmd {
 
 func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
 	var cmds []tea.Cmd
-	if !s.finished {
-		s.spinner, cmd = s.spinner.Update(msg)
-		cmds = append(cmds, cmd)
-		s.logView, cmd = s.logView.Update(msg)
-		cmds = append(cmds, cmd)
+	if s.finished {
+		return nil
 	}
+	s.spinner, cmd = s.spinner.Update(msg)
+	cmds = append(cmds, cmd)
+	s.logView, cmd = s.logView.Update(msg)
+	cmds = append(cmds, cmd)
 	return tea.Batch(cmds...)
 }
 
 func (s *Spinner) view() string {
 	var l string
 	if s.finished {
-		if s.endedWithError {
+		if s.endedWithError && s.logView.Enabled {
 			l += s.logView.View() + "\n"
 			return l + s.line.String()
 		}
 		return s.line.String()
 	}
-	l += s.logView.View() + "\n"
+	if s.logView.Enabled {
+		l += s.logView.View() + "\n"
+	}
 	return l + s.spinner.View() + " " + s.line.String()
 }
