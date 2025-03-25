@@ -147,20 +147,20 @@ and your %s.`,
 		"directory to Zerops and starts the build pipeline. Files found in the .gitignore\n" +
 		"file will be ignored.\n\n" +
 		"If you just want to deploy your application to Zerops, use the zcli deploy command instead.",
-	PushRunning:  "Push is running",
-	PushFinished: "Push finished",
-	PushFailed:   "Push failed",
+	PushRunning:  "Application is deploying",
+	PushFinished: "Application deployed",
+	PushFailed:   "Application deploy failed",
 
 	// push && deploy
-	PushDeployCreatingPackageStart:  "creating package",
-	PushDeployCreatingPackageDone:   "package created",
-	PushDeployPackageSavedInto:      "package file saved into: %s",
-	PushDeployUploadingPackageStart: "uploading package",
-	PushDeployUploadingPackageDone:  "package uploaded",
-	PushDeployUploadPackageFailed:   "package upload failed",
-	PushDeployDeployingStart:        "deploying service",
-	PushDeployZeropsYamlEmpty:       "config file zerops.yml is empty",
-	PushDeployZeropsYamlTooLarge:    "max. size of zerops.yml is 10 KB",
+	PushDeployCreatingPackageStart:  "Creating package",
+	PushDeployCreatingPackageDone:   "Package created",
+	PushDeployPackageSavedInto:      "Package file saved into: %s",
+	PushDeployUploadingPackageStart: "Uploading package",
+	PushDeployUploadingPackageDone:  "Package uploaded",
+	PushDeployUploadPackageFailed:   "Package upload failed",
+	PushDeployDeployingStart:        "Deploying service",
+	PushDeployZeropsYamlEmpty:       "Config file zerops.yml is empty",
+	PushDeployZeropsYamlTooLarge:    "Max. size of zerops.yml is 10 KB",
 	PushDeployZeropsYamlFound:       "File zerops.yml found. Path: %s.",
 	PushDeployZeropsYamlNotFound: "File zerops.yml not found. Checked paths: [%s]. \n" +
 		" Please, create a zerops.yml file in the root directory of your project. \n" +
