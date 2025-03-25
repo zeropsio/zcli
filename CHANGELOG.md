@@ -4,14 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.0.39] - 2025-03-20
+## [v1.0.39] - 2025-03-25
 
 ### Fixed
 - local zCLI config file now correctly allows for `.zcli`, `.zcli.yml` and `.zcli.yaml`
 - `deploy` and `push` commands now correctly interpret `archiveFilePath` flag
+- inactive logView inside of spinner doesn't render
 
 ### Improved
 - `deploy` and `push` no longer stores the entire file on disk, instead streams them directly to Zerops
+- ui & render logic for logView
 
 ### Added
 - `-g` shorthand for `--deployGitFolder` flag to `deploy` and `push` commands
