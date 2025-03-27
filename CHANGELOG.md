@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.40] - 2025-03-27
+
+### Added
+- `--verbose` (shorthand `-v`) flag to `deploy` and `push` commands to log additional data do zcli debug log file
+
 ## [v1.0.39] - 2025-03-25
 
 ### Fixed

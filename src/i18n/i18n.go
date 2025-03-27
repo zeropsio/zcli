@@ -230,6 +230,7 @@ const (
 	ProjectIdFlag         = "ProjectIdFlag"
 	VpnAutoDisconnectFlag = "VpnAutoDisconnectFlag"
 	VpnMtuFlag            = "VpnMtuFlag"
+	VerboseFlag           = "VerboseFlag"
 	ZeropsYamlSetup       = "ZeropsYamlSetup"
 	DisableLogs           = "DisableLogs"
 

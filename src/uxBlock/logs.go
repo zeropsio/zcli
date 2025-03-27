@@ -1,6 +1,17 @@
 package uxBlock
 
-import "github.com/zeropsio/zcli/src/uxBlock/styles"
+import (
+	"github.com/zeropsio/zcli/src/logger"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
+)
+
+func (b *Blocks) GetOutputLogger() logger.Logger {
+	return b.outputLogger
+}
+
+func (b *Blocks) GetDebugFileLogger() logger.Logger {
+	return b.debugFileLogger
+}
 
 func (b *Blocks) LogDebug(message string) {
 	b.debugFileLogger.Debug(message)

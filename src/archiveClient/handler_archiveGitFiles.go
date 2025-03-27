@@ -38,10 +38,16 @@ func (h *Handler) ArchiveGitFiles(ctx context.Context, workingDir string, writer
 }
 
 func (h *Handler) getRootDir(ctx context.Context, workingDir string) (string, error) {
+	if h.config.Verbose {
+		h.config.Logger.Info("git rev-parse --show-toplevel")
+	}
 	out := &strings.Builder{}
 	cmd := cmdRunner.CommandContext(ctx, "git", "rev-parse", "--show-toplevel")
 	cmd.Dir = workingDir
 	cmd.Stdout = out
+	if h.config.Verbose {
+		cmd.Stderr = h.config.Logger
+	}
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
@@ -50,7 +56,7 @@ func (h *Handler) getRootDir(ctx context.Context, workingDir string) (string, er
 
 // createSimpleArchive creates an archive without the .git directory
 func (h *Handler) createSimpleArchive(ctx context.Context, workingDir string, writer io.Writer) error {
-	archiver := newGitArchiver(workingDir, h.config.PushWorkspaceState)
+	archiver := newGitArchiver(workingDir, h.config.PushWorkspaceState, h.config.Verbose, h.config.Logger)
 	if err := archiver.initialize(ctx); err != nil {
 		return err
 	}

@@ -92,3 +92,7 @@ func (h *Handler) Debug(a ...interface{}) {
 func (h *Handler) Debugf(format string, a ...interface{}) {
 	h.logrus.Debugf(format, a...)
 }
+
+func (h *Handler) Write(p []byte) (n int, err error) {
+	return h.logrus.Writer().Write(p)
+}

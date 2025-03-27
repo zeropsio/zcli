@@ -28,12 +28,15 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
+		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
 			arch := archiveClient.New(archiveClient.Config{
+				Logger:          uxBlocks.GetDebugFileLogger(),
+				Verbose:         cmdData.Params.GetBool("verbose"),
 				DeployGitFolder: cmdData.Params.GetBool("deployGitFolder"),
 			})
 

@@ -11,6 +11,8 @@ import (
 //go:generate go run --mod=mod github.com/golang/mock/mockgen -source=$GOFILE -destination=$PWD/mocks/$GOFILE -package=mocks
 
 type UxBlocks interface {
+	GetOutputLogger() logger.Logger
+	GetDebugFileLogger() logger.Logger
 	LogDebug(message string)
 	PrintInfo(line styles.Line)
 	PrintWarning(line styles.Line)

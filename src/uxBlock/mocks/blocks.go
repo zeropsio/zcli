@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	logger "github.com/zeropsio/zcli/src/logger"
 	uxBlock "github.com/zeropsio/zcli/src/uxBlock"
 	styles "github.com/zeropsio/zcli/src/uxBlock/styles"
 )
@@ -34,6 +35,34 @@ func NewMockUxBlocks(ctrl *gomock.Controller) *MockUxBlocks {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUxBlocks) EXPECT() *MockUxBlocksMockRecorder {
 	return m.recorder
+}
+
+// GetDebugFileLogger mocks base method.
+func (m *MockUxBlocks) GetDebugFileLogger() logger.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDebugFileLogger")
+	ret0, _ := ret[0].(logger.Logger)
+	return ret0
+}
+
+// GetDebugFileLogger indicates an expected call of GetDebugFileLogger.
+func (mr *MockUxBlocksMockRecorder) GetDebugFileLogger() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDebugFileLogger", reflect.TypeOf((*MockUxBlocks)(nil).GetDebugFileLogger))
+}
+
+// GetOutputLogger mocks base method.
+func (m *MockUxBlocks) GetOutputLogger() logger.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOutputLogger")
+	ret0, _ := ret[0].(logger.Logger)
+	return ret0
+}
+
+// GetOutputLogger indicates an expected call of GetOutputLogger.
+func (mr *MockUxBlocksMockRecorder) GetOutputLogger() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutputLogger", reflect.TypeOf((*MockUxBlocks)(nil).GetOutputLogger))
 }
 
 // LogDebug mocks base method.
