@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zeropsio/zcli/src/cmdRunner"
+	"github.com/zeropsio/zcli/src/logger"
 )
 
 type gitArchiver struct {
@@ -16,13 +17,18 @@ type gitArchiver struct {
 	env            []string
 	workspaceState string
 	indexFile      string
+
+	verbose bool
+	logger  logger.Logger
 }
 
-func newGitArchiver(workingDir string, workspaceState string) *gitArchiver {
+func newGitArchiver(workingDir string, workspaceState string, verbose bool, logger logger.Logger) *gitArchiver {
 	return &gitArchiver{
 		env:            os.Environ(),
 		workingDir:     workingDir,
 		workspaceState: workspaceState,
+		verbose:        verbose,
+		logger:         logger,
 	}
 }
 
@@ -42,6 +48,10 @@ func (h *gitArchiver) initialize(ctx context.Context) error {
 	case WorkspaceAll:
 		h.indexFile = path.Join(".git", "zcli-tmp-index-"+uuid.New().String())
 		h.env = append(h.env, "GIT_INDEX_FILE="+h.indexFile)
+
+		if h.verbose {
+			h.logger.Info("Using git index file: " + h.indexFile)
+		}
 
 		if _, err := h.runCommand(ctx, "git", "read-tree", "HEAD"); err != nil {
 			return err
@@ -77,6 +87,9 @@ func (h *gitArchiver) cleanup(ctx context.Context) {
 	}
 
 	if h.indexFile != "" {
+		if h.verbose {
+			h.logger.Info("Removing git index file: " + h.indexFile)
+		}
 		_ = os.Remove(path.Join(h.workingDir, h.indexFile))
 	}
 }
@@ -97,8 +110,14 @@ func (h *gitArchiver) runCommand(ctx context.Context, command string, args ...st
 }
 
 func (h *gitArchiver) getCommand(ctx context.Context, command string, args ...string) *cmdRunner.ExecCmd {
+	if h.verbose {
+		h.logger.Info(command, " ", strings.Join(args, " "))
+	}
 	cmd := cmdRunner.CommandContext(ctx, command, args...)
 	cmd.Env = h.env
 	cmd.Dir = h.workingDir
+	if h.verbose {
+		cmd.Stderr = h.logger
+	}
 	return cmd
 }
