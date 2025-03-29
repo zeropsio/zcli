@@ -67,10 +67,18 @@ func (h *gitArchiver) initialize(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+
+		// `git stash create` returns nothing if there are no changes and user forgot to use WorkspaceClean, in such case, use HEAD
 		h.commit = commit
+		if h.commit == "" {
+			h.commit = "HEAD"
+		}
 	case WorkspaceClean:
 		// TODO(ms): add option for user to specify commit or tag, instead of forcing HEAD
 		h.commit = "HEAD"
+	}
+	if h.verbose {
+		h.logger.Info("Using git commit: " + h.commit)
 	}
 	return nil
 }
