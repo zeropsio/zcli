@@ -67,11 +67,36 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			var createAppVersionOptions []createAppVersionOption
+			envFilePath, found, err := GetEnvFileLocation(configContent, setup.String(), runEnvFileJsonPath)
+			if err != nil {
+				return err
+			}
+			if found {
+				file, err := readEnvFile(envFilePath)
+				if err != nil {
+					return err
+				}
+				createAppVersionOptions = append(createAppVersionOptions, withRunEnvFile(file))
+			}
+			envFilePath, found, err = GetEnvFileLocation(configContent, setup.String(), buildEnvFileJsonPath)
+			if err != nil {
+				return err
+			}
+			if found {
+				file, err := readEnvFile(envFilePath)
+				if err != nil {
+					return err
+				}
+				createAppVersionOptions = append(createAppVersionOptions, withBuildEnvFile(file))
+			}
+
 			appVersion, err := createAppVersion(
 				ctx,
 				cmdData.RestApiClient,
 				cmdData.Service,
 				cmdData.Params.GetString("versionName"),
+				createAppVersionOptions...,
 			)
 			if err != nil {
 				return err

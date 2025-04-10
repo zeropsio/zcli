@@ -6,12 +6,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/errorsx"
+	"github.com/zeropsio/zcli/src/generic"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/units"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
@@ -21,16 +25,31 @@ import (
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
+	"gopkg.in/yaml.v3"
 )
+
+type createAppVersionOption generic.Option[body.PostAppVersion]
+
+func withRunEnvFile(envFile []byte) createAppVersionOption {
+	return func(b *body.PostAppVersion) {
+		// FIXME lhellmann: envFileHere
+	}
+}
+
+func withBuildEnvFile(envFile []byte) createAppVersionOption {
+	return func(b *body.PostAppVersion) {
+		// FIXME lhellmann: envFileHere
+	}
+}
 
 func createAppVersion(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 	service *entity.Service,
 	versionName string,
+	opts ...createAppVersionOption,
 ) (output.PostAppVersion, error) {
-	appVersionResponse, err := restApiClient.PostAppVersion(
-		ctx,
+	postBody := generic.ApplyOptionsWithDefault(
 		body.PostAppVersion{
 			ServiceStackId: service.ID,
 			Name: func() types.StringNull {
@@ -40,7 +59,9 @@ func createAppVersion(
 				return types.StringNull{}
 			}(),
 		},
+		opts...,
 	)
+	appVersionResponse, err := restApiClient.PostAppVersion(ctx, postBody)
 	if err != nil {
 		return output.PostAppVersion{}, err
 	}
@@ -181,4 +202,85 @@ func validateZeropsYamlContent(
 	}
 
 	return nil
+}
+
+const (
+	runEnvFileJsonPath   = "$.run.envFile"
+	buildEnvFileJsonPath = "$.build.envFile"
+)
+
+func GetEnvFileLocation(zeropsYaml []byte, setup string, jsonpath string) (string, bool, error) {
+	var root yaml.Node
+	if err := yaml.Unmarshal(zeropsYaml, &root); err != nil {
+		return "", false, err
+	}
+	rootPath, err := yamlpath.NewPath("$.zerops")
+	if err != nil {
+		return "", false, err
+	}
+	zeropsNode, err := rootPath.Find(&root)
+	if err != nil {
+		return "", false, err
+	}
+	var setupNode *yaml.Node
+	for _, n := range zeropsNode[0].Content {
+		if slices.ContainsFunc(n.Content, func(node *yaml.Node) bool {
+			return node.Value == setup
+		}) {
+			setupNode = n
+			break
+		}
+	}
+
+	path, err := yamlpath.NewPath(jsonpath)
+	if err != nil {
+		return "", false, err
+	}
+	nodes, err := path.Find(setupNode)
+	if err != nil {
+		return "", false, err // FIXME lhellmann: not found in path
+	}
+	if len(nodes) == 0 {
+		return "", false, nil
+	}
+	if len(nodes) > 1 {
+		return "", false, errors.New("too much nodes")
+	}
+	envFileNode := nodes[0]
+	if envFileNode.Kind != yaml.ScalarNode {
+		return "", false, errors.New("invalid node type")
+	}
+	return envFileNode.Value, true, nil
+
+	// root, err := ajson.Unmarshal(zeropsYaml)
+	// if err != nil {
+	// 	return "",  false,err // FIXME lhellmann: error format
+	// }
+	//
+	// nodes, err := root.JSONPath(jsonpath)
+	// if err != nil {
+	// 	return "",  false,err
+	// }
+	// if len(nodes) > 1 {
+	// 	return "",  false,errors.New("too much nodes")
+	// }
+	// envFileNode := nodes[0]
+	// if !envFileNode.IsString() {
+	// 	return "",  false,errors.New("invalid node type")
+	// }
+	// return envFileNode.String(), nil
+}
+
+func readEnvFile(envFilePath string) ([]byte, error) {
+	stat, err := os.Stat(envFilePath)
+	if err != nil {
+		return nil, err
+	}
+	if stat.Mode()&os.ModeSymlink != 0 || stat.Mode()&os.ModeDir != 0 {
+		return nil, errors.New("env file cannot be symlink or dir")
+	}
+	if stat.Size() > 10*units.KiB {
+		return nil, errors.New("env file too large")
+	}
+	return os.ReadFile(envFilePath)
 }
