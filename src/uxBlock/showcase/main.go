@@ -161,7 +161,7 @@ func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
 	}
 
 	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
-		FilePath: "zerops.log",
+		FilePath: "/tmp/zerops-showcase.log",
 	})
 
 	blocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, width, height, contextCancelFunc)

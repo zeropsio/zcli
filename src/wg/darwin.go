@@ -51,7 +51,8 @@ MTU = {{.Mtu}}
 Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
 PostUp = mkdir -p /etc/resolver 
 PostUp = echo "nameserver {{.Ipv4NetworkGateway}}" > /etc/resolver/zerops 
-PostUp = echo "domain zerops" >> /etc/resolver/zerops 
+PostUp = echo "domain zerops" >> /etc/resolver/zerops
+PostUp = echo "search zerops" >> /etc/resolver/zerops
 PostDown = rm /etc/resolver/zerops 
 
 [Peer]
