@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -19,28 +21,20 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("service-import").
 		Short(i18n.T(i18n.CmdDescProjectServiceImport)).
+		Long(i18n.T(i18n.CmdDescProjectServiceImportLong)).
 		ScopeLevel(scope.Project).
 		Arg(serviceImportArgName).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectServiceImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			var err error
-			var yamlContent []byte
-			if cmdData.Args[serviceImportArgName][0] == "-" {
-				yamlContent, err = yamlReader.ReadContentFromStdin(uxBlocks)
-				if err != nil {
-					return err
-				}
-			} else {
-				yamlContent, err = yamlReader.ReadContent(
-					uxBlocks,
-					cmdData.Args[serviceImportArgName][0],
-					"./",
-				)
-				if err != nil {
-					return err
-				}
+			if len(cmdData.Args[serviceImportArgName]) == 0 {
+				return errors.New(i18n.T(i18n.ServiceImportYamlPathMissing))
+			}
+
+			yamlContent, err := yamlReader.ReadContent(uxBlocks, cmdData.Args[serviceImportArgName][0], "./")
+			if err != nil {
+				return errors.Wrap(err, i18n.T(i18n.ServiceImportYamlReadFailed))
 			}
 
 			importServiceResponse, err := cmdData.RestApiClient.PostServiceStackImport(
@@ -51,12 +45,12 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 				},
 			)
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ServiceImportFailed))
 			}
 
 			responseOutput, err := importServiceResponse.Output()
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ServiceImportResponseParseFailed))
 			}
 
 			var processes []uxHelpers.Process
@@ -76,10 +70,10 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 
 			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
 			if err != nil {
-				return err
+				return errors.Wrap(err, i18n.T(i18n.ServiceImportProcessCheckFailed))
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceImported)))
+			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.ServiceImported)))
 
 			return nil
 		})
