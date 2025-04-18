@@ -50,7 +50,7 @@ type Model struct {
 }
 
 func New(width, height int, options ...Option) *Model {
-	m := generic.ApplyOptionsWithDefault(
+	return generic.ApplyOptionsWithDefault(
 		Model{
 			buffer:   new(bytes.Buffer),
 			viewport: viewport.New(width, height),
@@ -60,7 +60,6 @@ func New(width, height int, options ...Option) *Model {
 		},
 		options...,
 	)
-	return &m
 }
 
 func (m *Model) Write(p []byte) (n int, err error) {
@@ -73,7 +72,7 @@ func (m *Model) Init() tea.Cmd {
 	// default key map uses 'f' key for pgDown, we need it to enable/disable follow mode
 	m.viewport.KeyMap.PageDown = key.NewBinding(
 		key.WithKeys("pgdown", spacebar),
-		key.WithHelp("f/pgdn", "page down"),
+		key.WithHelp("pgdn", "page down"),
 	)
 
 	if m.Enabled {

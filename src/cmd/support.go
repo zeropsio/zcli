@@ -16,9 +16,9 @@ func supportCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpSupport)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			cmdData.Stdout.PrintLines(
-				printer.Style(styles.CobraSectionColor(), i18n.T(i18n.Contact)),
-				printer.Style(styles.CobraItemNameColor(), "- E-mail")+":  team@zerops.io",
-				printer.Style(styles.CobraItemNameColor(), "- Discord")+": https://discord.com/invite/WDvCZ54",
+				printer.Style(styles.CobraSectionStyle(), i18n.T(i18n.Contact)),
+				printer.Style(styles.CobraItemNameStyle(), "- E-mail")+":  team@zerops.io",
+				printer.Style(styles.CobraItemNameStyle(), "- Discord")+": https://discord.com/invite/WDvCZ54",
 				printer.EmptyLine,
 				i18n.T(i18n.Documentation),
 			)

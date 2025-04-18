@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/uxBlock/models"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 
@@ -62,7 +63,6 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	if userErr := errorsx.AsUserError(err); userErr != nil {
 		uxBlocks.PrintErrorText(err.Error())
 		os.Exit(1)
-		return
 	}
 
 	var apiErr apiError.Error
@@ -77,7 +77,12 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 		}
 
 		os.Exit(1)
-		return
+	}
+
+	// FIXME lhellmann: is this ok?
+	if errors.Is(err, models.CtrlC) {
+		uxBlocks.PrintInfo(styles.InfoLine("canceled"))
+		os.Exit(0)
 	}
 
 	uxBlocks.PrintErrorText(err.Error())

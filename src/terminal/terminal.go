@@ -7,18 +7,33 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 )
 
-type terminalMode string
+type Mode string
 
 const (
-	ModeAuto     terminalMode = "auto"
-	ModeDisabled terminalMode = "disabled"
-	ModeEnabled  terminalMode = "enabled"
+	ModeAuto     Mode = "auto"
+	ModeDisabled Mode = "disabled"
+	ModeEnabled  Mode = "enabled"
 )
 
-func isTerminal() bool {
-	env := os.Getenv(constants.CliTerminalMode)
+func (m Mode) IsAuto(other Mode) bool {
+	return ModeAuto == other
+}
+func (m Mode) IsDisabled(other Mode) bool {
+	return ModeDisabled == other
+}
+func (m Mode) IsEnabled(other Mode) bool {
+	return ModeEnabled == other
+}
 
-	switch terminalMode(env) {
+func GetMode() Mode {
+	env := os.Getenv(constants.CliTerminalMode)
+	return Mode(env)
+}
+
+func isTerminal() bool {
+	env := GetMode()
+
+	switch env {
 	case ModeAuto, "":
 		return isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
 	case ModeDisabled:

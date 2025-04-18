@@ -2,6 +2,8 @@ package styles
 
 import (
 	"strings"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 type StringBuilder struct {
@@ -15,21 +17,25 @@ func NewStringBuilder() *StringBuilder {
 }
 
 func (b *StringBuilder) WriteInfoColor(s string) {
-	b.WriteString(infoColor.Render(s))
+	b.WriteString(infoStyle.Render(s))
 }
 
 func (b *StringBuilder) WriteSuccessColor(s string) {
-	b.WriteString(successColor.Render(s))
+	b.WriteString(successStyle.Render(s))
 }
 
 func (b *StringBuilder) WriteSelectColor(s string) {
-	b.WriteString(selectColor.Render(s))
+	b.WriteString(selectStyle.Render(s))
 }
 
 func (b *StringBuilder) WriteWarningColor(s string) {
-	b.WriteString(warningColor.Render(s))
+	b.WriteString(warningStyle.Render(s))
 }
 
 func (b *StringBuilder) WriteErrorColor(s string) {
-	b.WriteString(errorColor.Render(s))
+	b.WriteString(errorStyle.Render(s))
+}
+
+func (b *StringBuilder) WriteStyledColor(style lipgloss.Style, s string) {
+	b.WriteString(style.Inline(true).Render(s))
 }

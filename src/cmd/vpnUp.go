@@ -9,7 +9,6 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/zeropsio/zcli/src/cliStorage"
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/cmdRunner"
 	"github.com/zeropsio/zcli/src/constants"
@@ -33,13 +32,17 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("up").
 		Short(i18n.T(i18n.CmdDescVpnUp)).
-		ScopeLevel(scope.Project).
-		Arg(scope.ProjectArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(cmdBuilder.Project()).
+		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		IntFlag("mtu", 1420, i18n.T(i18n.VpnMtuFlag)).
 		BoolFlag("auto-disconnect", false, i18n.T(i18n.VpnAutoDisconnectFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpVpnUp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
+			project, err := cmdData.Project.Expect("project is null")
+			if err != nil {
+				return err
+			}
 
 			if isVpnUp(ctx, uxBlocks, 1) {
 				if cmdData.Params.GetBool("auto-disconnect") {
@@ -67,7 +70,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			privateKey, err := getOrCreatePrivateVpnKey(cmdData)
+			privateKey, err := getOrCreatePrivateVpnKey(project, cmdData)
 			if err != nil {
 				return err
 			}
@@ -76,7 +79,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			postProjectResponse, err := cmdData.RestApiClient.PostProjectVpn(
 				ctx,
-				path.ProjectId{Id: cmdData.Project.ID},
+				path.ProjectId{Id: project.ID},
 				body.PostProjectVpn{PublicKey: types.String(publicKey.String())},
 			)
 			if err != nil {
@@ -110,8 +113,8 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				if data.VpnKeys == nil {
 					data.VpnKeys = make(map[uuid.ProjectId]entity.VpnKey)
 				}
-				data.VpnKeys[cmdData.Project.ID] = entity.VpnKey{
-					ProjectId: cmdData.Project.ID,
+				data.VpnKeys[project.ID] = entity.VpnKey{
+					ProjectId: project.ID,
 					Key:       privateKey.String(),
 					CreatedAt: time.Now(),
 				}
@@ -169,8 +172,8 @@ func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 	return err == nil
 }
 
-func getOrCreatePrivateVpnKey(cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Key, error) {
-	projectId := cmdData.Project.ID
+func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Key, error) {
+	projectId := project.ID
 
 	if vpnKey, exists := cmdData.VpnKeys[projectId]; exists {
 		wgKey, err := wgtypes.ParseKey(vpnKey.Key)

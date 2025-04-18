@@ -12,6 +12,8 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
@@ -90,9 +92,9 @@ func getLoginRegion(
 
 	uxBlocks.PrintWarning(styles.WarningLine(fmt.Sprintf("Region '%s' was not found", selectedRegion)))
 
-	header := (&uxBlock.TableRow{}).AddStringCells(i18n.T(i18n.RegionTableColumnName), "default")
+	header := table.NewRowFromStrings(i18n.T(i18n.RegionTableColumnName), "default")
 
-	tableBody := &uxBlock.TableBody{}
+	tableBody := table.NewBody()
 	for _, reg := range regions {
 		tableBody.AddStringsRow(
 			reg.Name,
@@ -100,17 +102,21 @@ func getLoginRegion(
 		)
 	}
 
-	regionIndex, err := uxBlocks.Select(
-		ctx,
-		tableBody,
-		uxBlock.SelectLabel("Select region"),
-		uxBlock.SelectTableHeader(header),
+	selected, err := uxBlock.RunR(
+		selector.NewRoot(
+			ctx,
+			tableBody,
+			selector.WithLabel("Select region"),
+			selector.WithHeader(header),
+			selector.WithEnableFiltering(),
+		),
+		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
 		return region.RegionItem{}, err
 	}
 
-	reg := regions[regionIndex[0]]
+	reg := regions[selected]
 	uxBlocks.PrintInfo(styles.InfoWithValueLine("Selected region", reg.Name))
 	return reg, nil
 }

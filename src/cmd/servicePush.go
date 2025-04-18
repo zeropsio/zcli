@@ -7,12 +7,13 @@ import (
 	"sync"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/generic"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
@@ -25,8 +26,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		Use("push").
 		Short(i18n.T(i18n.CmdDescPush)).
 		Long(i18n.T(i18n.CmdDescPushLong)).
-		ScopeLevel(scope.Service).
-		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(cmdBuilder.Service(
+			cmdBuilder.WithCreateNewService(),
+			cmdBuilder.WithProjectScopeOptions(
+				cmdBuilder.WithCreateNewProject(),
+			),
+		)).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
@@ -41,8 +47,63 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
+			project, err := cmdData.Project.Expect("project is null")
+			if err != nil {
+				return err
+			}
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
+
 			if cmdData.Params.IsSet("noGit") && (cmdData.Params.IsSet("deployGitFolder") || cmdData.Params.IsSet("workspaceState")) {
 				uxBlocks.PrintWarning(styles.WarningLine("--noGit and --deployGitFolder/--workspaceState are mutually exclusive, ignoring --deployGitFolder/--workspaceState"))
+			}
+
+			configContent, err := yamlReader.ReadZeropsYamlContent(
+				uxBlocks,
+				cmdData.Params.GetString("workingDir"),
+				cmdData.Params.GetString("zeropsYamlPath"),
+			)
+			if err != nil {
+				return err
+			}
+
+			setup := service.Name
+			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
+				setup = types.NewString(setupParam)
+			} else {
+				setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
+				if err != nil {
+					return err
+				}
+				if s, hasMatch := generic.FindOne(setups, generic.ExactMatch(setup.Native())); hasMatch {
+					setup = types.NewString(s)
+				} else {
+					selectedSetup, err := uxHelpers.PrintSetupSelector(ctx, setups)
+					if err != nil {
+						return err
+					}
+					setup = types.NewString(selectedSetup)
+				}
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup.String()))
+
+			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, service, setup, configContent)
+			if err != nil {
+				return err
+			}
+
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
+
+			appVersion, err := createAppVersion(
+				ctx,
+				cmdData.RestApiClient,
+				service,
+				cmdData.Params.GetString("versionName"),
+			)
+			if err != nil {
+				return err
 			}
 
 			arch := archiveClient.New(archiveClient.Config{
@@ -52,36 +113,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				PushWorkspaceState: cmdData.Params.GetString("workspaceState"),
 				NoGit:              cmdData.Params.GetBool("noGit"),
 			})
-
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
-
-			configContent, err := getValidConfigContent(
-				uxBlocks,
-				cmdData.Params.GetString("workingDir"),
-				cmdData.Params.GetString("zeropsYamlPath"),
-			)
-			if err != nil {
-				return err
-			}
-
-			setup := cmdData.Service.Name
-			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
-				setup = types.NewString(setupParam)
-			}
-			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, setup, configContent)
-			if err != nil {
-				return err
-			}
-
-			appVersion, err := createAppVersion(
-				ctx,
-				cmdData.RestApiClient,
-				cmdData.Service,
-				cmdData.Params.GetString("versionName"),
-			)
-			if err != nil {
-				return err
-			}
 
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
@@ -173,6 +204,9 @@ func servicePushCmd() *cmdBuilder.Cmd {
 									if cmdData.Params.GetBool("disableLogs") {
 										return nil
 									}
+									if !apiProcess.Status.IsRunning() {
+										return nil
+									}
 									if logsHandler == nil {
 										logsHandler = serviceLogs.New(
 											process.LogView(),
@@ -185,7 +219,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
-												Project:        *cmdData.Project,
+												Project:        project,
 												ServiceId:      buildServiceId,
 												Limit:          100,
 												MinSeverity:    "DEBUG",
@@ -213,7 +247,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										preparePhase = true
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
-												Project:        *cmdData.Project,
+												Project:        project,
 												ServiceId:      prepareServiceId,
 												Limit:          100,
 												MinSeverity:    "DEBUG",

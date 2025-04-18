@@ -50,54 +50,54 @@ func NewCmd() *Cmd {
 	}
 }
 
-func (cmd *Cmd) AddChildrenCmd(childrenCmd *Cmd) *Cmd {
-	cmd.childrenCmds = append(cmd.childrenCmds, childrenCmd)
-	return cmd
+func (c *Cmd) AddChildrenCmd(childrenCmd *Cmd) *Cmd {
+	c.childrenCmds = append(c.childrenCmds, childrenCmd)
+	return c
 }
 
-func (cmd *Cmd) Use(use string) *Cmd {
-	cmd.use = use
-	return cmd
+func (c *Cmd) Use(use string) *Cmd {
+	c.use = use
+	return c
 }
 
-func (cmd *Cmd) SetHelpTemplate(template string) *Cmd {
-	cmd.helpTemplate = template
-	return cmd
+func (c *Cmd) SetHelpTemplate(template string) *Cmd {
+	c.helpTemplate = template
+	return c
 }
 
-func (cmd *Cmd) Short(short string) *Cmd {
-	cmd.short = short
-	return cmd
+func (c *Cmd) Short(short string) *Cmd {
+	c.short = short
+	return c
 }
 
-func (cmd *Cmd) Long(long string) *Cmd {
-	cmd.long = long
-	return cmd
+func (c *Cmd) Long(long string) *Cmd {
+	c.long = long
+	return c
 }
 
-func (cmd *Cmd) LoggedUserRunFunc(runFunc loggedUserRunFunc) *Cmd {
-	cmd.loggedUserRunFunc = runFunc
-	return cmd
+func (c *Cmd) LoggedUserRunFunc(runFunc loggedUserRunFunc) *Cmd {
+	c.loggedUserRunFunc = runFunc
+	return c
 }
 
-func (cmd *Cmd) GuestRunFunc(runFunc guestRunFunc) *Cmd {
-	cmd.guestRunFunc = runFunc
-	return cmd
+func (c *Cmd) GuestRunFunc(runFunc guestRunFunc) *Cmd {
+	c.guestRunFunc = runFunc
+	return c
 }
 
-func (cmd *Cmd) SilenceUsage(silenceUsage bool) *Cmd {
-	cmd.silenceUsage = silenceUsage
-	return cmd
+func (c *Cmd) SilenceUsage(silenceUsage bool) *Cmd {
+	c.silenceUsage = silenceUsage
+	return c
 }
 
-func (cmd *Cmd) SilenceError(silenceError bool) *Cmd {
-	cmd.silenceError = silenceError
-	return cmd
+func (c *Cmd) SilenceError(silenceError bool) *Cmd {
+	c.silenceError = silenceError
+	return c
 }
 
-func (cmd *Cmd) ScopeLevel(scopeLevel ScopeLevel) *Cmd {
-	cmd.scopeLevel = scopeLevel
-	return cmd
+func (c *Cmd) ScopeLevel(scopeLevel ScopeLevel) *Cmd {
+	c.scopeLevel = scopeLevel
+	return c
 }
 
 type ArgOption = func(cfg *cmdArg)
@@ -120,7 +120,7 @@ func OptionalArgLabel(label string) ArgOption {
 	}
 }
 
-func (cmd *Cmd) Arg(name string, auxOptions ...ArgOption) *Cmd {
+func (c *Cmd) Arg(name string, auxOptions ...ArgOption) *Cmd {
 	cfg := cmdArg{
 		name: name,
 	}
@@ -128,8 +128,8 @@ func (cmd *Cmd) Arg(name string, auxOptions ...ArgOption) *Cmd {
 		opt(&cfg)
 	}
 
-	cmd.args = append(cmd.args, cfg)
-	return cmd
+	c.args = append(c.args, cfg)
+	return c
 }
 
 type FlagOption = func(cfg *cmdFlag)
@@ -146,24 +146,32 @@ func ShortHand(shorthand string) FlagOption {
 	}
 }
 
-func (cmd *Cmd) StringFlag(name string, defaultValue string, description string, auxOptions ...FlagOption) *Cmd {
-	return cmd.addFlag(name, defaultValue, description, auxOptions...)
+func (c *Cmd) RegisterFlags(register func(cmd *Cmd)) *Cmd {
+	if register == nil {
+		return c
+	}
+	register(c)
+	return c
 }
 
-func (cmd *Cmd) IntFlag(name string, defaultValue int, description string, auxOptions ...FlagOption) *Cmd {
-	return cmd.addFlag(name, defaultValue, description, auxOptions...)
+func (c *Cmd) StringFlag(name string, defaultValue string, description string, auxOptions ...FlagOption) *Cmd {
+	return c.addFlag(name, defaultValue, description, auxOptions...)
 }
 
-func (cmd *Cmd) BoolFlag(name string, defaultValue bool, description string, auxOptions ...FlagOption) *Cmd {
-	return cmd.addFlag(name, defaultValue, description, auxOptions...)
+func (c *Cmd) IntFlag(name string, defaultValue int, description string, auxOptions ...FlagOption) *Cmd {
+	return c.addFlag(name, defaultValue, description, auxOptions...)
 }
 
-func (cmd *Cmd) HelpFlag(description string, auxOptions ...FlagOption) *Cmd {
+func (c *Cmd) BoolFlag(name string, defaultValue bool, description string, auxOptions ...FlagOption) *Cmd {
+	return c.addFlag(name, defaultValue, description, auxOptions...)
+}
+
+func (c *Cmd) HelpFlag(description string, auxOptions ...FlagOption) *Cmd {
 	auxOptions = append(auxOptions, ShortHand("h"))
-	return cmd.addFlag("help", false, description, auxOptions...)
+	return c.addFlag("help", false, description, auxOptions...)
 }
 
-func (cmd *Cmd) addFlag(name string, defaultValue interface{}, description string, auxOptions ...FlagOption) *Cmd {
+func (c *Cmd) addFlag(name string, defaultValue interface{}, description string, auxOptions ...FlagOption) *Cmd {
 	cfg := cmdFlag{
 		name:         name,
 		description:  description,
@@ -173,6 +181,6 @@ func (cmd *Cmd) addFlag(name string, defaultValue interface{}, description strin
 		opt(&cfg)
 	}
 
-	cmd.flags = append(cmd.flags, cfg)
-	return cmd
+	c.flags = append(c.flags, cfg)
+	return c
 }

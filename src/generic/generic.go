@@ -26,54 +26,39 @@ func Deref[T any](in *T) T {
 	return *in
 }
 
+func Prepend[T any](in []T, ts ...T) []T {
+	return append(ts, in...)
+}
+
 type OptionError[T any] func(*T) error
 
-func ApplyOptionsError[K any, T ~func(*K) error](in ...T) (K, []error) {
+func ApplyOptionsError[K any, T ~func(*K) error](in ...T) (*K, []error) {
 	var emptyValue K
 	return ApplyOptionsErrorWithDefault[K](emptyValue, in...)
 }
 
-func ApplyOptionsErrorWithDefault[K any, T ~func(*K) error](k K, in ...T) (K, []error) {
+func ApplyOptionsErrorWithDefault[K any, T ~func(*K) error](k K, in ...T) (*K, []error) {
 	var errors []error
 	for _, o := range in {
 		if err := o(&k); err != nil {
 			errors = append(errors, err)
 		}
 	}
-	return k, errors
+	return &k, errors
 }
 
 type Option[T any] func(*T)
 
-func If[T any](cond bool, in ...Option[T]) Option[T] {
-	return func(c *T) {
-		if !cond {
-			return
-		}
-		for _, o := range in {
-			o(c)
-		}
-	}
-}
-
-func WithOptions[T any](in ...Option[T]) Option[T] {
-	return func(c *T) {
-		for _, o := range in {
-			o(c)
-		}
-	}
-}
-
-func ApplyOptions[K any, T ~func(*K)](in ...T) K {
+func ApplyOptions[K any, T ~func(*K)](in ...T) *K {
 	var emptyValue K
 	return ApplyOptionsWithDefault(emptyValue, in...)
 }
 
-func ApplyOptionsWithDefault[K any, T ~func(*K)](k K, in ...T) K {
+func ApplyOptionsWithDefault[K any, T ~func(*K)](k K, in ...T) *K {
 	for _, o := range in {
 		o(&k)
 	}
-	return k
+	return &k
 }
 
 func GetSliceElementByIndexOrDefault[T any](in []T, index int, defaultValue T) T {
@@ -91,6 +76,12 @@ func FilterSlice[T any](in []T, filter func(in T) bool) []T {
 		}
 	}
 	return r
+}
+
+func ExactMatch[T comparable](in T) func(T) bool {
+	return func(match T) bool {
+		return match == in
+	}
 }
 
 func FindOne[T any](in []T, filter func(in T) bool) (r T, _ bool) {
@@ -242,13 +233,6 @@ func AreAllPointerValuesEqual[T comparable](v ...*T) bool {
 func Empty[T any]() T {
 	var emptyVal T
 	return emptyVal
-}
-
-func Ternary[T any, C ~bool](condition C, v1, v2 T) T {
-	if condition {
-		return v1
-	}
-	return v2
 }
 
 func FirstNotNil[T any](v ...*T) *T {

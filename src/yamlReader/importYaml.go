@@ -14,7 +14,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir string) ([]byte, error) {
+func ReadImportYamlContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir string) ([]byte, error) {
 	if !filepath.IsAbs(importYamlPath) {
 		workingDir, err := filepath.Abs(workingDir)
 		if err != nil {
@@ -56,7 +56,7 @@ func ReadContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, workingDir st
 	return yamlContent, nil
 }
 
-func ReadContentFromStdin(uxBlocks uxBlock.UxBlocks) ([]byte, error) {
+func ReadImportYamlContentFromStdin(uxBlocks uxBlock.UxBlocks) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	size, err := io.Copy(buf, os.Stdin)
 	if err != nil {

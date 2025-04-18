@@ -7,7 +7,7 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/printer"
-	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
@@ -18,23 +18,23 @@ func envCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpEnv)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			cmdData.Stdout.PrintLines(
-				printer.Style(styles.CobraSectionColor(), i18n.T(i18n.GlobalEnvVariables)),
-				printer.Style(styles.CobraItemNameColor(), constants.CliLogFilePathEnvVar)+"\t"+i18n.T(i18n.CliLogFilePathEnvVar),
-				printer.Style(styles.CobraItemNameColor(), constants.CliDataFilePathEnvVar)+"\t"+i18n.T(i18n.CliDataFilePathEnvVar),
-				printer.Style(styles.CobraItemNameColor(), constants.CliTerminalMode)+"\t"+i18n.T(i18n.CliTerminalModeEnvVar),
+				printer.Style(styles.CobraSectionStyle(), i18n.T(i18n.GlobalEnvVariables)),
+				printer.Style(styles.CobraItemNameStyle(), constants.CliLogFilePathEnvVar)+"\t"+i18n.T(i18n.CliLogFilePathEnvVar),
+				printer.Style(styles.CobraItemNameStyle(), constants.CliDataFilePathEnvVar)+"\t"+i18n.T(i18n.CliDataFilePathEnvVar),
+				printer.Style(styles.CobraItemNameStyle(), constants.CliTerminalMode)+"\t"+i18n.T(i18n.CliTerminalModeEnvVar),
 				printer.EmptyLine,
-				printer.Style(styles.CobraSectionColor(), i18n.T(i18n.CurrentlyUsedEnvVariables)),
+				printer.Style(styles.CobraSectionStyle(), i18n.T(i18n.CurrentlyUsedEnvVariables)),
 			)
 
-			body := uxBlock.NewTableBody()
+			body := table.NewBody()
 			guestInfoPart(body)
-			cmdData.UxBlocks.Table(body)
+			cmdData.Stdout.Println(table.Render(body))
 
 			return nil
 		})
 }
 
-func guestInfoPart(tableBody *uxBlock.TableBody) {
+func guestInfoPart(tableBody *table.Body) {
 	cliDataFilePath, _, err := constants.CliDataFilePath()
 	if err != nil {
 		cliDataFilePath = err.Error()

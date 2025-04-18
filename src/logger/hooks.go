@@ -64,10 +64,6 @@ func (hook *TerminalHook) Levels() []logrus.Level {
 
 func (hook *TerminalHook) Fire(entry *logrus.Entry) error {
 	msg := []byte(entry.Message)
-	if !hook.isTerminal {
-		msg = bytes.ReplaceAll(msg, []byte{'\n'}, []byte{' '})
-		entry.Message = string(msg)
-	}
 	if hook.formatter != nil {
 		if formattedEntry, err := hook.formatter.Format(entry); err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to read entry, %v", err)

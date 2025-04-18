@@ -16,4 +16,5 @@ type Data struct {
 	RegionData     region.RegionItem
 	ScopeProjectId uuid.ProjectIdNull
 	VpnKeys        map[uuid.ProjectId]entity.VpnKey
+	OrgId          string
 }

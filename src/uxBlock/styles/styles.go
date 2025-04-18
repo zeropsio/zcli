@@ -14,42 +14,43 @@ const (
 	InfoIcon    = "➤"
 	WarningIcon = "!"
 
+	// ANSI color codes
 	// COLORS
 	prefixTextColorLight = "15"
 	prefixTextColorDark  = "16"
 
-	successColorLight = "28"
-	successColorDark  = "10"
+	colorGreenLight = "28"
+	colorGreenDark  = "10"
 
-	warningColorLight = "142"
-	warningColorDark  = "11"
+	colorYellowLight = "142"
+	colorYellowDark  = "11"
 
-	selectColorLight = "33"
-	selectColorDark  = "45"
+	colorBlueLight = "33"
+	colorBlueDark  = "45"
 
-	infoColorLight = "16"
-	infoColorDark  = "15"
+	colorBlack = "16"
+	colorWhite = "15"
 
-	errorColorLight = "196"
-	errorColorDark  = "196"
+	colorRedLight = "196"
+	colorRedDark  = "196"
 
-	cobraSectionColorLight = "4"
-	cobraSectionColorDark  = "139"
+	colorLBlueLight = "4"
+	ColorLBlueDark  = "139"
 
-	cobraItemColorLight = "5"
-	cobraItemColorDark  = "51"
+	colorMagenta = "5"
+	colorLBlue   = "51"
 )
 
 var defaultRender = lipgloss.NewRenderer(os.Stdout)
 
-func defaultStyle() lipgloss.Style {
-	return lipgloss.NewStyle().Renderer(defaultRender)
+func DefaultStyle() lipgloss.Style {
+	return defaultRender.NewStyle()
 }
 
 func DialogBox() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(InfoColor().GetForeground()).
+		BorderForeground(InfoStyle().GetForeground()).
 		Padding(1, 0).
 		BorderTop(true).
 		BorderLeft(true).
@@ -58,7 +59,7 @@ func DialogBox() lipgloss.Style {
 }
 
 func DialogButton() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Foreground(InfoPrefix().GetForeground()).
 		Background(InfoPrefix().GetBackground()).
 		Padding(0, 3).
@@ -73,17 +74,25 @@ func ActiveDialogButton() lipgloss.Style {
 }
 
 func TableBorderStyle() lipgloss.Style {
-	return infoColor
+	return infoStyle
 }
 
 func TableRow() lipgloss.Style {
-	return infoColor.
+	return infoStyle.
 		PaddingLeft(1).
 		PaddingRight(1)
 }
 
 func TableRowActive() lipgloss.Style {
-	return selectColor.
+	return selectStyle.
+		Background(lipgloss.ANSIColor(240)).
 		PaddingLeft(1).
 		PaddingRight(1)
+}
+
+var helpStyle = DefaultStyle().
+	Foreground(HelpColor)
+
+func HelpStyle() lipgloss.Style {
+	return helpStyle
 }

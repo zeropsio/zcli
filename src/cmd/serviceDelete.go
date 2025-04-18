@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -16,16 +14,21 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("delete").
 		Short(i18n.T(i18n.CmdDescServiceDelete)).
-		ScopeLevel(scope.Service).
-		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(cmdBuilder.Service()).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDelete)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
+
 			if !cmdData.Params.GetBool("confirm") {
 				confirmed, err := uxHelpers.YesNoPrompt(
 					ctx,
 					cmdData.UxBlocks,
-					i18n.T(i18n.ServiceDeleteConfirm, cmdData.Service.Name),
+					i18n.T(i18n.ServiceDeleteConfirm, service.Name),
 				)
 				if err != nil {
 					return err
@@ -38,7 +41,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 			deleteServiceResponse, err := cmdData.RestApiClient.DeleteServiceStack(
 				ctx,
 				path.ServiceStackId{
-					Id: cmdData.Service.ID,
+					Id: service.ID,
 				},
 			)
 			if err != nil {

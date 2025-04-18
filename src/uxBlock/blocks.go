@@ -20,8 +20,6 @@ type UxBlocks interface {
 	PrintWarningText(string)
 	PrintError(line styles.Line)
 	PrintErrorText(string)
-	Table(body *TableBody, auxOptions ...TableOption)
-	Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error)
 	Prompt(
 		ctx context.Context,
 		message string,

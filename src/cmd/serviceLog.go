@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/serviceLogs"
@@ -18,7 +17,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		Use("log").
 		Short(i18n.T(i18n.CmdDescServiceLog)).
 		Long(i18n.T(i18n.CmdDescServiceLogLong)).
-		ScopeLevel(scope.Service).
+		ScopeLevel(cmdBuilder.Service()).
 		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
 		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
 		StringFlag("messageType", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).
@@ -28,14 +27,23 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceLog)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			project, err := cmdData.Project.Expect("project is null")
+			if err != nil {
+				return err
+			}
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
+
 			handler := serviceLogs.NewStdout(
 				serviceLogs.Config{},
 				cmdData.RestApiClient,
 			)
 
-			serviceId := cmdData.Service.ID
+			serviceId := service.ID
 			if cmdData.Params.GetBool("showBuildLogs") {
-				appVersions, err := repository.GetLatestAppVersionByService(ctx, cmdData.RestApiClient, *cmdData.Service)
+				appVersions, err := repository.GetLatestAppVersionByService(ctx, cmdData.RestApiClient, service)
 				if err != nil {
 					return err
 				}
@@ -57,7 +65,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 			}
 
 			return handler.Run(ctx, serviceLogs.RunConfig{
-				Project:        *cmdData.Project,
+				Project:        project,
 				ServiceId:      serviceId,
 				Limit:          cmdData.Params.GetInt("limit"),
 				MinSeverity:    cmdData.Params.GetString("minimumSeverity"),

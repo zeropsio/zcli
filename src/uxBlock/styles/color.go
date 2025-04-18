@@ -4,54 +4,67 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var infoColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: infoColorLight, Dark: infoColorDark})
+var ContrastColor = lipgloss.AdaptiveColor{Light: colorBlack, Dark: colorWhite}
+var InfoColor = lipgloss.AdaptiveColor{Light: colorBlack, Dark: colorWhite}
+var infoStyle = DefaultStyle().
+	Foreground(InfoColor)
 
-func InfoColor() lipgloss.Style {
-	return infoColor
+func InfoStyle() lipgloss.Style { return infoStyle }
+
+var GreenColor = lipgloss.AdaptiveColor{Light: colorGreenLight, Dark: colorGreenDark}
+var SuccessColor = lipgloss.AdaptiveColor{Light: colorGreenLight, Dark: colorGreenDark}
+var successStyle = DefaultStyle().
+	Foreground(SuccessColor)
+
+func SuccessStyle() lipgloss.Style {
+	return successStyle
 }
 
-var successColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: successColorLight, Dark: successColorDark})
+var BlueColor = lipgloss.AdaptiveColor{Light: colorBlueLight, Dark: colorBlueDark}
+var SelectColor = lipgloss.AdaptiveColor{Light: colorBlueLight, Dark: colorBlueDark}
+var selectStyle = DefaultStyle().
+	Foreground(SelectColor)
 
-func SuccessColor() lipgloss.Style {
-	return successColor
+func SelectStyle() lipgloss.Style {
+	return selectStyle
 }
 
-var selectColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: selectColorLight, Dark: selectColorDark})
+var YellowColor = lipgloss.AdaptiveColor{Light: colorYellowLight, Dark: colorYellowDark}
+var WarningColor = lipgloss.AdaptiveColor{Light: colorYellowLight, Dark: colorYellowDark}
+var warningStyle = DefaultStyle().
+	Foreground(WarningColor)
 
-func SelectColor() lipgloss.Style {
-	return selectColor
+func WarningStyle() lipgloss.Style {
+	return warningStyle
 }
 
-var warningColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark})
+var RedColor = lipgloss.AdaptiveColor{Light: colorRedLight, Dark: colorRedDark}
+var ErrorColor = lipgloss.AdaptiveColor{Light: colorRedLight, Dark: colorRedDark}
+var errorStyle = DefaultStyle().
+	Foreground(ErrorColor)
 
-func WarningColor() lipgloss.Style {
-	return warningColor
+func ErrorStyle() lipgloss.Style {
+	return errorStyle
 }
 
-var errorColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: errorColorLight, Dark: errorColorDark})
+var cobraItemNameStyle = DefaultStyle().
+	Foreground(lipgloss.AdaptiveColor{Light: colorMagenta, Dark: colorLBlue})
 
-func ErrorColor() lipgloss.Style {
-	return errorColor
+func CobraItemNameStyle() lipgloss.Style {
+	return cobraItemNameStyle
 }
 
-var cobraItemNameColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: cobraItemColorLight, Dark: cobraItemColorDark})
-
-func CobraItemNameColor() lipgloss.Style {
-	return cobraItemNameColor
-}
-
-var cobraSelectionColor = defaultStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark}).
+var cobraSelectionStyle = DefaultStyle().
+	Foreground(lipgloss.AdaptiveColor{Light: colorLBlueLight, Dark: ColorLBlueDark}).
 	BorderBottom(true).
 	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.AdaptiveColor{Light: cobraSectionColorLight, Dark: cobraSectionColorDark})
+	BorderForeground(lipgloss.AdaptiveColor{Light: colorLBlueLight, Dark: ColorLBlueDark})
 
-func CobraSectionColor() lipgloss.Style {
-	return cobraSelectionColor
+func CobraSectionStyle() lipgloss.Style {
+	return cobraSelectionStyle
+}
+
+var HelpColor = lipgloss.AdaptiveColor{
+	Light: "242",
+	Dark:  "246",
 }
