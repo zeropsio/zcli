@@ -35,12 +35,12 @@ func projectImportCmd() *cmdBuilder.Cmd {
 
 			var yamlContent []byte
 			if cmdData.Args[projectImportArgName][0] == "-" {
-				yamlContent, err = yamlReader.ReadContentFromStdin(uxBlocks)
+				yamlContent, err = yamlReader.ReadImportYamlContentFromStdin(uxBlocks)
 				if err != nil {
 					return err
 				}
 			} else {
-				yamlContent, err = yamlReader.ReadContent(
+				yamlContent, err = yamlReader.ReadImportYamlContent(
 					uxBlocks,
 					cmdData.Args[projectImportArgName][0],
 					cmdData.Params.GetString("workingDir"),
@@ -108,7 +108,7 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 		return orgs[0].ID, nil
 	}
 
-	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient)
+	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.RestApiClient)
 	if err != nil {
 		return "", err
 	}

@@ -6,11 +6,11 @@ import (
 	"sync"
 
 	"github.com/zeropsio/zcli/src/archiveClient"
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -21,7 +21,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		Use("deploy").
 		Short(i18n.T(i18n.CmdDescDeploy)).
 		Long(i18n.T(i18n.CmdDescDeployLong)).
-		ScopeLevel(scope.Service).
+		ScopeLevel(cmdBuilder.Service()).
 		Arg("pathToFileOrDir", cmdBuilder.ArrayArg()).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
@@ -33,6 +33,10 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
 
 			arch := archiveClient.New(archiveClient.Config{
 				Logger:          uxBlocks.GetDebugFileLogger(),
@@ -40,7 +44,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				DeployGitFolder: cmdData.Params.GetBool("deployGitFolder"),
 			})
 
-			configContent, err := getValidConfigContent(
+			configContent, err := yamlReader.ReadZeropsYamlContent(
 				uxBlocks,
 				cmdData.Params.GetString("workingDir"),
 				cmdData.Params.GetString("zeropsYamlPath"),
@@ -49,11 +53,11 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			setup := cmdData.Service.Name
+			setup := service.Name
 			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
 				setup = types.NewString(setupParam)
 			}
-			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, setup, configContent)
+			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, service, setup, configContent)
 			if err != nil {
 				return err
 			}
@@ -63,7 +67,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			appVersion, err := createAppVersion(
 				ctx,
 				cmdData.RestApiClient,
-				cmdData.Service,
+				service,
 				cmdData.Params.GetString("versionName"),
 			)
 			if err != nil {

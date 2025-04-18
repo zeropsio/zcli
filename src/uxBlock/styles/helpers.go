@@ -27,21 +27,21 @@ func SelectLine(text string) Line {
 }
 
 func ErrorText(text string) lipgloss.Style {
-	return ErrorColor().SetString(text)
+	return ErrorStyle().SetString(text)
 }
 
 func SuccessText(text string) lipgloss.Style {
-	return SuccessColor().SetString(text)
+	return SuccessStyle().SetString(text)
 }
 
 func WarningText(text string) lipgloss.Style {
-	return WarningColor().SetString(text)
+	return WarningStyle().SetString(text)
 }
 
 func InfoText(text string) lipgloss.Style {
-	return InfoColor().SetString(text)
+	return InfoStyle().SetString(text)
 }
 
 func SelectText(text string) lipgloss.Style {
-	return SelectColor().SetString(text)
+	return SelectStyle().SetString(text)
 }

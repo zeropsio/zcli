@@ -3,6 +3,7 @@ package optional
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"golang.org/x/exp/constraints"
 )
 
@@ -41,11 +42,12 @@ func (n Null[T]) Get() (T, bool) {
 	return n.value, n.filled
 }
 
-func (n Null[T]) Unwrap() T {
+func (n Null[T]) Expect(errMessage string) (T, error) {
 	if n.filled {
-		return n.value
+		return n.value, nil
 	}
-	panic("not filled")
+	var t T
+	return t, errors.New(errMessage)
 }
 
 func (n Null[T]) String() string {

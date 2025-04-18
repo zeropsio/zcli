@@ -18,12 +18,12 @@ func envCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpEnv)).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			cmdData.Stdout.PrintLines(
-				printer.Style(styles.CobraSectionColor(), i18n.T(i18n.GlobalEnvVariables)),
-				printer.Style(styles.CobraItemNameColor(), constants.CliLogFilePathEnvVar)+"\t"+i18n.T(i18n.CliLogFilePathEnvVar),
-				printer.Style(styles.CobraItemNameColor(), constants.CliDataFilePathEnvVar)+"\t"+i18n.T(i18n.CliDataFilePathEnvVar),
-				printer.Style(styles.CobraItemNameColor(), constants.CliTerminalMode)+"\t"+i18n.T(i18n.CliTerminalModeEnvVar),
+				printer.Style(styles.CobraSectionStyle(), i18n.T(i18n.GlobalEnvVariables)),
+				printer.Style(styles.CobraItemNameStyle(), constants.CliLogFilePathEnvVar)+"\t"+i18n.T(i18n.CliLogFilePathEnvVar),
+				printer.Style(styles.CobraItemNameStyle(), constants.CliDataFilePathEnvVar)+"\t"+i18n.T(i18n.CliDataFilePathEnvVar),
+				printer.Style(styles.CobraItemNameStyle(), constants.CliTerminalMode)+"\t"+i18n.T(i18n.CliTerminalModeEnvVar),
 				printer.EmptyLine,
-				printer.Style(styles.CobraSectionColor(), i18n.T(i18n.CurrentlyUsedEnvVariables)),
+				printer.Style(styles.CobraSectionStyle(), i18n.T(i18n.CurrentlyUsedEnvVariables)),
 			)
 
 			body := uxBlock.NewTableBody()

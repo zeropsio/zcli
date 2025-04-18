@@ -1,57 +1,45 @@
 package models
 
 import (
-	"slices"
-	"sync"
-
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-type TeaModel[T any] interface {
-	Update(tea.Msg) (T, tea.Cmd)
+// Noop force bubble tea to render
+func Noop() tea.Msg {
+	return struct{}{}
 }
 
-func Update[T any](sink *CmdSink, msg tea.Msg, model TeaModel[T]) T {
-	sink.mu.Lock()
-	defer sink.mu.Unlock()
-	updated, cmd := model.Update(msg)
-	sink.queue = append(sink.queue, cmd)
-	return updated
+var CtrlC = errors.New("ctrl+c")
+
+type Helper interface {
+	Enabled() bool
+	Help() key.Help
 }
 
-type CmdSink struct {
-	queue []tea.Cmd
-	mu    sync.Mutex
-}
-
-func NewCmdSink() *CmdSink {
-	return &CmdSink{}
-}
-
-func (s *CmdSink) Pour(cmds ...tea.Cmd) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.queue = append(s.queue, cmds...)
-}
-
-func (s *CmdSink) Filled() bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return len(s.queue) > 0
-}
-
-func (s *CmdSink) DrainBatch() tea.Cmd {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	q := slices.Clone(s.queue)
-	s.queue = make([]tea.Cmd, 0, len(s.queue))
-	return tea.Batch(q...)
-}
-
-func (s *CmdSink) DrainSequence() tea.Cmd {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	q := slices.Clone(s.queue)
-	s.queue = make([]tea.Cmd, 0, len(s.queue))
-	return tea.Sequence(q...)
+func FormatHelp(helpers ...Helper) string {
+	t := table.New().
+		Border(lipgloss.Border{}).
+		BorderTop(false).
+		BorderHeader(false)
+	rows := make([][]string, 0, len(helpers))
+	for _, helper := range helpers {
+		if !helper.Enabled() {
+			continue
+		}
+		h := helper.Help()
+		rows = append(rows, []string{h.Key, h.Desc})
+	}
+	t.Rows(rows...)
+	t.StyleFunc(func(row, col int) lipgloss.Style {
+		if col == 1 {
+			return styles.HelpStyle().Padding(0, 1)
+		}
+		return styles.HelpStyle()
+	})
+	return t.Render()
 }

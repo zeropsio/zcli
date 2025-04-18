@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -19,21 +18,24 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("service-import").
 		Short(i18n.T(i18n.CmdDescProjectServiceImport)).
-		ScopeLevel(scope.Project).
+		ScopeLevel(cmdBuilder.Project()).
 		Arg(serviceImportArgName).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectServiceImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
+			project, err := cmdData.Project.Expect("project is null")
+			if err != nil {
+				return err
+			}
 
-			var err error
 			var yamlContent []byte
 			if cmdData.Args[serviceImportArgName][0] == "-" {
-				yamlContent, err = yamlReader.ReadContentFromStdin(uxBlocks)
+				yamlContent, err = yamlReader.ReadImportYamlContentFromStdin(uxBlocks)
 				if err != nil {
 					return err
 				}
 			} else {
-				yamlContent, err = yamlReader.ReadContent(
+				yamlContent, err = yamlReader.ReadImportYamlContent(
 					uxBlocks,
 					cmdData.Args[serviceImportArgName][0],
 					"./",
@@ -46,7 +48,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 			importServiceResponse, err := cmdData.RestApiClient.PostServiceStackImport(
 				ctx,
 				body.ServiceStackImport{
-					ProjectId: cmdData.Project.ID,
+					ProjectId: project.ID,
 					Yaml:      types.Text(yamlContent),
 				},
 			)

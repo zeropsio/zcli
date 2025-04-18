@@ -14,7 +14,7 @@ func projectListCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescProjectList)).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectList)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			err := uxHelpers.PrintProjectList(ctx, cmdData.UxBlocks, cmdData.RestApiClient)
+			err := uxHelpers.PrintProjectList(ctx, cmdData.RestApiClient, cmdData.Stdout)
 			if err != nil {
 				return err
 			}

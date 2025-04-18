@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
@@ -17,6 +18,8 @@ import (
 )
 
 type ParamsReader interface {
+	IsSet(key string) bool
+
 	GetString(name string) string
 	GetInt(name string) int
 	GetBool(name string) bool
@@ -38,8 +41,8 @@ type LoggedUserCmdData struct {
 	RestApiClient *zeropsRestApiClient.Handler
 
 	// optional params
-	Project *entity.Project
-	Service *entity.Service
+	Project optional.Null[entity.Project]
+	Service optional.Null[entity.Service]
 
 	VpnKeys map[uuid.ProjectId]entity.VpnKey
 }

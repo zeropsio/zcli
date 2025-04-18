@@ -21,7 +21,7 @@ func GetServiceByIdOrName(
 	restApiClient *zeropsRestApiClient.Handler,
 	projectId uuid.ProjectId,
 	serviceIdOrName string,
-) (*entity.Service, error) {
+) (entity.Service, error) {
 	service, err := GetServiceById(ctx, restApiClient, uuid.ServiceStackId(serviceIdOrName))
 	if err != nil {
 		if errorsx.Is(err, errorsx.Or(
@@ -30,7 +30,7 @@ func GetServiceByIdOrName(
 		)) {
 			service, err = GetServiceByName(ctx, restApiClient, projectId, types.String(serviceIdOrName))
 			if err != nil {
-				return nil, errorsx.Convert(
+				return entity.Service{}, errorsx.Convert(
 					err,
 					errorsx.ErrorCode(errorCode.ServiceStackNotFound, errorsx.ErrorCodeErrorMessage(
 						func(_ apiError.Error) string {
@@ -49,19 +49,19 @@ func GetServiceById(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 	serviceId uuid.ServiceStackId,
-) (*entity.Service, error) {
+) (entity.Service, error) {
 	serviceResponse, err := restApiClient.GetServiceStack(ctx, path.ServiceStackId{Id: serviceId})
 	if err != nil {
-		return nil, err
+		return entity.Service{}, err
 	}
 
 	serviceOutput, err := serviceResponse.Output()
 	if err != nil {
-		return nil, err
+		return entity.Service{}, err
 	}
 
 	service := serviceFromApiOutput(serviceOutput)
-	return &service, nil
+	return service, nil
 }
 
 func GetServiceByName(
@@ -69,22 +69,22 @@ func GetServiceByName(
 	restApiClient *zeropsRestApiClient.Handler,
 	projectId uuid.ProjectId,
 	serviceName types.String,
-) (*entity.Service, error) {
+) (entity.Service, error) {
 	serviceResponse, err := restApiClient.GetServiceStackByName(ctx, path.GetServiceStackByName{
 		ProjectId: projectId,
 		Name:      serviceName,
 	})
 	if err != nil {
-		return nil, err
+		return entity.Service{}, err
 	}
 
 	serviceOutput, err := serviceResponse.Output()
 	if err != nil {
-		return nil, err
+		return entity.Service{}, err
 	}
 
 	service := serviceFromApiOutput(serviceOutput)
-	return &service, nil
+	return service, nil
 }
 
 func GetNonSystemServicesByProject(

@@ -2,28 +2,42 @@ package errorsx
 
 import (
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/generic"
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
 )
 
-type errorCodeConfig struct {
-	errorMessage func(apiError.Error) string
+type ErrorCodeExtractMessageFunc func(apiError.Error) string
+
+func extractApiErrorMessage(err apiError.Error) string {
+	return err.GetMessage()
 }
 
-func ErrorCodeErrorMessage(f func(apiErr apiError.Error) string) errorCodeOption {
+type ErrorCodeExtractMessageMetaFunc func(apiError.Error, map[string]interface{}) string
+
+func extractApiErrorMessageMeta(err apiError.Error, _ map[string]interface{}) string {
+	return err.GetMessage()
+}
+
+type errorCodeConfig struct {
+	errorMessage ErrorCodeExtractMessageFunc
+}
+
+var defaultErrorCodeConfig = errorCodeConfig{
+	errorMessage: extractApiErrorMessage,
+}
+
+type ErrorCodeOption generic.Option[errorCodeConfig]
+
+func ErrorCodeErrorMessage(f ErrorCodeExtractMessageFunc) ErrorCodeOption {
 	return func(cfg *errorCodeConfig) {
 		cfg.errorMessage = f
 	}
 }
 
-type errorCodeOption = func(cfg *errorCodeConfig)
-
-func ErrorCode(errorCode errorCode.ErrorCode, auxOptions ...errorCodeOption) Check {
+func ErrorCode(errorCode errorCode.ErrorCode, auxOptions ...ErrorCodeOption) Check {
 	return func(err error) error {
-		cfg := errorCodeConfig{}
-		for _, opt := range auxOptions {
-			opt(&cfg)
-		}
+		cfg := generic.ApplyOptionsWithDefault(defaultErrorCodeConfig, auxOptions...)
 
 		var apiErr apiError.Error
 		if !errors.As(err, &apiErr) {
@@ -34,32 +48,29 @@ func ErrorCode(errorCode errorCode.ErrorCode, auxOptions ...errorCodeOption) Che
 			return nil
 		}
 
-		if cfg.errorMessage != nil {
-			return NewUserError(cfg.errorMessage(apiErr), err)
-		} else {
-			return NewUserError(apiErr.GetMessage(), err)
-		}
+		return NewUserError(cfg.errorMessage(apiErr), err)
 	}
 }
 
 type httpStatusCodeConfig struct {
-	errorMessage func(apiError.Error) string
+	errorMessage ErrorCodeExtractMessageFunc
 }
 
-func HttpStatusCodeErrorMessage(f func(apiErr apiError.Error) string) httpStatusCodeOption {
+var defaultHttpStatusCodeConfig = httpStatusCodeConfig{
+	errorMessage: extractApiErrorMessage,
+}
+
+func HttpStatusCodeErrorMessage(f ErrorCodeExtractMessageFunc) HttpStatusCodeOption {
 	return func(cfg *httpStatusCodeConfig) {
 		cfg.errorMessage = f
 	}
 }
 
-type httpStatusCodeOption = func(cfg *httpStatusCodeConfig)
+type HttpStatusCodeOption generic.Option[httpStatusCodeConfig]
 
-func HttpStatusCode(httpStatusCode int, auxOptions ...httpStatusCodeOption) Check {
+func HttpStatusCode(httpStatusCode int, auxOptions ...HttpStatusCodeOption) Check {
 	return func(err error) error {
-		cfg := httpStatusCodeConfig{}
-		for _, opt := range auxOptions {
-			opt(&cfg)
-		}
+		cfg := generic.ApplyOptionsWithDefault(defaultHttpStatusCodeConfig, auxOptions...)
 
 		var apiErr apiError.Error
 		if !errors.As(err, &apiErr) {
@@ -70,34 +81,29 @@ func HttpStatusCode(httpStatusCode int, auxOptions ...httpStatusCodeOption) Chec
 			return nil
 		}
 
-		if cfg.errorMessage != nil {
-			return NewUserError(cfg.errorMessage(apiErr), err)
-		} else {
-			return NewUserError(apiErr.GetMessage(), err)
-		}
+		return NewUserError(cfg.errorMessage(apiErr), err)
 	}
 }
 
 type invalidUserInputConfig struct {
-	errorMessage func(apiError.Error, map[string]interface{}) string
+	errorMessage ErrorCodeExtractMessageMetaFunc
 }
 
-func InvalidUserInputErrorMessage(
-	f func(apiErr apiError.Error, metaItem map[string]interface{}) string,
-) invalidUserInputOption {
+var defaultInvalidUserInputConfig = invalidUserInputConfig{
+	errorMessage: extractApiErrorMessageMeta,
+}
+
+func InvalidUserInputErrorMessage(f ErrorCodeExtractMessageMetaFunc) InvalidUserInputOption {
 	return func(cfg *invalidUserInputConfig) {
 		cfg.errorMessage = f
 	}
 }
 
-type invalidUserInputOption = func(cfg *invalidUserInputConfig)
+type InvalidUserInputOption generic.Option[invalidUserInputConfig]
 
-func InvalidUserInput(parameterName string, auxOptions ...invalidUserInputOption) Check {
+func InvalidUserInput(parameterName string, auxOptions ...InvalidUserInputOption) Check {
 	return func(err error) error {
-		cfg := invalidUserInputConfig{}
-		for _, opt := range auxOptions {
-			opt(&cfg)
-		}
+		cfg := generic.ApplyOptionsWithDefault(defaultInvalidUserInputConfig, auxOptions...)
 
 		if err := ErrorCode(errorCode.InvalidUserInput)(err); err == nil {
 			return nil
@@ -117,11 +123,7 @@ func InvalidUserInput(parameterName string, auxOptions ...invalidUserInputOption
 			if metaItemTyped, ok := metaItem.(map[string]interface{}); ok {
 				if metaParameterName, ok := metaItemTyped["parameter"]; ok {
 					if metaParameterName == parameterName {
-						if cfg.errorMessage != nil {
-							return NewUserError(cfg.errorMessage(apiErr, metaItemTyped), err)
-						} else {
-							return NewUserError(apiErr.GetMessage(), err)
-						}
+						return NewUserError(cfg.errorMessage(apiErr, metaItemTyped), err)
 					}
 				}
 			}

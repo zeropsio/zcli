@@ -187,7 +187,7 @@ func (m *selectModel) View() string {
 	}
 
 	t := table.New().
-		BorderStyle(styles.InfoColor()).
+		BorderStyle(styles.InfoStyle()).
 		Border(lipgloss.NormalBorder()).
 		StyleFunc(func(row, col int) lipgloss.Style {
 			if col == 0 {
