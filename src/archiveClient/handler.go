@@ -13,6 +13,7 @@ const (
 type Config struct {
 	Logger             logger.Logger
 	Verbose            bool
+	NoGit              bool // if set, the entire folder will be uploaded as is, without git commands
 	DeployGitFolder    bool
 	PushWorkspaceState string
 }

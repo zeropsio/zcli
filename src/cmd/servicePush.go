@@ -35,16 +35,22 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
 		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		StringFlag("workspaceState", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
+		BoolFlag("noGit", false, i18n.T(i18n.NoGit)).
 		BoolFlag("disableLogs", false, "disable logs").
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
+
+			if cmdData.Params.IsSet("noGit") && (cmdData.Params.IsSet("deployGitFolder") || cmdData.Params.IsSet("workspaceState")) {
+				uxBlocks.PrintWarning(styles.WarningLine("--noGit and --deployGitFolder/--workspaceState are mutually exclusive, ignoring --deployGitFolder/--workspaceState"))
+			}
 
 			arch := archiveClient.New(archiveClient.Config{
 				Logger:             uxBlocks.GetDebugFileLogger(),
 				Verbose:            cmdData.Params.GetBool("verbose"),
 				DeployGitFolder:    cmdData.Params.GetBool("deployGitFolder"),
 				PushWorkspaceState: cmdData.Params.GetString("workspaceState"),
+				NoGit:              cmdData.Params.GetBool("noGit"),
 			})
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
@@ -102,15 +108,15 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						go func() {
 							defer wg.Done()
 
-							// if error occurred during upload, return it (it could be even auth error, before upload starts)
+							// if an error occurred during upload, return it (it could be even auth error, before upload starts)
 							if err := packageStream(ctx, cmdData.RestApiClient, appVersion.Id, finalReader); err != nil {
 								_ = reader.CloseWithError(err)
-								uploadErr = err // in case reader is already closed with EOF, sometimes happened with timeouts
+								uploadErr = err // in case the reader is already closed with EOF, sometimes happened with timeouts
 							}
 						}()
 
 						// if an error occurred while packing the app, return that error
-						if err := arch.ArchiveGitFiles(ctx, cmdData.Params.GetString("workingDir"), writer); err != nil {
+						if err := arch.ArchiveGitFiles(ctx, uxBlocks, cmdData.Params.GetString("workingDir"), writer); err != nil {
 							_ = writer.CloseWithError(err)
 							return err
 						}
