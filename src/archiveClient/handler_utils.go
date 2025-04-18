@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// fixMissingDirPath fixes paths/dirs that may be missing between source root and deployed files (all dirs are needed for valid TAR file)
+// fixMissingDirPath fixes paths/dirs that may be missing between source root and deployed files (all dirs are needed for a valid TAR file)
 // provided createFile func will receive a valid File.SourcePath and MUST strip workDir to form a valid File.ArchivePath
 // createdPath is used as a cache to not create paths multiple times for multiple calls of the function
 func (h *Handler) fixMissingDirPath(files []File, createFile func(filePath string) File, createdPaths map[string]struct{}) []File {

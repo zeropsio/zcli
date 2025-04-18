@@ -20,6 +20,7 @@ type ParamsReader interface {
 	GetString(name string) string
 	GetInt(name string) int
 	GetBool(name string) bool
+	IsSet(name string) bool
 }
 
 type GuestCmdData struct {

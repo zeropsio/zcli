@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,15 +12,20 @@ import (
 	"sync"
 
 	"github.com/zeropsio/zcli/src/cmdRunner"
+	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
-func (h *Handler) ArchiveGitFiles(ctx context.Context, workingDir string, writer io.Writer) error {
-	// Normalize working directory path
+func (h *Handler) ArchiveGitFiles(ctx context.Context, uxBlocks uxBlock.UxBlocks, workingDir string, writer io.Writer) error {
+	// Normalise the working directory path
 	workingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return err
 	}
 	workingDir += string(os.PathSeparator)
+
+	if h.config.NoGit {
+		return h.createNoGitArchive(uxBlocks, workingDir, writer)
+	}
 
 	rootDir, err := h.getRootDir(ctx, workingDir)
 	if err != nil {
@@ -38,20 +44,57 @@ func (h *Handler) ArchiveGitFiles(ctx context.Context, workingDir string, writer
 }
 
 func (h *Handler) getRootDir(ctx context.Context, workingDir string) (string, error) {
-	if h.config.Verbose {
-		h.config.Logger.Info("git rev-parse --show-toplevel")
+	gitCommand := func(args ...string) (string, error) {
+		if h.config.Verbose {
+			h.config.Logger.Info("git ", strings.Join(args, " "))
+		}
+
+		out := &strings.Builder{}
+		cmd := cmdRunner.CommandContext(ctx, "git", args...)
+		cmd.Dir = workingDir
+		cmd.Stdout = out
+		if h.config.Verbose {
+			cmd.Stderr = h.config.Logger
+		}
+
+		if err := cmd.Run(); err != nil {
+			return "", err
+		}
+		return strings.TrimSpace(out.String()), nil
 	}
-	out := &strings.Builder{}
-	cmd := cmdRunner.CommandContext(ctx, "git", "rev-parse", "--show-toplevel")
-	cmd.Dir = workingDir
-	cmd.Stdout = out
-	if h.config.Verbose {
-		cmd.Stderr = h.config.Logger
+
+	// first validate that git is installed and the folder is initialised
+	if _, err := gitCommand("--version"); err != nil {
+		return "", errors.New("git is not installed and flag --noGit was not set")
 	}
-	if err := cmd.Run(); err != nil {
+	if out, err := gitCommand("rev-parse", "--is-inside-work-tree"); err != nil || out != "true" {
+		return "", errors.New("folder is not initialized via git init and flag --noGit was not set")
+	}
+	if out, err := gitCommand("rev-list", "--all", "--count"); err != nil || out == "0" {
+		return "", errors.New("at least one git commit must exist or flag --noGit must be set")
+	}
+
+	// then get the root dir
+	path, err := gitCommand("rev-parse", "--show-toplevel")
+	if err != nil {
 		return "", err
 	}
-	return strings.TrimRight(strings.TrimSpace(out.String()), "/\\") + string(os.PathSeparator), nil
+	return strings.TrimRight(path, "/\\") + string(os.PathSeparator), nil
+}
+
+// createNoGitArchive creates an archive of all files in the working directory
+func (h *Handler) createNoGitArchive(uxBlocks uxBlock.UxBlocks, workingDir string, writer io.Writer) error {
+	ignorer, err := LoadDeployFileIgnorer(workingDir)
+	if err != nil {
+		return err
+	}
+
+	files, err := h.FindFilesByRules(uxBlocks, workingDir, []string{"./"}, ignorer)
+	if err != nil {
+		return err
+	}
+
+	return h.TarFiles(writer, files)
 }
 
 // createSimpleArchive creates an archive without the .git directory
@@ -62,7 +105,7 @@ func (h *Handler) createSimpleArchive(ctx context.Context, workingDir string, wr
 	}
 	defer archiver.cleanup(ctx)
 
-	// Run git archive and pipe it to gzip
+	// Run the git archive and pipe it to gzip
 	cmd := archiver.getArchiveCmd(ctx)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -81,7 +124,7 @@ func (h *Handler) createSimpleArchive(ctx context.Context, workingDir string, wr
 	go func() {
 		defer wg.Done()
 		_, copyErr = io.Copy(writer, stdout)
-		// if the copying failed, because e.g. server killed the connection, process would get stuck, so we kill the process
+		// if the copying failed, because e.g. server killed the connection, a process would get stuck, so we kill the process
 		if copyErr != nil {
 			killed = true
 			_ = cmd.Process.Kill()
@@ -105,7 +148,7 @@ func (h *Handler) createArchiveWithGitFolder(ctx context.Context, workingDir str
 	tarWriter := tar.NewWriter(writer)
 	defer tarWriter.Close()
 
-	// First, add .git directory to the tar
+	// First, add the .git directory to the tar
 	if err := h.addGitDirectory(workingDir, tarWriter); err != nil {
 		return err
 	}
@@ -179,8 +222,8 @@ func (h *Handler) mergeGitArchive(gitArchiveReader io.Reader, tarWriter *tar.Wri
 		}
 	}
 
-	// After getting EOF from tar reader, fully drain the underlying reader
-	// Seems like `git archive` command doesn't end on EOF, but always sends a full buffer, including nil bytes after EOF
+	// After getting EOF from the tar reader, fully drain the underlying reader
+	// It seems like the ` git archive ` command doesn't end on EOF, but always sends a full buffer, including nil bytes after EOF
 	buffer := make([]byte, 4096)
 	for {
 		n, err := gitArchiveReader.Read(buffer)
