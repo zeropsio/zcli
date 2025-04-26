@@ -1,0 +1,2 @@
+Your zcli version ({{.CurrentVersion}}) is outdated. The latest available version is {{.LatestVersion}}.
+Please update your zcli installation https://github.com/zeropsio/zcli#install-zcli

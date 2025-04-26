@@ -60,27 +60,27 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
-		uxBlocks.PrintError(styles.ErrorLine(err.Error()))
+		uxBlocks.PrintErrorText(err.Error())
 		os.Exit(1)
 		return
 	}
 
 	var apiErr apiError.Error
 	if errors.As(err, &apiErr) {
-		uxBlocks.PrintError(styles.ErrorLine(apiErr.GetMessage()))
+		uxBlocks.PrintErrorText(apiErr.GetMessage())
 		if apiErr.GetMeta() != nil {
 			meta, err := yaml.Marshal(apiErr.GetMeta())
 			if err != nil {
-				uxBlocks.PrintError(styles.ErrorLine(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage())))
+				uxBlocks.PrintErrorText(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage()))
 			}
-			uxBlocks.PrintError(styles.ErrorLine(string(meta)))
+			uxBlocks.PrintErrorText(string(meta))
 		}
 
 		os.Exit(1)
 		return
 	}
 
-	uxBlocks.PrintError(styles.ErrorLine(err.Error()))
+	uxBlocks.PrintErrorText(err.Error())
 	os.Exit(1)
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	getVersion "github.com/zeropsio/zcli/src/version"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -55,6 +56,11 @@ func createCmdRunFunc(
 		ctx := cobraCmd.Context()
 
 		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
+		versionCheckMismatch, err := getVersion.GetVersionCheckMismatch()
+		if err != nil {
+			return err
+		}
+		uxBlocks.PrintWarningText(versionCheckMismatch)
 
 		flagParams.Bind(cobraCmd)
 
