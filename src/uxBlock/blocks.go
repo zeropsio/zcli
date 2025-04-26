@@ -15,8 +15,11 @@ type UxBlocks interface {
 	GetDebugFileLogger() logger.Logger
 	LogDebug(message string)
 	PrintInfo(line styles.Line)
+	PrintInfoText(string)
 	PrintWarning(line styles.Line)
+	PrintWarningText(string)
 	PrintError(line styles.Line)
+	PrintErrorText(string)
 	Table(body *TableBody, auxOptions ...TableOption)
 	Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error)
 	Prompt(

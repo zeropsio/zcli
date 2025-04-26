@@ -15,7 +15,7 @@ jobs:
         include:
           - name: linux amd64
             os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
+            buildCmd: env GOOS=linux GOARCH=amd64 go build -o builds/zcli-linux-amd64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
             file: zcli-linux-amd64
             compress: true
             strip: true
@@ -24,7 +24,7 @@ jobs:
 
           - name: linux 386
             os: ubuntu-latest
-            buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
+            buildCmd: env GOOS=linux GOARCH=386 go build -o builds/zcli-linux-i386 -ldflags "-s -w -X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
             file: zcli-linux-i386
             compress: true
             strip: true
@@ -33,7 +33,7 @@ jobs:
 
           - name: darwin amd64
             os: macos-latest
-            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
+            buildCmd: env GOOS=darwin GOARCH=amd64 go build -o builds/zcli-darwin-amd64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
             file: zcli-darwin-amd64
             compress: false
             strip: false
@@ -42,7 +42,7 @@ jobs:
 
           - name: darwin arm64
             os: macos-latest
-            buildCmd: env GOOS=darwin GOARCH=arm64 go build -o builds/zcli-darwin-arm64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
+            buildCmd: env GOOS=darwin GOARCH=arm64 go build -o builds/zcli-darwin-arm64 -ldflags "-s -w -X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
             file: zcli-darwin-arm64
             compress: false
             strip: false
@@ -51,7 +51,7 @@ jobs:
 
           - name: windows amd64
             os: ubuntu-latest
-            buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-x64.exe -ldflags "-s -w -X github.com/zeropsio/zcli/src/cmd.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
+            buildCmd: env GOOS=windows GOARCH=amd64 go build -o builds/zcli-win-x64.exe -ldflags "-s -w -X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}" ./cmd/zcli/main.go
             file: zcli-win-x64.exe
             compress: false
             strip: false

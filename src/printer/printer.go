@@ -40,6 +40,10 @@ func (p Printer) PrintLines(lines ...string) {
 	p.Println(strings.Join(lines, NewLine))
 }
 
+func (p Printer) Writer() io.Writer {
+	return p.out
+}
+
 func Style(s lipgloss.Style, text string) string {
 	if !terminal.IsTerminal() {
 		return s.Value()
