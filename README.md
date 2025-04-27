@@ -117,6 +117,29 @@ zcli login <token>
 zcli
 ```
 
+## Using Service Commands
+
+Service commands accept the service ID (UUID) as a positional parameter:
+
+```Shell
+# First, list your services to get the service ID
+zcli service list
+
+# Start a service by ID (UUID)
+zcli service start 12345678-1234-1234-1234-123456789012
+
+# Push code to a service
+zcli push 12345678-1234-1234-1234-123456789012
+
+# Get logs from a service
+zcli service log 12345678-1234-1234-1234-123456789012
+
+# Stop a service
+zcli service stop 12345678-1234-1234-1234-123456789012
+```
+
+If you don't provide a service ID, zCLI will show an interactive selector to choose from available services.
+
 
 <br/>
 

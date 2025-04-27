@@ -83,21 +83,21 @@ and your %s.`,
 
 	// service start
 	CmdHelpServiceStart: "the service start command.",
-	CmdDescServiceStart: "Starts the Zerops service.",
+	CmdDescServiceStart: "Starts the Zerops service. Usage: zcli service start [serviceId] (where serviceId is a UUID)",
 	ServiceStarting:     "Service is being started",
 	ServiceStartFailed:  "Service start failed",
 	ServiceStarted:      "Service was started",
 
 	// service stop
-	CmdHelpServiceStop: "the enable Zerops subdomain command.",
-	CmdDescServiceStop: "Starts the Zerops service.",
+	CmdHelpServiceStop: "the service stop command.",
+	CmdDescServiceStop: "Stops the Zerops service. Usage: zcli service stop [serviceId] (where serviceId is a UUID)",
 	ServiceStopping:    "Service is being stopped",
 	ServiceStopFailed:  "Service stop failed",
 	ServiceStopped:     "Service was stopped",
 
 	// service delete
 	CmdHelpServiceDelete: "the service delete command.",
-	CmdDescServiceDelete: "Deletes the Zerops service.",
+	CmdDescServiceDelete: "Deletes the Zerops service. Usage: zcli service delete [serviceId] (where serviceId is a UUID)",
 	ServiceDeleting:      "Service is being deleted",
 	ServiceDeleteFailed:  "Service deletion failed",
 	ServiceDeleted:       "Service was deleted",
@@ -141,6 +141,8 @@ and your %s.`,
 	CmdHelpPush: "the service push command.",
 	CmdDescPush: "Builds your application in Zerops and deploys it",
 	CmdDescPushLong: "Builds your application in Zerops and deploys it. \n\n" +
+		"Usage: zcli push [serviceId]\n\n" +
+		"Note: The serviceId must be a valid UUID. You can get the service ID using the 'zcli service list' command.\n\n" +
 		"The command triggers the build pipeline defined in zerops.yml. Zerops.yml must be in the working\n" +
 		"directory. The working directory is by default the current directory and can be changed\n" +
 		"using the --workingDir flag. zCLI uploads all files and subdirectories of the working\n" +
@@ -245,7 +247,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	LogFormatFlag:         "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects.",
 	LogFormatTemplateFlag: "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.timestamp}} {{.severity}} {{.facility}} {{.message}}\".\nSupports standard GoLang template format and functions.",
 	ConfirmFlag:           "If set, zCLI will not ask for confirmation of destructive operations.",
-	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
+	ServiceIdFlag:         "[DEPRECATED] Use positional parameter instead. If you have access to more than one service, you must specify the service ID (UUID) for which the\ncommand is to be executed. You can get the service ID using the 'zcli service list' command.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
 	VpnAutoDisconnectFlag: "If set, zCLI will automatically disconnect from the VPN if it is already connected.",
 	VpnMtuFlag:            "If set, Wireguard interface will use this value for MTU. If VPN is not working, try a lower value.",

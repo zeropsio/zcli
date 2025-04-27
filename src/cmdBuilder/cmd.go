@@ -42,6 +42,8 @@ type cmdFlag struct {
 	description  string
 	hidden       bool
 	shorthand    string
+	deprecated   bool
+	deprecatedMsg string
 }
 
 func NewCmd() *Cmd {
@@ -143,6 +145,13 @@ func HiddenFlag() FlagOption {
 func ShortHand(shorthand string) FlagOption {
 	return func(cfg *cmdFlag) {
 		cfg.shorthand = shorthand
+	}
+}
+
+func DeprecatedFlag(message string) FlagOption {
+	return func(cfg *cmdFlag) {
+		cfg.deprecated = true
+		cfg.deprecatedMsg = message
 	}
 }
 
