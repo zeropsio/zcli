@@ -18,7 +18,7 @@ const (
 	apiUrl = "https://api.github.com/repositories/269549268/releases/latest"
 )
 
-var version string
+var version string = "local"
 var latestResponse *apiResponse
 
 func GetLatest(ctx context.Context) (string, error) {
@@ -50,8 +50,12 @@ func PrintVersionCheck(ctx context.Context, out printer.Printer) {
 	}
 }
 
-func PrintVersionCheckMismatch(out printer.Printer) error {
-	return printMessageData(out.Writer())
+func IsVersionCheckMismatch(ctx context.Context) bool {
+	latestVersion, err := GetLatest(ctx)
+	if err != nil {
+		latestVersion = "unavailable"
+	}
+	return GetCurrent() != latestVersion
 }
 
 func GetVersionCheckMismatch() (string, error) {
