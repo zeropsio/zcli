@@ -55,6 +55,19 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 	var project entity.Project
 	var err error
 
+	if !terminal.IsTerminal() && !cmdData.Params.HasSet(ProjectArgName, createProjectFlagName) {
+		return errors.Errorf(
+			"Non-interactive mode detected, specify service to use by flag --%s or create new service by --%s",
+			ProjectArgName,
+			createProjectFlagName,
+		)
+	}
+
+	orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
+	if err != nil {
+		return err
+	}
+
 	// service scope is set - use project from it
 	if service, filled := cmdData.Service.Get(); filled {
 		project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, service.ProjectID)
@@ -83,24 +96,6 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	if projectId, exists := cmdData.Args[ProjectArgName]; exists && !cmdData.Project.Filled() {
-		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId[0]))
-		if err != nil {
-			return errorsx.Convert(
-				err,
-				errorsx.InvalidUserInput(
-					"id",
-					errorsx.InvalidUserInputErrorMessage(
-						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
-							return i18n.T(i18n.ErrorInvalidProjectId, projectId, metaItemTyped["message"])
-						},
-					),
-				),
-			)
-		}
-		cmdData.Project = optional.New(project)
-	}
-
 	// project id is passed as a flag
 	if projectId := cmdData.Params.GetString(ProjectArgName); projectId != "" {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId))
@@ -120,7 +115,50 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	if !cmdData.Project.Filled() && terminal.IsTerminal() {
+	if !cmdData.Project.Filled() &&
+		!terminal.IsTerminal() &&
+		!cmdData.Params.AllSet(createServiceFlagName, orgIdFlagName) {
+		return errors.Errorf(
+			"To create new project you need to specify --%s with --%s",
+			orgIdFlagName,
+			createServiceFlagName,
+		)
+	}
+
+	if projectId, exists := cmdData.Args[ProjectArgName]; exists && !cmdData.Project.Filled() {
+		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId[0]))
+		if err != nil {
+			return errorsx.Convert(
+				err,
+				errorsx.InvalidUserInput(
+					"id",
+					errorsx.InvalidUserInputErrorMessage(
+						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
+							return i18n.T(i18n.ErrorInvalidProjectId, projectId, metaItemTyped["message"])
+						},
+					),
+				),
+			)
+		}
+		cmdData.Project = optional.New(project)
+	}
+
+	if cmdData.Params.IsSet(createProjectFlagName) && !terminal.IsTerminal() {
+		if cmdData.Params.IsSet(createProjectFlagName) && !cmdData.Params.IsSet(orgIdFlagName) && len(orgs) > 0 {
+			return errors.Errorf(
+				"--%s has to be used in combination with --%s in non-interactive terminal",
+				createProjectFlagName,
+				orgIdFlagName,
+			)
+		}
+		project, err = createNewProject(ctx, cmdData, orgs)
+		if err != nil {
+			return err
+		}
+		cmdData.Project = optional.New(project)
+	}
+
+	if !cmdData.Project.Filled() {
 		// interactive selector of a project
 		selectedProject, err := uxHelpers.PrintProjectSelector(
 			ctx,
@@ -134,7 +172,7 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		if selectedProject.Filled() {
 			project = selectedProject.Some()
 		} else {
-			project, err = createNewProject(ctx, cmdData)
+			project, err = createNewProject(ctx, cmdData, orgs)
 			if err != nil {
 				return err
 			}
@@ -143,33 +181,25 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	if !terminal.IsTerminal() && !cmdData.Project.Filled() {
-		if cmdData.Params.IsSet(createProjectFlagName) && !cmdData.Params.IsSet(orgIdFlagName) {
-			return errors.Errorf(
-				"--%s has to be used in combination with --%s in non-interactive terminal",
-				createProjectFlagName,
-				orgIdFlagName,
-			)
-		}
-		if !cmdData.Params.IsSet(createProjectFlagName) {
-			return errors.New("No project selected, please use flags to select or create project")
-		}
-	}
-
 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name.String()))
 
 	return nil
 }
 
-func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.Project, error) {
+func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData, orgs []entity.Org) (entity.Project, error) {
 	var err error
-	var selectedOrg entity.Org
-	if orgId := cmdData.Params.GetString(orgIdFlagName); orgId != "" {
-		selectedOrg, err = repository.GetOrgById(ctx, cmdData.RestApiClient, uuid.ClientId(orgId))
+	selectedOrg := orgs[0]
+	if cmdData.Params.IsSet(orgIdFlagName) {
+		selectedOrg, err = repository.GetOrgById(
+			ctx,
+			cmdData.RestApiClient,
+			uuid.ClientId(cmdData.Params.GetString(orgIdFlagName)),
+		)
 		if err != nil {
 			return entity.Project{}, err
 		}
-	} else {
+	}
+	if len(orgs) > 1 && terminal.IsTerminal() {
 		selectedOrg, err = uxHelpers.PrintOrgSelector(
 			ctx,
 			cmdData.RestApiClient,
@@ -185,7 +215,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 	if name == "" {
 		b := styles.NewStringBuilder()
 		b.WriteString("Type ")
-		b.WriteStyledColor(
+		b.WriteStyledString(
 			styles.SelectStyle().
 				Bold(true),
 			"project",

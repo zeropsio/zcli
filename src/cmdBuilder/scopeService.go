@@ -19,6 +19,7 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -69,6 +70,14 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 	var service entity.Service
 	var err error
 
+	if !terminal.IsTerminal() && !cmdData.Params.HasSet(serviceFlagName, createServiceFlagName) {
+		return errors.Errorf(
+			"Non-interactive mode detected, specify service to use by flag --%s or create new service by --%s",
+			serviceFlagName,
+			createServiceFlagName,
+		)
+	}
+
 	// service id is passed as a flag
 	if serviceId := cmdData.Params.GetString(serviceFlagName); serviceId != "" {
 		service, err = repository.GetServiceById(
@@ -106,8 +115,16 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 		cmdData.Service = optional.New(service)
 	}
 
+	if cmdData.Params.IsSet(createServiceFlagName) {
+		service, err = createNewService(ctx, project, cmdData)
+		if err != nil {
+			return err
+		}
+		cmdData.Service = optional.New(service)
+	}
+
 	// interactive selector of service
-	if !cmdData.Service.Filled() && terminal.IsTerminal() {
+	if !cmdData.Service.Filled() {
 		selectedService, err := uxHelpers.PrintServiceSelector(
 			ctx,
 			cmdData.RestApiClient,
@@ -130,10 +147,6 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 		cmdData.Service = optional.New(service)
 	}
 
-	if !terminal.IsTerminal() && !cmdData.Service.Filled() {
-		return errors.New("No service selected, please use flags to select or create service")
-	}
-
 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedService), service.Name.String()))
 
 	if !cmdData.Project.Filled() {
@@ -145,8 +158,23 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 	return nil
 }
 
+func createServiceLabel() string {
+	b := styles.NewStringBuilder()
+	b.WriteString("Type ")
+	b.WriteStyledString(
+		styles.SelectStyle().
+			Bold(true),
+		"service",
+	)
+	b.WriteString(" name")
+	return b.String()
+}
+
 func createNewService(ctx context.Context, project entity.Project, cmdData *LoggedUserCmdData) (entity.Service, error) {
-	var err error
+	project, err := cmdData.Project.Expect("project id is null")
+	if err != nil {
+		return entity.Service{}, err
+	}
 	configContent, err := yamlReader.ReadZeropsYamlContent(
 		cmdData.UxBlocks,
 		cmdData.Params.GetString("workingDir"),
@@ -155,32 +183,30 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 	if err != nil {
 		return entity.Service{}, err
 	}
+
 	setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
 	if err != nil {
 		return entity.Service{}, err
 	}
-	b := styles.NewStringBuilder()
-	b.WriteString("Type ")
-	b.WriteStyledColor(
-		styles.SelectStyle().
-			Bold(true),
-		"service",
-	)
-	b.WriteString(" name")
-	name, err := uxBlock.RunR(
-		input.NewRoot(
-			ctx,
-			input.WithLabel(b.String()),
-			input.WithHelpPlaceholder(),
-			input.WithPlaceholderStyle(styles.HelpStyle()),
-			input.WithoutPrompt(),
-			input.WithSetSuggestions(setups),
-		),
-		input.GetValueFunc,
-	)
-	if err != nil {
-		return entity.Service{}, err
+
+	name := cmdData.Params.GetString(createServiceFlagName)
+	if name == "" && !terminal.IsTerminal() {
+		name, err = uxBlock.RunR(
+			input.NewRoot(
+				ctx,
+				input.WithLabel(createServiceLabel()),
+				input.WithHelpPlaceholder(),
+				input.WithPlaceholderStyle(styles.HelpStyle()),
+				input.WithoutPrompt(),
+				input.WithSetSuggestions(setups),
+			),
+			input.GetValueFunc,
+		)
+		if err != nil {
+			return entity.Service{}, err
+		}
 	}
+
 	response, err := cmdData.RestApiClient.PostServiceStack(
 		ctx,
 		dtoPath.ServiceStackServiceStackTypeVersionId{ServiceStackTypeVersionId: "alpine_v3_21"},
@@ -194,8 +220,16 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 	}
 	serviceStackProcess, err := response.Output()
 	if err != nil {
+		if apiError.HasErrorCode(err, errorCode.ServiceStackNameUnavailable) {
+			service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.ID, types.NewString(name))
+			if err != nil {
+				return entity.Service{}, err
+			}
+			return service, nil
+		}
 		return entity.Service{}, err
 	}
+
 	if err := uxHelpers.ProcessCheckWithSpinner(
 		ctx,
 		cmdData.UxBlocks,

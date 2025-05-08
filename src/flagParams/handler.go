@@ -41,3 +41,21 @@ func New() *Handler {
 func (h *Handler) Bind(cmd *cobra.Command) {
 	_ = h.BindPFlags(cmd.Flags())
 }
+
+func (h *Handler) HasSet(flags ...string) bool {
+	for _, f := range flags {
+		if h.IsSet(f) {
+			return true
+		}
+	}
+	return false
+}
+
+func (h *Handler) AllSet(flags ...string) bool {
+	for _, f := range flags {
+		if !h.IsSet(f) {
+			return false
+		}
+	}
+	return true
+}

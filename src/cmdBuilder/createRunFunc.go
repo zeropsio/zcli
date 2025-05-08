@@ -20,6 +20,8 @@ import (
 
 type ParamsReader interface {
 	IsSet(key string) bool
+	HasSet(keys ...string) bool
+	AllSet(keys ...string) bool
 
 	GetString(name string) string
 	GetInt(name string) int

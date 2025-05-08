@@ -31,7 +31,16 @@ func ReadZeropsYamlSetups(in []byte) ([]string, error) {
 	}), nil
 }
 
+// ugly as f***, but ReadZeropsYamlContent can be called many times,
+// and it always prints INFO line with a used zerops.yaml path, which is redundant and confusing
+var zeropsYamlContent []byte
+
+// ReadZeropsYamlContent WARN: reads and caches zerops.yaml at first call, all other calls will use cache only
 func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string) ([]byte, error) {
+	if zeropsYamlContent != nil {
+		return zeropsYamlContent, nil
+	}
+
 	workingDir, err := filepath.Abs(selectedWorkingDir)
 	if err != nil {
 		return nil, err
@@ -74,6 +83,8 @@ func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string,
 	if err != nil {
 		return nil, err
 	}
+
+	zeropsYamlContent = yamlContent
 
 	return yamlContent, nil
 }

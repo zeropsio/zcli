@@ -6,11 +6,13 @@ import (
 	"io"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/generic"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
+	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
@@ -69,28 +71,34 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			setup := service.Name
-			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
-				setup = types.NewString(setupParam)
-			} else {
-				setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
-				if err != nil {
-					return err
-				}
-				if s, hasMatch := generic.FindOne(setups, generic.ExactMatch(setup.Native())); hasMatch {
-					setup = types.NewString(s)
+			setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
+			if err != nil {
+				return err
+			}
+
+			setup, hasMatch := generic.FindOne(setups, generic.ExactMatch(service.Name.String()))
+			if !hasMatch {
+				if !terminal.IsTerminal() {
+					if !cmdData.Params.IsSet("setup") {
+						return errors.New("Cannot find corresponding setup in zerops.yaml, please select with --setup")
+					}
+					setup = cmdData.Params.GetString("setup")
 				} else {
-					selectedSetup, err := uxHelpers.PrintSetupSelector(ctx, setups)
+					setup, err = uxHelpers.PrintSetupSelector(ctx, setups)
 					if err != nil {
 						return err
 					}
-					setup = types.NewString(selectedSetup)
 				}
 			}
-			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup.String()))
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup))
 
-			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, service, setup, configContent)
-			if err != nil {
+			if err = validateZeropsYamlContent(
+				ctx,
+				cmdData.RestApiClient,
+				service,
+				setup,
+				configContent,
+			); err != nil {
 				return err
 			}
 
@@ -178,7 +186,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				},
 				body.PutAppVersionBuildAndDeploy{
 					ZeropsYaml:      types.MediumText(configContent),
-					ZeropsYamlSetup: setup.StringNull(),
+					ZeropsYamlSetup: types.NewStringNull(setup),
 				},
 			)
 			if err != nil {

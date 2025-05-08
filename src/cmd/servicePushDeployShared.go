@@ -103,7 +103,7 @@ func validateZeropsYamlContent(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 	service entity.Service,
-	setup types.String,
+	setup string,
 	yamlContent []byte,
 ) error {
 	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
@@ -111,7 +111,7 @@ func validateZeropsYamlContent(
 		ServiceStackName:            service.Name,
 		ServiceStackTypeId:          service.ServiceTypeId,
 		ZeropsYaml:                  types.NewMediumText(string(yamlContent)),
-		ZeropsYamlSetup:             setup.StringNull(),
+		ZeropsYamlSetup:             types.NewStringNull(setup),
 	})
 	if err != nil {
 		return err

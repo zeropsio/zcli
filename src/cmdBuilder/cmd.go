@@ -146,14 +146,6 @@ func ShortHand(shorthand string) FlagOption {
 	}
 }
 
-func (c *Cmd) RegisterFlags(register func(cmd *Cmd)) *Cmd {
-	if register == nil {
-		return c
-	}
-	register(c)
-	return c
-}
-
 func (c *Cmd) StringFlag(name string, defaultValue string, description string, auxOptions ...FlagOption) *Cmd {
 	return c.addFlag(name, defaultValue, description, auxOptions...)
 }

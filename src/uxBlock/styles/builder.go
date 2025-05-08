@@ -36,6 +36,6 @@ func (b *StringBuilder) WriteErrorColor(s string) {
 	b.WriteString(errorStyle.Render(s))
 }
 
-func (b *StringBuilder) WriteStyledColor(style lipgloss.Style, s string) {
+func (b *StringBuilder) WriteStyledString(style lipgloss.Style, s string) {
 	b.WriteString(style.Inline(true).Render(s))
 }
