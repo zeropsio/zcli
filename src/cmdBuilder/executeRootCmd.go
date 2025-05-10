@@ -3,8 +3,10 @@ package cmdBuilder
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -35,16 +37,33 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 
 	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
-	cliStorage, err := createCliStorage()
+	storage, err := createCliStorage()
 	if err != nil {
 		printError(err, uxBlocks)
 	}
 
-	flagParams := flagParams.New()
-
-	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage)
+	cobraCmd, err := buildCobraCmd(rootCmd, flagParams.New(), uxBlocks, storage)
 	if err != nil {
 		printError(err, uxBlocks)
+	}
+
+	if len(os.Args) > 1 && strings.Contains(os.Args[1], "zcli://") {
+		zcliUrl, err := url.Parse(os.Args[1])
+		if err != nil {
+			printError(err, uxBlocks)
+		}
+		args := []string{zcliUrl.Host}
+		if len(zcliUrl.Path) > 0 {
+			args = append(args, strings.Split(zcliUrl.Path, "/")...)
+		}
+		for flag, value := range zcliUrl.Query() {
+			args = append(args, "--"+flag)
+			if len(value) > 0 {
+				args = append(args, value[0])
+			}
+		}
+		fmt.Println(args)
+		cobraCmd.SetArgs(args)
 	}
 
 	err = cobraCmd.ExecuteContext(ctx)
