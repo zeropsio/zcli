@@ -8,6 +8,7 @@ import (
 
 type GetFunc[T any]func(model tea.Model) (T, error)
 
+// RunR runs tea.Model and returns value based on GetFunc[T]
 func RunR[T any](
 	model tea.Model,
 	get GetFunc[T],
@@ -23,4 +24,15 @@ func RunR[T any](
 		return t, err
 	}
 	return get(model)
+}
+
+func getEmpty(tea.Model) (struct{}, error) { return struct{}{}, nil }
+
+// Run runs tea.Model
+func Run(
+	model tea.Model,
+	opts ...tea.ProgramOption,
+) error {
+	_, err := RunR[struct{}](model, getEmpty, opts...)
+	return err
 }

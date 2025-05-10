@@ -24,7 +24,12 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		Use("deploy").
 		Short(i18n.T(i18n.CmdDescDeploy)).
 		Long(i18n.T(i18n.CmdDescDeployLong)).
-		ScopeLevel(cmdBuilder.Service()).
+		ScopeLevel(cmdBuilder.Service(
+			cmdBuilder.WithCreateNewService(),
+			cmdBuilder.WithProjectScopeOptions(
+				cmdBuilder.WithCreateNewProject(),
+			),
+		)).
 		Arg("pathToFileOrDir", cmdBuilder.ArrayArg()).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
