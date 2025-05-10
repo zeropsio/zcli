@@ -1,3 +1,5 @@
+//go:build !devel
+
 package version
 
 import (
@@ -18,7 +20,7 @@ const (
 	apiUrl = "https://api.github.com/repositories/269549268/releases/latest"
 )
 
-var version string = "local"
+var version = "local"
 var latestResponse *apiResponse
 
 func GetLatest(ctx context.Context) (string, error) {
