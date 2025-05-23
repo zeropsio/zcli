@@ -14,7 +14,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("delete").
 		Short(i18n.T(i18n.CmdDescServiceDelete)).
-		ScopeLevel(cmdBuilder.Service()).
+		ScopeLevel(cmdBuilder.ScopeService()).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDelete)).

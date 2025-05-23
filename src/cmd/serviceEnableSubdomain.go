@@ -14,7 +14,7 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("enable-subdomain").
 		Short(i18n.T(i18n.CmdDescServiceEnableSubdomain)).
-		ScopeLevel(cmdBuilder.Service()).
+		ScopeLevel(cmdBuilder.ScopeService()).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceEnableSubdomain)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

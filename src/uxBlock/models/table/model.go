@@ -5,11 +5,11 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-type Option = generic.Option[tableConfig]
+type Option = gn.Option[tableConfig]
 type tableConfig struct {
 	header        *Row
 	width, height int
@@ -28,7 +28,7 @@ func WithSize(width, height int) Option {
 }
 
 func Render(body *Body, opts ...Option) string {
-	cfg := generic.ApplyOptions(opts...)
+	cfg := gn.ApplyOptions(opts...)
 
 	t := table.New().
 		BorderStyle(styles.TableBorderStyle()).

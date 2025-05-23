@@ -4,11 +4,11 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/optional"
 )
 
-type Option = generic.Option[Model]
+type Option = gn.Option[Model]
 
 func WithLabel(label string) Option {
 	return func(m *Model) {
@@ -80,7 +80,7 @@ type Model struct {
 }
 
 func New(opts ...Option) *Model {
-	return generic.ApplyOptionsWithDefault(
+	return gn.ApplyOptionsWithDefault(
 		Model{
 			input: textinput.New(),
 		},

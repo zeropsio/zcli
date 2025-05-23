@@ -9,6 +9,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -70,9 +71,12 @@ func GetAllProjects(
 }
 
 type ProjectPost struct {
-	ClientId uuid.ClientId
-	Name     types.String
-	Tags     types.StringArray
+	ClientId     uuid.ClientId
+	Name         types.String
+	Tags         types.StringArray
+	Mode         enum.ProjectModeEnum
+	SshIsolation types.StringNull
+	EnvIsolation types.StringNull
 }
 
 func PostProject(
@@ -81,9 +85,12 @@ func PostProject(
 	post ProjectPost,
 ) (entity.Project, error) {
 	postBody := body.PostProject{
-		ClientId: post.ClientId,
-		Name:     post.Name,
-		TagList:  post.Tags,
+		ClientId:     post.ClientId,
+		Name:         post.Name,
+		Mode:         &post.Mode,
+		TagList:      post.Tags,
+		SshIsolation: post.SshIsolation,
+		EnvIsolation: post.EnvIsolation,
 	}
 	if postBody.TagList == nil {
 		postBody.TagList = make(types.StringArray, 0)

@@ -12,7 +12,7 @@ func serviceListCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("list").
 		Short(i18n.T(i18n.CmdDescServiceList)).
-		ScopeLevel(cmdBuilder.Project()).
+		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceList)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

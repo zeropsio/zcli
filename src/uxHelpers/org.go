@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
@@ -17,9 +17,9 @@ import (
 type orgSelectorConfig struct {
 	skipOnOneItem bool
 }
-type OrgSelectorOption = generic.Option[orgSelectorConfig]
+type OrgSelectorOption = gn.Option[orgSelectorConfig]
 
-func WithOrgSkipOnOneIterm(b bool) OrgSelectorOption {
+func WithOrgPickOnlyOneItem(b bool) OrgSelectorOption {
 	return func(s *orgSelectorConfig) {
 		s.skipOnOneItem = b
 	}
@@ -30,7 +30,7 @@ func PrintOrgSelector(
 	restApiClient *zeropsRestApiClient.Handler,
 	opts ...OrgSelectorOption,
 ) (entity.Org, error) {
-	cfg := generic.ApplyOptions(opts...)
+	cfg := gn.ApplyOptions(opts...)
 
 	orgs, err := repository.GetAllOrgs(ctx, restApiClient)
 	if err != nil {

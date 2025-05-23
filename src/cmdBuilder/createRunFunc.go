@@ -18,21 +18,11 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-type ParamsReader interface {
-	IsSet(key string) bool
-	HasSet(keys ...string) bool
-	AllSet(keys ...string) bool
-
-	GetString(name string) string
-	GetInt(name string) int
-	GetBool(name string) bool
-}
-
 type GuestCmdData struct {
 	CliStorage *cliStorage.Handler
 	UxBlocks   *uxBlock.Blocks
 	Args       map[string][]string
-	Params     ParamsReader
+	Params     flagParams.ParamsReader
 	Stdout     printer.Printer
 	Stderr     printer.Printer
 

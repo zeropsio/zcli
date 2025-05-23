@@ -10,12 +10,12 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/uxBlock/models"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-type Option = generic.Option[Model]
+type Option = gn.Option[Model]
 
 func WithVerticalOffset(offset int) Option {
 	return func(c *Model) {
@@ -50,7 +50,7 @@ type Model struct {
 }
 
 func New(width, height int, options ...Option) *Model {
-	return generic.ApplyOptionsWithDefault(
+	return gn.ApplyOptionsWithDefault(
 		Model{
 			buffer:   new(bytes.Buffer),
 			viewport: viewport.New(width, height),

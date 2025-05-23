@@ -150,6 +150,10 @@ func (c *Cmd) StringFlag(name string, defaultValue string, description string, a
 	return c.addFlag(name, defaultValue, description, auxOptions...)
 }
 
+func (c *Cmd) StringSliceFlag(name string, defaultValue []string, description string, auxOptions ...FlagOption) *Cmd {
+	return c.addFlag(name, defaultValue, description, auxOptions...)
+}
+
 func (c *Cmd) IntFlag(name string, defaultValue int, description string, auxOptions ...FlagOption) *Cmd {
 	return c.addFlag(name, defaultValue, description, auxOptions...)
 }

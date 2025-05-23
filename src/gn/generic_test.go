@@ -1,5 +1,5 @@
 //nolint:gosec
-package generic
+package gn
 
 import (
 	"sort"
@@ -123,7 +123,7 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "One value",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
+					Ptr(1),
 				},
 			},
 			want: true,
@@ -143,9 +143,9 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "All same",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
-					Pointer(1),
-					Pointer(1),
+					Ptr(1),
+					Ptr(1),
+					Ptr(1),
 				},
 			},
 			want: true,
@@ -154,9 +154,9 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "All different",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
-					Pointer(2),
-					Pointer(3),
+					Ptr(1),
+					Ptr(2),
+					Ptr(3),
 				},
 			},
 			want: false,
@@ -165,11 +165,11 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "Some different",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
-					Pointer(1),
-					Pointer(1),
-					Pointer(2),
-					Pointer(1),
+					Ptr(1),
+					Ptr(1),
+					Ptr(1),
+					Ptr(2),
+					Ptr(1),
 				},
 			},
 			want: false,

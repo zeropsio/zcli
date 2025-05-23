@@ -32,7 +32,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("up").
 		Short(i18n.T(i18n.CmdDescVpnUp)).
-		ScopeLevel(cmdBuilder.Project()).
+		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		IntFlag("mtu", 1420, i18n.T(i18n.VpnMtuFlag)).
 		BoolFlag("auto-disconnect", false, i18n.T(i18n.VpnAutoDisconnectFlag)).

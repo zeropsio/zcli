@@ -18,7 +18,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("service-import").
 		Short(i18n.T(i18n.CmdDescProjectServiceImport)).
-		ScopeLevel(cmdBuilder.Project()).
+		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(serviceImportArgName).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectServiceImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

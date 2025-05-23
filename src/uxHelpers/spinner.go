@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zerops-go/dto/output"
@@ -91,7 +91,7 @@ func (p *Process) LogView() io.Writer {
 	return p.spinner.LogView()
 }
 
-func CheckZeropsProcessWithProcessOutputCallback(callback ProcessCallback) generic.Option[checkZeropsProcessSetup] {
+func CheckZeropsProcessWithProcessOutputCallback(callback ProcessCallback) gn.Option[checkZeropsProcessSetup] {
 	return func(c *checkZeropsProcessSetup) {
 		c.processOutputCallback = optional.New(callback)
 	}
@@ -104,9 +104,9 @@ type checkZeropsProcessSetup struct {
 func CheckZeropsProcess(
 	processId uuid.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
-	options ...generic.Option[checkZeropsProcessSetup],
+	options ...gn.Option[checkZeropsProcessSetup],
 ) ProcessFunc {
-	setup := generic.ApplyOptions(options...)
+	setup := gn.ApplyOptions(options...)
 	return func(ctx context.Context, process *Process) error {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()

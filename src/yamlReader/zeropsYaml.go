@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -26,9 +26,20 @@ func ReadZeropsYamlSetups(in []byte) ([]string, error) {
 	if err := yaml.Unmarshal(in, &z); err != nil {
 		return nil, errors.Wrap(err, "unmarshal zerops yaml")
 	}
-	return generic.TransformSlice(z.Zerops, func(in Setup) string {
+	return gn.TransformSlice(z.Zerops, func(in Setup) string {
 		return in.Setup
 	}), nil
+}
+
+type readZeropsYaml struct {
+	returnErrOnNotFound bool
+}
+type ReadZeropsYamlOption gn.Option[readZeropsYaml]
+
+func WithReturnErrOnZeropsYamlNotFound(b bool) ReadZeropsYamlOption {
+	return func(r *readZeropsYaml) {
+		r.returnErrOnNotFound = b
+	}
 }
 
 // ugly as f***, but ReadZeropsYamlContent can be called many times,
@@ -36,10 +47,12 @@ func ReadZeropsYamlSetups(in []byte) ([]string, error) {
 var zeropsYamlContent []byte
 
 // ReadZeropsYamlContent WARN: reads and caches zerops.yaml at first call, all other calls will use cache only
-func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string) ([]byte, error) {
+func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string, opts ...ReadZeropsYamlOption) ([]byte, error) {
 	if zeropsYamlContent != nil {
 		return zeropsYamlContent, nil
 	}
+
+	c := gn.ApplyOptionsWithDefault(readZeropsYaml{returnErrOnNotFound: true}, opts...)
 
 	workingDir, err := filepath.Abs(selectedWorkingDir)
 	if err != nil {
@@ -73,14 +86,17 @@ func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string,
 				return path, nil
 			}
 		}
-		return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlNotFound, strings.Join(pathsToCheck, ", ")))
+		if c.returnErrOnNotFound {
+			return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlNotFound, strings.Join(pathsToCheck, ", ")))
+		}
+		return "", nil
 	}()
 	if err != nil {
 		return nil, err
 	}
 
 	yamlContent, err := os.ReadFile(zeropsYamlPath)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 

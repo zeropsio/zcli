@@ -11,13 +11,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	ltable "github.com/charmbracelet/lipgloss/table"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-type Option = generic.Option[Model]
+type Option = gn.Option[Model]
 
 func WithLabel(label string) Option {
 	return func(m *Model) {
@@ -99,7 +99,7 @@ type Model struct {
 }
 
 func New(tableBody *table.Body, opts ...Option) *Model {
-	return generic.ApplyOptionsWithDefault(
+	return gn.ApplyOptionsWithDefault(
 		Model{
 			keyMap:      DefaultKeymap(),
 			tableBody:   tableBody,
@@ -122,7 +122,7 @@ func (m *Model) IsMultiSelect() bool {
 }
 
 func (m *Model) Selected() []int {
-	selection := generic.TransformMapToSlice(m.selected, func(k int, v struct{}) int {
+	selection := gn.TransformMapToSlice(m.selected, func(k int, v struct{}) int {
 		return k
 	})
 	if len(selection) == 1 {
@@ -242,7 +242,7 @@ func (m *Model) filter() {
 	}
 	f := table.NewBody()
 	for _, r := range m.tableBody.Rows() {
-		_, hasMatchingCell := generic.FindOne(r.Cells(), func(in table.Cell) bool {
+		_, hasMatchingCell := gn.FindOne(r.Cells(), func(in table.Cell) bool {
 			cell := in.SetPretty(false).String()
 			return m.filterFunc(strings.ToLower(cell), m.filterField.Value())
 		})
@@ -357,7 +357,7 @@ func (m *Model) makeRows(t *ltable.Table, rows []*table.Row, totalRows, maxRows,
 			break
 		}
 
-		cells := generic.TransformSlice(
+		cells := gn.TransformSlice(
 			row.Cells(),
 			func(in table.Cell) string {
 				return in.String()
@@ -367,9 +367,9 @@ func (m *Model) makeRows(t *ltable.Table, rows []*table.Row, totalRows, maxRows,
 
 		if m.multi {
 			if totalRows > 0 && !m.isSelected(rows[rowIndex].Index()) {
-				cells = generic.Prepend(cells, unselected)
+				cells = gn.Prepend(cells, unselected)
 			} else {
-				cells = generic.Prepend(cells, selected)
+				cells = gn.Prepend(cells, selected)
 			}
 		}
 		t.Row(cells...)
@@ -386,12 +386,12 @@ func (m *Model) makeHeader(t *ltable.Table) int {
 		t.Headers("x")
 		return 1
 	}
-	header := generic.TransformSlice(m.header.Cells(), func(in table.Cell) string {
+	header := gn.TransformSlice(m.header.Cells(), func(in table.Cell) string {
 		return strings.ToUpper(in.String())
 	})
 	numOfCells := len(header)
 	if m.multi {
-		header = generic.Prepend(header, checkMark)
+		header = gn.Prepend(header, checkMark)
 	}
 	t.Headers(header...)
 	return numOfCells

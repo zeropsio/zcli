@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -28,7 +28,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		Use("push").
 		Short(i18n.T(i18n.CmdDescPush)).
 		Long(i18n.T(i18n.CmdDescPushLong)).
-		ScopeLevel(cmdBuilder.Service(
+		ScopeLevel(cmdBuilder.ScopeService(
 			cmdBuilder.WithCreateNewService(),
 			cmdBuilder.WithProjectScopeOptions(
 				cmdBuilder.WithCreateNewProject(),
@@ -76,7 +76,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			setup, hasMatch := generic.FindOne(setups, generic.ExactMatch(service.Name.String()))
+			setup, hasMatch := gn.FindOne(setups, gn.ExactMatch(service.Name.String()))
 			if !hasMatch {
 				if !terminal.IsTerminal() {
 					if !cmdData.Params.IsSet("setup") {

@@ -10,6 +10,7 @@ func projectCmd() *cmdBuilder.Cmd {
 		Use("project").
 		Short(i18n.T(i18n.CmdDescProject)).
 		HelpFlag(i18n.T(i18n.CmdHelpProject)).
+		AddChildrenCmd(projectCreateCmd()).
 		AddChildrenCmd(projectListCmd()).
 		AddChildrenCmd(projectDeleteCmd()).
 		AddChildrenCmd(projectServiceImportCmd()).

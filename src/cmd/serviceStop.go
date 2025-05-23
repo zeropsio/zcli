@@ -14,7 +14,7 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("stop").
 		Short(i18n.T(i18n.CmdDescServiceStop)).
-		ScopeLevel(cmdBuilder.Service()).
+		ScopeLevel(cmdBuilder.ScopeService()).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceStop)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {

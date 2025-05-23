@@ -1,4 +1,4 @@
-package generic
+package gn
 
 func Must[T any](in T, err error) T {
 	if err != nil {
@@ -14,7 +14,7 @@ func Some[T any](in T, err error) T {
 	return in
 }
 
-func Pointer[T any](in T) *T {
+func Ptr[T any](in T) *T {
 	return &in
 }
 

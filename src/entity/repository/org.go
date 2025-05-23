@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -42,7 +42,7 @@ func GetOrgById(
 	if err != nil {
 		return entity.Org{}, err
 	}
-	org, found := generic.FindOne(orgs, func(in entity.Org) bool {
+	org, found := gn.FindOne(orgs, func(in entity.Org) bool {
 		return in.ID == clientId
 	})
 	if !found {

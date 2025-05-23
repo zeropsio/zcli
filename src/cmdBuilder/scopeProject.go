@@ -3,12 +3,11 @@ package cmdBuilder
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -19,10 +18,11 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-type ProjectOption generic.Option[projectScope]
+type ProjectOption gn.Option[projectScope]
 
 // WithCreateNewProject allows 'create new project' option in selector
 func WithCreateNewProject() ProjectOption {
@@ -35,38 +35,19 @@ type projectScope struct {
 	createNew bool
 }
 
-func Project(opts ...ProjectOption) ScopeLevel {
-	return generic.ApplyOptions(opts...)
+func ScopeProject(opts ...ProjectOption) ScopeLevel {
+	return gn.ApplyOptions(opts...)
 }
 
 const ProjectArgName = "projectId"
-const orgIdFlagName = "orgId"
-const createProjectFlagName = "createProject"
 
 func (p *projectScope) AddCommandFlags(cmd *Cmd) {
 	cmd.StringFlag(ProjectArgName, "", i18n.T(i18n.ProjectIdFlag))
-	if p.createNew {
-		cmd.StringFlag(createProjectFlagName, "", "")
-		cmd.StringFlag(orgIdFlagName, "", "Org ID")
-	}
 }
 
 func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *LoggedUserCmdData) error {
 	var project entity.Project
 	var err error
-
-	if !terminal.IsTerminal() && !cmdData.Params.HasSet(ProjectArgName, createProjectFlagName) {
-		return errors.Errorf(
-			"Non-interactive mode detected, specify service to use by flag --%s or create new service by --%s",
-			ProjectArgName,
-			createProjectFlagName,
-		)
-	}
-
-	orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
-	if err != nil {
-		return err
-	}
 
 	// service scope is set - use project from it
 	if service, filled := cmdData.Service.Get(); filled {
@@ -115,16 +96,6 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	if !cmdData.Project.Filled() &&
-		!terminal.IsTerminal() &&
-		!cmdData.Params.AllSet(createServiceFlagName, orgIdFlagName) {
-		return errors.Errorf(
-			"To create new project you need to specify --%s with --%s",
-			orgIdFlagName,
-			createServiceFlagName,
-		)
-	}
-
 	if projectId, exists := cmdData.Args[ProjectArgName]; exists && !cmdData.Project.Filled() {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId[0]))
 		if err != nil {
@@ -143,21 +114,6 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	if cmdData.Params.IsSet(createProjectFlagName) && !terminal.IsTerminal() {
-		if cmdData.Params.IsSet(createProjectFlagName) && !cmdData.Params.IsSet(orgIdFlagName) && len(orgs) > 0 {
-			return errors.Errorf(
-				"--%s has to be used in combination with --%s in non-interactive terminal",
-				createProjectFlagName,
-				orgIdFlagName,
-			)
-		}
-		project, err = createNewProject(ctx, cmdData, orgs)
-		if err != nil {
-			return err
-		}
-		cmdData.Project = optional.New(project)
-	}
-
 	if !cmdData.Project.Filled() {
 		// interactive selector of a project
 		selectedProject, err := uxHelpers.PrintProjectSelector(
@@ -171,8 +127,8 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 
 		if selectedProject.Filled() {
 			project = selectedProject.Some()
-		} else {
-			project, err = createNewProject(ctx, cmdData, orgs)
+		} else if terminal.IsTerminal() {
+			project, err = createNewProject(ctx, cmdData)
 			if err != nil {
 				return err
 			}
@@ -186,59 +142,53 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 	return nil
 }
 
-func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData, orgs []entity.Org) (entity.Project, error) {
+func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.Project, error) {
 	var err error
-	selectedOrg := orgs[0]
-	if cmdData.Params.IsSet(orgIdFlagName) {
-		selectedOrg, err = repository.GetOrgById(
-			ctx,
-			cmdData.RestApiClient,
-			uuid.ClientId(cmdData.Params.GetString(orgIdFlagName)),
-		)
-		if err != nil {
-			return entity.Project{}, err
-		}
+	selectedOrg, err := uxHelpers.PrintOrgSelector(
+		ctx,
+		cmdData.RestApiClient,
+		uxHelpers.WithOrgPickOnlyOneItem(true),
+	)
+	if err != nil {
+		return entity.Project{}, err
 	}
-	if len(orgs) > 1 && terminal.IsTerminal() {
-		selectedOrg, err = uxHelpers.PrintOrgSelector(
-			ctx,
-			cmdData.RestApiClient,
-			uxHelpers.WithOrgSkipOnOneIterm(true),
-		)
-		if err != nil {
-			return entity.Project{}, err
-		}
-	}
+
 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", selectedOrg.Name.String()))
 
-	name := cmdData.Params.GetString(createProjectFlagName)
-	if name == "" {
-		b := styles.NewStringBuilder()
-		b.WriteString("Type ")
-		b.WriteStyledString(
-			styles.SelectStyle().
-				Bold(true),
-			"project",
-		)
-		b.WriteString(" name")
-		name, err = uxBlock.RunR(
-			input.NewRoot(
-				ctx,
-				input.WithLabel(b.String()),
-				input.WithHelpPlaceholder(),
-				input.WithPlaceholderStyle(styles.HelpStyle()),
-				input.WithoutPrompt(),
-			),
-			input.GetValueFunc,
-		)
-		if err != nil {
-			return entity.Project{}, err
-		}
+	label := styles.NewStringBuilder()
+	label.WriteString("Type ")
+	label.WriteStyledString(
+		styles.SelectStyle().
+			Bold(true),
+		"project",
+	)
+	label.WriteString(" name")
+
+	name, err := uxBlock.RunR(
+		input.NewRoot(
+			ctx,
+			input.WithLabel(label.String()),
+			input.WithHelpPlaceholder(),
+			input.WithPlaceholderStyle(styles.HelpStyle()),
+			input.WithoutPrompt(),
+		),
+		input.GetValueFunc,
+	)
+	if err != nil {
+		return entity.Project{}, err
 	}
-	return repository.PostProject(ctx, cmdData.RestApiClient, repository.ProjectPost{
+
+	project, err := repository.PostProject(ctx, cmdData.RestApiClient, repository.ProjectPost{
 		ClientId: selectedOrg.ID,
 		Name:     types.NewString(name),
+		Mode:     enum.ProjectModeEnumLight,
 	})
+	if err != nil {
+		return entity.Project{}, err
+	}
+	cmdData.UxBlocks.PrintSuccessText("Project created")
+
+	return project, nil
 }
 
 func ProjectScopeReset(cmdData *LoggedUserCmdData) error {

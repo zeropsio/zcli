@@ -2,7 +2,7 @@ package errorsx
 
 import (
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
 )
@@ -27,7 +27,7 @@ var defaultErrorCodeConfig = errorCodeConfig{
 	errorMessage: extractApiErrorMessage,
 }
 
-type ErrorCodeOption generic.Option[errorCodeConfig]
+type ErrorCodeOption gn.Option[errorCodeConfig]
 
 func ErrorCodeErrorMessage(f ErrorCodeExtractMessageFunc) ErrorCodeOption {
 	return func(cfg *errorCodeConfig) {
@@ -37,7 +37,7 @@ func ErrorCodeErrorMessage(f ErrorCodeExtractMessageFunc) ErrorCodeOption {
 
 func ErrorCode(errorCode errorCode.ErrorCode, auxOptions ...ErrorCodeOption) Check {
 	return func(err error) error {
-		cfg := generic.ApplyOptionsWithDefault(defaultErrorCodeConfig, auxOptions...)
+		cfg := gn.ApplyOptionsWithDefault(defaultErrorCodeConfig, auxOptions...)
 
 		var apiErr apiError.Error
 		if !errors.As(err, &apiErr) {
@@ -66,11 +66,11 @@ func HttpStatusCodeErrorMessage(f ErrorCodeExtractMessageFunc) HttpStatusCodeOpt
 	}
 }
 
-type HttpStatusCodeOption generic.Option[httpStatusCodeConfig]
+type HttpStatusCodeOption gn.Option[httpStatusCodeConfig]
 
 func HttpStatusCode(httpStatusCode int, auxOptions ...HttpStatusCodeOption) Check {
 	return func(err error) error {
-		cfg := generic.ApplyOptionsWithDefault(defaultHttpStatusCodeConfig, auxOptions...)
+		cfg := gn.ApplyOptionsWithDefault(defaultHttpStatusCodeConfig, auxOptions...)
 
 		var apiErr apiError.Error
 		if !errors.As(err, &apiErr) {
@@ -99,11 +99,11 @@ func InvalidUserInputErrorMessage(f ErrorCodeExtractMessageMetaFunc) InvalidUser
 	}
 }
 
-type InvalidUserInputOption generic.Option[invalidUserInputConfig]
+type InvalidUserInputOption gn.Option[invalidUserInputConfig]
 
 func InvalidUserInput(parameterName string, auxOptions ...InvalidUserInputOption) Check {
 	return func(err error) error {
-		cfg := generic.ApplyOptionsWithDefault(defaultInvalidUserInputConfig, auxOptions...)
+		cfg := gn.ApplyOptionsWithDefault(defaultInvalidUserInputConfig, auxOptions...)
 
 		if err := ErrorCode(errorCode.InvalidUserInput)(err); err == nil {
 			return nil

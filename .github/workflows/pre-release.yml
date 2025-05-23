@@ -1,0 +1,120 @@
+name: Pre-release
+
+on:
+  release:
+    types:
+      - prereleased
+
+jobs:
+  build:
+    name: Build & upload ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CGO_ENABLED: '0'
+    strategy:
+      matrix:
+        include:
+          - name: linux amd64
+            os: ubuntu-latest
+            buildCmd: >- 
+              env GOOS=linux GOARCH=amd64
+              go build -tags devel
+              -o builds/zcli-linux-amd64
+              -ldflags "-X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
+              ./cmd/zcli/main.go
+            file: zcli-linux-amd64
+            compress: true
+            strip: true
+            runLint: true
+            runTests: true
+
+          - name: linux 386
+            os: ubuntu-latest
+            buildCmd: >-
+              env GOOS=linux GOARCH=386
+              go build -tags devel
+              -o builds/zcli-linux-i386
+              -ldflags "-X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
+              ./cmd/zcli/main.go
+            file: zcli-linux-i386
+            compress: true
+            strip: true
+            runLint: true
+            runTests: true
+
+          - name: darwin amd64
+            os: macos-latest
+            buildCmd: >-
+              env GOOS=darwin GOARCH=amd64
+              go build -tags devel
+              -o builds/zcli-darwin-amd64
+              -ldflags "-X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
+              ./cmd/zcli/main.go
+            file: zcli-darwin-amd64
+            compress: false
+            strip: false
+            runLint: true
+            runTests: true
+
+          - name: darwin arm64
+            os: macos-latest
+            buildCmd: >-
+              env GOOS=darwin GOARCH=arm64
+              go build -tags devel
+              -o builds/zcli-darwin-arm64
+              -ldflags "-X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
+              ./cmd/zcli/main.go
+            file: zcli-darwin-arm64
+            compress: false
+            strip: false
+            runLint: false
+            runTests: false
+
+          - name: windows amd64
+            os: ubuntu-latest
+            buildCmd: >-
+              env GOOS=windows GOARCH=amd64
+              go build -tags devel
+              -o builds/zcli-win-x64.exe
+              -ldflags "-X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
+              ./cmd/zcli/main.go
+            file: zcli-win-x64.exe
+            compress: false
+            strip: false
+            runLint: false
+            runTests: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+        id: go
+
+      - name: Get dependencies
+        run: |
+          export GOPATH=$HOME/go
+          ./tools/install.sh
+
+      - name: Build
+        run: ${{ matrix.buildCmd }}
+
+      - name: Compress binary
+        if: ${{ matrix.compress }}
+        uses: svenstaro/upx-action@v2
+        with:
+          file: ./builds/${{ matrix.file }}
+          strip: ${{ matrix.strip }}
+
+      - name: Upload asset clean bin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./builds/${{ matrix.file }}
+          asset_name: ${{ matrix.file }}
+          asset_content_type: application/octet-stream

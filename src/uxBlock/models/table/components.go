@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 )
 
 type Body struct {
@@ -19,7 +19,7 @@ func NewBody(rows ...*Row) *Body {
 
 func NewBodyFromStrings(rows ...[]string) *Body {
 	return &Body{
-		rows: generic.TransformSlice(rows, func(in []string) *Row {
+		rows: gn.TransformSlice(rows, func(in []string) *Row {
 			return NewRowFromStrings(in...)
 		}),
 	}
@@ -84,7 +84,7 @@ func NewRow(cells ...Cell) *Row {
 func NewRowFromStrings(cells ...string) *Row {
 	return &Row{
 		index: -1,
-		cells: generic.TransformSlice(cells, stringsToCells),
+		cells: gn.TransformSlice(cells, stringsToCells),
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -21,7 +21,7 @@ import (
 type serviceSelectorConfig struct {
 	createNew bool
 }
-type ServiceSelectorOption = generic.Option[serviceSelectorConfig]
+type ServiceSelectorOption = gn.Option[serviceSelectorConfig]
 
 func WithCreateNewService(b bool) ServiceSelectorOption {
 	return func(s *serviceSelectorConfig) {
@@ -36,7 +36,7 @@ func PrintServiceSelector(
 	opts ...ServiceSelectorOption,
 ) (optional.Null[entity.Service], error) {
 	var empty optional.Null[entity.Service]
-	cfg := generic.ApplyOptions(opts...)
+	cfg := gn.ApplyOptions(opts...)
 
 	services, err := repository.GetNonSystemServicesByProject(ctx, restApiClient, project)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
-	"github.com/zeropsio/zcli/src/generic"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -21,7 +21,7 @@ import (
 type projectSelectorConfig struct {
 	createNew bool
 }
-type ProjectSelectorOption = generic.Option[projectSelectorConfig]
+type ProjectSelectorOption = gn.Option[projectSelectorConfig]
 
 func WithCreateNewProject(b bool) ProjectSelectorOption {
 	return func(s *projectSelectorConfig) {
@@ -35,7 +35,7 @@ func PrintProjectSelector(
 	opts ...ProjectSelectorOption,
 ) (optional.Null[entity.Project], error) {
 	var empty optional.Null[entity.Project]
-	cfg := generic.ApplyOptions(opts...)
+	cfg := gn.ApplyOptions(opts...)
 
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
 	if err != nil {

@@ -17,7 +17,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		Use("log").
 		Short(i18n.T(i18n.CmdDescServiceLog)).
 		Long(i18n.T(i18n.CmdDescServiceLogLong)).
-		ScopeLevel(cmdBuilder.Service()).
+		ScopeLevel(cmdBuilder.ScopeService()).
 		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
 		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
 		StringFlag("messageType", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).

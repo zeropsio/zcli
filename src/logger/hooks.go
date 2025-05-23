@@ -74,10 +74,6 @@ func (hook *TerminalHook) Fire(entry *logrus.Entry) error {
 		msg = append(msg, '\n')
 	}
 
-	if entry.Level <= logrus.ErrorLevel {
-		os.Stderr.Write(msg)
-	} else {
-		os.Stdout.Write(msg)
-	}
+	_, _ = os.Stderr.Write(msg)
 	return nil
 }

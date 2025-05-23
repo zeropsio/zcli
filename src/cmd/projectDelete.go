@@ -15,7 +15,7 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("delete").
 		Short(i18n.T(i18n.CmdDescProjectDelete)).
-		ScopeLevel(cmdBuilder.Project()).
+		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		BoolFlag("confirm", false, i18n.T(i18n.ConfirmFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectDelete)).
