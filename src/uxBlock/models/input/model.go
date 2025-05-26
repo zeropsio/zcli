@@ -65,6 +65,7 @@ func WithPrompt(prompt string) Option {
 	}
 }
 
+//nolint:predeclared
 func WithMinMaxWidth(min, max int) Option {
 	return func(m *Model) {
 		m.minWidth, m.maxWidth = min, max

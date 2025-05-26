@@ -19,6 +19,10 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
+func formatAllowedTemplateFields(fields []string) string {
+	return strings.Join(fields, ", ")
+}
+
 func projectCreateCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("create").
@@ -26,9 +30,9 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("name", "", "Project name").
 		StringFlag("orgId", "", "Organization ID to create project for").
 		StringSliceFlag("tags", nil, "Project tags. Comma separated list or repeated flag.").
-		StringFlag("out", "", "Output format of command").
-		StringFlag("mode", strings.ToLower(enum.ProjectModeEnumLight.String()), "Project mode ['light', 'serious']").
-		StringFlag("envIsolation", "service", "Env isolation setting ['service', 'none']").
+		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ProjectFields)).
+		StringFlag("mode", enumDefaultForFlag(enum.ProjectModeEnumLight), "Project mode"+enumValuesForFlag(enum.ProjectModeEnumAllPublic())).
+		StringFlag("envIsolation", "service", "Env isolation setting ['service', 'none'] for more see docs <TODO link>").
 		StringFlag("sshIsolation", "vpn", "SSH isolation setting, for more see docs <TODO link>").
 		HelpFlag("").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
@@ -51,7 +55,8 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 
 			orgId := cmdData.Params.GetString("orgId")
 			var org entity.Org
-			if orgId != "" {
+			switch {
+			case orgId != "":
 				org, err = repository.GetOrgById(
 					ctx,
 					cmdData.RestApiClient,
@@ -60,9 +65,9 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				if err != nil {
 					return err
 				}
-			} else if !terminal.IsTerminal() {
+			case !terminal.IsTerminal():
 				return errors.New("Must specify organization ID with --orgId")
-			} else {
+			default:
 				org, err = uxHelpers.PrintOrgSelector(
 					ctx,
 					cmdData.RestApiClient,

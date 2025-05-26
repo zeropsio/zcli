@@ -53,9 +53,8 @@ func (hook *VarLogHook) Fire(entry *logrus.Entry) error {
 }
 
 type TerminalHook struct {
-	levels     []logrus.Level
-	formatter  logrus.Formatter
-	isTerminal bool
+	levels    []logrus.Level
+	formatter logrus.Formatter
 }
 
 func (hook *TerminalHook) Levels() []logrus.Level {

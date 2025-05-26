@@ -10,6 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -36,8 +37,8 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("name", "", "Service name").
-		StringFlag("mode", strings.ToLower(enum.ServiceStackModeEnumNonHa.String()), "Service mode ['non_ha', 'ha']").
-		StringFlag("out", "", "Output format of command").
+		StringFlag("mode", enumDefaultForFlag(enum.ServiceStackModeEnumNonHa), "Service mode "+enumValuesForFlag(enum.ServiceStackModeEnumAllPublic())).
+		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ServiceFields)).
 		StringFlag("envFile", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml)").
 		StringSliceFlag("env", nil, "Envs to be set as secrets, runtime envs can be defined in zerops.yml. Accepts comma separated string or repeated flag. Format: {key}={value}").
 		BoolFlag("startWithoutCode", false, "Start service immediately, empty without deploy").

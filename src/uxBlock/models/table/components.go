@@ -71,7 +71,6 @@ func (b *Body) Rows() []*Row {
 type Row struct {
 	index int
 	cells []Cell
-	style lipgloss.Style
 }
 
 func NewRow(cells ...Cell) *Row {

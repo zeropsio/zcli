@@ -79,7 +79,7 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 		os.Exit(1)
 	}
 
-	if errors.Is(err, models.CtrlC) {
+	if errors.Is(err, models.ErrCtrlC) {
 		uxBlocks.PrintInfo(styles.InfoLine("canceled"))
 		os.Exit(0)
 	}

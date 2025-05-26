@@ -217,7 +217,6 @@ func (m *Model) Select() {
 		return
 	}
 	m.selected[selectedRow.Index()] = struct{}{}
-	return
 }
 
 func (m *Model) SelectAll(deselect bool) {
@@ -238,7 +237,6 @@ func (m *Model) filter() {
 	if m.filterField.Value() == "" {
 		m.filteredBody = m.tableBody.Clone()
 		return
-
 	}
 	f := table.NewBody()
 	for _, r := range m.tableBody.Rows() {
@@ -406,6 +404,7 @@ func (m *Model) emptyRows(t *ltable.Table, columns int) {
 	t.Row(row...)
 }
 
+//nolint:makezero
 func fillCells(columns int, cells []string, filler string) []string {
 	numOfCells := len(cells)
 	if columns > numOfCells {

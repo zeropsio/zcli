@@ -11,3 +11,5 @@ type Org struct {
 	Role enum.ClientUserRoleCodeEnum
 	Name types.String
 }
+
+var OrgFields = entityTemplateFields[Org]()

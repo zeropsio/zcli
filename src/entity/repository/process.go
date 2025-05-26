@@ -60,6 +60,7 @@ func processFromEsSearch(esProcess output.EsProcess) entity.Process {
 	}
 }
 
+//nolint:unused
 func processFromApiOutput(process output.Process) entity.Process {
 	return entity.Process{
 		ID:         process.Id,

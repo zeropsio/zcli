@@ -14,3 +14,5 @@ type Project struct {
 	Description types.Text
 	Status      enum.ProjectStatusEnum
 }
+
+var ProjectFields = entityTemplateFields[Project]()

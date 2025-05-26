@@ -17,3 +17,5 @@ type Service struct {
 	ServiceTypeCategory         enum.ServiceStackTypeCategoryEnum
 	ServiceStackTypeVersionName types.String
 }
+
+var ServiceFields = entityTemplateFields[Service]()

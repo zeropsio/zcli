@@ -1,5 +1,9 @@
 package gn
 
+import (
+	"strings"
+)
+
 func Must[T any](in T, err error) T {
 	if err != nil {
 		panic(err)
@@ -242,4 +246,11 @@ func FirstNotNil[T any](v ...*T) *T {
 		}
 	}
 	return nil
+}
+
+func Join[T ~string](sep string, elems ...T) string {
+	return strings.Join(
+		TransformSlice(elems, func(in T) string { return string(in) }),
+		sep,
+	)
 }

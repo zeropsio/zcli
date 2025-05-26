@@ -10,6 +10,7 @@ import (
 )
 
 type RootModel struct {
+	//nolint:containedctx
 	ctx    context.Context
 	cancel context.CancelFunc
 	*Model
@@ -50,7 +51,7 @@ func (r *RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(keyMsg, r.keyMap.Quit):
 			r.quit = true
-			r.err = models.CtrlC
+			r.err = models.ErrCtrlC
 			return r, models.Noop
 		case key.Matches(keyMsg, r.keyMap.Submit):
 			r.quit = true

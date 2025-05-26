@@ -6,7 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/terminal"
 )
 
-type GetFunc[T any]func(model tea.Model) (T, error)
+type GetFunc[T any] func(model tea.Model) (T, error)
 
 // RunR runs tea.Model and returns value based on GetFunc[T]
 func RunR[T any](
