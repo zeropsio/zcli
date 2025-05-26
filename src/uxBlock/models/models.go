@@ -14,7 +14,7 @@ func Noop() tea.Msg {
 	return struct{}{}
 }
 
-var CtrlC = errors.New("ctrl+c")
+var ErrCtrlC = errors.New("ctrl+c")
 
 type Helper interface {
 	Enabled() bool

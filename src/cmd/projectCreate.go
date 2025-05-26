@@ -51,7 +51,8 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 
 			orgId := cmdData.Params.GetString("orgId")
 			var org entity.Org
-			if orgId != "" {
+			switch {
+			case orgId != "":
 				org, err = repository.GetOrgById(
 					ctx,
 					cmdData.RestApiClient,
@@ -60,9 +61,9 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				if err != nil {
 					return err
 				}
-			} else if !terminal.IsTerminal() {
+			case !terminal.IsTerminal():
 				return errors.New("Must specify organization ID with --orgId")
-			} else {
+			default:
 				org, err = uxHelpers.PrintOrgSelector(
 					ctx,
 					cmdData.RestApiClient,
