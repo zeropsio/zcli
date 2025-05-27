@@ -4,7 +4,7 @@ go 1.24
 
 require github.com/zeropsio/zerops-go v1.0.11
 
-replace github.com/zeropsio/zerops-go v1.0.11 => github.com/zeropsio/zerops-go v1.0.12-0.20250526111921-87f9d09361b3
+replace github.com/zeropsio/zerops-go v1.0.11 => github.com/zeropsio/zerops-go v1.0.12-0.20250526155306-48893c940544
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0

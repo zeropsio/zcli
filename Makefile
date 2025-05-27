@@ -30,7 +30,7 @@ lint:
 all: windows-amd linux-amd darwin-amd darwin-arm
 
 windows-amd:
-	GOOS=windows GOARCH=amd64 tools/build.sh zcli.exe
+	GOOS=windows GOARCH=amd64 tools/build.sh zcli.win.exe
 
 linux-amd:
 	GOOS=linux GOARCH=amd64 tools/build.sh zcli.linux

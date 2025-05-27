@@ -9,7 +9,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-// Noop force bubble tea to render
+// Noop forces bubble tea to render
 func Noop() tea.Msg {
 	return struct{}{}
 }

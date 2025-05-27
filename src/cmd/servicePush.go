@@ -35,16 +35,16 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			),
 		)).
 		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
-		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
-		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
-		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
-		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
+		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("archive-file-path", "", i18n.T(i18n.BuildArchiveFilePath)).
+		StringFlag("version-name", "", i18n.T(i18n.BuildVersionName)).
+		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
-		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
-		StringFlag("workspaceState", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
-		BoolFlag("noGit", false, i18n.T(i18n.NoGit)).
-		BoolFlag("disableLogs", false, "disable logs").
+		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
+		StringFlag("workspace-state", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
+		BoolFlag("no-git", false, i18n.T(i18n.NoGit)).
+		BoolFlag("disable-logs", false, "disable logs").
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -58,14 +58,14 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if cmdData.Params.IsSet("noGit") && (cmdData.Params.IsSet("deployGitFolder") || cmdData.Params.IsSet("workspaceState")) {
-				uxBlocks.PrintWarning(styles.WarningLine("--noGit and --deployGitFolder/--workspaceState are mutually exclusive, ignoring --deployGitFolder/--workspaceState"))
+			if cmdData.Params.IsSet("noGit") && (cmdData.Params.IsSet("deploy-git-folder") || cmdData.Params.IsSet("workspace-state")) {
+				uxBlocks.PrintWarning(styles.WarningLine("--no-git and --deploy-git-folder/--workspace-state are mutually exclusive, ignoring --deploy-git-folder/--workspace-state"))
 			}
 
 			configContent, err := yamlReader.ReadZeropsYamlContent(
 				uxBlocks,
-				cmdData.Params.GetString("workingDir"),
-				cmdData.Params.GetString("zeropsYamlPath"),
+				cmdData.Params.GetString("working-dir"),
+				cmdData.Params.GetString("zerops-yaml-path"),
 			)
 			if err != nil {
 				return err
@@ -76,7 +76,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			setup, hasMatch := gn.FindOne(setups, gn.ExactMatch(service.Name.String()))
+			setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
 			if !hasMatch {
 				if !terminal.IsTerminal() {
 					if !cmdData.Params.IsSet("setup") {
@@ -108,7 +108,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.RestApiClient,
 				service,
-				cmdData.Params.GetString("versionName"),
+				cmdData.Params.GetString("version-name"),
 			)
 			if err != nil {
 				return err
@@ -117,9 +117,9 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			arch := archiveClient.New(archiveClient.Config{
 				Logger:             uxBlocks.GetDebugFileLogger(),
 				Verbose:            cmdData.Params.GetBool("verbose"),
-				DeployGitFolder:    cmdData.Params.GetBool("deployGitFolder"),
-				PushWorkspaceState: cmdData.Params.GetString("workspaceState"),
-				NoGit:              cmdData.Params.GetBool("noGit"),
+				DeployGitFolder:    cmdData.Params.GetBool("deploy-git-folder"),
+				PushWorkspaceState: cmdData.Params.GetString("workspace-state"),
+				NoGit:              cmdData.Params.GetBool("no-git"),
 			})
 
 			err = uxHelpers.ProcessCheckWithSpinner(
@@ -129,10 +129,10 @@ func servicePushCmd() *cmdBuilder.Cmd {
 					F: func(ctx context.Context, _ *uxHelpers.Process) (err error) {
 						reader, writer := io.Pipe()
 						var finalReader io.Reader = reader
-						if cmdData.Params.GetString("archiveFilePath") != "" {
+						if cmdData.Params.GetString("archive-file-path") != "" {
 							packageFile, err := openPackageFile(
-								cmdData.Params.GetString("archiveFilePath"),
-								cmdData.Params.GetString("workingDir"),
+								cmdData.Params.GetString("archive-file-path"),
+								cmdData.Params.GetString("working-dir"),
 							)
 							if err != nil {
 								return err
@@ -155,7 +155,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						}()
 
 						// if an error occurred while packing the app, return that error
-						if err := arch.ArchiveGitFiles(ctx, uxBlocks, cmdData.Params.GetString("workingDir"), writer); err != nil {
+						if err := arch.ArchiveGitFiles(ctx, uxBlocks, cmdData.Params.GetString("working-dir"), writer); err != nil {
 							_ = writer.CloseWithError(err)
 							return err
 						}
@@ -174,8 +174,8 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if cmdData.Params.GetString("archiveFilePath") != "" {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath"))))
+			if cmdData.Params.GetString("archive-file-path") != "" {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archive-file-path"))))
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
@@ -209,7 +209,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient,
 							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
 								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
-									if cmdData.Params.GetBool("disableLogs") {
+									if cmdData.Params.GetBool("disable-logs") {
 										return nil
 									}
 									if !apiProcess.Status.IsRunning() {
@@ -233,7 +233,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",
 												Format:         "FULL",
-												FormatTemplate: "{{.message}}",
+												FormatTemplate: "{{.Message}}",
 												Follow:         true,
 												Tags: []string{
 													"zbuilder@" + appVersion.Id.Native(),
@@ -261,7 +261,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",
 												Format:         "FULL",
-												FormatTemplate: "{{.message}}",
+												FormatTemplate: "{{.Message}}",
 												Follow:         true,
 												Levels:         serviceLogs.DefaultLevels,
 											}); err != nil {

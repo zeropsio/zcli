@@ -44,27 +44,29 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if isVpnUp(ctx, uxBlocks, 1) {
+			vpnActive, err := wg.InterfaceExists()
+			if err != nil {
+				return err
+			}
+			if vpnActive {
 				if cmdData.Params.GetBool("auto-disconnect") {
-					err := disconnectVpn(ctx, uxBlocks)
-					if err != nil {
+					if err := disconnectVpn(ctx, uxBlocks); err != nil {
 						return err
 					}
 				} else {
 					confirmed, err := uxHelpers.YesNoPrompt(
 						ctx,
-						cmdData.UxBlocks,
-						i18n.T(i18n.VpnDisconnectionPrompt),
+						"VPN is active, do you want to disconnect?",
 					)
 					if err != nil {
 						return err
 					}
 					if !confirmed {
-						return errors.New(i18n.T(i18n.VpnDisconnectionPromptNo))
+						cmdData.UxBlocks.PrintInfoText("VPN is still connected")
+						return nil
 					}
 
-					err = disconnectVpn(ctx, uxBlocks)
-					if err != nil {
+					if err := disconnectVpn(ctx, uxBlocks); err != nil {
 						return err
 					}
 				}
@@ -161,9 +163,7 @@ func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 				}
 				return errors.New(i18n.T(i18n.VpnPingFailed))
 			},
-			RunningMessage:      i18n.T(i18n.VpnCheckingConnection),
-			ErrorMessageMessage: "",
-			SuccessMessage:      "",
+			RunningMessage: i18n.T(i18n.VpnCheckingConnection),
 		},
 	}
 

@@ -112,6 +112,7 @@ func projectFromEsSearch(org entity.Org, esProject output.EsProject) entity.Proj
 	return entity.Project{
 		ID:          esProject.Id,
 		Name:        esProject.Name,
+		Mode:        esProject.Mode,
 		OrgId:       org.ID,
 		OrgName:     org.Name,
 		Description: description,
@@ -125,6 +126,7 @@ func projectFromApiOutput(project output.Project) entity.Project {
 	return entity.Project{
 		ID:          project.Id,
 		Name:        project.Name,
+		Mode:        project.Mode,
 		OrgId:       project.ClientId,
 		Description: description,
 		Status:      project.Status,

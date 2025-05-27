@@ -149,26 +149,6 @@ func (mr *MockUxBlocksMockRecorder) PrintWarningText(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintWarningText", reflect.TypeOf((*MockUxBlocks)(nil).PrintWarningText), arg0)
 }
 
-// Prompt mocks base method.
-func (m *MockUxBlocks) Prompt(ctx context.Context, message string, choices []string, auxOptions ...uxBlock.PromptOption) (int, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, message, choices}
-	for _, a := range auxOptions {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Prompt", varargs...)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Prompt indicates an expected call of Prompt.
-func (mr *MockUxBlocksMockRecorder) Prompt(ctx, message, choices interface{}, auxOptions ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, message, choices}, auxOptions...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prompt", reflect.TypeOf((*MockUxBlocks)(nil).Prompt), varargs...)
-}
-
 // RunSpinners mocks base method.
 func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) func() {
 	m.ctrl.T.Helper()

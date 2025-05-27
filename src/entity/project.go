@@ -9,6 +9,7 @@ import (
 type Project struct {
 	ID          uuid.ProjectId
 	Name        types.String
+	Mode        enum.ProjectModeEnum
 	OrgId       uuid.ClientId
 	OrgName     types.String
 	Description types.Text

@@ -3,7 +3,8 @@ package cmd
 import (
 	"context"
 
-	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -25,17 +26,32 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			question := styles.NewStringBuilder()
+			question.WriteString("Project ")
+			question.WriteStyledString(
+				styles.SelectStyle().
+					Bold(true),
+				project.Name.String(),
+			)
+			question.WriteString(" will be deleted?")
+			question.WriteString("\n")
+			question.WriteString("Are you sure?")
+
 			if !cmdData.Params.GetBool("confirm") {
 				confirmed, err := uxHelpers.YesNoPrompt(
 					ctx,
-					cmdData.UxBlocks,
-					i18n.T(i18n.ProjectDeleteConfirm, project.Name),
+					question.String(),
+					prompt.WithDialogBoxStyle(
+						styles.DialogBox().
+							BorderForeground(styles.ErrorColor),
+					),
 				)
 				if err != nil {
 					return err
 				}
 				if !confirmed {
-					return errors.New(i18n.T(i18n.DestructiveOperationConfirmationFailed))
+					cmdData.UxBlocks.PrintInfoText(i18n.T(i18n.DestructiveOperationConfirmationFailed))
+					return nil
 				}
 			}
 

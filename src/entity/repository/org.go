@@ -42,7 +42,7 @@ func GetOrgById(
 	if err != nil {
 		return entity.Org{}, err
 	}
-	org, found := gn.FindOne(orgs, func(in entity.Org) bool {
+	org, found := gn.FindFirst(orgs, func(in entity.Org) bool {
 		return in.ID == clientId
 	})
 	if !found {

@@ -31,13 +31,13 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			),
 		)).
 		Arg("pathToFileOrDir", cmdBuilder.ArrayArg()).
-		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
-		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
-		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
-		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
+		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("archive-file-path", "", i18n.T(i18n.BuildArchiveFilePath)).
+		StringFlag("version-name", "", i18n.T(i18n.BuildVersionName)).
+		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
-		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
+		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -49,13 +49,13 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			arch := archiveClient.New(archiveClient.Config{
 				Logger:          uxBlocks.GetDebugFileLogger(),
 				Verbose:         cmdData.Params.GetBool("verbose"),
-				DeployGitFolder: cmdData.Params.GetBool("deployGitFolder"),
+				DeployGitFolder: cmdData.Params.GetBool("deploy-git-folder"),
 			})
 
 			configContent, err := yamlReader.ReadZeropsYamlContent(
 				uxBlocks,
-				cmdData.Params.GetString("workingDir"),
-				cmdData.Params.GetString("zeropsYamlPath"),
+				cmdData.Params.GetString("working-dir"),
+				cmdData.Params.GetString("zerops-yaml-path"),
 			)
 			if err != nil {
 				return err
@@ -66,7 +66,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			setup, hasMatch := gn.FindOne(setups, gn.ExactMatch(service.Name.String()))
+			setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
 			if !hasMatch {
 				if !terminal.IsTerminal() {
 					if !cmdData.Params.IsSet(setup) {
@@ -97,7 +97,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.RestApiClient,
 				service,
-				cmdData.Params.GetString("versionName"),
+				cmdData.Params.GetString("version-name"),
 			)
 			if err != nil {
 				return err
@@ -108,14 +108,14 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F: func(ctx context.Context, _ *uxHelpers.Process) error {
-						ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("workingDir"))
+						ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("working-dir"))
 						if err != nil {
 							return err
 						}
 
 						files, err := arch.FindFilesByRules(
 							uxBlocks,
-							cmdData.Params.GetString("workingDir"),
+							cmdData.Params.GetString("working-dir"),
 							cmdData.Args["pathToFileOrDir"],
 							ignorer,
 						)
@@ -125,10 +125,10 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 						reader, writer := io.Pipe()
 						var finalReader io.Reader = reader
-						if cmdData.Params.GetString("archiveFilePath") != "" {
+						if cmdData.Params.GetString("archive-file-path") != "" {
 							packageFile, err := openPackageFile(
-								cmdData.Params.GetString("archiveFilePath"),
-								cmdData.Params.GetString("workingDir"),
+								cmdData.Params.GetString("archive-file-path"),
+								cmdData.Params.GetString("working-dir"),
 							)
 							if err != nil {
 								return err
@@ -169,8 +169,8 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageDone)))
 
-			if cmdData.Params.GetString("archiveFilePath") != "" {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath"))))
+			if cmdData.Params.GetString("archive-file-path") != "" {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archive-file-path"))))
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))

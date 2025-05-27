@@ -81,6 +81,9 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *spinnerModel) View() string {
 	var s string
 	for _, spinner := range m.spinners {
+		if spinner.finished && !spinner.endedWithError {
+			continue
+		}
 		if m.canceled {
 			s += "canceled\n"
 		} else {
@@ -128,6 +131,11 @@ func (s *Spinner) LogView() io.WriteCloser {
 		}
 	}()
 	return w
+}
+
+func (s *Spinner) FinishEmpty() *Spinner {
+	s.finished = true
+	return s
 }
 
 func (s *Spinner) Finish(text styles.Line) *Spinner {

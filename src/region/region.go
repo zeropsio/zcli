@@ -9,7 +9,7 @@ import (
 	"github.com/zeropsio/zcli/src/httpClient"
 )
 
-type RegionItem struct {
+type Item struct {
 	Name      string `json:"name"`
 	IsDefault bool   `json:"isDefault"`
 	Address   string `json:"address"`
@@ -25,10 +25,10 @@ func New(client *httpClient.Handler) *Handler {
 	}
 }
 
-func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]RegionItem, error) {
+func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]Item, error) {
 	resp, err := h.client.Get(ctx, regionURL)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "retrieve regions")
 	}
 	regions, err := readRegions(resp.Body)
 	if err != nil {
@@ -46,7 +46,7 @@ func (h *Handler) RetrieveAllFromURL(ctx context.Context, regionURL string) ([]R
 	return regions, nil
 }
 
-func readRegions(regionFile json.RawMessage) ([]RegionItem, error) {
+func readRegions(regionFile json.RawMessage) ([]Item, error) {
 	var regionItemsResponse response
 	err := json.Unmarshal(regionFile, &regionItemsResponse)
 	if err != nil {
@@ -56,5 +56,5 @@ func readRegions(regionFile json.RawMessage) ([]RegionItem, error) {
 }
 
 type response struct {
-	Items []RegionItem `json:"items"`
+	Items []Item `json:"items"`
 }

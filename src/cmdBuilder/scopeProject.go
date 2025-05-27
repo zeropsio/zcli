@@ -39,10 +39,10 @@ func ScopeProject(opts ...ProjectOption) ScopeLevel {
 	return gn.ApplyOptions(opts...)
 }
 
-const ProjectArgName = "projectId"
+const ProjectArgName = "project-id"
 
 func (p *projectScope) AddCommandFlags(cmd *Cmd) {
-	cmd.StringFlag(ProjectArgName, "", i18n.T(i18n.ProjectIdFlag))
+	cmd.StringFlag(ProjectArgName, "", i18n.T(i18n.ProjectIdFlag), ShortHand("P"))
 }
 
 func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *LoggedUserCmdData) error {
@@ -164,7 +164,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 	)
 	label.WriteString(" name")
 
-	name, err := uxBlock.RunR(
+	name, err := uxBlock.Run(
 		input.NewRoot(
 			ctx,
 			input.WithLabel(label.String()),

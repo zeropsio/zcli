@@ -22,7 +22,7 @@ func loginCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("login").
 		Short(i18n.T(i18n.CmdDescLogin)).
-		StringFlag("regionUrl", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
+		StringFlag("region-url", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
 		StringFlag("region", "", i18n.T(i18n.RegionFlag), cmdBuilder.HiddenFlag()).
 		HelpFlag(i18n.T(i18n.CmdHelpLogin)).
 		Arg("token").
@@ -31,7 +31,7 @@ func loginCmd() *cmdBuilder.Cmd {
 
 			regionRetriever := region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}))
 
-			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("regionUrl"))
+			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("region-url"))
 			if err != nil {
 				return err
 			}
@@ -71,9 +71,9 @@ func loginCmd() *cmdBuilder.Cmd {
 func getLoginRegion(
 	ctx context.Context,
 	uxBlocks uxBlock.UxBlocks,
-	regions []region.RegionItem,
+	regions []region.Item,
 	selectedRegion string,
-) (region.RegionItem, error) {
+) (region.Item, error) {
 	if selectedRegion == "" {
 		for _, reg := range regions {
 			if reg.IsDefault {
@@ -102,7 +102,7 @@ func getLoginRegion(
 		)
 	}
 
-	selected, err := uxBlock.RunR(
+	selected, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			tableBody,
@@ -113,7 +113,7 @@ func getLoginRegion(
 		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
-		return region.RegionItem{}, err
+		return region.Item{}, err
 	}
 
 	reg := regions[selected]

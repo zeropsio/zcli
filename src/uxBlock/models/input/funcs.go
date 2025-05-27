@@ -2,13 +2,13 @@ package input
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/uxBlock/models"
 )
 
 func GetValueFunc(model tea.Model) (string, error) {
 	input, ok := model.(*RootModel)
 	if !ok {
-		return "", errors.New("invalid model type") // FIXME lhellmann: type models invalid model error
+		return "", models.ErrInvalidModelType
 	}
 	if input.Err() != nil {
 		return "", input.Err()

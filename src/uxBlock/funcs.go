@@ -8,8 +8,10 @@ import (
 
 type GetFunc[T any] func(model tea.Model) (T, error)
 
-// RunR runs tea.Model and returns value based on GetFunc[T]
-func RunR[T any](
+func Void(tea.Model) (struct{}, error) { return struct{}{}, nil }
+
+// Run runs tea.Model and returns value based on GetFunc[T]
+func Run[T any](
 	model tea.Model,
 	get GetFunc[T],
 	opts ...tea.ProgramOption,
@@ -18,21 +20,12 @@ func RunR[T any](
 		var t T
 		return t, errors.Errorf("allowed only in interactive terminal")
 	}
-	model, err := tea.NewProgram(model, opts...).Run()
+	teaOpts := []tea.ProgramOption{tea.WithoutSignalHandler()}
+	teaOpts = append(teaOpts, opts...)
+	model, err := tea.NewProgram(model, teaOpts...).Run()
 	if err != nil {
 		var t T
 		return t, err
 	}
 	return get(model)
-}
-
-func getEmpty(tea.Model) (struct{}, error) { return struct{}{}, nil }
-
-// Run runs tea.Model
-func Run(
-	model tea.Model,
-	opts ...tea.ProgramOption,
-) error {
-	_, err := RunR[struct{}](model, getEmpty, opts...)
-	return err
 }

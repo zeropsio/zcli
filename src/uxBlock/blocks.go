@@ -20,12 +20,6 @@ type UxBlocks interface {
 	PrintWarningText(string)
 	PrintError(line styles.Line)
 	PrintErrorText(string)
-	Prompt(
-		ctx context.Context,
-		message string,
-		choices []string,
-		auxOptions ...PromptOption,
-	) (int, error)
 	RunSpinners(ctx context.Context, spinners []*Spinner) func()
 }
 

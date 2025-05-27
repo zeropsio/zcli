@@ -240,7 +240,7 @@ func (m *Model) filter() {
 	}
 	f := table.NewBody()
 	for _, r := range m.tableBody.Rows() {
-		_, hasMatchingCell := gn.FindOne(r.Cells(), func(in table.Cell) bool {
+		_, hasMatchingCell := gn.FindFirst(r.Cells(), func(in table.Cell) bool {
 			cell := in.SetPretty(false).String()
 			return m.filterFunc(strings.ToLower(cell), m.filterField.Value())
 		})

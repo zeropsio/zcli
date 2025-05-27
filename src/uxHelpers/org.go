@@ -47,7 +47,7 @@ func PrintOrgSelector(
 
 	header, body := createOrgTableRows(orgs)
 
-	selected, err := uxBlock.RunR(
+	selected, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			body,

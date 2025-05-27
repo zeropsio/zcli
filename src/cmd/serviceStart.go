@@ -14,7 +14,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 		Use("start").
 		Short(i18n.T(i18n.CmdDescServiceStart)).
 		ScopeLevel(cmdBuilder.ScopeService()).
-		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{serviceName | serviceId}")).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg(), cmdBuilder.OptionalArgLabel("{service-name | service-id}")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceStart)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			service, err := cmdData.Service.Expect("service is null")

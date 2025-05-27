@@ -49,7 +49,7 @@ func PrintServiceSelector(
 
 	header, body := createServiceTableRows(services, cfg.createNew)
 
-	selected, err := uxBlock.RunR(
+	selected, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			body,

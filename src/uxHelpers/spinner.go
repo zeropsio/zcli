@@ -62,7 +62,7 @@ func ProcessCheckWithSpinner(
 				return
 			}
 			if process.SuccessMessage == "" {
-				process.spinner.Finish(styles.NewLine())
+				process.spinner.FinishEmpty()
 				return
 			}
 			process.spinner.Finish(styles.SuccessLine(process.SuccessMessage))

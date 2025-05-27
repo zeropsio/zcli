@@ -11,6 +11,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	. "github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -77,7 +78,14 @@ func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
 func prompts(ctx context.Context, blocks uxBlock.UxBlocks) {
 	fmt.Println("========= prompt block =========")
 	choices := []string{"yes", "no", "maybe"}
-	choice, err := blocks.Prompt(ctx, "Question?", choices)
+	choice, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Question?",
+			choices,
+		),
+		prompt.GetChoiceCursor,
+	)
 	if err != nil {
 		return
 	}
@@ -117,7 +125,7 @@ func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
 
 	fmt.Println("========= table single selection block =========")
 
-	line, err := uxBlock.RunR(
+	line, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			body,
@@ -136,7 +144,7 @@ func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
 	fmt.Println("========= table single selection end =========")
 	fmt.Println("========= table multi selection block =========")
 
-	lines, err := uxBlock.RunR(
+	lines, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			body,

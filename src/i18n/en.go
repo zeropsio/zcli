@@ -25,40 +25,40 @@ and your %s.`,
 	CurrentlyUsedEnvVariables: "Curently used variables:",
 
 	// login
-	CmdHelpLogin:          "the login command.",
+	CmdHelpLogin:          "Help for the login command.",
 	CmdDescLogin:          "Login into Zerops with generated Zerops token",
 	LoginSuccess:          "You are logged as %s <%s>",
 	RegionNotFound:        "Selected region %s not found",
 	RegionTableColumnName: "Name",
 
 	// logout
-	CmdHelpLogout:          "the logout command.",
+	CmdHelpLogout:          "Help for the logout command.",
 	CmdDescLogout:          "Disconnect from VPN and log out from your Zerops account",
 	LogoutVpnDisconnecting: "Disconnecting from VPN. Please provide your password if prompted.",
 	LogoutSuccess:          "Successfully logged out. You are now disconnected from Zerops services.",
 
 	// scope
-	CmdHelpScope: "the scope command.",
+	CmdHelpScope: "Help for the scope command.",
 	CmdDescScope: "Scope commands group",
 
 	// scope project
-	CmdHelpScopeProject: "the scope project command.",
+	CmdHelpScopeProject: "Help for the scope project command.",
 	CmdDescScopeProject: "Sets the scope for project. All commands that require project ID will use the selected one.",
 
 	// scope reset
-	CmdHelpScopeReset: "the scope reset command.",
+	CmdHelpScopeReset: "Help for the scope reset command.",
 	CmdDescScopeReset: "Resets the scope for project and service.",
 
 	// project
-	CmdHelpProject: "the project command.",
+	CmdHelpProject: "Help for the project command.",
 	CmdDescProject: "Project commands group",
 
 	// project lit
-	CmdHelpProjectList: "the project list command.",
+	CmdHelpProjectList: "Help for the project list command.",
 	CmdDescProjectList: "Lists all projects.",
 
 	// project delete
-	CmdHelpProjectDelete: "the project delete command.",
+	CmdHelpProjectDelete: "Help for the project delete command.",
 	CmdDescProjectDelete: "Deletes a project and all of its services.",
 	ProjectDeleteConfirm: "Project %s will be deleted? \n Are you sure?",
 	ServiceDeleteConfirm: "Service %s will be deleted? \n Are you sure?",
@@ -78,32 +78,32 @@ and your %s.`,
 	ServiceImported:             "service(s) imported",
 
 	// service
-	CmdHelpService: "the service command.",
+	CmdHelpService: "Help for the service command.",
 	CmdDescService: "Zerops service commands group",
 
 	// service start
-	CmdHelpServiceStart: "the service start command.",
+	CmdHelpServiceStart: "Help for the service start command.",
 	CmdDescServiceStart: "Starts the Zerops service.",
 	ServiceStarting:     "Service is being started",
 	ServiceStartFailed:  "Service start failed",
 	ServiceStarted:      "Service was started",
 
 	// service stop
-	CmdHelpServiceStop: "the enable Zerops subdomain command.",
+	CmdHelpServiceStop: "Help for the enable Zerops subdomain command.",
 	CmdDescServiceStop: "Starts the Zerops service.",
 	ServiceStopping:    "Service is being stopped",
 	ServiceStopFailed:  "Service stop failed",
 	ServiceStopped:     "Service was stopped",
 
 	// service delete
-	CmdHelpServiceDelete: "the service delete command.",
+	CmdHelpServiceDelete: "Help for the service delete command.",
 	CmdDescServiceDelete: "Deletes the Zerops service.",
 	ServiceDeleting:      "Service is being deleted",
 	ServiceDeleteFailed:  "Service deletion failed",
 	ServiceDeleted:       "Service was deleted",
 
 	// service log
-	CmdHelpServiceLog: "the service log command.",
+	CmdHelpServiceLog: "Help for the service log command.",
 	CmdDescServiceLog: "Get service runtime or build log to stdout.",
 	CmdDescServiceLogLong: "Returns service runtime or build log to stdout. By default, the command returns the last 100\n" +
 		"log messages from all service runtime containers and exits.\n\n" +
@@ -126,7 +126,7 @@ and your %s.`,
 	LogReadingFailed:             "Log reading failed.",
 
 	// service deploy
-	CmdHelpServiceDeploy: "the service deploy command.",
+	CmdHelpServiceDeploy: "Help for the service deploy command.",
 	CmdDescDeploy:        "Deploys your application to Zerops.",
 	CmdDescDeployLong: "Deploys your application to Zerops. \n\n" +
 		"pathToFileOrDir defines a path to one or more directories and/or files relative to the working\n" +
@@ -138,7 +138,7 @@ and your %s.`,
 	DeployFinished: "Deploy finished",
 
 	// push
-	CmdHelpPush: "the service push command.",
+	CmdHelpPush: "Help for the service push command.",
 	CmdDescPush: "Builds your application in Zerops and deploys it",
 	CmdDescPushLong: "Builds your application in Zerops and deploys it. \n\n" +
 		"The command triggers the build pipeline defined in zerops.yml. Zerops.yml must be in the working\n" +
@@ -164,11 +164,11 @@ and your %s.`,
 	PushDeployZeropsYamlFound:       "File zerops.yml found. Path: %s.",
 	PushDeployZeropsYamlNotFound: "File zerops.yml not found. Checked paths: [%s]. \n" +
 		" Please, create a zerops.yml file in the root directory of your project. \n" +
-		" Alternatively you can use the --zeropsYaml flag to specify the path to the zerops.yml file or \n" +
-		" use the --workingDir flag to set the working directory to the directory where the zerops.yml file is located.",
+		" Alternatively you can use the --zerops-yaml flag to specify the path to the zerops.yml file or \n" +
+		" use the --working-dir flag to set the working directory to the directory where the zerops.yml file is located.",
 
 	// service list
-	CmdHelpServiceList: "the service list command.",
+	CmdHelpServiceList: "Help for the service list command.",
 	CmdDescServiceList: "Lists all services in the project.",
 
 	// service enable subdomain
@@ -179,31 +179,31 @@ and your %s.`,
 	ServiceEnabledSubdomain:       "subdomain access enabled",
 
 	// status show debug logs
-	CmdHelpStatusShowDebugLogs: "the status show debug logs command.",
+	CmdHelpStatusShowDebugLogs: "Help for the status show debug logs command.",
 	CmdDescStatusShowDebugLogs: "Shows zCLI debug logs",
 	DebugLogsNotFound:          "Debug logs not found",
 
 	// version
-	CmdHelpVersion: "the version command.",
+	CmdHelpVersion: "Help for the version command.",
 	CmdDescVersion: "Shows the current zCLI version",
 
 	// support
-	CmdHelpSupport: "the support command.",
+	CmdHelpSupport: "Help for the support command.",
 	CmdDescSupport: "How to contact Zerops support for assistance",
 	Contact:        "You can contact Zerops support via:",
 	Documentation: `Additionally, you can explore our documentation
 at https://docs.zerops.io/references/cli for further details.`,
 
 	// env
-	CmdHelpEnv: "the env command.",
+	CmdHelpEnv: "Help for the env command.",
 	CmdDescEnv: "Displays global environment variables, their paths and additional options",
 
 	// vpn
-	CmdHelpVpn: "the vpn command.",
+	CmdHelpVpn: "Help for the vpn command.",
 	CmdDescVpn: "VPN commands group",
 
 	// vpn up
-	CmdHelpVpnUp: "the vpn up command.",
+	CmdHelpVpnUp: "Help for the vpn up command.",
 	CmdDescVpnUp: "Connects to the Zerops VPN.",
 	VpnUp:        "VPN connected",
 
@@ -217,7 +217,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 		"this could indicate a problem on our side. Please contact our support team via %s, %s or join our discord %s.", CustomerSupportLink, CustomerSupportEmail, DiscordCommunityLink),
 
 	// vpn down
-	CmdHelpVpnDown: "the vpn down command.",
+	CmdHelpVpnDown: "Help for the vpn down command.",
 	CmdDescVpnDown: "Disconnects from the Zerops VPN.",
 	VpnDown:        "VPN disconnected",
 
@@ -229,7 +229,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	// flags description
 	RegionFlag:            "Choose one of Zerops regions. Use the \"zcli region list\" command to list all Zerops regions.",
 	RegionUrlFlag:         "Zerops region file url.",
-	BuildVersionName:      "Adds a custom version name. Automatically filled if the VERSIONNAME environment variable exists.",
+	BuildVersionName:      "Adds a custom version name. Automatically filled if the ZEROPS_VERSIONNAME environment variable exists.",
 	BuildWorkingDir:       "Sets a custom working directory. Default working directory is the current directory.",
 	BuildArchiveFilePath:  "If set, zCLI creates a tar.gz archive with the application code in the required path relative\nto the working directory. By default, no archive is created.",
 	ZeropsYamlLocation:    "Sets a custom path to the zerops.yml file relative to the working directory. By default zCLI\nlooks for zerops.yml in the working directory.",
@@ -243,7 +243,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	LogShowBuildFlag:      "If set, zCLI will return build log messages instead of runtime log messages.",
 	LogFollowFlag:         "If set, zCLI will continuously poll for new log messages. By default, the command will exit\nonce there are no more logs to display. To exit from this mode, use Control-C.",
 	LogFormatFlag:         "The format of returned log messages. Following formats are supported: \nFULL: This is the default format. Messages will be returned in the complete Syslog format. \nSHORT: Returns only timestamp and log message.\nJSON: Messages will be returned as one JSON object.\nJSONSTREAM: Messages will be returned as stream of JSON objects.",
-	LogFormatTemplateFlag: "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.timestamp}} {{.severity}} {{.facility}} {{.message}}\".\nSupports standard GoLang template format and functions.",
+	LogFormatTemplateFlag: "Set a custom log format. Can be used only with --format=FULL.\nExample: --formatTemplate=\"{{.Timestamp}} {{.Severity}} {{.Facility}} {{.Message}}\".\nSupports standard GoLang template format and functions.",
 	ConfirmFlag:           "If set, zCLI will not ask for confirmation of destructive operations.",
 	ServiceIdFlag:         "If you have access to more than one service, you must specify the service ID for which the\ncommand is to be executed.",
 	ProjectIdFlag:         "If you have access to more than one project, you must specify the project ID for which the\ncommand is to be executed.",
@@ -327,7 +327,7 @@ more info: https://docs.zerops.io/references/cli/`,
 	PreviouslyScopedProject: "Previously scoped project",
 	ScopeReset:              "Scope was reset",
 
-	DestructiveOperationConfirmationFailed: "You have to confirm a destructive operation.",
+	DestructiveOperationConfirmationFailed: "Destructive operation has to be confirmed.",
 
 	// errors
 	ErrorInvalidProjectId:       "Invalid project ID [%s], %s", // values: projectId, message

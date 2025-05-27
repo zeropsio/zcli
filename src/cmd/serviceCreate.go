@@ -29,28 +29,30 @@ import (
 	"github.com/zeropsio/zerops-go/types/enum"
 )
 
+const maxEnvFileSize = units.MiB
+
 func serviceCreateCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("create").
-		Short("").
+		Short("Crates a new project for specified project.").
 		ScopeLevel(cmdBuilder.ScopeProject()).
-		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
-		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
+		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("name", "", "Service name").
 		StringFlag("mode", enumDefaultForFlag(enum.ServiceStackModeEnumNonHa), "Service mode "+enumValuesForFlag(enum.ServiceStackModeEnumAllPublic())).
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ServiceFields)).
-		StringFlag("envFile", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml)").
+		StringFlag("env-file", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml). Max file size is "+units.ByteCountIEC(maxEnvFileSize)).
 		StringSliceFlag("env", nil, "Envs to be set as secrets, runtime envs can be defined in zerops.yml. Accepts comma separated string or repeated flag. Format: {key}={value}").
-		BoolFlag("startWithoutCode", false, "Start service immediately, empty without deploy").
+		BoolFlag("start-without-code", false, "Start service immediately, empty without deploy").
 		BoolFlag("noop", false, "Creates service only if none with the same name exists").
-		HelpFlag("").
+		HelpFlag("Help for the service create command.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			project, err := cmdData.Project.Expect("project is nil")
 			if err != nil {
 				return err
 			}
 
-			startWithoutCode := cmdData.Params.GetBool("startWithoutCode")
+			startWithoutCode := cmdData.Params.GetBool("startW-without-code")
 
 			mode := cmdData.Params.GetString("mode")
 			mode = strings.ToUpper(mode)
@@ -58,10 +60,10 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return errors.Errorf("Invalid --mode, expected one of %s, got %s", enum.ServiceStackModeEnumAllPublic(), mode)
 			}
 
-			envFilePath := cmdData.Params.GetString("envFile")
+			envFilePath := cmdData.Params.GetString("env-file")
 			var envFile types.TextNull
 			if envFilePath != "" {
-				workingDir := cmdData.Params.GetString("workingDir")
+				workingDir := cmdData.Params.GetString("working-dir")
 				envFilePath = path.Join(workingDir, envFilePath)
 				envFilePath, err = filepath.Abs(envFilePath)
 				if err != nil {
@@ -72,9 +74,8 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 					return errors.WithStack(err)
 				}
 				if stat.IsDir() {
-					return errors.New("Env file must be a file")
+					return errors.New("--env-file must point to a file")
 				}
-				const maxEnvFileSize = units.MiB
 				if stat.Size() > int64(maxEnvFileSize) {
 					return errors.Errorf("Env file size too large, max allowed size %s", units.ByteCountIEC(maxEnvFileSize))
 				}
@@ -106,8 +107,8 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 
 			configContent, err := yamlReader.ReadZeropsYamlContent(
 				cmdData.UxBlocks,
-				cmdData.Params.GetString("workingDir"),
-				cmdData.Params.GetString("zeropsYamlPath"),
+				cmdData.Params.GetString("working-dir"),
+				cmdData.Params.GetString("zerops-yaml-path"),
 				yamlReader.WithReturnErrOnZeropsYamlNotFound(false),
 			)
 			if err != nil {
@@ -134,7 +135,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 
 			name := cmdData.Params.GetString("name")
 			if name == "" && terminal.IsTerminal() {
-				name, err = uxBlock.RunR(
+				name, err = uxBlock.Run(
 					input.NewRoot(
 						ctx,
 						input.WithLabel(label.String()),

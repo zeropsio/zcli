@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/errorCode"
 )
 
@@ -76,7 +77,11 @@ func rootCmd() *cmdBuilder.Cmd {
 			}
 
 			var vpnStatusText string
-			if isVpnUp(ctx, cmdData.UxBlocks, 1) {
+			vpnActive, err := wg.InterfaceExists()
+			if err != nil {
+				return err
+			}
+			if vpnActive {
 				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsActive)
 			} else {
 				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsNotActive)

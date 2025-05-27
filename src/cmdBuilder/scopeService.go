@@ -53,11 +53,11 @@ func ScopeService(opts ...ServiceOption) ScopeLevel {
 	)
 }
 
-const ServiceArgName = "serviceIdOrName"
-const serviceFlagName = "serviceId"
+const ServiceArgName = "service-id-or-name"
+const serviceFlagName = "service-id"
 
 func (s *serviceScope) AddCommandFlags(cmd *Cmd) {
-	cmd.StringFlag(serviceFlagName, "", i18n.T(i18n.ServiceIdFlag))
+	cmd.StringFlag(serviceFlagName, "", i18n.T(i18n.ServiceIdFlag), ShortHand("S"))
 	s.parent.AddCommandFlags(cmd)
 }
 
@@ -161,7 +161,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 	)
 	label.WriteString(" name")
 
-	name, err := uxBlock.RunR(
+	name, err := uxBlock.Run(
 		input.NewRoot(
 			ctx,
 			input.WithLabel(label.String()),

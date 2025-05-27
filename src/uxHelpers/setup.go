@@ -17,7 +17,7 @@ func PrintSetupSelector(
 ) (string, error) {
 	header, rows := createSetupTableRows(setups)
 
-	selected, err := uxBlock.RunR(
+	selected, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			rows,

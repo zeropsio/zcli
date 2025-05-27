@@ -19,12 +19,12 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 		Long(i18n.T(i18n.CmdDescServiceLogLong)).
 		ScopeLevel(cmdBuilder.ScopeService()).
 		IntFlag("limit", 100, i18n.T(i18n.LogLimitFlag)).
-		StringFlag("minimumSeverity", "", i18n.T(i18n.LogMinSeverityFlag)).
-		StringFlag("messageType", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).
+		StringFlag("minimum-severity", "", i18n.T(i18n.LogMinSeverityFlag)).
+		StringFlag("message-type", "APPLICATION", i18n.T(i18n.LogMsgTypeFlag)).
 		StringFlag("format", "FULL", i18n.T(i18n.LogFormatFlag)).
-		StringFlag("formatTemplate", "", i18n.T(i18n.LogFormatTemplateFlag)).
+		StringFlag("format-template", "", i18n.T(i18n.LogFormatTemplateFlag)).
 		BoolFlag("follow", false, i18n.T(i18n.LogFollowFlag)).
-		BoolFlag("showBuildLogs", false, i18n.T(i18n.LogShowBuildFlag)).
+		BoolFlag("show-build-logs", false, i18n.T(i18n.LogShowBuildFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceLog)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			project, err := cmdData.Project.Expect("project is null")
@@ -68,10 +68,10 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 				Project:        project,
 				ServiceId:      serviceId,
 				Limit:          cmdData.Params.GetInt("limit"),
-				MinSeverity:    cmdData.Params.GetString("minimumSeverity"),
-				MsgType:        cmdData.Params.GetString("messageType"),
+				MinSeverity:    cmdData.Params.GetString("minimum-severity"),
+				MsgType:        cmdData.Params.GetString("message-type"),
 				Format:         cmdData.Params.GetString("format"),
-				FormatTemplate: cmdData.Params.GetString("formatTemplate"),
+				FormatTemplate: cmdData.Params.GetString("format-template"),
 				Follow:         cmdData.Params.GetBool("follow"),
 				// TODO - janhajek better place?
 				Levels: serviceLogs.DefaultLevels,

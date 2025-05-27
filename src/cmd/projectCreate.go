@@ -26,15 +26,15 @@ func formatAllowedTemplateFields(fields []string) string {
 func projectCreateCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("create").
-		Short("").
+		Short("Crates a new project for specified org.").
 		StringFlag("name", "", "Project name").
-		StringFlag("orgId", "", "Organization ID to create project for").
+		StringFlag("org-id", "", "Organization ID to create project for").
 		StringSliceFlag("tags", nil, "Project tags. Comma separated list or repeated flag.").
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ProjectFields)).
 		StringFlag("mode", enumDefaultForFlag(enum.ProjectModeEnumLight), "Project mode"+enumValuesForFlag(enum.ProjectModeEnumAllPublic())).
-		StringFlag("envIsolation", "service", "Env isolation setting ['service', 'none'] for more see docs <TODO link>").
-		StringFlag("sshIsolation", "vpn", "SSH isolation setting, for more see docs <TODO link>").
-		HelpFlag("").
+		StringFlag("env-isolation", "none", "Env isolation setting ['none', 'service'] for more see docs <TODO link>").
+		StringFlag("ssh-isolation", "vpn", "SSH isolation setting, for more see docs <TODO link>").
+		HelpFlag("Help for the project create command.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			var err error
 
@@ -53,7 +53,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			orgId := cmdData.Params.GetString("orgId")
+			orgId := cmdData.Params.GetString("org-id")
 			var org entity.Org
 			switch {
 			case orgId != "":
@@ -66,7 +66,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 					return err
 				}
 			case !terminal.IsTerminal():
-				return errors.New("Must specify organization ID with --orgId")
+				return errors.New("Must specify organization ID with --org-id")
 			default:
 				org, err = uxHelpers.PrintOrgSelector(
 					ctx,
@@ -91,7 +91,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 
 			name := cmdData.Params.GetString("name")
 			if name == "" && terminal.IsTerminal() {
-				name, err = uxBlock.RunR(
+				name, err = uxBlock.Run(
 					input.NewRoot(
 						ctx,
 						input.WithLabel(label.String()),
@@ -113,8 +113,8 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				Name:         types.NewString(name),
 				Tags:         cmdData.Params.GetStringSlice("tags"),
 				Mode:         enum.ProjectModeEnum(mode),
-				SshIsolation: types.NewStringNull(cmdData.Params.GetString("sshIsolation")),
-				EnvIsolation: types.NewStringNull(cmdData.Params.GetString("envIsolation")),
+				SshIsolation: types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
+				EnvIsolation: types.NewStringNull(cmdData.Params.GetString("env-isolation")),
 			})
 			if err != nil {
 				return err

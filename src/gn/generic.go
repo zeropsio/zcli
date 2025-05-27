@@ -88,7 +88,7 @@ func ExactMatch[T comparable](in T) func(T) bool {
 	}
 }
 
-func FindOne[T any](in []T, filter func(in T) bool) (r T, _ bool) {
+func FindFirst[T any](in []T, filter func(in T) bool) (r T, _ bool) {
 	for _, i := range in {
 		if filter(i) {
 			return i, true

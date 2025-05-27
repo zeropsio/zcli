@@ -48,7 +48,7 @@ func PrintProjectSelector(
 
 	header, body := createProjectTableRows(projects, cfg.createNew)
 
-	selected, err := uxBlock.RunR(
+	selected, err := uxBlock.Run(
 		selector.NewRoot(
 			ctx,
 			body,
@@ -88,7 +88,7 @@ func PrintProjectList(
 }
 
 func createProjectTableRows(projects []entity.Project, createNewProject bool) (*table.Row, *table.Body) {
-	header := table.NewRowFromStrings("ID", "Name", "Org Name", "Org ID", "Status")
+	header := table.NewRowFromStrings("id", "name", "org name", "org id", "status", "mode")
 
 	tableBody := table.NewBody()
 	for _, project := range projects {
@@ -98,6 +98,7 @@ func createProjectTableRows(projects []entity.Project, createNewProject bool) (*
 			project.OrgName.Native(),
 			project.OrgId.Native(),
 			project.Status.String(),
+			project.Mode.String(),
 		)
 	}
 	if createNewProject {
