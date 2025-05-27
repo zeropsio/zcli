@@ -34,7 +34,7 @@ func ProcessCheckWithSpinner(
 			uxBlock.NewSpinner(styles.NewLine(styles.InfoText(process.RunningMessage)).String()),
 		)
 	}
-	stopFunc, sendFunc := uxBlocks.RunSpinners(ctx, spinners)
+	stopFunc, send := uxBlocks.RunSpinners(ctx, spinners)
 	defer stopFunc()
 
 	var returnErr error
@@ -49,9 +49,9 @@ func ProcessCheckWithSpinner(
 			err := process.F(ctx, process)
 			if err != nil {
 				if process.ErrorMessageMessage == "" {
-					sendFunc(uxBlock.Finnish())
+					send(uxBlock.Finnish())
 				} else {
-					sendFunc(uxBlock.FinnishWithLine(styles.ErrorLine(process.ErrorMessageMessage).String()))
+					send(uxBlock.FinnishWithLine(styles.ErrorLine(process.ErrorMessageMessage).String()))
 				}
 				once.Do(func() {
 					returnErr = err
@@ -59,9 +59,9 @@ func ProcessCheckWithSpinner(
 				return
 			}
 			if process.SuccessMessage == "" {
-				sendFunc(uxBlock.Finnish())
+				send(uxBlock.Finnish())
 			} else {
-				sendFunc(uxBlock.FinnishWithLine(styles.SuccessLine(process.SuccessMessage).String()))
+				send(uxBlock.FinnishWithLine(styles.SuccessLine(process.SuccessMessage).String()))
 			}
 		}(&processList[i])
 	}

@@ -79,6 +79,11 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
+	cmds := make([]tea.Cmd, 0, len(m.spinners))
+	for _, s := range m.spinners {
+		cmds = append(cmds, s.update(msg))
+	}
+
 	switch msg := msg.(type) {
 	case spinnerEndCmd:
 		m.quiting = true
@@ -88,26 +93,18 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quiting = true
 		}
 	}
-	cmds := make([]tea.Cmd, 0, len(m.spinners))
-	for _, s := range m.spinners {
-		cmds = append(cmds, s.update(msg))
-	}
 	return m, tea.Batch(cmds...)
 }
 
 func (m *spinnerModel) View() string {
 	var s string
 	for _, spinner := range m.spinners {
-		if spinner.finished {
-			continue
-		}
 		if m.canceled {
 			s += "canceled\n"
 		} else {
 			s += spinner.view() + "\n"
 		}
 	}
-
 	return s
 }
 
@@ -148,10 +145,6 @@ func (s *Spinner) init() tea.Cmd {
 }
 
 func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
-	if s.finished {
-		return nil
-	}
-
 	var cmds []tea.Cmd
 	s.spinner, cmd = s.spinner.Update(msg)
 	cmds = append(cmds, cmd)

@@ -180,7 +180,6 @@ func (m *Model) headerView() string {
 		Padding(0, 1).
 		BorderForeground(styles.InfoColor).
 		Border(lipgloss.NormalBorder()).
-		Width(m.width - (lipgloss.Width(lipgloss.NormalBorder().Left) * 2)).
 		Render(s)
 }
 

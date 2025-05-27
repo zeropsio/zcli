@@ -217,19 +217,24 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										return nil
 									}
 									if logsHandler == nil {
-										pipelineLink := styles.NewStringBuilder()
-										pipelineLink.WriteInfoColor("View full pipeline at ")
-										pipelineLink.WriteSuccessColor(fmt.Sprintf(
+										pipelineLink := fmt.Sprintf(
 											"https://app.zerops.io/service-stack/%s/deploy/%s",
 											service.ID,
 											apiProcess.AppVersion.Id,
-										))
+										)
+										pipelineLinkText := styles.NewStringBuilder()
+										pipelineLinkText.WriteInfoColor("View full pipeline at ")
+										pipelineLinkText.WriteStyledString(
+											styles.SuccessStyle().
+												Bold(true),
+											pipelineLink,
+										)
 
 										logsHandler = serviceLogs.New(
 											process.LogView(
-												logView.WithAdditionalText(pipelineLink.String()),
+												logView.WithAdditionalText(pipelineLinkText.String()),
 												logView.WithVerticalOffset(3),
-												logView.WithMaxHeight(60),
+												logView.WithMaxHeight(max(30, int(float64(cmdData.UxBlocks.TerminalHeight)*0.75))),
 											),
 											serviceLogs.Config{},
 											cmdData.RestApiClient,
