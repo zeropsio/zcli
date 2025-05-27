@@ -20,9 +20,7 @@ func Run[T any](
 		var t T
 		return t, errors.Errorf("allowed only in interactive terminal")
 	}
-	teaOpts := []tea.ProgramOption{tea.WithoutSignalHandler()}
-	teaOpts = append(teaOpts, opts...)
-	model, err := tea.NewProgram(model, teaOpts...).Run()
+	model, err := tea.NewProgram(model, opts...).Run()
 	if err != nil {
 		var t T
 		return t, err

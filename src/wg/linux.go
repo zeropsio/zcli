@@ -4,7 +4,6 @@ package wg
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"os/exec"
@@ -53,7 +52,6 @@ func InterfaceExists() (bool, error) {
 		return false, errors.Wrap(err, "Can't resolve net interfaces")
 	}
 	_, found := gn.FindFirst(interfaces, func(in net.Interface) bool {
-		fmt.Println(in.Name)
 		return in.Name == constants.WgInterfaceName
 	})
 	return found, nil

@@ -11,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
+	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
@@ -30,14 +31,10 @@ func ProcessCheckWithSpinner(
 	spinners := make([]*uxBlock.Spinner, 0, len(processList))
 	for _, process := range processList {
 		spinners = append(spinners,
-			uxBlock.NewSpinner(
-				styles.NewLine(styles.InfoText(process.RunningMessage)),
-				uxBlocks.TerminalWidth,
-				uxBlocks.TerminalHeight,
-			),
+			uxBlock.NewSpinner(styles.NewLine(styles.InfoText(process.RunningMessage)).String()),
 		)
 	}
-	stopFunc := uxBlocks.RunSpinners(ctx, spinners)
+	stopFunc, sendFunc := uxBlocks.RunSpinners(ctx, spinners)
 	defer stopFunc()
 
 	var returnErr error
@@ -52,9 +49,9 @@ func ProcessCheckWithSpinner(
 			err := process.F(ctx, process)
 			if err != nil {
 				if process.ErrorMessageMessage == "" {
-					process.spinner.Finish(styles.NewLine())
+					sendFunc(uxBlock.Finnish())
 				} else {
-					process.spinner.FinishWithError(styles.ErrorLine(process.ErrorMessageMessage))
+					sendFunc(uxBlock.FinnishWithLine(styles.ErrorLine(process.ErrorMessageMessage).String()))
 				}
 				once.Do(func() {
 					returnErr = err
@@ -62,10 +59,10 @@ func ProcessCheckWithSpinner(
 				return
 			}
 			if process.SuccessMessage == "" {
-				process.spinner.FinishEmpty()
-				return
+				sendFunc(uxBlock.Finnish())
+			} else {
+				sendFunc(uxBlock.FinnishWithLine(styles.SuccessLine(process.SuccessMessage).String()))
 			}
-			process.spinner.Finish(styles.SuccessLine(process.SuccessMessage))
 		}(&processList[i])
 	}
 	wg.Wait()
@@ -84,11 +81,11 @@ type Process struct {
 	spinner             *uxBlock.Spinner
 }
 
-func (p *Process) LogView() io.Writer {
+func (p *Process) LogView(opts ...logView.Option) io.Writer {
 	if !terminal.IsTerminal() {
 		return os.Stdout
 	}
-	return p.spinner.LogView()
+	return p.spinner.LogView(opts...)
 }
 
 func CheckZeropsProcessWithProcessOutputCallback(callback ProcessCallback) gn.Option[checkZeropsProcessSetup] {

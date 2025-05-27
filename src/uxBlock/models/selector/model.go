@@ -168,6 +168,10 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 			m.Up(m.jump)
 		case key.Matches(keyMsg, m.keyMap.PageDown):
 			m.Down(m.jump)
+		case key.Matches(keyMsg, m.keyMap.Home):
+			m.Home()
+		case key.Matches(keyMsg, m.keyMap.End):
+			m.End()
 		case key.Matches(keyMsg, m.keyMap.Select):
 			if !m.multi {
 				m.Select()
@@ -201,6 +205,20 @@ func (m *Model) Down(jump int) {
 		return
 	}
 	m.cursor = min(len(m.filteredBody.Rows())-1, m.cursor+jump)
+}
+
+func (m *Model) Home() {
+	if !m.hasResults() {
+		return
+	}
+	m.cursor = 0
+}
+
+func (m *Model) End() {
+	if !m.hasResults() {
+		return
+	}
+	m.cursor = len(m.filteredBody.Rows()) - 1
 }
 
 func (m *Model) Select() {

@@ -13,6 +13,7 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
 	"github.com/zeropsio/zcli/src/terminal"
+	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
@@ -216,8 +217,20 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										return nil
 									}
 									if logsHandler == nil {
+										pipelineLink := styles.NewStringBuilder()
+										pipelineLink.WriteInfoColor("View full pipeline at ")
+										pipelineLink.WriteSuccessColor(fmt.Sprintf(
+											"https://app.zerops.io/service-stack/%s/deploy/%s",
+											service.ID,
+											apiProcess.AppVersion.Id,
+										))
+
 										logsHandler = serviceLogs.New(
-											process.LogView(),
+											process.LogView(
+												logView.WithAdditionalText(pipelineLink.String()),
+												logView.WithVerticalOffset(3),
+												logView.WithMaxHeight(60),
+											),
 											serviceLogs.Config{},
 											cmdData.RestApiClient,
 										)

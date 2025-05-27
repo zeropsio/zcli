@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	tea "github.com/charmbracelet/bubbletea"
 	gomock "github.com/golang/mock/gomock"
 	logger "github.com/zeropsio/zcli/src/logger"
 	uxBlock "github.com/zeropsio/zcli/src/uxBlock"
@@ -150,11 +151,12 @@ func (mr *MockUxBlocksMockRecorder) PrintWarningText(arg0 interface{}) *gomock.C
 }
 
 // RunSpinners mocks base method.
-func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) func() {
+func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) (func(), func(tea.Msg)) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunSpinners", ctx, spinners)
 	ret0, _ := ret[0].(func())
-	return ret0
+	ret1, _ := ret[1].(func(tea.Msg))
+	return ret0, ret1
 }
 
 // RunSpinners indicates an expected call of RunSpinners.

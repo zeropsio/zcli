@@ -119,6 +119,8 @@ func (r *RootModel) HelpView() string {
 		r.Model.keyMap.LineDown,
 		r.Model.keyMap.PageUp,
 		r.Model.keyMap.PageDown,
+		r.Model.keyMap.Home,
+		r.Model.keyMap.End,
 		r.Model.keyMap.MultiSelect,
 		r.Model.keyMap.SelectAll,
 		r.Model.keyMap.DeselectAll,

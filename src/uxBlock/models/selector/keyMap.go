@@ -9,6 +9,8 @@ type KeyMap struct {
 	LineDown key.Binding
 	PageUp   key.Binding
 	PageDown key.Binding
+	Home     key.Binding
+	End      key.Binding
 
 	Select      key.Binding
 	MultiSelect key.Binding
@@ -36,6 +38,14 @@ func DefaultKeymap() KeyMap {
 		PageDown: key.NewBinding(
 			key.WithKeys("pgdown"),
 			key.WithHelp("page down", "press to jump down a few lines"),
+		),
+		Home: key.NewBinding(
+			key.WithKeys("home"),
+			key.WithHelp("home", "press to jump to the top of the table"),
+		),
+		End: key.NewBinding(
+			key.WithKeys("end"),
+			key.WithHelp("end", "press to jump to the bottom of the table"),
 		),
 
 		Select: key.NewBinding(
