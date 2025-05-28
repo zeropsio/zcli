@@ -219,7 +219,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 									if logsHandler == nil {
 										pipelineLink := fmt.Sprintf(
 											"https://app.zerops.io/service-stack/%s/deploy/%s",
-											service.ID,
+											service.Id,
 											apiProcess.AppVersion.Id,
 										)
 										pipelineLinkText := styles.NewStringBuilder()

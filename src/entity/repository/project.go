@@ -9,7 +9,6 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -48,7 +47,7 @@ func GetAllProjects(
 				{
 					Name:     "clientId",
 					Operator: "eq",
-					Value:    org.ID.TypedString(),
+					Value:    org.Id.TypedString(),
 				},
 			},
 		}
@@ -70,22 +69,13 @@ func GetAllProjects(
 	return projects, nil
 }
 
-type ProjectPost struct {
-	ClientId     uuid.ClientId
-	Name         types.String
-	Tags         types.StringArray
-	Mode         enum.ProjectModeEnum
-	SshIsolation types.StringNull
-	EnvIsolation types.StringNull
-}
-
 func PostProject(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	post ProjectPost,
+	post entity.PostProject,
 ) (entity.Project, error) {
 	postBody := body.PostProject{
-		ClientId:     post.ClientId,
+		ClientId:     post.OrgId,
 		Name:         post.Name,
 		Mode:         &post.Mode,
 		TagList:      post.Tags,
@@ -110,10 +100,10 @@ func projectFromEsSearch(org entity.Org, esProject output.EsProject) entity.Proj
 	description, _ := esProject.Description.Get()
 
 	return entity.Project{
-		ID:          esProject.Id,
+		Id:          esProject.Id,
 		Name:        esProject.Name,
 		Mode:        esProject.Mode,
-		OrgId:       org.ID,
+		OrgId:       org.Id,
 		OrgName:     org.Name,
 		Description: description,
 		Status:      esProject.Status,
@@ -124,7 +114,7 @@ func projectFromApiOutput(project output.Project) entity.Project {
 	description, _ := project.Description.Get()
 
 	return entity.Project{
-		ID:          project.Id,
+		Id:          project.Id,
 		Name:        project.Name,
 		Mode:        project.Mode,
 		OrgId:       project.ClientId,

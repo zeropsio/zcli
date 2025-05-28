@@ -97,7 +97,7 @@ func GetNonSystemServicesByProject(
 			{
 				Name:     "projectId",
 				Operator: "eq",
-				Value:    project.ID.TypedString(),
+				Value:    project.Id.TypedString(),
 			},
 			{
 				Name:     "clientId",
@@ -127,11 +127,41 @@ func GetNonSystemServicesByProject(
 	return services, nil
 }
 
+func PostGenericService(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	post entity.PostService,
+) (entity.Process, entity.Service, error) {
+	postBody := body.PostStandardServiceStack{
+		ProjectId:        post.ProjectId,
+		Name:             post.Name,
+		Mode:             &post.Mode,
+		UserDataEnvFile:  post.EnvFile,
+		StartWithoutCode: types.NewBoolNull(post.StartWithoutCode.Native()),
+		EnvIsolation:     post.EnvIsolation,
+		SshIsolation:     post.SshIsolation,
+	}
+	response, err := restApiClient.PostServiceStack(
+		ctx,
+		path.ServiceStackServiceStackTypeVersionId{ServiceStackTypeVersionId: "runtime"},
+		postBody,
+	)
+	if err != nil {
+		return entity.Process{}, entity.Service{}, err
+	}
+
+	serviceStackProcess, err := response.Output()
+	if err != nil {
+		return entity.Process{}, entity.Service{}, err
+	}
+
+	return processFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
+}
 func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 	return entity.Service{
-		ID:                          esServiceStack.Id,
-		ProjectID:                   esServiceStack.ProjectId,
-		ClientId:                    esServiceStack.ClientId,
+		Id:                          esServiceStack.Id,
+		ProjectId:                   esServiceStack.ProjectId,
+		OrgId:                       esServiceStack.ClientId,
 		Name:                        esServiceStack.Name,
 		Status:                      esServiceStack.Status,
 		ServiceTypeId:               esServiceStack.ServiceStackTypeId,
@@ -142,9 +172,22 @@ func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
 	return entity.Service{
-		ID:                          service.Id,
-		ProjectID:                   service.ProjectId,
-		ClientId:                    service.Project.ClientId,
+		Id:                          service.Id,
+		ProjectId:                   service.ProjectId,
+		OrgId:                       service.Project.ClientId,
+		Name:                        service.Name,
+		Status:                      service.Status,
+		ServiceTypeId:               service.ServiceStackTypeId,
+		ServiceTypeCategory:         service.ServiceStackTypeInfo.ServiceStackTypeCategory,
+		ServiceStackTypeVersionName: service.ServiceStackTypeInfo.ServiceStackTypeVersionName,
+	}
+}
+
+func serviceFromApiPostOutput(service output.ServiceStackProcess) entity.Service {
+	return entity.Service{
+		Id:                          service.Id,
+		ProjectId:                   service.ProjectId,
+		OrgId:                       service.Project.ClientId,
 		Name:                        service.Name,
 		Status:                      service.Status,
 		ServiceTypeId:               service.ServiceStackTypeId,

@@ -95,7 +95,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 	project := cmdData.Project.Some()
 
 	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists && !cmdData.Service.Filled() {
-		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, project.ID, serviceIdOrName[0])
+		service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, project.Id, serviceIdOrName[0])
 		if err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 		ctx,
 		dtoPath.ServiceStackServiceStackTypeVersionId{ServiceStackTypeVersionId: "alpine_v3_21"},
 		body.PostStandardServiceStack{
-			ProjectId: project.ID,
+			ProjectId: project.Id,
 			Name:      types.NewString(name),
 		},
 	)
@@ -190,7 +190,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 	serviceStackProcess, err := response.Output()
 	if err != nil {
 		if apiError.HasErrorCode(err, errorCode.ServiceStackNameUnavailable) {
-			service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.ID, types.NewString(name))
+			service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, types.NewString(name))
 			if err != nil {
 				return entity.Service{}, err
 			}

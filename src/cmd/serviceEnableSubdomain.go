@@ -26,7 +26,7 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 			enableSubdomainResponse, err := cmdData.RestApiClient.PutServiceStackEnableSubdomainAccess(
 				ctx,
 				path.ServiceStackId{
-					Id: service.ID,
+					Id: service.Id,
 				},
 			)
 			if err != nil {

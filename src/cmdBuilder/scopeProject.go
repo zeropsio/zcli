@@ -51,7 +51,7 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 
 	// service scope is set - use project from it
 	if service, filled := cmdData.Service.Get(); filled {
-		project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, service.ProjectID)
+		project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, service.ProjectId)
 		if err == nil {
 			cmdData.Project = optional.New(project)
 			return nil
@@ -178,10 +178,10 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 		return entity.Project{}, err
 	}
 
-	project, err := repository.PostProject(ctx, cmdData.RestApiClient, repository.ProjectPost{
-		ClientId: selectedOrg.ID,
-		Name:     types.NewString(name),
-		Mode:     enum.ProjectModeEnumLight,
+	project, err := repository.PostProject(ctx, cmdData.RestApiClient, entity.PostProject{
+		OrgId: selectedOrg.Id,
+		Name:  types.NewString(name),
+		Mode:  enum.ProjectModeEnumLight,
 	})
 	if err != nil {
 		return entity.Project{}, err

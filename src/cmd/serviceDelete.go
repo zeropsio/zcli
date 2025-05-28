@@ -57,7 +57,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 			deleteServiceResponse, err := cmdData.RestApiClient.DeleteServiceStack(
 				ctx,
 				path.ServiceStackId{
-					Id: service.ID,
+					Id: service.Id,
 				},
 			)
 			if err != nil {

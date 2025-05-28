@@ -81,7 +81,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			postProjectResponse, err := cmdData.RestApiClient.PostProjectVpn(
 				ctx,
-				path.ProjectId{Id: project.ID},
+				path.ProjectId{Id: project.Id},
 				body.PostProjectVpn{PublicKey: types.String(publicKey.String())},
 			)
 			if err != nil {
@@ -115,8 +115,8 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				if data.VpnKeys == nil {
 					data.VpnKeys = make(map[uuid.ProjectId]entity.VpnKey)
 				}
-				data.VpnKeys[project.ID] = entity.VpnKey{
-					ProjectId: project.ID,
+				data.VpnKeys[project.Id] = entity.VpnKey{
+					ProjectId: project.Id,
 					Key:       privateKey.String(),
 					CreatedAt: time.Now(),
 				}
@@ -173,7 +173,7 @@ func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 }
 
 func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Key, error) {
-	projectId := project.ID
+	projectId := project.Id
 
 	if vpnKey, exists := cmdData.VpnKeys[projectId]; exists {
 		wgKey, err := wgtypes.ParseKey(vpnKey.Key)

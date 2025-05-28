@@ -105,7 +105,7 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 	}
 
 	if len(orgs) == 1 {
-		return orgs[0].ID, nil
+		return orgs[0].Id, nil
 	}
 
 	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.RestApiClient)
@@ -113,5 +113,5 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 		return "", err
 	}
 
-	return selectedOrg.ID, nil
+	return selectedOrg.Id, nil
 }

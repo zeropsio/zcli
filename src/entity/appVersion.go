@@ -10,7 +10,7 @@ import (
 
 type AppVersion struct {
 	Id         uuid.AppVersionId
-	ClientId   uuid.ClientId
+	OrgId      uuid.ClientId
 	ProjectId  uuid.ProjectId
 	ServiceId  uuid.ServiceStackId
 	Source     enum.AppVersionSourceEnum

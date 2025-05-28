@@ -7,8 +7,8 @@ import (
 )
 
 type Container struct {
-	ID        uuid.ContainerId
-	ClientId  uuid.ClientId
+	Id        uuid.ContainerId
+	OrgId     uuid.ClientId
 	ProjectId uuid.ProjectId
 	ServiceId uuid.ServiceStackId
 	Status    enum.ContainerStatusEnum

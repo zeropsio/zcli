@@ -7,7 +7,7 @@ import (
 )
 
 type Project struct {
-	ID          uuid.ProjectId
+	Id          uuid.ProjectId
 	Name        types.String
 	Mode        enum.ProjectModeEnum
 	OrgId       uuid.ClientId
@@ -17,3 +17,12 @@ type Project struct {
 }
 
 var ProjectFields = entityTemplateFields[Project]()
+
+type PostProject struct {
+	OrgId        uuid.ClientId
+	Name         types.String
+	Tags         types.StringArray
+	Mode         enum.ProjectModeEnum
+	SshIsolation types.StringNull
+	EnvIsolation types.StringNull
+}

@@ -11,7 +11,7 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 
 	// TODO - janhajek check empty containerID
-	if err = h.printLogs(ctx, inputs, config.Project.ID, config.ServiceId, config.Container.ID); err != nil {
+	if err = h.printLogs(ctx, inputs, config.Project.Id, config.ServiceId, config.Container.Id); err != nil {
 		return err
 	}
 

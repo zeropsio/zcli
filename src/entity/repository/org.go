@@ -43,7 +43,7 @@ func GetOrgById(
 		return entity.Org{}, err
 	}
 	org, found := gn.FindFirst(orgs, func(in entity.Org) bool {
-		return in.ID == clientId
+		return in.Id == clientId
 	})
 	if !found {
 		return entity.Org{}, errors.Errorf("Org [%s] not found", clientId)
@@ -53,7 +53,7 @@ func GetOrgById(
 
 func orgFromEsSearch(esClientUser output.ClientUserExtra) entity.Org {
 	return entity.Org{
-		ID:   esClientUser.ClientId,
+		Id:   esClientUser.ClientId,
 		Name: esClientUser.Client.AccountName,
 		Role: esClientUser.RoleCode,
 	}

@@ -25,7 +25,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 			startServiceResponse, err := cmdData.RestApiClient.PutServiceStackStart(
 				ctx,
 				path.ServiceStackId{
-					Id: service.ID,
+					Id: service.Id,
 				},
 			)
 			if err != nil {

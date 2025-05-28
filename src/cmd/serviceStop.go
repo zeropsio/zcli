@@ -26,7 +26,7 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 			stopServiceResponse, err := cmdData.RestApiClient.PutServiceStackStop(
 				ctx,
 				path.ServiceStackId{
-					Id: service.ID,
+					Id: service.Id,
 				},
 			)
 			if err != nil {

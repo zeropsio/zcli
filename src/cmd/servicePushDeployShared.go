@@ -30,7 +30,7 @@ func createAppVersion(
 	appVersionResponse, err := restApiClient.PostAppVersion(
 		ctx,
 		body.PostAppVersion{
-			ServiceStackId: service.ID,
+			ServiceStackId: service.Id,
 			Name: func() types.StringNull {
 				if versionName != "" {
 					return types.NewStringNull(versionName)

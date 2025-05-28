@@ -93,7 +93,7 @@ func createProjectTableRows(projects []entity.Project, createNewProject bool) (*
 	tableBody := table.NewBody()
 	for _, project := range projects {
 		tableBody.AddStringsRow(
-			string(project.ID),
+			string(project.Id),
 			project.Name.String(),
 			project.OrgName.Native(),
 			project.OrgId.Native(),

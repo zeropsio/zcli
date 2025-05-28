@@ -58,7 +58,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 			}
 
 			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
-				data.ScopeProjectId = project.ID.ProjectIdNull()
+				data.ScopeProjectId = project.Id.ProjectIdNull()
 				return data
 			})
 			if err != nil {

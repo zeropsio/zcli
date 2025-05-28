@@ -50,10 +50,10 @@ func GetProcessByActionNameAndProjectId(
 
 func processFromEsSearch(esProcess output.EsProcess) entity.Process {
 	return entity.Process{
-		ID:         esProcess.Id,
-		OrgID:      esProcess.ClientId,
-		ProjectID:  esProcess.ProjectId,
-		ServiceID:  esProcess.ServiceStackId,
+		Id:         esProcess.Id,
+		OrgId:      esProcess.ClientId,
+		ProjectId:  esProcess.ProjectId,
+		ServiceId:  esProcess.ServiceStackId,
 		ActionName: esProcess.ActionName,
 		Status:     esProcess.Status,
 		Sequence:   esProcess.Sequence,
@@ -63,10 +63,10 @@ func processFromEsSearch(esProcess output.EsProcess) entity.Process {
 //nolint:unused
 func processFromApiOutput(process output.Process) entity.Process {
 	return entity.Process{
-		ID:         process.Id,
-		OrgID:      process.ClientId,
-		ProjectID:  process.ProjectId,
-		ServiceID:  process.ServiceStackId,
+		Id:         process.Id,
+		OrgId:      process.ClientId,
+		ProjectId:  process.ProjectId,
+		ServiceId:  process.ServiceStackId,
 		ActionName: process.ActionName,
 		Status:     process.Status,
 		Sequence:   process.Sequence,

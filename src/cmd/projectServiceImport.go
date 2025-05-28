@@ -48,7 +48,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 			importServiceResponse, err := cmdData.RestApiClient.PostServiceStackImport(
 				ctx,
 				body.ServiceStackImport{
-					ProjectId: project.ID,
+					ProjectId: project.Id,
 					Yaml:      types.Text(yamlContent),
 				},
 			)

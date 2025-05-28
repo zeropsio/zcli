@@ -58,7 +58,7 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 			deleteProjectResponse, err := cmdData.RestApiClient.DeleteProject(
 				ctx,
 				path.ProjectId{
-					Id: project.ID,
+					Id: project.Id,
 				},
 			)
 			if err != nil {

@@ -8,9 +8,9 @@ import (
 )
 
 type Service struct {
-	ID                          uuid.ServiceStackId
-	ProjectID                   uuid.ProjectId
-	ClientId                    uuid.ClientId
+	Id                          uuid.ServiceStackId
+	ProjectId                   uuid.ProjectId
+	OrgId                       uuid.ClientId
 	Name                        types.String
 	Status                      enum.ServiceStackStatusEnum
 	ServiceTypeId               stringId.ServiceStackTypeId
@@ -19,3 +19,13 @@ type Service struct {
 }
 
 var ServiceFields = entityTemplateFields[Service]()
+
+type PostService struct {
+	ProjectId        uuid.ProjectId
+	Name             types.String
+	Mode             enum.ServiceStackModeEnum
+	EnvFile          types.TextNull
+	StartWithoutCode types.Bool
+	SshIsolation     types.StringNull
+	EnvIsolation     types.StringNull
+}

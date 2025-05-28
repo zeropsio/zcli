@@ -74,7 +74,7 @@ func createOrgTableRows(projects []entity.Org) (*table.Row, *table.Body) {
 	body := table.NewBody()
 	for _, project := range projects {
 		body.AddStringsRow(
-			string(project.ID),
+			string(project.Id),
 			project.Name.String(),
 			project.Role.Native(),
 		)

@@ -2,71 +2,78 @@ name: Main
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - '*'
 
 jobs:
   build:
-    name: Build && tests for ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    name: build && tests for ${{ matrix.name }}
+    runs-on: ubuntu-22.04
     env:
       CGO_ENABLED: '0'
     strategy:
       matrix:
         include:
           - name: linux amd64
-            os: ubuntu-latest
-            osEnv: GOOS=linux GOARCH=amd64
-            runLint: true
+            env:
+              GOOS: linux
+              GOARCH: amd64
+#            osEnv: GOOS=linux GOARCH=amd64
             runTests: true
 
           - name: linux 386
-            os: ubuntu-latest
-            osEnv: GOOS=linux GOARCH=386
-            runLint: true
-            runTests: true
+            env:
+              GOOS: linux
+              GOARCH: 386
+#            osEnv: GOOS=linux GOARCH=386
+            runTests: false
 
           - name: darwin amd64
-            os: macos-latest
-            osEnv: GOOS=darwin GOARCH=amd64
-            runLint: true
+            env:
+              GOOS: darwin
+              GOARCH: amd64
+#            osEnv: GOOS=darwin GOARCH=amd64
             runTests: true
 
           - name: darwin arm64
-            os: macos-latest
-            osEnv: GOOS=darwin GOARCH=arm64
-            runLint: false
+            env:
+              GOOS: darwin
+              GOARCH: arm64
+#            osEnv: GOOS=darwin GOARCH=arm64
             runTests: false
 
           - name: windows amd64
-            os: ubuntu-latest
-            osEnv: GOOS=windows GOARCH=amd64
-            runLint: false
-            runTests: false
+            env:
+              GOOS: windows
+              GOARCH: amd64
+#            osEnv: GOOS=windows GOARCH=amd64
+            runTests: true
 
     steps:
-    - name: Check out code into the Go module directory
+    - name: check out code into the Go module directory
       uses: actions/checkout@v4
 
-    - name: Set up Go 1.x
+    - name: set up Go 1.x
       uses: actions/setup-go@v5
       with:
         go-version-file: "go.mod"
       id: go
 
-    - name: Get dependencies
+    - name: get dependencies
       run: | 
         export GOPATH=$HOME/go
         ./tools/install.sh
 
-    - name: Build
-      run: env ${{ matrix.osEnv }} go build -v ./cmd/... ./src/...
+    - name: build
+      env: ${{ matrix.env }}
+      run: go build -v ./cmd/... ./src/...
 
-    - name: Test
+    - name: test
       if: ${{ matrix.runTests }}
       run: env ${{ matrix.osEnv }} go test -v ./cmd/... ./src/...
 
-    - name: Lint
-      if: ${{ matrix.runLint }}
+    - name: lint
       run: env ${{ matrix.osEnv }} gomodrun golangci-lint run  ./cmd/... ./src/... --verbose

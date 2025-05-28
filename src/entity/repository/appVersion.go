@@ -20,11 +20,11 @@ func GetAllAppVersionByService(
 			{
 				Name:     "clientId",
 				Operator: "eq",
-				Value:    service.ClientId.TypedString(),
+				Value:    service.OrgId.TypedString(),
 			}, {
 				Name:     "serviceStackId",
 				Operator: "eq",
-				Value:    service.ID.TypedString(),
+				Value:    service.Id.TypedString(),
 			}, {
 				Name:     "build.serviceStackId",
 				Operator: "ne",
@@ -61,11 +61,11 @@ func GetLatestAppVersionByService(
 			{
 				Name:     "clientId",
 				Operator: "eq",
-				Value:    service.ClientId.TypedString(),
+				Value:    service.OrgId.TypedString(),
 			}, {
 				Name:     "serviceStackId",
 				Operator: "eq",
-				Value:    service.ID.TypedString(),
+				Value:    service.Id.TypedString(),
 			}, {
 				Name:     "build.serviceStackId",
 				Operator: "ne",
@@ -101,7 +101,7 @@ func GetLatestAppVersionByService(
 func appVersionFromEsSearch(esAppVersion output.EsAppVersion) entity.AppVersion {
 	return entity.AppVersion{
 		Id:         esAppVersion.Id,
-		ClientId:   esAppVersion.ClientId,
+		OrgId:      esAppVersion.ClientId,
 		ProjectId:  esAppVersion.ProjectId,
 		ServiceId:  esAppVersion.ServiceStackId,
 		Source:     esAppVersion.Source,

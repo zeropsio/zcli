@@ -41,7 +41,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 				cmdData.RestApiClient,
 			)
 
-			serviceId := service.ID
+			serviceId := service.Id
 			if cmdData.Params.GetBool("showBuildLogs") {
 				appVersions, err := repository.GetLatestAppVersionByService(ctx, cmdData.RestApiClient, service)
 				if err != nil {

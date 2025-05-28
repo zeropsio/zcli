@@ -32,7 +32,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 		StringSliceFlag("tags", nil, "Project tags. Comma separated list or repeated flag.").
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ProjectFields)).
 		StringFlag("mode", enumDefaultForFlag(enum.ProjectModeEnumLight), "Project mode"+enumValuesForFlag(enum.ProjectModeEnumAllPublic())).
-		StringFlag("env-isolation", "none", "Env isolation setting ['none', 'service'] for more see docs <TODO link>").
+		StringFlag("env-isolation", "service", "Env isolation setting [service, none] for more see docs <TODO link>").
 		StringFlag("ssh-isolation", "vpn", "SSH isolation setting, for more see docs <TODO link>").
 		HelpFlag("Help for the project create command.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
@@ -108,8 +108,8 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				return errors.New("Must specify name with --name")
 			}
 
-			project, err := repository.PostProject(ctx, cmdData.RestApiClient, repository.ProjectPost{
-				ClientId:     org.ID,
+			project, err := repository.PostProject(ctx, cmdData.RestApiClient, entity.PostProject{
+				OrgId:        org.Id,
 				Name:         types.NewString(name),
 				Tags:         cmdData.Params.GetStringSlice("tags"),
 				Mode:         enum.ProjectModeEnum(mode),

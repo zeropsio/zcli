@@ -12,7 +12,6 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
-	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/units"
@@ -22,8 +21,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/apiError"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
@@ -42,6 +39,8 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("mode", enumDefaultForFlag(enum.ServiceStackModeEnumNonHa), "Service mode "+enumValuesForFlag(enum.ServiceStackModeEnumAllPublic())).
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ServiceFields)).
 		StringFlag("env-file", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml). Max file size is "+units.ByteCountIEC(maxEnvFileSize)).
+		StringFlag("env-isolation", "service", "Env isolation setting [service, none] for more see docs <TODO link>").
+		StringFlag("ssh-isolation", "vpn", "SSH isolation setting, for more see docs <TODO link>").
 		StringSliceFlag("env", nil, "Envs to be set as secrets, runtime envs can be defined in zerops.yml. Accepts comma separated string or repeated flag. Format: {key}={value}").
 		BoolFlag("start-without-code", false, "Start service immediately, empty without deploy").
 		BoolFlag("noop", false, "Creates service only if none with the same name exists").
@@ -52,7 +51,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			startWithoutCode := cmdData.Params.GetBool("startW-without-code")
+			startWithoutCode := cmdData.Params.GetBool("start-without-code")
 
 			mode := cmdData.Params.GetString("mode")
 			mode = strings.ToUpper(mode)
@@ -153,26 +152,23 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return errors.New("Must specify name with --name")
 			}
 
-			response, err := cmdData.RestApiClient.PostServiceStack(
+			process, service, err := repository.PostGenericService(
 				ctx,
-				dtoPath.ServiceStackServiceStackTypeVersionId{ServiceStackTypeVersionId: "runtime"},
-				body.PostStandardServiceStack{
-					ProjectId:        project.ID,
+				cmdData.RestApiClient,
+				entity.PostService{
+					ProjectId:        project.Id,
 					Name:             types.NewString(name),
-					Mode:             gn.Ptr(enum.ServiceStackModeEnum(mode)),
-					UserDataEnvFile:  envFile,
-					StartWithoutCode: types.NewBoolNull(startWithoutCode),
+					Mode:             enum.ServiceStackModeEnum(mode),
+					EnvFile:          envFile,
+					StartWithoutCode: types.NewBool(startWithoutCode),
+					SshIsolation:     types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
+					EnvIsolation:     types.NewStringNull(cmdData.Params.GetString("env-isolation")),
 				},
 			)
 			if err != nil {
-				return err
-			}
-
-			noop := cmdData.Params.GetBool("noop")
-			serviceStackProcess, err := response.Output()
-			if err != nil {
+				noop := cmdData.Params.GetBool("noop")
 				if apiError.HasErrorCode(err, errorCode.ServiceStackNameUnavailable) && noop {
-					service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.ID, types.NewString(name))
+					service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, types.NewString(name))
 					if err != nil {
 						return err
 					}
@@ -192,7 +188,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{
 					{
-						F:                   uxHelpers.CheckZeropsProcess(serviceStackProcess.Process.Id, cmdData.RestApiClient),
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient),
 						RunningMessage:      "Creating service",
 						ErrorMessageMessage: "Service creation failed",
 						SuccessMessage:      "Service created",
@@ -202,7 +198,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			service, err := repository.GetServiceById(ctx, cmdData.RestApiClient, serviceStackProcess.Id)
+			service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, service.Id)
 			if err != nil {
 				return err
 			}

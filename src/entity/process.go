@@ -7,10 +7,10 @@ import (
 )
 
 type Process struct {
-	ID         uuid.ProcessId
-	OrgID      uuid.ClientId
-	ProjectID  uuid.ProjectId
-	ServiceID  uuid.ServiceStackIdNull
+	Id         uuid.ProcessId
+	OrgId      uuid.ClientId
+	ProjectId  uuid.ProjectId
+	ServiceId  uuid.ServiceStackIdNull
 	ActionName types.String
 	Status     enum.ProcessStatusEnum
 	Sequence   types.Int
