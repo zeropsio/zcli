@@ -4,16 +4,23 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 )
 
 func YesNoPrompt(
 	ctx context.Context,
-	uxBlocks uxBlock.UxBlocks,
-	questionMessage string,
+	question string,
+	opts ...prompt.Option,
 ) (bool, error) {
-	// TODO - janhajek translate
-	choices := []string{"NO", "YES"}
-	choice, err := uxBlocks.Prompt(ctx, questionMessage, choices)
+	choice, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			question,
+			[]string{"NO", "YES"},
+			opts...,
+		),
+		prompt.GetChoiceCursor,
+	)
 	if err != nil {
 		return false, err
 	}

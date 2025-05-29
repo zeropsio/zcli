@@ -5,12 +5,15 @@ import (
 	"io"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -21,40 +24,72 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		Use("deploy").
 		Short(i18n.T(i18n.CmdDescDeploy)).
 		Long(i18n.T(i18n.CmdDescDeployLong)).
-		ScopeLevel(scope.Service).
+		ScopeLevel(
+			cmdBuilder.ScopeService(
+				cmdBuilder.WithCreateNewService(),
+				cmdBuilder.WithProjectScopeOptions(
+					cmdBuilder.WithCreateNewProject(),
+				),
+			),
+		).
 		Arg("pathToFileOrDir", cmdBuilder.ArrayArg()).
-		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
-		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
-		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
-		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
+		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("archive-file-path", "", i18n.T(i18n.BuildArchiveFilePath)).
+		StringFlag("version-name", "", i18n.T(i18n.BuildVersionName)).
+		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
-		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
+		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
 
 			arch := archiveClient.New(archiveClient.Config{
 				Logger:          uxBlocks.GetDebugFileLogger(),
 				Verbose:         cmdData.Params.GetBool("verbose"),
-				DeployGitFolder: cmdData.Params.GetBool("deployGitFolder"),
+				DeployGitFolder: cmdData.Params.GetBool("deploy-git-folder"),
 			})
 
-			configContent, err := getValidConfigContent(
+			configContent, err := yamlReader.ReadZeropsYamlContent(
 				uxBlocks,
-				cmdData.Params.GetString("workingDir"),
-				cmdData.Params.GetString("zeropsYamlPath"),
+				cmdData.Params.GetString("working-dir"),
+				cmdData.Params.GetString("zerops-yaml-path"),
 			)
 			if err != nil {
 				return err
 			}
 
-			setup := cmdData.Service.Name
-			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
-				setup = types.NewString(setupParam)
-			}
-			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, setup, configContent)
+			setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
 			if err != nil {
+				return err
+			}
+
+			setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
+			if !hasMatch {
+				setup = cmdData.Params.GetString("setup")
+				switch {
+				case !terminal.IsTerminal() && !cmdData.Params.IsSet("setup"):
+					return errors.New("Cannot find corresponding setup in zerops.yaml, please select with --setup")
+				case !cmdData.Params.IsSet("setup"):
+					setup, err = uxHelpers.PrintSetupSelector(ctx, setups)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup))
+
+			if err := validateZeropsYamlContent(
+				ctx,
+				cmdData.RestApiClient,
+				service,
+				setup,
+				configContent,
+			); err != nil {
 				return err
 			}
 
@@ -63,8 +98,8 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			appVersion, err := createAppVersion(
 				ctx,
 				cmdData.RestApiClient,
-				cmdData.Service,
-				cmdData.Params.GetString("versionName"),
+				service,
+				cmdData.Params.GetString("version-name"),
 			)
 			if err != nil {
 				return err
@@ -75,14 +110,14 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F: func(ctx context.Context, _ *uxHelpers.Process) error {
-						ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("workingDir"))
+						ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("working-dir"))
 						if err != nil {
 							return err
 						}
 
 						files, err := arch.FindFilesByRules(
 							uxBlocks,
-							cmdData.Params.GetString("workingDir"),
+							cmdData.Params.GetString("working-dir"),
 							cmdData.Args["pathToFileOrDir"],
 							ignorer,
 						)
@@ -92,10 +127,10 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 						reader, writer := io.Pipe()
 						var finalReader io.Reader = reader
-						if cmdData.Params.GetString("archiveFilePath") != "" {
+						if cmdData.Params.GetString("archive-file-path") != "" {
 							packageFile, err := openPackageFile(
-								cmdData.Params.GetString("archiveFilePath"),
-								cmdData.Params.GetString("workingDir"),
+								cmdData.Params.GetString("archive-file-path"),
+								cmdData.Params.GetString("working-dir"),
 							)
 							if err != nil {
 								return err
@@ -136,8 +171,8 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageDone)))
 
-			if cmdData.Params.GetString("archiveFilePath") != "" {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath"))))
+			if cmdData.Params.GetString("archive-file-path") != "" {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archive-file-path"))))
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
@@ -149,7 +184,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				},
 				body.PutAppVersionDeploy{
 					ZeropsYaml:      types.NewMediumTextNull(string(configContent)),
-					ZeropsYamlSetup: setup.StringNull(),
+					ZeropsYamlSetup: types.NewStringNull(setup),
 				},
 			)
 			if err != nil {

@@ -2,80 +2,114 @@ package uxHelpers
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
+type projectSelectorConfig struct {
+	createNew bool
+}
+type ProjectSelectorOption = gn.Option[projectSelectorConfig]
+
+func WithCreateNewProject(b bool) ProjectSelectorOption {
+	return func(s *projectSelectorConfig) {
+		s.createNew = b
+	}
+}
+
 func PrintProjectSelector(
 	ctx context.Context,
-	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
-) (*entity.Project, error) {
+	opts ...ProjectSelectorOption,
+) (optional.Null[entity.Project], error) {
+	var empty optional.Null[entity.Project]
+	cfg := gn.ApplyOptions(opts...)
+
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
 	if err != nil {
-		return nil, err
+		return empty, err
 	}
 
-	if len(projects) == 0 {
-		return nil, errors.New(i18n.T(i18n.ProjectSelectorListEmpty))
+	if len(projects) == 0 && !cfg.createNew {
+		return empty, errors.New(i18n.T(i18n.ProjectSelectorListEmpty))
 	}
 
-	header, tableBody := createProjectTableRows(projects)
+	header, body := createProjectTableRows(projects, cfg.createNew)
 
-	projectIndex, err := uxBlocks.Select(
-		ctx,
-		tableBody,
-		uxBlock.SelectLabel(i18n.T(i18n.ProjectSelectorPrompt)),
-		uxBlock.SelectTableHeader(header),
+	selected, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			body,
+			selector.WithLabel(i18n.T(i18n.ProjectSelectorPrompt)),
+			selector.WithHeader(header),
+			selector.WithSetEnableFiltering(true),
+		),
+		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
-		return nil, err
+		return empty, err
 	}
 
-	if len(projectIndex) == 0 {
-		return nil, errors.New(i18n.T(i18n.ProjectSelectorOutOfRangeError))
+	if selected <= len(projects)-1 {
+		return optional.New(projects[selected]), nil
 	}
 
-	if projectIndex[0] > len(projects)-1 {
-		return nil, errors.New(i18n.T(i18n.ProjectSelectorOutOfRangeError))
-	}
-
-	return &projects[projectIndex[0]], nil
+	return empty, nil
 }
 
 func PrintProjectList(
 	ctx context.Context,
-	uxBlocks uxBlock.UxBlocks,
-	restApiClient *zeropsRestApiClient.Handler) error {
+	restApiClient *zeropsRestApiClient.Handler,
+	out io.Writer,
+) error {
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
 	if err != nil {
 		return err
 	}
 
-	header, rows := createProjectTableRows(projects)
+	header, body := createProjectTableRows(projects, false)
 
-	uxBlocks.Table(rows, uxBlock.WithTableHeader(header))
+	t := table.Render(body, table.WithHeader(header))
 
-	return nil
+	_, err = fmt.Fprintln(out, t)
+	return err
 }
 
-func createProjectTableRows(projects []entity.Project) (*uxBlock.TableRow, *uxBlock.TableBody) {
-	// TODO - janhajek translation
-	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Org Name", "Org ID", "Status")
+func createProjectTableRows(projects []entity.Project, createNewProject bool) (*table.Row, *table.Body) {
+	header := table.NewRowFromStrings("id", "name", "org name", "org id", "status", "mode")
 
-	tableBody := &uxBlock.TableBody{}
+	tableBody := table.NewBody()
 	for _, project := range projects {
 		tableBody.AddStringsRow(
-			string(project.ID),
+			string(project.Id),
 			project.Name.String(),
 			project.OrgName.Native(),
 			project.OrgId.Native(),
 			project.Status.String(),
+			project.Mode.String(),
+		)
+	}
+	if createNewProject {
+		tableBody.AddCellsRow(
+			table.NewCell("Create new project").
+				SetStyle(
+					styles.DefaultStyle().
+						Foreground(styles.GreenColor).
+						Bold(true),
+				).
+				SetPretty(true),
 		)
 	}
 

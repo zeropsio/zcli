@@ -20,6 +20,13 @@ func (b *Blocks) LogDebug(message string) {
 	b.debugFileLogger.Debug(message)
 }
 
+func (b *Blocks) PrintSuccessText(in string) {
+	scan := bufio.NewScanner(bytes.NewBufferString(in))
+	for scan.Scan() {
+		b.PrintInfo(styles.SuccessLine(scan.Text()))
+	}
+}
+
 func (b *Blocks) PrintInfoText(in string) {
 	scan := bufio.NewScanner(bytes.NewBufferString(in))
 	for scan.Scan() {

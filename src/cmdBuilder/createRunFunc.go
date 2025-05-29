@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	getVersion "github.com/zeropsio/zcli/src/version"
@@ -17,18 +18,11 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-type ParamsReader interface {
-	GetString(name string) string
-	GetInt(name string) int
-	GetBool(name string) bool
-	IsSet(name string) bool
-}
-
 type GuestCmdData struct {
 	CliStorage *cliStorage.Handler
 	UxBlocks   *uxBlock.Blocks
 	Args       map[string][]string
-	Params     ParamsReader
+	Params     flagParams.ParamsReader
 	Stdout     printer.Printer
 	Stderr     printer.Printer
 
@@ -40,8 +34,8 @@ type LoggedUserCmdData struct {
 	RestApiClient *zeropsRestApiClient.Handler
 
 	// optional params
-	Project *entity.Project
-	Service *entity.Service
+	Project optional.Null[entity.Project]
+	Service optional.Null[entity.Service]
 
 	VpnKeys map[uuid.ProjectId]entity.VpnKey
 }

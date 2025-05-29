@@ -6,13 +6,17 @@ import (
 	"io"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
+	"github.com/zeropsio/zcli/src/terminal"
+	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
@@ -25,63 +29,100 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		Use("push").
 		Short(i18n.T(i18n.CmdDescPush)).
 		Long(i18n.T(i18n.CmdDescPushLong)).
-		ScopeLevel(scope.Service).
-		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
-		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
-		StringFlag("archiveFilePath", "", i18n.T(i18n.BuildArchiveFilePath)).
-		StringFlag("versionName", "", i18n.T(i18n.BuildVersionName)).
-		StringFlag("zeropsYamlPath", "", i18n.T(i18n.ZeropsYamlLocation)).
+		ScopeLevel(
+			cmdBuilder.ScopeService(
+				cmdBuilder.WithCreateNewService(),
+				cmdBuilder.WithProjectScopeOptions(
+					cmdBuilder.WithCreateNewProject(),
+				),
+			),
+		).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
+		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("archive-file-path", "", i18n.T(i18n.BuildArchiveFilePath)).
+		StringFlag("version-name", "", i18n.T(i18n.BuildVersionName)).
+		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
-		BoolFlag("deployGitFolder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
-		StringFlag("workspaceState", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
-		BoolFlag("noGit", false, i18n.T(i18n.NoGit)).
-		BoolFlag("disableLogs", false, "disable logs").
+		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
+		StringFlag("workspace-state", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
+		BoolFlag("no-git", false, i18n.T(i18n.NoGit)).
+		BoolFlag("disable-logs", false, "disable logs").
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
 
-			if cmdData.Params.IsSet("noGit") && (cmdData.Params.IsSet("deployGitFolder") || cmdData.Params.IsSet("workspaceState")) {
-				uxBlocks.PrintWarning(styles.WarningLine("--noGit and --deployGitFolder/--workspaceState are mutually exclusive, ignoring --deployGitFolder/--workspaceState"))
+			project, err := cmdData.Project.Expect("project is null")
+			if err != nil {
+				return err
+			}
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
+
+			if cmdData.Params.IsSet("no-git") && (cmdData.Params.IsSet("deploy-git-folder") || cmdData.Params.IsSet("workspace-state")) {
+				uxBlocks.PrintWarning(styles.WarningLine("--no-git and --deploy-git-folder/--workspace-state are mutually exclusive, ignoring --deploy-git-folder/--workspace-state"))
+			}
+
+			configContent, err := yamlReader.ReadZeropsYamlContent(
+				uxBlocks,
+				cmdData.Params.GetString("working-dir"),
+				cmdData.Params.GetString("zerops-yaml-path"),
+			)
+			if err != nil {
+				return err
+			}
+
+			setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
+			if err != nil {
+				return err
+			}
+
+			setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
+			if !hasMatch {
+				setup = cmdData.Params.GetString("setup")
+				switch {
+				case !terminal.IsTerminal() && !cmdData.Params.IsSet("setup"):
+					return errors.New("Cannot find corresponding setup in zerops.yaml, please select with --setup")
+				case !cmdData.Params.IsSet("setup"):
+					setup, err = uxHelpers.PrintSetupSelector(ctx, setups)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup))
+
+			if err = validateZeropsYamlContent(
+				ctx,
+				cmdData.RestApiClient,
+				service,
+				setup,
+				configContent,
+			); err != nil {
+				return err
+			}
+
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
+
+			appVersion, err := createAppVersion(
+				ctx,
+				cmdData.RestApiClient,
+				service,
+				cmdData.Params.GetString("version-name"),
+			)
+			if err != nil {
+				return err
 			}
 
 			arch := archiveClient.New(archiveClient.Config{
 				Logger:             uxBlocks.GetDebugFileLogger(),
 				Verbose:            cmdData.Params.GetBool("verbose"),
-				DeployGitFolder:    cmdData.Params.GetBool("deployGitFolder"),
-				PushWorkspaceState: cmdData.Params.GetString("workspaceState"),
-				NoGit:              cmdData.Params.GetBool("noGit"),
+				DeployGitFolder:    cmdData.Params.GetBool("deploy-git-folder"),
+				PushWorkspaceState: cmdData.Params.GetString("workspace-state"),
+				NoGit:              cmdData.Params.GetBool("no-git"),
 			})
-
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
-
-			configContent, err := getValidConfigContent(
-				uxBlocks,
-				cmdData.Params.GetString("workingDir"),
-				cmdData.Params.GetString("zeropsYamlPath"),
-			)
-			if err != nil {
-				return err
-			}
-
-			setup := cmdData.Service.Name
-			if setupParam := cmdData.Params.GetString("setup"); setupParam != "" {
-				setup = types.NewString(setupParam)
-			}
-			err = validateZeropsYamlContent(ctx, cmdData.RestApiClient, cmdData.Service, setup, configContent)
-			if err != nil {
-				return err
-			}
-
-			appVersion, err := createAppVersion(
-				ctx,
-				cmdData.RestApiClient,
-				cmdData.Service,
-				cmdData.Params.GetString("versionName"),
-			)
-			if err != nil {
-				return err
-			}
 
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
@@ -90,10 +131,10 @@ func servicePushCmd() *cmdBuilder.Cmd {
 					F: func(ctx context.Context, _ *uxHelpers.Process) (err error) {
 						reader, writer := io.Pipe()
 						var finalReader io.Reader = reader
-						if cmdData.Params.GetString("archiveFilePath") != "" {
+						if cmdData.Params.GetString("archive-file-path") != "" {
 							packageFile, err := openPackageFile(
-								cmdData.Params.GetString("archiveFilePath"),
-								cmdData.Params.GetString("workingDir"),
+								cmdData.Params.GetString("archive-file-path"),
+								cmdData.Params.GetString("working-dir"),
 							)
 							if err != nil {
 								return err
@@ -116,7 +157,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						}()
 
 						// if an error occurred while packing the app, return that error
-						if err := arch.ArchiveGitFiles(ctx, uxBlocks, cmdData.Params.GetString("workingDir"), writer); err != nil {
+						if err := arch.ArchiveGitFiles(ctx, uxBlocks, cmdData.Params.GetString("working-dir"), writer); err != nil {
 							_ = writer.CloseWithError(err)
 							return err
 						}
@@ -135,8 +176,8 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if cmdData.Params.GetString("archiveFilePath") != "" {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archiveFilePath"))))
+			if cmdData.Params.GetString("archive-file-path") != "" {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archive-file-path"))))
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
@@ -147,7 +188,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				},
 				body.PutAppVersionBuildAndDeploy{
 					ZeropsYaml:      types.MediumText(configContent),
-					ZeropsYamlSetup: setup.StringNull(),
+					ZeropsYamlSetup: types.NewStringNull(setup),
 				},
 			)
 			if err != nil {
@@ -158,6 +199,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			if err != nil {
 				return err
 			}
+
+			guiHost := cmdData.
+				CliStorage.
+				Data().
+				RegionData.
+				GuiAddress.
+				OrDefault("app.zerops.io")
 
 			var buildPhase bool
 			var preparePhase bool
@@ -170,12 +218,32 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient,
 							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
 								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
-									if cmdData.Params.GetBool("disableLogs") {
+									if cmdData.Params.GetBool("disable-logs") {
+										return nil
+									}
+									if !apiProcess.Status.IsRunning() {
 										return nil
 									}
 									if logsHandler == nil {
+										pipelineLink := styles.NewStringBuilder()
+										pipelineLink.WriteInfoColor("View full pipeline at ")
+										pipelineLink.WriteStyledString(
+											styles.SuccessStyle().
+												Bold(true),
+											fmt.Sprintf(
+												"https://%s/service-stack/%s/deploy/%s",
+												guiHost,
+												service.Id,
+												apiProcess.AppVersion.Id,
+											),
+										)
+
 										logsHandler = serviceLogs.New(
-											process.LogView(),
+											process.LogView(
+												logView.WithAdditionalText(pipelineLink.String()),
+												logView.WithVerticalOffset(3),
+												logView.WithMaxHeight(max(30, int(float64(cmdData.UxBlocks.TerminalHeight)*0.75))),
+											),
 											serviceLogs.Config{},
 											cmdData.RestApiClient,
 										)
@@ -185,13 +253,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
-												Project:        *cmdData.Project,
+												Project:        project,
 												ServiceId:      buildServiceId,
 												Limit:          100,
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",
 												Format:         "FULL",
-												FormatTemplate: "{{.message}}",
+												FormatTemplate: "{{.Message}}",
 												Follow:         true,
 												Tags: []string{
 													"zbuilder@" + appVersion.Id.Native(),
@@ -213,13 +281,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										preparePhase = true
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
-												Project:        *cmdData.Project,
+												Project:        project,
 												ServiceId:      prepareServiceId,
 												Limit:          100,
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",
 												Format:         "FULL",
-												FormatTemplate: "{{.message}}",
+												FormatTemplate: "{{.Message}}",
 												Follow:         true,
 												Levels:         serviceLogs.DefaultLevels,
 											}); err != nil {

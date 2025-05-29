@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
@@ -20,8 +24,8 @@ func loginCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("login").
 		Short(i18n.T(i18n.CmdDescLogin)).
-		StringFlag("regionUrl", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
-		StringFlag("region", "", i18n.T(i18n.RegionFlag), cmdBuilder.HiddenFlag()).
+		StringFlag("region-url", constants.DefaultRegionUrl, i18n.T(i18n.RegionUrlFlag), cmdBuilder.HiddenFlag()).
+		StringFlag("region", "prg1", i18n.T(i18n.RegionFlag), cmdBuilder.HiddenFlag()).
 		HelpFlag(i18n.T(i18n.CmdHelpLogin)).
 		Arg("token").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
@@ -29,7 +33,7 @@ func loginCmd() *cmdBuilder.Cmd {
 
 			regionRetriever := region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}))
 
-			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("regionUrl"))
+			regions, err := regionRetriever.RetrieveAllFromURL(ctx, cmdData.Params.GetString("region-url"))
 			if err != nil {
 				return err
 			}
@@ -69,9 +73,9 @@ func loginCmd() *cmdBuilder.Cmd {
 func getLoginRegion(
 	ctx context.Context,
 	uxBlocks uxBlock.UxBlocks,
-	regions []region.RegionItem,
+	regions []region.Item,
 	selectedRegion string,
-) (region.RegionItem, error) {
+) (region.Item, error) {
 	if selectedRegion == "" {
 		for _, reg := range regions {
 			if reg.IsDefault {
@@ -88,11 +92,16 @@ func getLoginRegion(
 		}
 	}
 
-	uxBlocks.PrintWarning(styles.WarningLine(fmt.Sprintf("Region '%s' was not found", selectedRegion)))
+	regionNotFoundErr := errors.Errorf("Region '%s' was not found", selectedRegion)
+	if !terminal.IsTerminal() {
+		return region.Item{}, regionNotFoundErr
+	}
 
-	header := (&uxBlock.TableRow{}).AddStringCells(i18n.T(i18n.RegionTableColumnName), "default")
+	uxBlocks.PrintWarning(styles.WarningLine(regionNotFoundErr.Error()))
 
-	tableBody := &uxBlock.TableBody{}
+	header := table.NewRowFromStrings("name", "default")
+
+	tableBody := table.NewBody()
 	for _, reg := range regions {
 		tableBody.AddStringsRow(
 			reg.Name,
@@ -100,17 +109,21 @@ func getLoginRegion(
 		)
 	}
 
-	regionIndex, err := uxBlocks.Select(
-		ctx,
-		tableBody,
-		uxBlock.SelectLabel("Select region"),
-		uxBlock.SelectTableHeader(header),
+	selected, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			tableBody,
+			selector.WithLabel("Select region"),
+			selector.WithHeader(header),
+			selector.WithEnableFiltering(),
+		),
+		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
-		return region.RegionItem{}, err
+		return region.Item{}, err
 	}
 
-	reg := regions[regionIndex[0]]
+	reg := regions[selected]
 	uxBlocks.PrintInfo(styles.InfoWithValueLine("Selected region", reg.Name))
 	return reg, nil
 }

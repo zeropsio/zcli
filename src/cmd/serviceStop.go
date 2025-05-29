@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/path"
@@ -15,14 +14,19 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("stop").
 		Short(i18n.T(i18n.CmdDescServiceStop)).
-		ScopeLevel(scope.Service).
-		Arg(scope.ServiceArgName, cmdBuilder.OptionalArg()).
+		ScopeLevel(cmdBuilder.ScopeService()).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceStop)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			service, err := cmdData.Service.Expect("service is null")
+			if err != nil {
+				return err
+			}
+
 			stopServiceResponse, err := cmdData.RestApiClient.PutServiceStackStop(
 				ctx,
 				path.ServiceStackId{
-					Id: cmdData.Service.ID,
+					Id: service.Id,
 				},
 			)
 			if err != nil {

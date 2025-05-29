@@ -120,7 +120,7 @@ func (h *Handler) getTags(config RunConfig) []string {
 	return config.Tags
 }
 
-// e.g. --formatTemplate="{{.timestamp}} {{.priority}} {{.facility}} {{.message}}"
+// e.g. --formatTemplate="{{.Timestamp}} {{.Priority}} {{.Facility}} {{.Message}}"
 func (h *Handler) checkFormat(ft string) (string, error) {
 	if err := validateTemplate(ft); err != nil {
 		return "", errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)

@@ -48,6 +48,8 @@ func buildCobraCmd(
 		switch defaultValue := flag.defaultValue.(type) {
 		case string:
 			flagSet.StringP(flag.name, flag.shorthand, defaultValue, flag.description)
+		case []string:
+			flagSet.StringSliceP(flag.name, flag.shorthand, defaultValue, flag.description)
 		case int:
 			flagSet.IntP(flag.name, flag.shorthand, defaultValue, flag.description)
 		case bool:

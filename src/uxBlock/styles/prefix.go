@@ -5,41 +5,41 @@ import (
 )
 
 func InfoPrefix() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-		Background(lipgloss.AdaptiveColor{Light: infoColorLight, Dark: infoColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: colorBlack, Dark: colorWhite}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("INFO")
 }
 
 func SuccessPrefix() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-		Background(lipgloss.AdaptiveColor{Light: successColorLight, Dark: successColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: colorGreenLight, Dark: colorGreenDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("DONE")
 }
 
 func SelectPrefix() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-		Background(lipgloss.AdaptiveColor{Light: selectColorLight, Dark: selectColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: colorBlueLight, Dark: colorBlueDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("SELECT")
 }
 
 func ErrorPrefix() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-		Background(lipgloss.AdaptiveColor{Light: errorColorLight, Dark: errorColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: colorRedLight, Dark: colorRedDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("ERR")
 }
 
 func WarningPrefix() lipgloss.Style {
-	return defaultStyle().
+	return DefaultStyle().
 		Foreground(lipgloss.AdaptiveColor{Light: prefixTextColorLight, Dark: prefixTextColorDark}).
-		Background(lipgloss.AdaptiveColor{Light: warningColorLight, Dark: warningColorDark}).
+		Background(lipgloss.AdaptiveColor{Light: colorYellowLight, Dark: colorYellowDark}).
 		PaddingLeft(1).PaddingRight(1).
 		SetString("WARN")
 }

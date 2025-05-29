@@ -19,11 +19,11 @@ func GetAllContainers(
 			{
 				Name:     "clientId",
 				Operator: "eq",
-				Value:    service.ClientId.TypedString(),
+				Value:    service.OrgId.TypedString(),
 			}, {
 				Name:     "serviceStackId",
 				Operator: "eq",
-				Value:    service.ID.TypedString(),
+				Value:    service.Id.TypedString(),
 			},
 		},
 	}
@@ -48,8 +48,8 @@ func GetAllContainers(
 
 func containerFromEsSearch(esContainer output.EsContainer) entity.Container {
 	return entity.Container{
-		ID:        esContainer.Id,
-		ClientId:  esContainer.ClientId,
+		Id:        esContainer.Id,
+		OrgId:     esContainer.ClientId,
 		ProjectId: esContainer.ProjectId,
 		ServiceId: esContainer.ServiceStackId,
 		Status:    esContainer.Status,

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zeropsio/zcli/src/cmd/scope"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/errorCode"
 )
 
@@ -64,7 +64,7 @@ func rootCmd() *cmdBuilder.Cmd {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
 					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
-						err := scope.ProjectScopeReset(cmdData)
+						err := cmdBuilder.ProjectScopeReset(cmdData)
 						if err != nil {
 							return err
 						}
@@ -72,12 +72,16 @@ func rootCmd() *cmdBuilder.Cmd {
 						cmdData.Stderr.PrintLines(i18n.T(i18n.ScopedProject), err.Error())
 					}
 				} else {
-					cmdData.Stdout.PrintLines(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.ID.Native()))
+					cmdData.Stdout.PrintLines(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.Id.Native()))
 				}
 			}
 
 			var vpnStatusText string
-			if isVpnUp(ctx, cmdData.UxBlocks, 1) {
+			vpnActive, err := wg.InterfaceExists()
+			if err != nil {
+				return err
+			}
+			if vpnActive {
 				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsActive)
 			} else {
 				vpnStatusText = i18n.T(i18n.VpnCheckingConnectionIsNotActive)
@@ -96,33 +100,33 @@ func rootCmd() *cmdBuilder.Cmd {
 }
 
 func getRootTemplate() string {
-	return styles.CobraSectionColor().SetString("Usage:").String() + `{{if .Runnable}}
+	return styles.CobraSectionStyle().SetString("Usage:").String() + `{{if .Runnable}}
 {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
 {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
 
-` + styles.CobraSectionColor().SetString("Aliases:").String() + `
+` + styles.CobraSectionStyle().SetString("Aliases:").String() + `
 {{.NameAndAliases}}{{end}}{{if .HasExample}}
 
-` + styles.CobraSectionColor().SetString("Examples:").String() + `
+` + styles.CobraSectionStyle().SetString("Examples:").String() + `
 {{.Example}}{{end}}{{if .HasAvailableSubCommands}}{{$cmds := .Commands}}{{if eq (len .Groups) 0}}
 
-` + styles.CobraSectionColor().SetString("Available Commands:").String() + `{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
+` + styles.CobraSectionStyle().SetString("Available Commands:").String() + `{{range $cmds}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+` + styles.CobraItemNameStyle().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{else}}{{range $group := .Groups}}
 
 {{.Title}}{{range $cmds}}{{if (and (eq .GroupID $group.ID) (or .IsAvailableCommand (eq .Name "help")))}}
-` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
+` + styles.CobraItemNameStyle().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if not .AllChildCommandsHaveGroup}}
 
-` + styles.CobraSectionColor().SetString("Additional Commands:").String() + `{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
-` + styles.CobraItemNameColor().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+` + styles.CobraSectionStyle().SetString("Additional Commands:").String() + `{{range $cmds}}{{if (and (eq .GroupID "") (or .IsAvailableCommand (eq .Name "help")))}}
+` + styles.CobraItemNameStyle().SetString("{{rpad .Name .NamePadding }}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
 
-` + styles.CobraSectionColor().SetString("Flags:").String() + `
+` + styles.CobraSectionStyle().SetString("Flags:").String() + `
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
 
-` + styles.CobraSectionColor().SetString("Global Flags:").String() + `
+` + styles.CobraSectionStyle().SetString("Global Flags:").String() + `
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
 
-` + styles.CobraSectionColor().SetString("Additional help topics:").String() + `{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-` + styles.CobraItemNameColor().SetString("{{rpad .CommandPath .CommandPathPadding}}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+` + styles.CobraSectionStyle().SetString("Additional help topics:").String() + `{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+` + styles.CobraItemNameStyle().SetString("{{rpad .CommandPath .CommandPathPadding}}").String() + ` {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
 
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `

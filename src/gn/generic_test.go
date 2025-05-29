@@ -1,5 +1,5 @@
 //nolint:gosec
-package generic
+package gn
 
 import (
 	"sort"
@@ -80,25 +80,25 @@ func TestFilterSlice(t *testing.T) {
 func TestIsEmpty(t *testing.T) {
 	require := require.New(t)
 	{
-		require.True(IsEmpty(""))
-		require.True(IsEmpty(0))
-		require.True(IsEmpty(0.0))
-		require.True(IsEmpty(false))
+		require.True(IsZero(""))
+		require.True(IsZero(0))
+		require.True(IsZero(0.0))
+		require.True(IsZero(false))
 		var emptyPointer *int
-		require.True(IsEmpty(emptyPointer))
+		require.True(IsZero(emptyPointer))
 		var emptyArray [4]int
-		require.True(IsEmpty(emptyArray))
+		require.True(IsZero(emptyArray))
 	}
 	{
-		require.False(IsEmpty("a"))
-		require.False(IsEmpty(1))
-		require.False(IsEmpty(1.0))
-		require.False(IsEmpty(true))
+		require.False(IsZero("a"))
+		require.False(IsZero(1))
+		require.False(IsZero(1.0))
+		require.False(IsZero(true))
 		nonEmptyPointer := new(int)
-		require.False(IsEmpty(nonEmptyPointer))
+		require.False(IsZero(nonEmptyPointer))
 		var nonEmptyArray [4]int
 		nonEmptyArray[0] = 1
-		require.False(IsEmpty(nonEmptyArray))
+		require.False(IsZero(nonEmptyArray))
 	}
 }
 
@@ -123,7 +123,7 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "One value",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
+					Ptr(1),
 				},
 			},
 			want: true,
@@ -143,9 +143,9 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "All same",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
-					Pointer(1),
-					Pointer(1),
+					Ptr(1),
+					Ptr(1),
+					Ptr(1),
 				},
 			},
 			want: true,
@@ -154,9 +154,9 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "All different",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
-					Pointer(2),
-					Pointer(3),
+					Ptr(1),
+					Ptr(2),
+					Ptr(3),
 				},
 			},
 			want: false,
@@ -165,11 +165,11 @@ func TestAreAllPointerValuesEqual(t *testing.T) {
 			name: "Some different",
 			args: args[int]{
 				v: []*int{
-					Pointer(1),
-					Pointer(1),
-					Pointer(1),
-					Pointer(2),
-					Pointer(1),
+					Ptr(1),
+					Ptr(1),
+					Ptr(1),
+					Ptr(2),
+					Ptr(1),
 				},
 			},
 			want: false,

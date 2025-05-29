@@ -41,7 +41,7 @@ func (h *Handler) formatDataByTemplate(data Data, formatTemplate string) error {
 	return err
 }
 
-// test if there are any merged template items and return error
+// test if there are any merged template items and return an error
 func testTokens(tokens []string) error {
 	for _, token := range tokens {
 		// if any `{` characters are left, it means the items were not split by correctly

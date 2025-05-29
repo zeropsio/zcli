@@ -22,8 +22,8 @@ func projectImportCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescProjectImport)).
 		Long(i18n.T(i18n.CmdDescProjectImportLong)).
 		Arg(projectImportArgName).
-		StringFlag("orgId", "", i18n.T(i18n.OrgIdFlag)).
-		StringFlag("workingDir", "./", i18n.T(i18n.BuildWorkingDir)).
+		StringFlag("org-id", "", i18n.T(i18n.OrgIdFlag)).
+		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
 		HelpFlag(i18n.T(i18n.CmdHelpProjectImport)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -35,15 +35,15 @@ func projectImportCmd() *cmdBuilder.Cmd {
 
 			var yamlContent []byte
 			if cmdData.Args[projectImportArgName][0] == "-" {
-				yamlContent, err = yamlReader.ReadContentFromStdin(uxBlocks)
+				yamlContent, err = yamlReader.ReadImportYamlContentFromStdin(uxBlocks)
 				if err != nil {
 					return err
 				}
 			} else {
-				yamlContent, err = yamlReader.ReadContent(
+				yamlContent, err = yamlReader.ReadImportYamlContent(
 					uxBlocks,
 					cmdData.Args[projectImportArgName][0],
-					cmdData.Params.GetString("workingDir"),
+					cmdData.Params.GetString("working-dir"),
 				)
 				if err != nil {
 					return err
@@ -94,7 +94,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 }
 
 func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.ClientId, error) {
-	orgId := uuid.ClientId(cmdData.Params.GetString("orgId"))
+	orgId := uuid.ClientId(cmdData.Params.GetString("org-id"))
 	if orgId != "" {
 		return orgId, nil
 	}
@@ -105,13 +105,13 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 	}
 
 	if len(orgs) == 1 {
-		return orgs[0].ID, nil
+		return orgs[0].Id, nil
 	}
 
-	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.UxBlocks, cmdData.RestApiClient)
+	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.RestApiClient)
 	if err != nil {
 		return "", err
 	}
 
-	return selectedOrg.ID, nil
+	return selectedOrg.Id, nil
 }

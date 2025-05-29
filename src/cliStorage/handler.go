@@ -13,7 +13,7 @@ type Handler struct {
 
 type Data struct {
 	Token          string
-	RegionData     region.RegionItem
+	RegionData     region.Item
 	ScopeProjectId uuid.ProjectIdNull
 	VpnKeys        map[uuid.ProjectId]entity.VpnKey
 }

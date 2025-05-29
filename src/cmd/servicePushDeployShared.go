@@ -6,19 +6,17 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/uxBlock"
-	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
+	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -26,13 +24,13 @@ import (
 func createAppVersion(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	service *entity.Service,
+	service entity.Service,
 	versionName string,
 ) (output.PostAppVersion, error) {
 	appVersionResponse, err := restApiClient.PostAppVersion(
 		ctx,
 		body.PostAppVersion{
-			ServiceStackId: service.ID,
+			ServiceStackId: service.Id,
 			Name: func() types.StringNull {
 				if versionName != "" {
 					return types.NewStringNull(versionName)
@@ -101,58 +99,11 @@ func packageStream(ctx context.Context, restApiClient *zeropsRestApiClient.Handl
 	return nil
 }
 
-func getValidConfigContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string) ([]byte, error) {
-	workingDir, err := filepath.Abs(selectedWorkingDir)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathsToCheck []string
-	if selectedZeropsYamlPath != "" {
-		if filepath.IsAbs(selectedZeropsYamlPath) {
-			pathsToCheck = append(pathsToCheck, selectedZeropsYamlPath)
-		} else {
-			pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, selectedZeropsYamlPath))
-		}
-	} else {
-		pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, "zerops.yaml"))
-		pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, "zerops.yml"))
-	}
-
-	zeropsYamlPath, err := func() (string, error) {
-		for _, path := range pathsToCheck {
-			zeropsYamlStat, err := os.Stat(path)
-			if err == nil {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployZeropsYamlFound, path)))
-
-				if zeropsYamlStat.Size() == 0 {
-					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlEmpty))
-				}
-				if zeropsYamlStat.Size() > 10*1024 {
-					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlTooLarge))
-				}
-				return path, nil
-			}
-		}
-		return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlNotFound, strings.Join(pathsToCheck, ", ")))
-	}()
-	if err != nil {
-		return nil, err
-	}
-
-	yamlContent, err := os.ReadFile(zeropsYamlPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return yamlContent, nil
-}
-
 func validateZeropsYamlContent(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	service *entity.Service,
-	setup types.String,
+	service entity.Service,
+	setup string,
 	yamlContent []byte,
 ) error {
 	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
@@ -160,7 +111,7 @@ func validateZeropsYamlContent(
 		ServiceStackName:            service.Name,
 		ServiceStackTypeId:          service.ServiceTypeId,
 		ZeropsYaml:                  types.NewMediumText(string(yamlContent)),
-		ZeropsYamlSetup:             setup.StringNull(),
+		ZeropsYamlSetup:             types.NewStringNull(setup),
 	})
 	if err != nil {
 		return err
@@ -169,7 +120,7 @@ func validateZeropsYamlContent(
 		return errorsx.Convert(
 			err,
 			errorsx.And(
-				errorsx.ErrorCode("zeropsYamlServiceNotFound"),
+				errorsx.ErrorCode(errorCode.ZeropsYamlSetupNotFound),
 				errorsx.Meta(func(_ apiError.Error, metaItem map[string]interface{}) string {
 					if name, ok := metaItem["name"]; ok {
 						return i18n.T(i18n.ErrorServiceNotFound, name)

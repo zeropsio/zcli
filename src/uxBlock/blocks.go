@@ -4,6 +4,7 @@ package uxBlock
 import (
 	"context"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
@@ -20,15 +21,7 @@ type UxBlocks interface {
 	PrintWarningText(string)
 	PrintError(line styles.Line)
 	PrintErrorText(string)
-	Table(body *TableBody, auxOptions ...TableOption)
-	Select(ctx context.Context, tableBody *TableBody, auxOptions ...SelectOption) ([]int, error)
-	Prompt(
-		ctx context.Context,
-		message string,
-		choices []string,
-		auxOptions ...PromptOption,
-	) (int, error)
-	RunSpinners(ctx context.Context, spinners []*Spinner) func()
+	RunSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg))
 }
 
 type Blocks struct {
