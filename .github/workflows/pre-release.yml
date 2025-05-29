@@ -1,0 +1,80 @@
+name: pre-release
+
+on:
+  release:
+    types:
+      - prereleased
+
+jobs:
+  build:
+    name: build & upload ${{ matrix.name }}
+    runs-on: ubuntu-22.04
+    env:
+      CGO_ENABLED: '0'
+    strategy:
+      matrix:
+        include:
+          - name: linux amd64
+            env:
+              GOOS: linux
+              GOARCH: amd64
+            file: zcli-linux-amd64
+
+          - name: linux 386
+            env:
+              GOOS: linux
+              GOARCH: 386
+            file: zcli-linux-i386
+
+          - name: darwin amd64
+            env:
+              GOOS: darwin
+              GOARCH: amd64
+            buildCmd: >-
+            file: zcli-darwin-amd64
+
+          - name: darwin arm64
+            env:
+              GOOS: darwin
+              GOARCH: arm64
+            file: zcli-darwin-arm64
+
+          - name: windows amd64
+            env:
+              GOOS: windows
+              GOARCH: amd64
+            file: zcli-win-x64.exe
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+        id: go
+
+      - name: get dependencies
+        run: |
+          export GOPATH=$HOME/go
+          ./tools/install.sh
+
+      - name: build
+        env: ${{ matrix.env }}
+        run: >-
+          go build
+          -tags devel
+          -o builds/${{ matrix.file }}
+          -ldflags "-X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
+          ./cmd/zcli/main.go
+
+      - name: upload asset clean bin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./builds/${{ matrix.file }}
+          asset_name: ${{ matrix.file }}
+          asset_content_type: application/octet-stream
