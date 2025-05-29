@@ -3,9 +3,12 @@ package repository
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/output"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func GetAllOrgs(
@@ -30,9 +33,27 @@ func GetAllOrgs(
 	return orgs, nil
 }
 
+func GetOrgById(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	orgId uuid.ClientId,
+) (entity.Org, error) {
+	orgs, err := GetAllOrgs(ctx, restApiClient)
+	if err != nil {
+		return entity.Org{}, err
+	}
+	org, found := gn.FindFirst(orgs, func(in entity.Org) bool {
+		return in.Id == orgId
+	})
+	if !found {
+		return entity.Org{}, errors.Errorf("Org [%s] not found", orgId)
+	}
+	return org, nil
+}
+
 func orgFromEsSearch(esClientUser output.ClientUserExtra) entity.Org {
 	return entity.Org{
-		ID:   esClientUser.ClientId,
+		Id:   esClientUser.ClientId,
 		Name: esClientUser.Client.AccountName,
 		Role: esClientUser.RoleCode,
 	}

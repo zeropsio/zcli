@@ -1,16 +1,18 @@
 //go:build linux
-// +build linux
 
 package wg
 
 import (
 	"context"
 	"io"
+	"net"
 	"os/exec"
 	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdRunner"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -42,6 +44,17 @@ func UpCmd(ctx context.Context, filePath string) (err *cmdRunner.ExecCmd) {
 
 func DownCmd(ctx context.Context, filePath, _ string) (err *cmdRunner.ExecCmd) {
 	return cmdRunner.CommandContext(ctx, "wg-quick", "down", filePath)
+}
+
+func InterfaceExists() (bool, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return false, errors.Wrap(err, "Can't resolve net interfaces")
+	}
+	_, found := gn.FindFirst(interfaces, func(in net.Interface) bool {
+		return in.Name == constants.WgInterfaceName
+	})
+	return found, nil
 }
 
 var vpnTmpl = `

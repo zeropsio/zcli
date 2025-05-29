@@ -42,7 +42,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 				return nil
 			}
 
-			lines := []string{}
+			var lines []string
 			for {
 				cursor -= 1
 				_, err = f.Seek(cursor, io.SeekEnd)
@@ -73,7 +73,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 			}
 
 			for _, line := range lines {
-				fmt.Print(line)
+				cmdData.Stderr.Print(line)
 			}
 
 			return nil

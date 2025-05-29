@@ -2,21 +2,22 @@ package serviceLogs
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTemplateFixOk(t *testing.T) {
-	got, _ := fixTemplate("{{.timestamp}} {{.severityLabel}} {{.severity  }} {{.facility}} {{ .message}}")
-	want := "{{.Timestamp}} {{.SeverityLabel}} {{.Severity}} {{.Facility}} {{.Message}}"
-
-	if got != want {
-		t.Errorf("got %q, wanted %q", got, want)
-	}
+	assert := require.New(t)
+	got, err := fixTemplate("{{.timestamp}} {{.severityLabel}} {{.severity  }} {{.facility}} {{ .message}}")
+	assert.NoError(err)
+	assert.Equal(
+		"{{.Timestamp}} {{.SeverityLabel}} {{.Severity}} {{.Facility}} {{.Message}}",
+		got,
+	)
 }
 
 func TestTemplateFixNotOk(t *testing.T) {
+	assert := require.New(t)
 	_, err := fixTemplate("{{.timestamp}}  {{.severityLabel}} {{.severity  }} {{.facility}} {{ .message}}")
-
-	if err == nil {
-		t.Errorf("got %v, wanted %q", nil, err)
-	}
+	assert.Error(err)
 }

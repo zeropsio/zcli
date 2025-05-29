@@ -21,35 +21,30 @@ jobs:
             env:
               GOOS: linux
               GOARCH: amd64
-#            osEnv: GOOS=linux GOARCH=amd64
             runTests: true
 
           - name: linux 386
             env:
               GOOS: linux
               GOARCH: 386
-#            osEnv: GOOS=linux GOARCH=386
             runTests: false
 
           - name: darwin amd64
             env:
               GOOS: darwin
               GOARCH: amd64
-#            osEnv: GOOS=darwin GOARCH=amd64
             runTests: true
 
           - name: darwin arm64
             env:
               GOOS: darwin
               GOARCH: arm64
-#            osEnv: GOOS=darwin GOARCH=arm64
             runTests: false
 
           - name: windows amd64
             env:
               GOOS: windows
               GOARCH: amd64
-#            osEnv: GOOS=windows GOARCH=amd64
             runTests: true
 
     steps:

@@ -1,21 +1,24 @@
 //go:build darwin
-// +build darwin
 
 package wg
 
 import (
 	"context"
 	"io"
+	"os"
 	"os/exec"
 	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdRunner"
+	"github.com/zeropsio/zcli/src/constants"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zerops-go/dto/output"
 )
+
+const wgRunDir = "/var/run/wireguard/"
 
 func CheckWgInstallation() error {
 	_, err := exec.LookPath("wg-quick")
@@ -41,6 +44,25 @@ func UpCmd(ctx context.Context, filePath string) (err *cmdRunner.ExecCmd) {
 
 func DownCmd(ctx context.Context, filePath, _ string) (err *cmdRunner.ExecCmd) {
 	return cmdRunner.CommandContext(ctx, "wg-quick", "down", filePath)
+}
+
+func InterfaceExists() (bool, error) {
+	items, err := os.ReadDir(wgRunDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "Cannot read /var/run/wireguard/ dir")
+	}
+	for _, i := range items {
+		if i.Type()&os.ModeSocket != 0 {
+			continue
+		}
+		if i.Name() == constants.WgInterfaceName+".name" {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 var vpnTmpl = `

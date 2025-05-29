@@ -1,0 +1,106 @@
+package yamlReader
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/gn"
+	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"gopkg.in/yaml.v3"
+)
+
+type ZeropsYaml struct {
+	Zerops []Setup `yaml:"zerops"`
+}
+
+type Setup struct {
+	Setup string `yaml:"setup"`
+}
+
+func ReadZeropsYamlSetups(in []byte) ([]string, error) {
+	var z ZeropsYaml
+	if err := yaml.Unmarshal(in, &z); err != nil {
+		return nil, errors.Wrap(err, "unmarshal zerops yaml")
+	}
+	return gn.TransformSlice(z.Zerops, func(in Setup) string {
+		return in.Setup
+	}), nil
+}
+
+type readZeropsYaml struct {
+	returnErrOnNotFound bool
+}
+type ReadZeropsYamlOption gn.Option[readZeropsYaml]
+
+func WithReturnErrOnZeropsYamlNotFound(b bool) ReadZeropsYamlOption {
+	return func(r *readZeropsYaml) {
+		r.returnErrOnNotFound = b
+	}
+}
+
+// ugly as f***, but ReadZeropsYamlContent can be called many times,
+// and it always prints INFO line with a used zerops.yaml path, which is redundant and confusing
+var zeropsYamlContent []byte
+
+// ReadZeropsYamlContent WARN: reads and caches zerops.yaml at first call, all other calls will use cache only
+func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string, opts ...ReadZeropsYamlOption) ([]byte, error) {
+	if zeropsYamlContent != nil {
+		return zeropsYamlContent, nil
+	}
+
+	c := gn.ApplyOptionsWithDefault(readZeropsYaml{returnErrOnNotFound: true}, opts...)
+
+	workingDir, err := filepath.Abs(selectedWorkingDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathsToCheck []string
+	if selectedZeropsYamlPath != "" {
+		if filepath.IsAbs(selectedZeropsYamlPath) {
+			pathsToCheck = append(pathsToCheck, selectedZeropsYamlPath)
+		} else {
+			pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, selectedZeropsYamlPath))
+		}
+	} else {
+		pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, "zerops.yaml"))
+		pathsToCheck = append(pathsToCheck, filepath.Join(workingDir, "zerops.yml"))
+	}
+
+	zeropsYamlPath, err := func() (string, error) {
+		for _, path := range pathsToCheck {
+			zeropsYamlStat, err := os.Stat(path)
+			if err == nil {
+				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployZeropsYamlFound, path)))
+
+				if zeropsYamlStat.Size() == 0 {
+					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlEmpty))
+				}
+				if zeropsYamlStat.Size() > 10*1024 {
+					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlTooLarge))
+				}
+				return path, nil
+			}
+		}
+		if c.returnErrOnNotFound {
+			return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlNotFound, strings.Join(pathsToCheck, ", ")))
+		}
+		return "", nil
+	}()
+	if err != nil {
+		return nil, err
+	}
+
+	yamlContent, err := os.ReadFile(zeropsYamlPath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	zeropsYamlContent = yamlContent
+
+	return yamlContent, nil
+}

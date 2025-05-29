@@ -5,20 +5,36 @@ import (
 
 	"github.com/mattn/go-isatty"
 	"github.com/zeropsio/zcli/src/constants"
+	"golang.org/x/term"
 )
 
-type terminalMode string
+type Mode string
 
 const (
-	ModeAuto     terminalMode = "auto"
-	ModeDisabled terminalMode = "disabled"
-	ModeEnabled  terminalMode = "enabled"
+	ModeAuto     Mode = "auto"
+	ModeDisabled Mode = "disabled"
+	ModeEnabled  Mode = "enabled"
 )
 
-func isTerminal() bool {
-	env := os.Getenv(constants.CliTerminalMode)
+func (m Mode) IsAuto(other Mode) bool {
+	return ModeAuto == other
+}
+func (m Mode) IsDisabled(other Mode) bool {
+	return ModeDisabled == other
+}
+func (m Mode) IsEnabled(other Mode) bool {
+	return ModeEnabled == other
+}
 
-	switch terminalMode(env) {
+func GetMode() Mode {
+	env := os.Getenv(constants.CliTerminalMode)
+	return Mode(env)
+}
+
+func isTerminal() bool {
+	env := GetMode()
+
+	switch env {
 	case ModeAuto, "":
 		return isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
 	case ModeDisabled:
@@ -40,4 +56,14 @@ func IsTerminal() bool {
 	_isTerminal = new(bool)
 	*_isTerminal = isTerminal()
 	return *_isTerminal
+}
+
+// GetSize Tries to get terminal size from stdout file descriptor.
+// on err returns -1, -1
+func GetSize() (width int, height int) {
+	width, height, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return -1, -1
+	}
+	return width, height
 }

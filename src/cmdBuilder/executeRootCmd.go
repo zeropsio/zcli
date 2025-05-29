@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
+	"strings"
 	"syscall"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
+	"github.com/zeropsio/zcli/src/uxBlock/models"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 
@@ -23,6 +27,16 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/apiError"
 )
+
+var matchFirstCap = regexp.MustCompile("([A-Z]+)")
+
+func camelCaseToKebabCase(camel string) string {
+	return strings.ToLower(matchFirstCap.ReplaceAllString(camel, "-${1}"))
+}
+
+func normalizeFlagNames(_ *pflag.FlagSet, name string) pflag.NormalizedName {
+	return pflag.NormalizedName(camelCaseToKebabCase(name))
+}
 
 func ExecuteRootCmd(rootCmd *Cmd) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -47,6 +61,8 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 		printError(err, uxBlocks)
 	}
 
+	cobraCmd.SetGlobalNormalizationFunc(normalizeFlagNames)
+
 	err = cobraCmd.ExecuteContext(ctx)
 	if err != nil {
 		printError(err, uxBlocks)
@@ -62,7 +78,6 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	if userErr := errorsx.AsUserError(err); userErr != nil {
 		uxBlocks.PrintErrorText(err.Error())
 		os.Exit(1)
-		return
 	}
 
 	var apiErr apiError.Error
@@ -77,7 +92,11 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 		}
 
 		os.Exit(1)
-		return
+	}
+
+	if errors.Is(err, models.ErrCtrlC) {
+		uxBlocks.PrintInfo(styles.InfoLine("canceled"))
+		os.Exit(0)
 	}
 
 	uxBlocks.PrintErrorText(err.Error())

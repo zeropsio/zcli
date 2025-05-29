@@ -6,60 +6,79 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
+type orgSelectorConfig struct {
+	skipOnOneItem bool
+}
+type OrgSelectorOption = gn.Option[orgSelectorConfig]
+
+func WithOrgPickOnlyOneItem(b bool) OrgSelectorOption {
+	return func(s *orgSelectorConfig) {
+		s.skipOnOneItem = b
+	}
+}
+
 func PrintOrgSelector(
 	ctx context.Context,
-	uxBlocks uxBlock.UxBlocks,
 	restApiClient *zeropsRestApiClient.Handler,
-) (*entity.Org, error) {
+	opts ...OrgSelectorOption,
+) (entity.Org, error) {
+	cfg := gn.ApplyOptions(opts...)
+
 	orgs, err := repository.GetAllOrgs(ctx, restApiClient)
 	if err != nil {
-		return nil, err
+		return entity.Org{}, err
 	}
 
 	if len(orgs) == 0 {
-		return nil, errors.New(i18n.T(i18n.OrgSelectorListEmpty))
+		return entity.Org{}, errors.New(i18n.T(i18n.OrgSelectorListEmpty))
 	}
 
-	header, tableBody := createOrgTableRows(orgs)
+	if len(orgs) == 1 && cfg.skipOnOneItem {
+		return orgs[0], nil
+	}
 
-	orgIndex, err := uxBlocks.Select(
-		ctx,
-		tableBody,
-		uxBlock.SelectLabel(i18n.T(i18n.OrgSelectorPrompt)),
-		uxBlock.SelectTableHeader(header),
+	header, body := createOrgTableRows(orgs)
+
+	selected, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			body,
+			selector.WithLabel(i18n.T(i18n.OrgSelectorPrompt)),
+			selector.WithHeader(header),
+			selector.WithSetEnableFiltering(true),
+		),
+		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
-		return nil, err
+		return entity.Org{}, err
 	}
 
-	if len(orgIndex) == 0 {
-		return nil, errors.New(i18n.T(i18n.OrgSelectorOutOfRangeError))
+	if selected > len(orgs)-1 {
+		return entity.Org{}, errors.New(i18n.T(i18n.OrgSelectorOutOfRangeError))
 	}
 
-	if orgIndex[0] > len(orgs)-1 {
-		return nil, errors.New(i18n.T(i18n.OrgSelectorOutOfRangeError))
-	}
-
-	return &orgs[orgIndex[0]], nil
+	return orgs[selected], nil
 }
 
-func createOrgTableRows(projects []entity.Org) (*uxBlock.TableRow, *uxBlock.TableBody) {
-	// TODO - janhajek translation
-	header := (&uxBlock.TableRow{}).AddStringCells("ID", "Name", "Role")
+func createOrgTableRows(projects []entity.Org) (*table.Row, *table.Body) {
+	header := table.NewRowFromStrings("ID", "Name", "Role")
 
-	tableBody := &uxBlock.TableBody{}
+	body := table.NewBody()
 	for _, project := range projects {
-		tableBody.AddStringsRow(
-			string(project.ID),
+		body.AddStringsRow(
+			string(project.Id),
 			project.Name.String(),
 			project.Role.Native(),
 		)
 	}
 
-	return header, tableBody
+	return header, body
 }

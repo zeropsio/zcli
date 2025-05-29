@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	tea "github.com/charmbracelet/bubbletea"
 	gomock "github.com/golang/mock/gomock"
 	logger "github.com/zeropsio/zcli/src/logger"
 	uxBlock "github.com/zeropsio/zcli/src/uxBlock"
@@ -89,6 +90,18 @@ func (mr *MockUxBlocksMockRecorder) PrintError(line interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintError", reflect.TypeOf((*MockUxBlocks)(nil).PrintError), line)
 }
 
+// PrintErrorText mocks base method.
+func (m *MockUxBlocks) PrintErrorText(arg0 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PrintErrorText", arg0)
+}
+
+// PrintErrorText indicates an expected call of PrintErrorText.
+func (mr *MockUxBlocksMockRecorder) PrintErrorText(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintErrorText", reflect.TypeOf((*MockUxBlocks)(nil).PrintErrorText), arg0)
+}
+
 // PrintInfo mocks base method.
 func (m *MockUxBlocks) PrintInfo(line styles.Line) {
 	m.ctrl.T.Helper()
@@ -99,6 +112,18 @@ func (m *MockUxBlocks) PrintInfo(line styles.Line) {
 func (mr *MockUxBlocksMockRecorder) PrintInfo(line interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintInfo", reflect.TypeOf((*MockUxBlocks)(nil).PrintInfo), line)
+}
+
+// PrintInfoText mocks base method.
+func (m *MockUxBlocks) PrintInfoText(arg0 string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PrintInfoText", arg0)
+}
+
+// PrintInfoText indicates an expected call of PrintInfoText.
+func (mr *MockUxBlocksMockRecorder) PrintInfoText(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintInfoText", reflect.TypeOf((*MockUxBlocks)(nil).PrintInfoText), arg0)
 }
 
 // PrintWarning mocks base method.
@@ -113,73 +138,29 @@ func (mr *MockUxBlocksMockRecorder) PrintWarning(line interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintWarning", reflect.TypeOf((*MockUxBlocks)(nil).PrintWarning), line)
 }
 
-// Prompt mocks base method.
-func (m *MockUxBlocks) Prompt(ctx context.Context, message string, choices []string, auxOptions ...uxBlock.PromptOption) (int, error) {
+// PrintWarningText mocks base method.
+func (m *MockUxBlocks) PrintWarningText(arg0 string) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, message, choices}
-	for _, a := range auxOptions {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Prompt", varargs...)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	m.ctrl.Call(m, "PrintWarningText", arg0)
 }
 
-// Prompt indicates an expected call of Prompt.
-func (mr *MockUxBlocksMockRecorder) Prompt(ctx, message, choices interface{}, auxOptions ...interface{}) *gomock.Call {
+// PrintWarningText indicates an expected call of PrintWarningText.
+func (mr *MockUxBlocksMockRecorder) PrintWarningText(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, message, choices}, auxOptions...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prompt", reflect.TypeOf((*MockUxBlocks)(nil).Prompt), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintWarningText", reflect.TypeOf((*MockUxBlocks)(nil).PrintWarningText), arg0)
 }
 
 // RunSpinners mocks base method.
-func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) func() {
+func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) (func(), func(tea.Msg)) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunSpinners", ctx, spinners)
 	ret0, _ := ret[0].(func())
-	return ret0
+	ret1, _ := ret[1].(func(tea.Msg))
+	return ret0, ret1
 }
 
 // RunSpinners indicates an expected call of RunSpinners.
 func (mr *MockUxBlocksMockRecorder) RunSpinners(ctx, spinners interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSpinners", reflect.TypeOf((*MockUxBlocks)(nil).RunSpinners), ctx, spinners)
-}
-
-// Select mocks base method.
-func (m *MockUxBlocks) Select(ctx context.Context, tableBody *uxBlock.TableBody, auxOptions ...uxBlock.SelectOption) ([]int, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, tableBody}
-	for _, a := range auxOptions {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Select", varargs...)
-	ret0, _ := ret[0].([]int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Select indicates an expected call of Select.
-func (mr *MockUxBlocksMockRecorder) Select(ctx, tableBody interface{}, auxOptions ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, tableBody}, auxOptions...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Select", reflect.TypeOf((*MockUxBlocks)(nil).Select), varargs...)
-}
-
-// Table mocks base method.
-func (m *MockUxBlocks) Table(body *uxBlock.TableBody, auxOptions ...uxBlock.TableOption) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{body}
-	for _, a := range auxOptions {
-		varargs = append(varargs, a)
-	}
-	m.ctrl.Call(m, "Table", varargs...)
-}
-
-// Table indicates an expected call of Table.
-func (mr *MockUxBlocksMockRecorder) Table(body interface{}, auxOptions ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{body}, auxOptions...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Table", reflect.TypeOf((*MockUxBlocks)(nil).Table), varargs...)
 }

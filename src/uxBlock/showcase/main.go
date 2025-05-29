@@ -11,6 +11,9 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	. "github.com/zeropsio/zcli/src/uxBlock/styles"
 	"golang.org/x/term"
 )
@@ -35,15 +38,14 @@ func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
 	{
 		fmt.Println("========= spinners block =========")
 
-		width, height, _ := term.GetSize(0)
-		spinner1 := uxBlock.NewSpinner(NewLine("Running 1"), width, height)
-		spinner2 := uxBlock.NewSpinner(NewLine("Running 2"), width, height)
-		spinner3 := uxBlock.NewSpinner(NewLine("Running 3"), width, height)
+		spinner1 := uxBlock.NewSpinner(NewLine("Running 1").String())
+		spinner2 := uxBlock.NewSpinner(NewLine("Running 2").String())
+		spinner3 := uxBlock.NewSpinner(NewLine("Running 3").String())
 
-		stop := blocks.RunSpinners(ctx, []*uxBlock.Spinner{spinner1, spinner2, spinner3})
+		stop, send := blocks.RunSpinners(ctx, []*uxBlock.Spinner{spinner1, spinner2, spinner3})
 
 		counter := 0
-		tick := time.NewTicker(time.Second * 1)
+		tick := time.NewTicker(time.Millisecond * 300)
 		defer tick.Stop()
 		for {
 			select {
@@ -52,13 +54,13 @@ func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
 			case <-tick.C:
 				counter++
 				if counter == 2 {
-					spinner2.Finish(SuccessLine("Finished successfully"))
+					send(spinner2.FinishWithLine(SuccessLine("Finished successfully").String()))
 				}
 				if counter == 4 {
-					spinner1.Finish(ErrorLine("finished with error"))
+					send(spinner1.FinishWithLine(ErrorLine("finished with error").String()))
 				}
 				if counter == 6 {
-					spinner3.Finish(WarningLine("Finish with warning"))
+					send(spinner3.FinishWithLine(WarningLine("Finish with warning").String()))
 				}
 			}
 			if counter == 6 {
@@ -75,7 +77,14 @@ func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
 func prompts(ctx context.Context, blocks uxBlock.UxBlocks) {
 	fmt.Println("========= prompt block =========")
 	choices := []string{"yes", "no", "maybe"}
-	choice, err := blocks.Prompt(ctx, "Question?", choices)
+	choice, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Question?",
+			choices,
+		),
+		prompt.GetChoiceCursor,
+	)
 	if err != nil {
 		return
 	}
@@ -99,8 +108,6 @@ func texts(_ context.Context, blocks uxBlock.UxBlocks) {
 }
 
 func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
-	fmt.Println("========= table selection block =========")
-
 	tableData := [][]string{
 		{"lorem", "ipsum", "dolor", "sit"},
 		{
@@ -112,26 +119,54 @@ func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
 		{"sed", "do", "eiusmod", "tempor"},
 		{"incididunt", "ut", "labore", "et"},
 	}
+	body := table.NewBody().AddStringsRows(tableData...)
+	header := table.NewRowFromStrings("header1", "header2", "header3", "header4")
 
-	body := uxBlock.NewTableBody().AddStringsRows(tableData...)
+	fmt.Println("========= table single selection block =========")
 
-	line, err := blocks.Select(
-		ctx,
-		body,
-		uxBlock.SelectTableHeader(uxBlock.NewTableRow().AddStringCells("header1", "header2", "header3", "header4")),
-		uxBlock.SelectLabel("Select line"),
+	line, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			body,
+			selector.WithLabel("Single select"),
+			selector.WithHeader(header),
+			selector.WithEnableFiltering(),
+		),
+		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
 		return
 	}
 
-	blocks.PrintInfo(InfoWithValueLine("selected", tableData[line[0]][0]))
+	blocks.PrintInfo(InfoWithValueLine("selected", tableData[line][0]))
 
-	fmt.Println("========= table selection end =========")
+	fmt.Println("========= table single selection end =========")
+	fmt.Println("========= table multi selection block =========")
+
+	lines, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			body,
+			selector.WithLabel("Multi select"),
+			selector.WithHeader(header),
+			selector.WithEnableMultiSelect(),
+			selector.WithEnableFiltering(),
+		),
+		selector.GetMultipleSelectedFunc,
+	)
+	if err != nil {
+		return
+	}
+
+	for _, line := range lines {
+		blocks.PrintInfo(InfoWithValueLine("selected", tableData[line][0]))
+	}
+
+	fmt.Println("========= table multi selection end =========")
 	fmt.Println("========= print table block =========")
 
 	blocks.PrintInfo(InfoLine("printing table"))
-	blocks.Table(body, uxBlock.WithTableHeader(uxBlock.NewTableRow().AddStringCells("header1", "header2", "header3", "header4")))
+	fmt.Println(table.Render(body, table.WithHeader(header)))
 
 	fmt.Println("========= print table block end =========")
 }

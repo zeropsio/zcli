@@ -7,7 +7,9 @@ import (
 )
 
 type Org struct {
-	ID   uuid.ClientId
+	Id   uuid.ClientId
 	Role enum.ClientUserRoleCodeEnum
 	Name types.String
 }
+
+var OrgFields = entityTemplateFields[Org]()

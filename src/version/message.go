@@ -1,3 +1,5 @@
+//go:build !devel
+
 package version
 
 import (

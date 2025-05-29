@@ -6,6 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/wg"
 )
 
 func logoutCmd() *cmdBuilder.Cmd {
@@ -27,7 +28,11 @@ func logoutCmd() *cmdBuilder.Cmd {
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.LogoutVpnDisconnecting)))
-			if isVpnUp(ctx, uxBlocks, 1) {
+			vpnActive, err := wg.InterfaceExists()
+			if err != nil {
+				return err
+			}
+			if vpnActive {
 				_ = disconnectVpn(ctx, uxBlocks)
 			}
 			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LogoutSuccess)))
