@@ -197,6 +197,9 @@ func warpStringForTerminal(s string) string {
 
 // warpString wraps string after num of runes (excluding space as rune), keeping words intact
 func warpString(s string, runeCutCount uint) string {
+	if s == "" {
+		return ""
+	}
 	output := strings.Builder{}
 	scanner := bufio.NewScanner(strings.NewReader(s))
 	scanner.Split(bufio.ScanWords)
