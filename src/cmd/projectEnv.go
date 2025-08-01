@@ -11,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
+	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
 )
 
@@ -22,6 +23,8 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 		HelpFlag("Help for the project env command.").
 		BoolFlag("export", false, "Prepends export keyword to each env in output: 'export {{.Key}}={{.Value}}'.").
 		StringFlag("template", "{{.Key}}={{.Value}}", "Output template.").
+		StringFlag("service", "", "Service name, in which context the environment variables are output.").
+		BoolFlag("user-only", false, "Exclude all non user env variables.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			project, err := cmdData.Project.Expect("project is nil")
 			if err != nil {
@@ -33,6 +36,15 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 				templateString = "export {{.Key}}={{.Value}}"
 			}
 
+			var serviceName types.EmptyString
+			overrideEnvIsolation := enum.GetProjectEnvFileOverrideEnvIsolationEnumNone
+			if value := cmdData.Params.GetString("service"); value != "" {
+				serviceName = types.NewEmptyString(value)
+				overrideEnvIsolation = enum.GetProjectEnvFileOverrideEnvIsolationEnumService
+			}
+
+			userOnly := cmdData.Params.GetBool("user-only")
+
 			tmpl, err := template.New("envs").Parse(templateString)
 			if err != nil {
 				return errors.WithStack(err)
@@ -42,7 +54,9 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 				ctx,
 				path.ProjectId{Id: project.Id},
 				query.GetProjectEnvFile{
-					OverrideEnvIsolation: enum.GetProjectEnvFileOverrideEnvIsolationEnumNone,
+					Name:                 serviceName,
+					OverrideEnvIsolation: overrideEnvIsolation,
+					UserOnly:             types.NewBool(userOnly),
 				},
 			)
 			if err != nil {
@@ -70,8 +84,9 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 				}
 				output.WriteRune('\n')
 			}
-
-			cmdData.Stdout.Println(output.String()[:output.Len()-1])
+			if output.Len() > 0 {
+				cmdData.Stdout.Println(output.String()[:output.Len()-1])
+			}
 
 			return nil
 		})
