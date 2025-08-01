@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
@@ -13,7 +14,7 @@ import (
 )
 
 func (h *Handler) getServiceLogResData(ctx context.Context, projectId uuid.ProjectId) (string, string, error) {
-	response, err := h.restApiClient.GetProjectLog(ctx, path.ProjectId{Id: projectId})
+	response, err := h.restApiClient.GetProjectLog(ctx, path.ProjectId{Id: projectId}, query.GetProjectLog{})
 	if err != nil {
 		return "", "", err
 	}

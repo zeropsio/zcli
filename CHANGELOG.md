@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.48] - 2025-08-03
+
+### Added
+- new `--service` flag to `project env` command, which allows overriding env isolation
+- new `--userOnly` flag to `project env` command, which excludes non-user envs 
+
+## [v1.0.47] - 2025-08-01
+
+### Added
+- new `project env` command
 
 ## [v1.0.46] - 2025-05-30
 
