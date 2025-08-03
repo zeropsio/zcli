@@ -20,12 +20,14 @@ type ParamsReader interface {
 	GetStringSlice(name string) []string
 	GetInt(name string) int
 	GetBool(name string) bool
+	GetLocalZCliYamlFileName() (string, bool)
 }
 
 var _ ParamsReader = (*Handler)(nil)
 
 type Handler struct {
-	viper *viper.Viper
+	viper                 *viper.Viper
+	localZCliYamlFileName string
 }
 
 func New() *Handler {
@@ -41,16 +43,23 @@ func New() *Handler {
 		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
 	}
 
+	h := &Handler{
+		viper: v,
+	}
+
 	v.AddConfigPath(".")
 	v.SetConfigName(constants.CliZcliYamlBaseFileName)
 	v.SetConfigType("yaml")
 	if err := v.MergeInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		h.localZCliYamlFileName = v.ConfigFileUsed()
 	}
 
-	return &Handler{
-		viper: v,
-	}
+	return h
+}
+
+func (h *Handler) GetLocalZCliYamlFileName() (string, bool) {
+	return h.localZCliYamlFileName, h.localZCliYamlFileName != ""
 }
 
 func (h *Handler) Bind(cmd *cobra.Command) {

@@ -19,13 +19,20 @@ import (
 )
 
 type projectSelectorConfig struct {
-	createNew bool
+	preselectedId string
+	createNew     bool
 }
 type ProjectSelectorOption = gn.Option[projectSelectorConfig]
 
 func WithCreateNewProject(b bool) ProjectSelectorOption {
 	return func(s *projectSelectorConfig) {
 		s.createNew = b
+	}
+}
+
+func WithPreselectedProjectId(projectId string) ProjectSelectorOption {
+	return func(s *projectSelectorConfig) {
+		s.preselectedId = projectId
 	}
 }
 
@@ -40,6 +47,22 @@ func PrintProjectSelector(
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
 	if err != nil {
 		return empty, err
+	}
+
+	if cfg.preselectedId != "" {
+		var preselectedName []entity.Project
+		for _, project := range projects {
+			if project.Id.Native() == cfg.preselectedId {
+				preselectedName = append(preselectedName, project)
+			}
+			if project.Name.Native() == cfg.preselectedId {
+				preselectedName = append(preselectedName, project)
+			}
+		}
+		if len(preselectedName) == 1 {
+			return optional.New(preselectedName[0]), nil
+		}
+		projects = preselectedName
 	}
 
 	if len(projects) == 0 && !cfg.createNew {

@@ -31,8 +31,16 @@ func WithCreateNewProject() ProjectOption {
 	}
 }
 
+// WithSkipSelectProject allows skip project select
+func WithSkipSelectProject() ProjectOption {
+	return func(s *projectScope) {
+		s.skipSelect = true
+	}
+}
+
 type projectScope struct {
-	createNew bool
+	createNew  bool
+	skipSelect bool
 }
 
 func ScopeProject(opts ...ProjectOption) ScopeLevel {
@@ -48,6 +56,11 @@ func (p *projectScope) AddCommandFlags(cmd *Cmd) {
 func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *LoggedUserCmdData) error {
 	var project entity.Project
 	var err error
+
+	cmdData.ProjectSelector = p.SelectProject
+	if p.skipSelect {
+		return nil
+	}
 
 	// service scope is set - use project from it
 	if service, filled := cmdData.Service.Get(); filled {
@@ -116,30 +129,44 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 
 	if !cmdData.Project.Filled() {
 		// interactive selector of a project
-		selectedProject, err := uxHelpers.PrintProjectSelector(
-			ctx,
-			cmdData.RestApiClient,
-			uxHelpers.WithCreateNewProject(p.createNew),
-		)
+		project, selected, err := p.SelectProject(ctx, cmdData)
 		if err != nil {
 			return err
 		}
-
-		if selectedProject.Filled() {
-			project = selectedProject.Some()
-		} else if terminal.IsTerminal() {
-			project, err = createNewProject(ctx, cmdData)
-			if err != nil {
-				return err
-			}
+		if selected {
+			cmdData.Project = optional.New(project)
 		}
-
-		cmdData.Project = optional.New(project)
 	}
 
 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name.String()))
 
 	return nil
+}
+
+func (p *projectScope) SelectProject(ctx context.Context, cmdData *LoggedUserCmdData, opts ...uxHelpers.ProjectSelectorOption) (entity.Project, bool, error) {
+	selectedOptions := []uxHelpers.ProjectSelectorOption{
+		uxHelpers.WithCreateNewProject(p.createNew),
+	}
+	selectedOptions = append(selectedOptions, opts...)
+	selectedProject, err := uxHelpers.PrintProjectSelector(
+		ctx,
+		cmdData.RestApiClient,
+		selectedOptions...,
+	)
+	if err != nil {
+		return entity.Project{}, false, err
+	}
+
+	if selectedProject.Filled() {
+		return selectedProject.Some(), true, nil
+	} else if terminal.IsTerminal() {
+		project, err := createNewProject(ctx, cmdData)
+		if err != nil {
+			return entity.Project{}, false, err
+		}
+		return project, true, nil
+	}
+	return entity.Project{}, false, nil
 }
 
 func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.Project, error) {
