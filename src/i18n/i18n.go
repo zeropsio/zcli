@@ -68,6 +68,10 @@ const (
 	ProjectDeleteFailed  = "ProjectDeleteFailed"
 	ProjectDeleted       = "ProjectDeleted"
 
+	// project scope
+	CmdHelpProjectScope = "CmdHelpProjectScope"
+	CmdDescProjectScope = "CmdDescProjectScope"
+
 	// project import
 	CmdHelpProjectImport     = "CmdHelpProjectImport"
 	CmdDescProjectImport     = "CmdDescProjectImport"

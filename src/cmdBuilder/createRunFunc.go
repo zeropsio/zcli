@@ -1,6 +1,7 @@
 package cmdBuilder
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxHelpers"
 	getVersion "github.com/zeropsio/zcli/src/version"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -36,6 +38,8 @@ type LoggedUserCmdData struct {
 	// optional params
 	Project optional.Null[entity.Project]
 	Service optional.Null[entity.Service]
+
+	ProjectSelector func(context.Context, *LoggedUserCmdData, ...uxHelpers.ProjectSelectorOption) (entity.Project, bool, error)
 
 	VpnKeys map[uuid.ProjectId]entity.VpnKey
 }

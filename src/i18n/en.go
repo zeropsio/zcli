@@ -66,6 +66,10 @@ and your %s.`,
 	ProjectDeleteFailed:  "Project deletion failed",
 	ProjectDeleted:       "Project was deleted",
 
+	// project delete
+	CmdHelpProjectScope: "Help for the project scope command.",
+	CmdDescProjectScope: "Set a project as default scope",
+
 	// project import
 	CmdHelpProjectImport:     "The project import command. Use \"-\" as importYamlPath for taking yaml content from stdin.",
 	CmdDescProjectImport:     "Creates a new project with one or more services.",
@@ -303,7 +307,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	ArgsTooManyArgs:            "expected no more than %d arg(s), got %d",
 
 	// ux helpers
-	ProjectSelectorListEmpty:       "You don't have any projects yet. Create a new project using `zcli project import` command.",
+	ProjectSelectorListEmpty:       "It looks like you don't have any projects yet that match the criteria. Create a new project using `zcli project import` command.",
 	ProjectSelectorPrompt:          "Please, select a project",
 	ProjectSelectorOutOfRangeError: "We couldn't find a project with the index you entered. Please, try again or contact our support team.",
 	ServiceSelectorListEmpty:       "Project doesn't have any services yet. Create a new service using `zcli project service-import` command",
