@@ -42,9 +42,9 @@ func OpenURL(urlStr string) error {
 	if err := validateURL(urlStr); err != nil {
 		return err
 	}
-	
+
 	var cmd *exec.Cmd
-	
+
 	switch {
 	case isCommand("xdg-open"):
 		cmd = exec.Command("xdg-open", urlStr)
@@ -53,11 +53,11 @@ func OpenURL(urlStr string) error {
 	case isCommand("start"):
 		cmd = exec.Command("cmd", "/c", "start", urlStr)
 	}
-	
+
 	if cmd != nil {
 		return cmd.Start()
 	}
-	
+
 	return nil
 }
 
@@ -72,24 +72,24 @@ func validateURL(urlStr string) error {
 	if len(urlStr) == 0 {
 		return fmt.Errorf("URL cannot be empty")
 	}
-	
+
 	if len(urlStr) > 2048 {
 		return fmt.Errorf("URL too long")
 	}
-	
+
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
 		return fmt.Errorf("invalid URL: %w", err)
 	}
-	
+
 	if !allowedSchemes[parsedURL.Scheme] {
 		return fmt.Errorf("unsupported URL scheme: %s", parsedURL.Scheme)
 	}
-	
+
 	if strings.Contains(urlStr, "../") || strings.Contains(urlStr, "..\\") {
 		return fmt.Errorf("path traversal detected")
 	}
-	
+
 	return nil
 }
 
