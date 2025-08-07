@@ -33,6 +33,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(statusShowDebugLogsCmd()).
 		AddChildrenCmd(servicePushCmd()).
 		AddChildrenCmd(envCmd()).
+		AddChildrenCmd(protocolCmd()).
 		AddChildrenCmd(supportCmd()).
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			cmdData.Stdout.PrintLines(
