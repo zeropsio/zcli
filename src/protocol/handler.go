@@ -39,7 +39,7 @@ func (h *DefaultHandler) Handle(ctx context.Context, protocolURL *url.URL) error
 	}
 }
 
-func (h *DefaultHandler) handleLogin(ctx context.Context, u *url.URL) error {
+func (h *DefaultHandler) handleLogin(_ context.Context, u *url.URL) error {
 	fmt.Println("Handling login request")
 
 	query := u.Query()
@@ -53,7 +53,7 @@ func (h *DefaultHandler) handleLogin(ctx context.Context, u *url.URL) error {
 	return nil
 }
 
-func (h *DefaultHandler) handleOpen(ctx context.Context, u *url.URL) error {
+func (h *DefaultHandler) handleOpen(_ context.Context, u *url.URL) error {
 	fmt.Println("Handling open request")
 
 	query := u.Query()

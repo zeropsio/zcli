@@ -43,7 +43,7 @@ func (r *registration) Register(ctx context.Context) error {
 	desktopPath := filepath.Join(appsDir, "zcli-protocol-handler.desktop")
 	desktopContent := fmt.Sprintf(desktopTemplate, execPath)
 
-	if err := os.WriteFile(desktopPath, []byte(desktopContent), 0644); err != nil {
+	if err := os.WriteFile(desktopPath, []byte(desktopContent), 0600); err != nil {
 		return fmt.Errorf("failed to write desktop file: %w", err)
 	}
 
