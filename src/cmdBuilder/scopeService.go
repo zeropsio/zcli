@@ -87,6 +87,16 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 		cmdData.Service = optional.New(service)
 	}
 
+	// try to find by serviceId
+	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists && !cmdData.Service.Filled() && len(serviceIdOrName[0]) == 22 {
+		serviceId := uuid.ServiceStackId(serviceIdOrName[0])
+		service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, serviceId)
+		if err != nil {
+			return err
+		}
+		cmdData.Service = optional.New(service)
+	}
+
 	// we have to load project, because we need projectId
 	if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
 		return err
