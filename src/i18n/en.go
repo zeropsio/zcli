@@ -4,13 +4,21 @@ import "fmt"
 
 var en = map[string]string{
 	// root
-	GuestWelcome: `Welcome to zCli by Zerops!
+	GuestWelcome: `Welcome to zCLI by Zerops!
 
 To unlock the full potential of zCLI, you need to log in using your Zerops account.
 Logging in enables you to access various features and interact with Zerops services seamlessly.
 
-To log in, simply use the following command: zcli login <your_token>
+To log in, use the login command with your authentication token:
+zcli login <your_token>
+
+Alternatively, you can use the ZEROPS_TOKEN environment variable to authenticate:
+export ZEROPS_TOKEN="<your_token>"
+
+Note: The stored authentication data created by the login command takes precedence over the environment variable if both are present.
+
 Replace <your_token> with the authentication token generated from your Zerops account.
+
 Once logged in, you'll be able to manage projects, deploy applications, configure VPN,
 and much more directly from the command line interface.
 
@@ -22,7 +30,7 @@ and your %s.`,
 
 	// env
 	GlobalEnvVariables:        "Global Env Variables:",
-	CurrentlyUsedEnvVariables: "Curently used variables:",
+	CurrentlyUsedEnvVariables: "Currently used variables:",
 
 	// login
 	CmdHelpLogin:          "Help for the login command.",

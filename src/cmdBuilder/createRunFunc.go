@@ -7,7 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
 	"github.com/zeropsio/zcli/src/cliStorage"
+	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
@@ -87,6 +89,9 @@ func createCmdRunFunc(
 
 		token := storedData.Token
 		if token == "" {
+			token = os.Getenv(constants.CliTokenEnvVar)
+		}
+		if token == "" {
 			if cmd.guestRunFunc != nil {
 				return cmd.guestRunFunc(ctx, guestCmdData)
 			}
@@ -103,7 +108,11 @@ func createCmdRunFunc(
 			VpnKeys:      storedData.VpnKeys,
 		}
 
-		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+storedData.RegionData.Address)
+		host := storedData.RegionData.Address
+		if host == "" {
+			host = constants.DefaultRegion
+		}
+		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+host)
 
 		if cmd.scopeLevel != nil {
 			if err := cmd.scopeLevel.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
