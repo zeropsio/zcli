@@ -40,6 +40,6 @@ if (!(";${Path};".ToLower() -like "*;${BinDir};*".ToLower())) {
 }
 
 Write-Output ""
-Write-Output "ZCli was installed successfully to ${ZcliExe}"
+Write-Output "zCLI was installed successfully to ${ZcliExe}"
 Write-Output "Run 'zcli --help' to get started"
 Write-Output "Stuck? Join our Discord https://discord.com/invite/WDvCZ54"
