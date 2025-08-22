@@ -15,7 +15,7 @@ zcli login <your_token>
 Alternatively, you can use the ZEROPS_TOKEN environment variable to authenticate:
 export ZEROPS_TOKEN="<your_token>"
 
-Note: The stored authentication data created by the login command takes precedence over the environment variable if both are present.
+Note: The environment variable takes precedence over stored authentication data created by the login command, if both are present.
 
 Replace <your_token> with the authentication token generated from your Zerops account.
 
