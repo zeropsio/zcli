@@ -88,8 +88,8 @@ func createCmdRunFunc(
 		storedData := cliStorage.Data()
 
 		token := storedData.Token
-		if token == "" {
-			token = os.Getenv(constants.CliTokenEnvVar)
+		if envToken, ok := os.LookupEnv(constants.CliTokenEnvVar); ok {
+			token = envToken
 		}
 		if token == "" {
 			if cmd.guestRunFunc != nil {
