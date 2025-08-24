@@ -8,6 +8,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"runtime"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 )
 
 const (
-	apiUrl = "https://api.github.com/repositories/269549268/releases/latest"
+	apiUrl = "https://api.app-prg1.zerops.io/api/rest/public/zcli/version"
 )
 
 var version = "local"
@@ -91,10 +92,15 @@ func fetch(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to get api response %s", apiUrl)
 	}
-
-	latestResponse = &apiResponse{}
-	if err := json.Unmarshal(resp.Body, &latestResponse); err != nil {
-		return errors.Wrap(err, "unable to read api response")
+	if resp.StatusCode == http.StatusOK {
+		latestResponse = &apiResponse{}
+		if err := json.Unmarshal(resp.Body, &latestResponse); err != nil {
+			return errors.Wrap(err, "unable to read api response")
+		}
+		return nil
+	}
+	latestResponse = &apiResponse{
+		TagName: "v0.0.0",
 	}
 	return nil
 }

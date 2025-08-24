@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.0.50] - 2025-??-??
+## [v1.0.53] - 2025-08-??
+
+### Fixed
+- use zerops proxy to detect zcli latest version  
+
+## [v1.0.52] - 2025-08-22
+
+### Fixed
+- `ZEROPS_TOKEN` environment variable takes precedence over stored zcli
+
+## [v1.0.51] - 2025-08-22
+
+### Added
+- authenticate via present ZEROPS_TOKEN environment variable
+
+## [v1.0.50] - 2025-08-08
 
 ### Fixed
 - fix automatic project selection if service is defined
