@@ -37,6 +37,9 @@ func (_ messageData) LatestUrl() string {
 }
 
 func (d messageData) Output(out io.Writer) error {
+	if d.LatestVersion() == "v0.0.0" {
+		return nil
+	}
 	t, err := template.New("").Parse(messageTemplate)
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse message template")
