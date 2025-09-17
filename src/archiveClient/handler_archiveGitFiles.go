@@ -38,9 +38,9 @@ func (h *Handler) ArchiveGitFiles(ctx context.Context, uxBlocks uxBlock.UxBlocks
 
 	// Start the appropriate archiving process based on config
 	if h.config.DeployGitFolder {
-		return h.createArchiveWithGitFolder(ctx, rootDir, gzipWriter)
+		return h.createArchiveWithGitFolder(ctx, rootDir, workingDir, gzipWriter)
 	}
-	return h.createSimpleArchive(ctx, rootDir, gzipWriter)
+	return h.createSimpleArchive(ctx, workingDir, gzipWriter)
 }
 
 func (h *Handler) getRootDir(ctx context.Context, workingDir string) (string, error) {
@@ -143,13 +143,13 @@ func (h *Handler) createSimpleArchive(ctx context.Context, workingDir string, wr
 }
 
 // createArchiveWithGitFolder creates an archive including the .git directory
-func (h *Handler) createArchiveWithGitFolder(ctx context.Context, workingDir string, writer io.Writer) error {
+func (h *Handler) createArchiveWithGitFolder(ctx context.Context, rootDir, workingDir string, writer io.Writer) error {
 	// Create a tar writer for our archive
 	tarWriter := tar.NewWriter(writer)
 	defer tarWriter.Close()
 
 	// First, add the .git directory to the tar
-	if err := h.addGitDirectory(workingDir, tarWriter); err != nil {
+	if err := h.addGitDirectory(rootDir, tarWriter); err != nil {
 		return err
 	}
 

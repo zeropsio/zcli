@@ -64,6 +64,9 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			if cmdData.Params.IsSet("no-git") && (cmdData.Params.IsSet("deploy-git-folder") || cmdData.Params.IsSet("workspace-state")) {
 				uxBlocks.PrintWarning(styles.WarningLine("--no-git and --deploy-git-folder/--workspace-state are mutually exclusive, ignoring --deploy-git-folder/--workspace-state"))
 			}
+			if cmdData.Params.IsSet("workspace-state") && !gn.IsOneOf(cmdData.Params.GetString("workspace-state"), archiveClient.WorkspaceAll, archiveClient.WorkspaceClean, archiveClient.WorkspaceStaged) {
+				return errors.New("Invalid value for --workspace-state, please use one of: " + archiveClient.WorkspaceAll + ", " + archiveClient.WorkspaceClean + ", " + archiveClient.WorkspaceStaged)
+			}
 
 			configContent, err := yamlReader.ReadZeropsYamlContent(
 				uxBlocks,
