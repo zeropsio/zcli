@@ -3,6 +3,7 @@ package uxBlock
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -27,11 +28,19 @@ func (b *Blocks) PrintSuccessText(in string) {
 	}
 }
 
+func (b *Blocks) PrintSuccessTextf(format string, args ...any) {
+	b.PrintSuccessText(fmt.Sprintf(format, args...))
+}
+
 func (b *Blocks) PrintInfoText(in string) {
 	scan := bufio.NewScanner(bytes.NewBufferString(in))
 	for scan.Scan() {
 		b.PrintInfo(styles.InfoLine(scan.Text()))
 	}
+}
+
+func (b *Blocks) PrintInfoTextf(format string, args ...any) {
+	b.PrintInfoText(fmt.Sprintf(format, args...))
 }
 
 func (b *Blocks) PrintInfo(line styles.Line) {
@@ -46,6 +55,10 @@ func (b *Blocks) PrintWarningText(in string) {
 	}
 }
 
+func (b *Blocks) PrintWarningTextf(format string, args ...any) {
+	b.PrintWarningText(fmt.Sprintf(format, args...))
+}
+
 func (b *Blocks) PrintWarning(line styles.Line) {
 	b.outputLogger.Warning(line)
 	b.debugFileLogger.Warning(line.DisableStyle())
@@ -56,6 +69,10 @@ func (b *Blocks) PrintErrorText(in string) {
 	for scan.Scan() {
 		b.PrintError(styles.ErrorLine(scan.Text()))
 	}
+}
+
+func (b *Blocks) PrintErrorTextf(format string, args ...any) {
+	b.PrintErrorText(fmt.Sprintf(format, args...))
 }
 
 func (b *Blocks) PrintError(line styles.Line) {

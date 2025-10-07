@@ -105,7 +105,7 @@ func createCmdRunFunc(
 
 		cmdData := &LoggedUserCmdData{
 			GuestCmdData: guestCmdData,
-			VpnKeys:      storedData.VpnKeys,
+			VpnKeys:      storedData.ProjectVpnKeyRegistry,
 		}
 
 		host := storedData.RegionData.Address

@@ -112,10 +112,10 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 
 			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
-				if data.VpnKeys == nil {
-					data.VpnKeys = make(map[uuid.ProjectId]entity.VpnKey)
+				if data.ProjectVpnKeyRegistry == nil {
+					data.ProjectVpnKeyRegistry = make(map[uuid.ProjectId]entity.VpnKey)
 				}
-				data.VpnKeys[project.Id] = entity.VpnKey{
+				data.ProjectVpnKeyRegistry[project.Id] = entity.VpnKey{
 					ProjectId: project.Id,
 					Key:       privateKey.String(),
 					CreatedAt: time.Now(),
