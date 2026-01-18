@@ -16,5 +16,7 @@ func projectCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(projectScopeCmd()).
 		AddChildrenCmd(projectServiceImportCmd()).
 		AddChildrenCmd(projectImportCmd()).
-		AddChildrenCmd(projectEnvCmd())
+		AddChildrenCmd(projectEnvCmd()).
+		AddChildrenCmd(projectProcessesCmd()).
+		AddChildrenCmd(projectNotificationsCmd())
 }

@@ -89,6 +89,22 @@ and your %s.`,
 	CmdDescProjectServiceImport: "Creates one or more Zerops services in an existing project.",
 	ServiceImported:             "service(s) imported",
 
+	// project processes
+	CmdHelpProjectProcesses:     "Help for the project processes command.",
+	CmdDescProjectProcesses:     "Lists running and pending processes for a project.",
+	CmdDescProjectProcessesLong: "Lists all currently RUNNING and PENDING processes for a project.\nProcesses represent long-running operations such as deployments, builds, service starts/stops, etc.\nResults are limited to 100 processes, sorted by creation time (newest first).",
+	ProcessListEmpty:            "No running or pending processes found for this project.",
+
+	// project notifications
+	CmdHelpProjectNotifications:     "Help for the project notifications command.",
+	CmdDescProjectNotifications:     "Lists notifications for a project.",
+	CmdDescProjectNotificationsLong: "Lists notifications for a project. Notifications inform about completed operations,\nwarnings, and errors. Results are sorted by creation time (newest first).\n\nUse --limit and --offset flags for pagination.",
+	NotificationLimitFlag:           "Maximum number of notifications to return (1-100, default: 50).",
+	NotificationOffsetFlag:          "Number of notifications to skip for pagination (default: 0).",
+	NotificationLimitInvalid:        "Invalid --limit value. Allowed interval is <1;100>.",
+	NotificationOffsetInvalid:       "Invalid --offset value. Must be >= 0.",
+	NotificationListEmpty:           "No notifications found for this project.",
+
 	// service
 	CmdHelpService: "Help for the service command.",
 	CmdDescService: "Zerops service commands group",
