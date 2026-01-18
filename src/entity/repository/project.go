@@ -75,7 +75,6 @@ func PostProject(
 	post entity.PostProject,
 ) (entity.Project, error) {
 	postBody := body.PostProject{
-		ClientId:     post.OrgId,
 		Name:         post.Name,
 		Mode:         &post.Mode,
 		TagList:      post.Tags,
@@ -85,7 +84,7 @@ func PostProject(
 	if postBody.TagList == nil {
 		postBody.TagList = make(types.StringArray, 0)
 	}
-	response, err := restApiClient.PostProject(ctx, postBody)
+	response, err := restApiClient.PostClientProject(ctx, path.ClientId{Id: post.OrgId}, postBody)
 	if err != nil {
 		return entity.Project{}, err
 	}

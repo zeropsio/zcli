@@ -51,7 +51,7 @@ func GetOrgById(
 	return org, nil
 }
 
-func orgFromEsSearch(esClientUser output.ClientUserExtra) entity.Org {
+func orgFromEsSearch(esClientUser output.ClientUserExtraWithClientLight) entity.Org {
 	return entity.Org{
 		Id:   esClientUser.ClientId,
 		Name: esClientUser.Client.AccountName,
