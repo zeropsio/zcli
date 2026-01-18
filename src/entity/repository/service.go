@@ -133,7 +133,6 @@ func PostGenericService(
 	post entity.PostService,
 ) (entity.Process, entity.Service, error) {
 	postBody := body.PostStandardServiceStack{
-		ProjectId:        post.ProjectId,
 		Name:             post.Name,
 		Mode:             &post.Mode,
 		UserDataEnvFile:  post.EnvFile,
@@ -141,9 +140,12 @@ func PostGenericService(
 		EnvIsolation:     post.EnvIsolation,
 		SshIsolation:     post.SshIsolation,
 	}
-	response, err := restApiClient.PostServiceStack(
+	response, err := restApiClient.PostProjectServiceStack(
 		ctx,
-		path.ServiceStackServiceStackTypeVersionId{ServiceStackTypeVersionId: "runtime"},
+		path.ServiceStackServiceStackTypeVersionId{
+			Id:                        post.ProjectId,
+			ServiceStackTypeVersionId: "runtime",
+		},
 		postBody,
 	)
 	if err != nil {

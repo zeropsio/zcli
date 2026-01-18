@@ -11,7 +11,7 @@ type Container struct {
 	OrgId     uuid.ClientId
 	ProjectId uuid.ProjectId
 	ServiceId uuid.ServiceStackId
-	Status    enum.ContainerStatusEnum
+	Status    *enum.ContainerStatusEnum
 	Number    types.Int
 	Name      types.StringNull
 	Hostname  types.StringNull

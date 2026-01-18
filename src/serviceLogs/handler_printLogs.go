@@ -23,7 +23,7 @@ func (h *Handler) printLogs(
 	query := makeQueryParams(inputs, serviceId, containerId)
 
 	if inputs.mode == RESPONSE {
-		err = h.getLogs(ctx, method, HTTPS+url+query, inputs.format, inputs.formatTemplate, inputs.mode)
+		err = h.getLogs(ctx, method, url+query, inputs.format, inputs.formatTemplate, inputs.mode)
 		if err != nil {
 			return err
 		}
@@ -67,5 +67,5 @@ func getDesc(mode string) int {
 func getWsUrl(apiUrl string) string {
 	urlSplit := strings.Split(apiUrl, "?")
 	url, token := urlSplit[0], urlSplit[1]
-	return url + "/stream?" + token
+	return strings.ReplaceAll(url, HTTPS, WSS) + "/stream?" + token
 }

@@ -49,7 +49,7 @@ func (h *Handler) updateUri(uri, query string) string {
 	if h.lastMsgId != "" {
 		from = fmt.Sprintf("&from=%s", h.lastMsgId)
 	}
-	return WSS + uri + query + from
+	return uri + query + from
 }
 
 func (h *Handler) receiveHandler(connection *websocket.Conn, format, formatTemplate string, done chan error) {

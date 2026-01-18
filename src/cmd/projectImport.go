@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -50,11 +51,11 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			importProjectResponse, err := cmdData.RestApiClient.PostProjectImport(
+			importProjectResponse, err := cmdData.RestApiClient.PostClientProjectImport(
 				ctx,
+				path.ClientId{Id: orgId},
 				body.ProjectImport{
-					ClientId: orgId,
-					Yaml:     types.Text(yamlContent),
+					Yaml: types.Text(yamlContent),
 				},
 			)
 			if err != nil {

@@ -203,12 +203,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			guiHost := cmdData.
-				CliStorage.
-				Data().
-				RegionData.
-				GuiAddress.
-				OrDefault("app.zerops.io")
+			guiHost := cmdData.CliStorage.Data().RegionData.GuiAddress.OrDefault("app.zerops.io")
 
 			var buildPhase bool
 			var preparePhase bool
