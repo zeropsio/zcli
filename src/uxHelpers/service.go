@@ -89,12 +89,28 @@ func PrintServiceList(
 	return err
 }
 
-func createServiceTableRows(projects []entity.Service, createNewService bool) (*table.Row, *table.Body) {
-	header := table.NewRowFromStrings("ID", "Name", "Status")
+func createServiceTableRows(services []entity.Service, createNewService bool) (*table.Row, *table.Body) {
+	header := table.NewRowFromStrings("id", "name", "status", "app version id", "app version created")
 
 	body := table.NewBody()
-	for _, project := range projects {
-		body.AddStringsRow(string(project.Id), project.Name.String(), project.Status.String())
+	for _, svc := range services {
+		appVersionId := "-"
+		if id, ok := svc.ActiveAppVersionId.Get(); ok {
+			appVersionId = string(id)
+		}
+
+		appVersionCreated := "-"
+		if created, ok := svc.ActiveAppVersionCreated.Get(); ok {
+			appVersionCreated = created.Native().Format(styles.DateTimeFormat)
+		}
+
+		body.AddStringsRow(
+			string(svc.Id),
+			svc.Name.String(),
+			svc.Status.String(),
+			appVersionId,
+			appVersionCreated,
+		)
 	}
 	if createNewService {
 		body.AddCellsRow(
