@@ -15,7 +15,7 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-const projectImportArgName = "importYamlPath"
+const projectImportArgName = "import-yaml-path"
 
 func projectImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
