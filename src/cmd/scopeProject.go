@@ -41,7 +41,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 			var err error
 
 			if len(cmdData.Args) > 0 {
-				project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(cmdData.Args["projectId"][0]))
+				project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(cmdData.Args["project-id"][0]))
 				if err != nil {
 					return err
 				}

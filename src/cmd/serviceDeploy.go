@@ -118,7 +118,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 						files, err := arch.FindFilesByRules(
 							uxBlocks,
 							cmdData.Params.GetString("working-dir"),
-							cmdData.Args["pathToFileOrDir"],
+							cmdData.Args["path-to-file-or-dir"],
 							ignorer,
 						)
 						if err != nil {

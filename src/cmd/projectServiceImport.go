@@ -13,7 +13,7 @@ import (
 	"github.com/zeropsio/zerops-go/types"
 )
 
-const serviceImportArgName = "importYamlPath"
+const serviceImportArgName = "import-yaml-path"
 
 func projectServiceImportCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
