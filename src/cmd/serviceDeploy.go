@@ -32,12 +32,13 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				),
 			),
 		).
-		Arg("pathToFileOrDir", cmdBuilder.ArrayArg()).
+		Arg(cmdBuilder.ServiceArgName, cmdBuilder.OptionalArg()).
 		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("archive-file-path", "", i18n.T(i18n.BuildArchiveFilePath)).
 		StringFlag("version-name", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
+		StringSliceFlag("path-to-file-or-dir", []string{"."}, "path to file or directory to be deployed. Can be repeated.").
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
 		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
@@ -118,7 +119,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 						files, err := arch.FindFilesByRules(
 							uxBlocks,
 							cmdData.Params.GetString("working-dir"),
-							cmdData.Args["path-to-file-or-dir"],
+							cmdData.Params.GetStringSlice("path-to-file-or-dir"),
 							ignorer,
 						)
 						if err != nil {
