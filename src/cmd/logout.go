@@ -33,7 +33,7 @@ func logoutCmd() *cmdBuilder.Cmd {
 				return err
 			}
 			if vpnActive {
-				_ = disconnectVpn(ctx, uxBlocks)
+				_ = disconnectVpn(ctx, uxBlocks, false, false)
 			}
 			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LogoutSuccess)))
 

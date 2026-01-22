@@ -28,16 +28,33 @@ import (
 
 const vpnCheckAddress = "logger.core.zerops"
 
+const (
+	vpnFlagMtu                   = "mtu"
+	vpnFlagAutoDisconnect        = "auto-disconnect"
+	vpnFlagSkipDnsSetup          = "skip-dns-setup"
+	vpnFlagSkipVpnTest           = "skip-vpn-test"
+	vpnFlagSkipCheckInstallation = "skip-check-installation"
+	vpnFlagSkipConnect           = "skip-connect"
+	vpnFlagOutput                = "output"
+)
+
 func vpnUpCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("up").
 		Short(i18n.T(i18n.CmdDescVpnUp)).
 		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
-		IntFlag("mtu", 1420, i18n.T(i18n.VpnMtuFlag)).
-		BoolFlag("auto-disconnect", false, i18n.T(i18n.VpnAutoDisconnectFlag)).
+		IntFlag(vpnFlagMtu, 1420, i18n.T(i18n.VpnMtuFlag)).
+		BoolFlag(vpnFlagAutoDisconnect, false, i18n.T(i18n.VpnAutoDisconnectFlag)).
+		BoolFlag(vpnFlagSkipDnsSetup, false, "skip DNS configuration - you will need to use IP addresses to connect to services instead of domain names").
+		BoolFlag(vpnFlagSkipVpnTest, false, "skip VPN connectivity test after connection is established").
+		BoolFlag(vpnFlagSkipCheckInstallation, false, "skip WireGuard installation check").
 		HelpFlag(i18n.T(i18n.CmdHelpVpnUp)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
+			dnsSetup := !cmdData.Params.GetBool(vpnFlagSkipDnsSetup)
+			vpnTest := !cmdData.Params.GetBool(vpnFlagSkipVpnTest)
+			checkInstallation := !cmdData.Params.GetBool(vpnFlagSkipCheckInstallation)
+
 			uxBlocks := cmdData.UxBlocks
 			project, err := cmdData.Project.Expect("project is null")
 			if err != nil {
@@ -49,8 +66,8 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 			if vpnActive {
-				if cmdData.Params.GetBool("auto-disconnect") {
-					if err := disconnectVpn(ctx, uxBlocks); err != nil {
+				if cmdData.Params.GetBool(vpnFlagAutoDisconnect) {
+					if err := disconnectVpn(ctx, uxBlocks, dnsSetup, checkInstallation); err != nil {
 						return err
 					}
 				} else {
@@ -66,7 +83,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 						return nil
 					}
 
-					if err := disconnectVpn(ctx, uxBlocks); err != nil {
+					if err := disconnectVpn(ctx, uxBlocks, dnsSetup, checkInstallation); err != nil {
 						return err
 					}
 				}
@@ -104,8 +121,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 			}
 			defer f.Close()
 
-			err = wg.GenerateConfig(f, privateKey, vpnSettings, cmdData.Params.GetInt("mtu"))
-			if err != nil {
+			if err := wg.GenerateConfig(f, privateKey, vpnSettings, cmdData.Params.GetInt(vpnFlagMtu), dnsSetup); err != nil {
 				return err
 			}
 
@@ -127,8 +143,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = wg.CheckWgInstallation()
-			if err != nil {
+			if err := wg.CheckWgInstallation(checkInstallation, dnsSetup); err != nil {
 				return err
 			}
 
@@ -138,11 +153,13 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			// wait for the vpn to be up
-			if isVpnUp(ctx, uxBlocks, 6) {
-				uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnUp)))
-			} else {
-				uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
+			if vpnTest && dnsSetup {
+				// wait for the vpn to be up
+				if isVpnUp(ctx, uxBlocks, 6) {
+					uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnUp)))
+				} else {
+					uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
+				}
 			}
 
 			return nil

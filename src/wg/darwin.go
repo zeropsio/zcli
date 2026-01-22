@@ -20,7 +20,10 @@ import (
 
 const wgRunDir = "/var/run/wireguard/"
 
-func CheckWgInstallation() error {
+func CheckWgInstallation(checkInstallation, _ bool) error {
+	if !checkInstallation {
+		return nil
+	}
 	_, err := exec.LookPath("wg-quick")
 	if err != nil {
 		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
@@ -29,8 +32,8 @@ func CheckWgInstallation() error {
 	return nil
 }
 
-func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int) error {
-	data, err := defaultTemplateData(privateKey, vpnSettings, mtu)
+func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int, dnsSetup bool) error {
+	data, err := defaultTemplateData(privateKey, vpnSettings, mtu, dnsSetup)
 	if err != nil {
 		return err
 	}
@@ -71,11 +74,13 @@ PrivateKey = {{.PrivateKey}}
 MTU = {{.Mtu}}
 
 Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
+{{if .DnsSetup -}}
 PostUp = mkdir -p /etc/resolver 
 PostUp = echo "nameserver {{.Ipv4NetworkGateway}}" > /etc/resolver/zerops 
 PostUp = echo "domain zerops" >> /etc/resolver/zerops
 PostUp = echo "search zerops" >> /etc/resolver/zerops
 PostDown = rm /etc/resolver/zerops 
+{{end}}
 
 [Peer]
 PublicKey = {{.PublicKey}}
