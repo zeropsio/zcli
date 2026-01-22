@@ -18,19 +18,24 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
-func CheckWgInstallation() error {
+func CheckWgInstallation(checkInstallation, dnsSetup bool) error {
+	if !checkInstallation {
+		return nil
+	}
 	if _, err := exec.LookPath("wg-quick"); err != nil {
 		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalled))
 	}
 	// Debian does not have it by default anymore
-	if _, err := exec.LookPath("resolvectl"); err != nil {
-		return errors.New(i18n.T(i18n.VpnResolveCtlIsNotInstalled))
+	if dnsSetup {
+		if _, err := exec.LookPath("resolvectl"); err != nil {
+			return errors.New(i18n.T(i18n.VpnResolveCtlIsNotInstalled))
+		}
 	}
 	return nil
 }
 
-func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int) error {
-	data, err := defaultTemplateData(privateKey, vpnSettings, mtu)
+func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int, dnsSetup bool) error {
+	data, err := defaultTemplateData(privateKey, vpnSettings, mtu, dnsSetup)
 	if err != nil {
 		return err
 	}
@@ -63,9 +68,10 @@ PrivateKey = {{.PrivateKey}}
 MTU = {{.Mtu}}
 
 Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
+{{if .DnsSetup -}}
 PostUp = resolvectl dns %i {{.Ipv4NetworkGateway}}
 PostUp = resolvectl domain %i zerops
-
+{{end}}
 [Peer]
 PublicKey = {{.PublicKey}}
 

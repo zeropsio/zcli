@@ -23,7 +23,7 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if vpnDownErr := disconnectVpn(ctx, cmdData.UxBlocks); vpnDownErr != nil {
+			if vpnDownErr := disconnectVpn(ctx, cmdData.UxBlocks, false, false); vpnDownErr != nil {
 				cmdData.UxBlocks.PrintWarningTextf("vpn down: %s", vpnDownErr)
 			}
 

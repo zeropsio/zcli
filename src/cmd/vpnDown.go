@@ -19,13 +19,17 @@ func vpnDownCmd() *cmdBuilder.Cmd {
 		Use("down").
 		Short(i18n.T(i18n.CmdDescVpnDown)).
 		HelpFlag(i18n.T(i18n.CmdHelpVpnDown)).
+		BoolFlag(vpnFlagSkipDnsSetup, false, "skip DNS configuration - you will need to use IP addresses to connect to services instead of domain names").
+		BoolFlag(vpnFlagSkipCheckInstallation, false, "skip WireGuard installation check").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			return disconnectVpn(ctx, cmdData.UxBlocks)
+			checkInstallation := !cmdData.Params.GetBool(vpnFlagSkipCheckInstallation)
+			dnsSetup := !cmdData.Params.GetBool(vpnFlagSkipDnsSetup)
+			return disconnectVpn(ctx, cmdData.UxBlocks, dnsSetup, checkInstallation)
 		})
 }
 
-func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks) error {
-	err := wg.CheckWgInstallation()
+func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks, dnsSetup, checkInstallation bool) error {
+	err := wg.CheckWgInstallation(checkInstallation, dnsSetup)
 	if err != nil {
 		return err
 	}

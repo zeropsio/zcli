@@ -25,7 +25,10 @@ import (
 // Only (simple) way I found to achieve this is to run Start-Process cmdlet with param '-Verb RunAS'
 // https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process?view=powershell-7.4
 
-func CheckWgInstallation() error {
+func CheckWgInstallation(checkInstallation, _ bool) error {
+	if !checkInstallation {
+		return nil
+	}
 	_, err := exec.LookPath("wireguard")
 	if err != nil {
 		return errors.New(i18n.T(i18n.VpnWgQuickIsNotInstalledWindows))
@@ -34,8 +37,8 @@ func CheckWgInstallation() error {
 	return nil
 }
 
-func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int) error {
-	data, err := defaultTemplateData(privateKey, vpnSettings, mtu)
+func GenerateConfig(f io.Writer, privateKey wgtypes.Key, vpnSettings output.ProjectVpnItem, mtu int, dnsSetup bool) error {
+	data, err := defaultTemplateData(privateKey, vpnSettings, mtu, dnsSetup)
 	if err != nil {
 		return err
 	}
@@ -132,10 +135,12 @@ PrivateKey = {{.PrivateKey}}
 MTU = {{.Mtu}}
 
 Address = {{if .AssignedIpv4Address}}{{.AssignedIpv4Address}}/32{{end}}, {{.AssignedIpv6Address}}/128
+{{if .DnsSetup -}}
 DNS = {{.Ipv4NetworkGateway}}, zerops
 ### Alternative DNS
 # PostUp = powershell -command "Add-DnsClientNrptRule -Namespace 'zerops' -NameServers '{{.Ipv4NetworkGateway}}'"
 # PostDown = powershell -command "Get-DnsClientNrptRule | Where { $_.Namespace -match '.*zerops' } | Remove-DnsClientNrptRule -force"
+{{end}}
 
 [Peer]
 PublicKey = {{.PublicKey}}

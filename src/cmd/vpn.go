@@ -12,6 +12,7 @@ func vpnCmd() *cmdBuilder.Cmd {
 		HelpFlag(i18n.T(i18n.CmdHelpVpn)).
 		AddChildrenCmd(vpnUpCmd()).
 		AddChildrenCmd(vpnDownCmd()).
+		AddChildrenCmd(vpnConfigCmd()).
 		AddChildrenCmd(vpnClearCmd()).
 		AddChildrenCmd(vpnKeyCmd())
 }
