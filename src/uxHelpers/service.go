@@ -86,7 +86,45 @@ func PrintServiceList(
 	t := table.Render(body, table.WithHeader(header))
 
 	_, err = fmt.Fprintln(out, t)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Fetch running/pending processes for the project
+	processes, err := repository.GetRunningAndPendingProcessesByProject(
+		ctx,
+		restApiClient,
+		project.OrgId,
+		project.Id,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Only show processes section if there are any
+	if len(processes) > 0 {
+		_, err = fmt.Fprintln(out)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(out, i18n.T(i18n.ServiceListProcessesHeader))
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(out)
+		if err != nil {
+			return err
+		}
+
+		processHeader, processBody := createProcessTableRows(processes)
+		pt := table.Render(processBody, table.WithHeader(processHeader))
+		_, err = fmt.Fprintln(out, pt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func createServiceTableRows(services []entity.Service, createNewService bool) (*table.Row, *table.Body) {
