@@ -196,8 +196,9 @@ and your %s.`,
 		" use the --working-dir flag to set the working directory to the directory where the zerops.yml file is located.",
 
 	// service list
-	CmdHelpServiceList: "Help for the service list command.",
-	CmdDescServiceList: "Lists all services in the project.",
+	CmdHelpServiceList:         "Help for the service list command.",
+	CmdDescServiceList:         "Lists all services in the project.",
+	ServiceListProcessesHeader: "Running processes:",
 
 	// service enable subdomain
 	CmdHelpServiceEnableSubdomain: "the service stop command.",

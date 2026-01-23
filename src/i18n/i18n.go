@@ -173,8 +173,9 @@ const (
 	PushDeployZeropsYamlNotFound    = "PushDeployZeropsYamlNotFound"
 
 	// service list
-	CmdHelpServiceList = "CmdHelpServiceList"
-	CmdDescServiceList = "CmdDescServiceList"
+	CmdHelpServiceList         = "CmdHelpServiceList"
+	CmdDescServiceList         = "CmdDescServiceList"
+	ServiceListProcessesHeader = "ServiceListProcessesHeader"
 
 	// service enable subdomain
 	CmdHelpServiceEnableSubdomain = "CmdHelpServiceEnableSubdomain"
