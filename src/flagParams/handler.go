@@ -40,7 +40,10 @@ func New() *Handler {
 		v.SetConfigFile(cliDataPath)
 	}
 	if err := v.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		// Only print config file info for non-machine-readable output
+		if v.GetString("format") != "json" {
+			fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		}
 	}
 
 	h := &Handler{
@@ -51,7 +54,10 @@ func New() *Handler {
 	v.SetConfigName(constants.CliZcliYamlBaseFileName)
 	v.SetConfigType("yaml")
 	if err := v.MergeInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		// Only print config file info for non-machine-readable output
+		if v.GetString("format") != "json" {
+			fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		}
 		h.localZCliYamlFileName = v.ConfigFileUsed()
 	}
 

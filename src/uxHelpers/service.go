@@ -81,20 +81,21 @@ type serviceListJsonOutput struct {
 }
 
 type serviceJsonItem struct {
-	Id                  string  `json:"id"`
-	Name                string  `json:"name"`
-	Status              string  `json:"status"`
-	AppVersionId        *string `json:"appVersionId"`
-	AppVersionCreated   *string `json:"appVersionCreated"`
+	Id                string  `json:"id"`
+	Name              string  `json:"name"`
+	Type              string  `json:"type"`
+	Status            string  `json:"status"`
+	AppVersionId      *string `json:"app_version_id"`
+	AppVersionCreated *string `json:"app_version_created"`
 }
 
 type processJsonItem struct {
-	Id           string   `json:"id"`
-	ActionName   string   `json:"actionName"`
-	Status       string   `json:"status"`
-	ServiceNames []string `json:"serviceNames"`
-	CreatedBy    string   `json:"createdBy"`
-	Created      string   `json:"created"`
+	Id        string   `json:"id"`
+	Action    string   `json:"action"`
+	Status    string   `json:"status"`
+	Services  []string `json:"services"`
+	CreatedBy string   `json:"created_by"`
+	Created   string   `json:"created"`
 }
 
 func PrintServiceList(
@@ -137,6 +138,7 @@ func printServiceListJson(out io.Writer, services []entity.Service, processes []
 		item := serviceJsonItem{
 			Id:     string(svc.Id),
 			Name:   svc.Name.String(),
+			Type:   string(svc.ServiceTypeId),
 			Status: svc.Status.String(),
 		}
 
@@ -160,12 +162,12 @@ func printServiceListJson(out io.Writer, services []entity.Service, processes []
 		}
 
 		output.Processes = append(output.Processes, processJsonItem{
-			Id:           string(process.Id),
-			ActionName:   process.ActionName.String(),
-			Status:       process.Status.String(),
-			ServiceNames: process.ServiceNames,
-			CreatedBy:    createdBy,
-			Created:      process.Created.Native().Format(styles.DateTimeFormat),
+			Id:        string(process.Id),
+			Action:    process.ActionName.String(),
+			Status:    process.Status.String(),
+			Services:  process.ServiceNames,
+			CreatedBy: createdBy,
+			Created:   process.Created.Native().Format(styles.DateTimeFormat),
 		})
 	}
 
@@ -211,7 +213,7 @@ func printServiceListTable(out io.Writer, services []entity.Service, processes [
 }
 
 func createServiceTableRows(services []entity.Service, createNewService bool) (*table.Row, *table.Body) {
-	header := table.NewRowFromStrings("id", "name", "status", "app version id", "app version created")
+	header := table.NewRowFromStrings("id", "name", "type", "status", "app version id", "app version created")
 
 	body := table.NewBody()
 	for _, svc := range services {
@@ -228,6 +230,7 @@ func createServiceTableRows(services []entity.Service, createNewService bool) (*
 		body.AddStringsRow(
 			string(svc.Id),
 			svc.Name.String(),
+			string(svc.ServiceTypeId),
 			svc.Status.String(),
 			appVersionId,
 			appVersionCreated,

@@ -57,15 +57,18 @@ func createCmdRunFunc(
 
 		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
-		if getVersion.IsVersionCheckMismatch(ctx) {
-			versionCheckMismatch, err := getVersion.GetVersionCheckMismatch()
-			if err != nil {
-				return err
-			}
-			uxBlocks.PrintWarningText(versionCheckMismatch)
-		}
-
 		flagParams.Bind(cobraCmd)
+
+		// Skip version check warning for machine-readable output formats
+		if flagParams.GetString("format") != "json" {
+			if getVersion.IsVersionCheckMismatch(ctx) {
+				versionCheckMismatch, err := getVersion.GetVersionCheckMismatch()
+				if err != nil {
+					return err
+				}
+				uxBlocks.PrintWarningText(versionCheckMismatch)
+			}
+		}
 
 		argsMap, err := convertArgs(cmd, args)
 		if err != nil {
