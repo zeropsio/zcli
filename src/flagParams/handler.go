@@ -30,6 +30,24 @@ type Handler struct {
 	localZCliYamlFileName string
 }
 
+// isJSONFormatRequested checks if --format json is requested via CLI args, env var, or config
+func isJSONFormatRequested(v *viper.Viper) bool {
+	// Check env var and config file
+	if v.GetString("format") == "json" {
+		return true
+	}
+	// Check CLI args (flags aren't bound yet at this point)
+	for i, arg := range os.Args {
+		if arg == "--format=json" || arg == "-format=json" {
+			return true
+		}
+		if (arg == "--format" || arg == "-format") && i+1 < len(os.Args) && os.Args[i+1] == "json" {
+			return true
+		}
+	}
+	return false
+}
+
 func New() *Handler {
 	v := viper.New()
 	v.SetEnvPrefix("ZEROPS")
@@ -41,7 +59,7 @@ func New() *Handler {
 	}
 	if err := v.ReadInConfig(); err == nil {
 		// Only print config file info for non-machine-readable output
-		if v.GetString("format") != "json" {
+		if !isJSONFormatRequested(v) {
 			fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
 		}
 	}
@@ -55,7 +73,7 @@ func New() *Handler {
 	v.SetConfigType("yaml")
 	if err := v.MergeInConfig(); err == nil {
 		// Only print config file info for non-machine-readable output
-		if v.GetString("format") != "json" {
+		if !isJSONFormatRequested(v) {
 			fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
 		}
 		h.localZCliYamlFileName = v.ConfigFileUsed()
