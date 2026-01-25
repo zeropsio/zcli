@@ -14,6 +14,7 @@ func serviceListCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescServiceList)).
 		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
+		StringFlag("format", "table", i18n.T(i18n.ServiceListFormatFlag)).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceList)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			project, err := cmdData.Project.Expect("project is null")
@@ -25,6 +26,9 @@ func serviceListCmd() *cmdBuilder.Cmd {
 				cmdData.RestApiClient,
 				cmdData.Stdout,
 				project,
+				uxHelpers.PrintServiceListConfig{
+					Format: cmdData.Params.GetString("format"),
+				},
 			); err != nil {
 				return err
 			}

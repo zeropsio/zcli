@@ -176,6 +176,7 @@ const (
 	CmdHelpServiceList         = "CmdHelpServiceList"
 	CmdDescServiceList         = "CmdDescServiceList"
 	ServiceListProcessesHeader = "ServiceListProcessesHeader"
+	ServiceListFormatFlag      = "ServiceListFormatFlag"
 
 	// service enable subdomain
 	CmdHelpServiceEnableSubdomain = "CmdHelpServiceEnableSubdomain"

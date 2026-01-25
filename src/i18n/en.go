@@ -199,6 +199,7 @@ and your %s.`,
 	CmdHelpServiceList:         "Help for the service list command.",
 	CmdDescServiceList:         "Lists all services in the project.",
 	ServiceListProcessesHeader: "Running processes:",
+	ServiceListFormatFlag:      "Output format. Supported formats: table, json.",
 
 	// service enable subdomain
 	CmdHelpServiceEnableSubdomain: "the service stop command.",

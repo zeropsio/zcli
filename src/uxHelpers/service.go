@@ -2,6 +2,7 @@ package uxHelpers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -70,22 +71,40 @@ func PrintServiceSelector(
 	return empty, nil
 }
 
+type PrintServiceListConfig struct {
+	Format string
+}
+
+type serviceListJsonOutput struct {
+	Services  []serviceJsonItem  `json:"services"`
+	Processes []processJsonItem  `json:"processes"`
+}
+
+type serviceJsonItem struct {
+	Id                  string  `json:"id"`
+	Name                string  `json:"name"`
+	Status              string  `json:"status"`
+	AppVersionId        *string `json:"appVersionId"`
+	AppVersionCreated   *string `json:"appVersionCreated"`
+}
+
+type processJsonItem struct {
+	Id           string   `json:"id"`
+	ActionName   string   `json:"actionName"`
+	Status       string   `json:"status"`
+	ServiceNames []string `json:"serviceNames"`
+	CreatedBy    string   `json:"createdBy"`
+	Created      string   `json:"created"`
+}
+
 func PrintServiceList(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 	out io.Writer,
 	project entity.Project,
+	config PrintServiceListConfig,
 ) error {
 	services, err := repository.GetNonSystemServicesByProject(ctx, restApiClient, project)
-	if err != nil {
-		return err
-	}
-
-	header, body := createServiceTableRows(services, false)
-
-	t := table.Render(body, table.WithHeader(header))
-
-	_, err = fmt.Fprintln(out, t)
 	if err != nil {
 		return err
 	}
@@ -97,6 +116,70 @@ func PrintServiceList(
 		project.OrgId,
 		project.Id,
 	)
+	if err != nil {
+		return err
+	}
+
+	if config.Format == "json" {
+		return printServiceListJson(out, services, processes)
+	}
+
+	return printServiceListTable(out, services, processes)
+}
+
+func printServiceListJson(out io.Writer, services []entity.Service, processes []entity.Process) error {
+	output := serviceListJsonOutput{
+		Services:  make([]serviceJsonItem, 0, len(services)),
+		Processes: make([]processJsonItem, 0, len(processes)),
+	}
+
+	for _, svc := range services {
+		item := serviceJsonItem{
+			Id:     string(svc.Id),
+			Name:   svc.Name.String(),
+			Status: svc.Status.String(),
+		}
+
+		if id, ok := svc.ActiveAppVersionId.Get(); ok {
+			idStr := string(id)
+			item.AppVersionId = &idStr
+		}
+
+		if created, ok := svc.ActiveAppVersionCreated.Get(); ok {
+			createdStr := created.Native().Format(styles.DateTimeFormat)
+			item.AppVersionCreated = &createdStr
+		}
+
+		output.Services = append(output.Services, item)
+	}
+
+	for _, process := range processes {
+		createdBy := process.CreatedByUser
+		if process.CreatedBySystem.Native() {
+			createdBy = "system"
+		}
+
+		output.Processes = append(output.Processes, processJsonItem{
+			Id:           string(process.Id),
+			ActionName:   process.ActionName.String(),
+			Status:       process.Status.String(),
+			ServiceNames: process.ServiceNames,
+			CreatedBy:    createdBy,
+			Created:      process.Created.Native().Format(styles.DateTimeFormat),
+		})
+	}
+
+	encoder := json.NewEncoder(out)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(output)
+}
+
+func printServiceListTable(out io.Writer, services []entity.Service, processes []entity.Process) error {
+	header, body := createServiceTableRows(services, false)
+
+	t := table.Render(body, table.WithHeader(header))
+
+	_, err := fmt.Fprintln(out, t)
 	if err != nil {
 		return err
 	}
