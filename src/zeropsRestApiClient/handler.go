@@ -16,9 +16,15 @@ type Handler struct {
 func NewAuthorizedClient(token string, regionUrl string) *Handler {
 	config := sdkBase.DefaultConfig(sdkBase.WithCustomEndpoint(regionUrl))
 
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+		},
+	}
+
 	return &Handler{
-		Handler: sdk.AuthorizeSdk(sdk.New(config, http.DefaultClient), token),
+		Handler: sdk.AuthorizeSdk(sdk.New(config, httpClient), token),
 		// temporary solution, I need my own endpoints
-		env: sdkBase.NewEnvironment(config, http.DefaultClient).Authorize(token),
+		env: sdkBase.NewEnvironment(config, httpClient).Authorize(token),
 	}
 }
