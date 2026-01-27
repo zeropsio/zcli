@@ -90,6 +90,21 @@ func TableRowActive() lipgloss.Style {
 		PaddingRight(1)
 }
 
+func TableRowDisabled() lipgloss.Style {
+	return DefaultStyle().
+		Foreground(lipgloss.ANSIColor(245)).
+		PaddingLeft(1).
+		PaddingRight(1)
+}
+
+func TableRowDisabledActive() lipgloss.Style {
+	return DefaultStyle().
+		Foreground(lipgloss.ANSIColor(245)).
+		Background(lipgloss.ANSIColor(236)).
+		PaddingLeft(1).
+		PaddingRight(1)
+}
+
 var helpStyle = DefaultStyle().
 	Foreground(HelpColor)
 

@@ -69,8 +69,9 @@ func (b *Body) Rows() []*Row {
 }
 
 type Row struct {
-	index int
-	cells []Cell
+	index    int
+	cells    []Cell
+	disabled bool
 }
 
 func NewRow(cells ...Cell) *Row {
@@ -125,6 +126,15 @@ func (r *Row) Index() int {
 
 func (r *Row) Cells() []Cell {
 	return r.cells
+}
+
+func (r *Row) SetDisabled(disabled bool) *Row {
+	r.disabled = disabled
+	return r
+}
+
+func (r *Row) IsDisabled() bool {
+	return r.disabled
 }
 
 type Cell struct {

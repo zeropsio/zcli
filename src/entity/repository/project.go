@@ -42,6 +42,9 @@ func GetAllProjects(
 
 	var projects []entity.Project
 	for _, org := range orgs {
+		if !org.Status.IsActive() {
+			continue
+		}
 		esFilter := body.EsFilter{
 			Search: []body.EsSearchItem{
 				{

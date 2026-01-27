@@ -68,17 +68,21 @@ func PrintOrgSelector(
 	return orgs[selected], nil
 }
 
-func createOrgTableRows(projects []entity.Org) (*table.Row, *table.Body) {
-	header := table.NewRowFromStrings("ID", "Name", "Role")
+func createOrgTableRows(orgs []entity.Org) (*table.Row, *table.Body) {
+	header := table.NewRowFromStrings("ID", "Name", "Role", "Status")
 
 	body := table.NewBody()
-	for _, project := range projects {
-		body.AddStringsRow(
-			string(project.Id),
-			project.Name.String(),
-			project.Role.Native(),
+	for _, org := range orgs {
+		row := table.NewRowFromStrings(
+			string(org.Id),
+			org.Name.String(),
+			org.Role.Native(),
+			org.Status.String(),
 		)
+		if !org.Status.IsActive() {
+			row.SetDisabled(true)
+		}
+		body.AddRow(row)
 	}
-
 	return header, body
 }
