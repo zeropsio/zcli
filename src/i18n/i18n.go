@@ -83,6 +83,22 @@ const (
 	CmdDescProjectServiceImport = "CmdDescProjectServiceImport"
 	ServiceImported             = "ServiceImported"
 
+	// project processes
+	CmdHelpProjectProcesses     = "CmdHelpProjectProcesses"
+	CmdDescProjectProcesses     = "CmdDescProjectProcesses"
+	CmdDescProjectProcessesLong = "CmdDescProjectProcessesLong"
+	ProcessListEmpty            = "ProcessListEmpty"
+
+	// project notifications
+	CmdHelpProjectNotifications     = "CmdHelpProjectNotifications"
+	CmdDescProjectNotifications     = "CmdDescProjectNotifications"
+	CmdDescProjectNotificationsLong = "CmdDescProjectNotificationsLong"
+	NotificationLimitFlag           = "NotificationLimitFlag"
+	NotificationOffsetFlag          = "NotificationOffsetFlag"
+	NotificationLimitInvalid        = "NotificationLimitInvalid"
+	NotificationOffsetInvalid       = "NotificationOffsetInvalid"
+	NotificationListEmpty           = "NotificationListEmpty"
+
 	// service
 	CmdHelpService = "CmdHelpService"
 	CmdDescService = "CmdDescService"
@@ -157,8 +173,9 @@ const (
 	PushDeployZeropsYamlNotFound    = "PushDeployZeropsYamlNotFound"
 
 	// service list
-	CmdHelpServiceList = "CmdHelpServiceList"
-	CmdDescServiceList = "CmdDescServiceList"
+	CmdHelpServiceList         = "CmdHelpServiceList"
+	CmdDescServiceList         = "CmdDescServiceList"
+	ServiceListProcessesHeader = "ServiceListProcessesHeader"
 
 	// service enable subdomain
 	CmdHelpServiceEnableSubdomain = "CmdHelpServiceEnableSubdomain"

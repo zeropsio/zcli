@@ -86,15 +86,69 @@ func PrintServiceList(
 	t := table.Render(body, table.WithHeader(header))
 
 	_, err = fmt.Fprintln(out, t)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Fetch running/pending processes for the project
+	processes, err := repository.GetRunningAndPendingProcessesByProject(
+		ctx,
+		restApiClient,
+		project.OrgId,
+		project.Id,
+	)
+	if err != nil {
+		return err
+	}
+
+	// Only show processes section if there are any
+	if len(processes) > 0 {
+		_, err = fmt.Fprintln(out)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(out, i18n.T(i18n.ServiceListProcessesHeader))
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(out)
+		if err != nil {
+			return err
+		}
+
+		processHeader, processBody := createProcessTableRows(processes)
+		pt := table.Render(processBody, table.WithHeader(processHeader))
+		_, err = fmt.Fprintln(out, pt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func createServiceTableRows(projects []entity.Service, createNewService bool) (*table.Row, *table.Body) {
-	header := table.NewRowFromStrings("ID", "Name", "Status")
+func createServiceTableRows(services []entity.Service, createNewService bool) (*table.Row, *table.Body) {
+	header := table.NewRowFromStrings("id", "name", "status", "app version id", "app version created")
 
 	body := table.NewBody()
-	for _, project := range projects {
-		body.AddStringsRow(string(project.Id), project.Name.String(), project.Status.String())
+	for _, svc := range services {
+		appVersionId := "-"
+		if id, ok := svc.ActiveAppVersionId.Get(); ok {
+			appVersionId = string(id)
+		}
+
+		appVersionCreated := "-"
+		if created, ok := svc.ActiveAppVersionCreated.Get(); ok {
+			appVersionCreated = created.Native().Format(styles.DateTimeFormat)
+		}
+
+		body.AddStringsRow(
+			string(svc.Id),
+			svc.Name.String(),
+			svc.Status.String(),
+			appVersionId,
+			appVersionCreated,
+		)
 	}
 	if createNewService {
 		body.AddCellsRow(
