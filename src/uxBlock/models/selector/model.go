@@ -173,6 +173,9 @@ func (m *Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 		case key.Matches(keyMsg, m.keyMap.End):
 			m.End()
 		case key.Matches(keyMsg, m.keyMap.Select):
+			if m.isCursorOnDisabled() {
+				return m, nil
+			}
 			if !m.multi {
 				m.Select()
 			}
@@ -226,6 +229,9 @@ func (m *Model) Select() {
 		return
 	}
 	selectedRow := m.filteredBody.Rows()[m.cursor]
+	if selectedRow.IsDisabled() {
+		return
+	}
 	if m.multi {
 		if _, ok := m.selected[selectedRow.Index()]; ok {
 			delete(m.selected, selectedRow.Index())
@@ -239,6 +245,9 @@ func (m *Model) Select() {
 
 func (m *Model) SelectAll(deselect bool) {
 	for _, r := range m.filteredBody.Rows() {
+		if r.IsDisabled() {
+			continue
+		}
 		if !deselect {
 			m.selected[r.Index()] = struct{}{}
 		} else {
@@ -274,6 +283,23 @@ func (m *Model) isSelected(row int) bool {
 	return selected
 }
 
+func (m *Model) isRowDisabled(displayRow, maxRows int) bool {
+	page := m.cursor / maxRows
+	actualIndex := page*maxRows + displayRow
+	rows := m.filteredBody.Rows()
+	if actualIndex >= len(rows) {
+		return false
+	}
+	return rows[actualIndex].IsDisabled()
+}
+
+func (m *Model) isCursorOnDisabled() bool {
+	if !m.hasResults() {
+		return true
+	}
+	return m.filteredBody.Rows()[m.cursor].IsDisabled()
+}
+
 func (m *Model) View() string {
 	rows := m.filteredBody.Rows()
 	totalRows := len(rows)
@@ -304,7 +330,15 @@ func (m *Model) View() string {
 			if row == ltable.HeaderRow {
 				return styles.TableRow()
 			}
-			if row == m.cursor%maxRows && !m.filterField.Focused() {
+			isActive := row == m.cursor%maxRows && !m.filterField.Focused()
+			isDisabled := m.isRowDisabled(row, maxRows)
+			if isDisabled && isActive {
+				return styles.TableRowDisabledActive()
+			}
+			if isDisabled {
+				return styles.TableRowDisabled()
+			}
+			if isActive {
 				return styles.TableRowActive()
 			}
 			return styles.TableRow()
