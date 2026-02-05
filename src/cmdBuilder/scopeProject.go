@@ -138,7 +138,10 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		}
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name.String()))
+	// Skip info message for machine-readable output formats
+	if cmdData.Params.GetString("format") != "json" {
+		cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name.String()))
+	}
 
 	return nil
 }
