@@ -76,8 +76,8 @@ type PrintServiceListConfig struct {
 }
 
 type serviceListJsonOutput struct {
-	Services  []serviceJsonItem  `json:"services"`
-	Processes []processJsonItem  `json:"processes"`
+	Services  []serviceJsonItem `json:"services"`
+	Processes []processJsonItem `json:"processes"`
 }
 
 type serviceJsonItem struct {
@@ -85,8 +85,8 @@ type serviceJsonItem struct {
 	Name              string  `json:"name"`
 	Type              string  `json:"type"`
 	Status            string  `json:"status"`
-	AppVersionId      *string `json:"app_version_id"`
-	AppVersionCreated *string `json:"app_version_created"`
+	AppVersionId      *string `json:"appVersionId"`
+	AppVersionCreated *string `json:"appVersionCreated"`
 }
 
 type processJsonItem struct {
@@ -94,7 +94,7 @@ type processJsonItem struct {
 	Action    string   `json:"action"`
 	Status    string   `json:"status"`
 	Services  []string `json:"services"`
-	CreatedBy string   `json:"created_by"`
+	CreatedBy string   `json:"createdBy"`
 	Created   string   `json:"created"`
 }
 
