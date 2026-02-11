@@ -21,6 +21,7 @@ jobs:
             file: zcli-linux-amd64
             compress: true
             strip: true
+            deb_arch: amd64
 
           - name: linux 386
             env:
@@ -29,6 +30,7 @@ jobs:
             file: zcli-linux-i386
             compress: true
             strip: true
+            deb_arch: i386
 
           - name: darwin amd64
             env:
@@ -83,6 +85,36 @@ jobs:
         with:
           file: ./builds/${{ matrix.file }}
           strip: ${{ matrix.strip }}
+
+      - name: prepare .deb package tree
+        if: ${{ matrix.deb_arch }}
+        run: |
+          mkdir -p .debpkg/usr/local/bin
+          cp builds/${{ matrix.file }} .debpkg/usr/local/bin/zcli
+          chmod +x .debpkg/usr/local/bin/zcli
+
+      - name: build .deb package
+        if: ${{ matrix.deb_arch }}
+        uses: jiro4989/build-deb-action@v4
+        with:
+          package: zcli
+          package_root: .debpkg
+          maintainer: 'Zerops <https://zerops.io>'
+          version: ${{ github.event.release.tag_name }}
+          arch: ${{ matrix.deb_arch }}
+          desc: 'Zerops CLI'
+          homepage: 'https://github.com/zeropsio/zcli'
+
+      - name: upload .deb asset
+        if: ${{ matrix.deb_arch }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./zcli_${{ github.event.release.tag_name }}_${{ matrix.deb_arch }}.deb
+          asset_name: zcli_${{ github.event.release.tag_name }}_${{ matrix.deb_arch }}.deb
+          asset_content_type: application/vnd.debian.binary-package
 
       - name: package binaries for NPM
         run: tar -czvf ${{ matrix.file }}-npm.tar.gz builds/${{ matrix.file }}
