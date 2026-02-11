@@ -22,12 +22,14 @@ jobs:
               GOOS: linux
               GOARCH: amd64
             runTests: true
+            deb_arch: amd64
 
           - name: linux 386
             env:
               GOOS: linux
               GOARCH: 386
             runTests: false
+            deb_arch: i386
 
           - name: darwin amd64
             env:
@@ -48,27 +50,27 @@ jobs:
             runTests: true
 
     steps:
-    - name: check out code into the Go module directory
-      uses: actions/checkout@v4
+      - name: check out code into the Go module directory
+        uses: actions/checkout@v4
 
-    - name: set up Go 1.x
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: "go.mod"
-      id: go
+      - name: set up Go 1.x
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+        id: go
 
-    - name: get dependencies
-      run: | 
-        export GOPATH=$HOME/go
-        ./tools/install.sh
+      - name: get dependencies
+        run: |
+          export GOPATH=$HOME/go
+          ./tools/install.sh
 
-    - name: build
-      env: ${{ matrix.env }}
-      run: go build -v ./cmd/... ./src/...
+      - name: build
+        env: ${{ matrix.env }}
+        run: go build -v ./cmd/... ./src/...
 
-    - name: test
-      if: ${{ matrix.runTests }}
-      run: env ${{ matrix.osEnv }} go test -v ./cmd/... ./src/...
+      - name: test
+        if: ${{ matrix.runTests }}
+        run: env ${{ matrix.osEnv }} go test -v ./cmd/... ./src/...
 
-    - name: lint
-      run: env ${{ matrix.osEnv }} gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
+      - name: lint
+        run: env ${{ matrix.osEnv }} gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
