@@ -94,6 +94,7 @@ jobs:
           chmod +x .debpkg/usr/local/bin/zcli
 
       - name: build .deb package
+        id: deb
         if: ${{ matrix.deb_arch }}
         uses: jiro4989/build-deb-action@v4
         with:
@@ -112,7 +113,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./zcli_${{ github.event.release.tag_name }}_${{ matrix.deb_arch }}.deb
+          asset_path: ${{ steps.deb.outputs.file_name }}
           asset_name: zcli_${{ github.event.release.tag_name }}_${{ matrix.deb_arch }}.deb
           asset_content_type: application/vnd.debian.binary-package
 
