@@ -213,7 +213,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{
 					{
-						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient,
+						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks,
 							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
 								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
 									if cmdData.Params.GetBool("disable-logs") {

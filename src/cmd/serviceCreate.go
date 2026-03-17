@@ -188,7 +188,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{
 					{
-						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient),
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
 						RunningMessage:      "Creating service",
 						ErrorMessageMessage: "Service creation failed",
 						SuccessMessage:      "Service created",

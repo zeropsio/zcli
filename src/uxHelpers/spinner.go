@@ -102,12 +102,25 @@ type checkZeropsProcessSetup struct {
 func CheckZeropsProcess(
 	processId uuid.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
+	uxBlocks *uxBlock.Blocks,
 	options ...gn.Option[checkZeropsProcessSetup],
 ) ProcessFunc {
 	setup := gn.ApplyOptions(options...)
 	return func(ctx context.Context, process *Process) error {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
+
+		var firstErrTime time.Time
+		handleTransientErr := func(err error) error {
+			if firstErrTime.IsZero() {
+				firstErrTime = time.Now()
+			}
+			if time.Since(firstErrTime) >= time.Minute {
+				return err
+			}
+			uxBlocks.PrintWarningTextf("failed to get process detail: %v", err)
+			return nil
+		}
 
 		for {
 			select {
@@ -116,13 +129,21 @@ func CheckZeropsProcess(
 			case <-ticker.C:
 				getProcessResponse, err := restApiClient.GetProcess(ctx, path.ProcessId{Id: processId})
 				if err != nil {
-					return err
+					if err := handleTransientErr(err); err != nil {
+						return err
+					}
+					continue
 				}
 
 				processOutput, err := getProcessResponse.Output()
 				if err != nil {
-					return err
+					if err := handleTransientErr(err); err != nil {
+						return err
+					}
+					continue
 				}
+
+				firstErrTime = time.Time{}
 
 				if callback, exists := setup.processOutputCallback.Get(); exists {
 					if err := callback(ctx, process, processOutput); err != nil {
@@ -133,9 +154,7 @@ func CheckZeropsProcess(
 				processStatus := processOutput.Status
 
 				switch processStatus {
-				case enum.ProcessStatusEnumPending:
-					continue
-				case enum.ProcessStatusEnumRunning:
+				case enum.ProcessStatusEnumPending, enum.ProcessStatusEnumRunning:
 					continue
 				case enum.ProcessStatusEnumFinished:
 					return nil

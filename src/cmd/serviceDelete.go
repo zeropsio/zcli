@@ -75,7 +75,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ServiceDeleting),
 					ErrorMessageMessage: i18n.T(i18n.ServiceDeleteFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceDeleted),

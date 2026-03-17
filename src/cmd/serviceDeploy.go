@@ -201,7 +201,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient),
+					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.DeployRunning),
 					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
 					SuccessMessage:      i18n.T(i18n.DeployFinished),
