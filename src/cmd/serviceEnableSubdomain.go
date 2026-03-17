@@ -44,7 +44,7 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ServiceEnablingSubdomain),
 					ErrorMessageMessage: i18n.T(i18n.ServiceEnableSubdomainFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceEnabledSubdomain),

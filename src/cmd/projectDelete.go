@@ -76,7 +76,7 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient),
+					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ProjectDeleting),
 					ErrorMessageMessage: i18n.T(i18n.ProjectDeleteFailed),
 					SuccessMessage:      i18n.T(i18n.ProjectDeleted),
