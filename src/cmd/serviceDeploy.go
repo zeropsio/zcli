@@ -151,7 +151,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 							writer.CloseWithError(err)
 						}()
 
-						if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+						if err := packageStream(ctx, cmdData.RestApiClient, appVersion.Id, finalReader); err != nil {
 							// if an error occurred while packing the app, return that error
 							return err
 						}

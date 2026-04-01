@@ -18,6 +18,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func createAppVersion(
@@ -83,22 +84,18 @@ func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error
 	return file, nil
 }
 
-func packageStream(ctx context.Context, tempUrl types.String, reader io.Reader) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, tempUrl.Native(), reader)
+func packageStream(ctx context.Context, restApiClient *zeropsRestApiClient.Handler, appVersionId uuid.AppVersionId, reader io.Reader) error {
+	// TODO(ms): content-type: application/octet-stream
+	upload, err := restApiClient.PutAppVersionUpload(ctx, path.AppVersionId{Id: appVersionId}, reader)
 	if err != nil {
-		return errors.Errorf("failed to create upload HTTP request: PUT %s => %v", tempUrl, err)
+		return err
 	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return errors.Errorf("failed to upload HTTP request: %v", err)
+	if _, err := upload.Output(); err != nil {
+		return err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= http.StatusMultipleChoices {
+	if upload.StatusCode() != http.StatusOK {
 		return errors.New(i18n.T(i18n.PushDeployUploadPackageFailed))
 	}
-
 	return nil
 }
 
