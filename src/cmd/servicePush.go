@@ -153,7 +153,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 							defer wg.Done()
 
 							// if an error occurred during upload, return it (it could be even auth error, before upload starts)
-							if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+							if err := packageStream(ctx, cmdData.RestApiClient, appVersion.Id, finalReader); err != nil {
 								_ = reader.CloseWithError(err)
 								uploadErr = err // in case the reader is already closed with EOF, sometimes happened with timeouts
 							}
