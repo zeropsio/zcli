@@ -35,7 +35,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("mode", enumDefaultForFlag(enum.ProjectModeEnumLight), "Project mode"+enumValuesForFlag(enum.ProjectModeEnumAllPublic())).
 		StringFlag("env-isolation", "service", "Env isolation rule [service, none] for more info see docs https://docs.zerops.io/features/env-variables#isolation-modes").
 		StringFlag("ssh-isolation", "vpn", "SSH isolation rules, for more info see docs https://docs.zerops.io/references/ssh#ssh-access-control").
-		StringFlag("location", "eu-central", "Project location (e.g. eu-central, us-east)").
+		StringFlag("location", "", "Project location (e.g. us-east, defaults to eu-central)").
 		HelpFlag("Help for the project create command.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			var err error
