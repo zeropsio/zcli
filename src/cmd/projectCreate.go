@@ -110,15 +110,19 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				return errors.New("Must specify name with --name")
 			}
 
-			project, err := repository.PostProject(ctx, cmdData.RestApiClient, entity.PostProject{
+			postProject := entity.PostProject{
 				OrgId:        org.Id,
 				Name:         types.NewString(name),
 				Tags:         cmdData.Params.GetStringSlice("tags"),
 				Mode:         enum.ProjectModeEnum(mode),
 				SshIsolation: types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
 				EnvIsolation: types.NewStringNull(cmdData.Params.GetString("env-isolation")),
-				Location:     stringId.NewLocationIdNullFromString(cmdData.Params.GetString("location")),
-			})
+			}
+			if loc := cmdData.Params.GetString("location"); loc != "" {
+				postProject.Location = stringId.NewLocationIdNullFromString(loc)
+			}
+
+			project, err := repository.PostProject(ctx, cmdData.RestApiClient, postProject)
 			if err != nil {
 				return err
 			}
