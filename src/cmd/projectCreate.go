@@ -16,6 +16,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
+	"github.com/zeropsio/zerops-go/types/stringId"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -34,6 +35,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("mode", enumDefaultForFlag(enum.ProjectModeEnumLight), "Project mode"+enumValuesForFlag(enum.ProjectModeEnumAllPublic())).
 		StringFlag("env-isolation", "service", "Env isolation rule [service, none] for more info see docs https://docs.zerops.io/features/env-variables#isolation-modes").
 		StringFlag("ssh-isolation", "vpn", "SSH isolation rules, for more info see docs https://docs.zerops.io/references/ssh#ssh-access-control").
+		StringFlag("location", "eu-central", "Project location (e.g. eu-central, us-east)").
 		HelpFlag("Help for the project create command.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			var err error
@@ -115,6 +117,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				Mode:         enum.ProjectModeEnum(mode),
 				SshIsolation: types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
 				EnvIsolation: types.NewStringNull(cmdData.Params.GetString("env-isolation")),
+				Location:     stringId.NewLocationIdNullFromString(cmdData.Params.GetString("location")),
 			})
 			if err != nil {
 				return err
