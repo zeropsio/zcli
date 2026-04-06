@@ -80,9 +80,6 @@ func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string,
 				if zeropsYamlStat.Size() == 0 {
 					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlEmpty))
 				}
-				if zeropsYamlStat.Size() > 10*1024 {
-					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlTooLarge))
-				}
 				return path, nil
 			}
 		}

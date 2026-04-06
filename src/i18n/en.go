@@ -172,7 +172,6 @@ and your %s.`,
 	PushDeployUploadPackageFailed:   "Package upload failed",
 	PushDeployDeployingStart:        "Deploying service",
 	PushDeployZeropsYamlEmpty:       "Config file zerops.yml is empty",
-	PushDeployZeropsYamlTooLarge:    "Max. size of zerops.yml is 10 KB",
 	PushDeployZeropsYamlFound:       "File zerops.yml found. Path: %s.",
 	PushDeployZeropsYamlNotFound: "File zerops.yml not found. Checked paths: [%s]. \n" +
 		" Please, create a zerops.yml file in the root directory of your project. \n" +

@@ -152,7 +152,6 @@ const (
 	PushDeployUploadPackageFailed   = "PushDeployUploadPackageFailed"
 	PushDeployDeployingStart        = "PushDeployDeployingStart"
 	PushDeployZeropsYamlEmpty       = "PushDeployZeropsYamlEmpty"
-	PushDeployZeropsYamlTooLarge    = "PushDeployZeropsYamlTooLarge"
 	PushDeployZeropsYamlFound       = "PushDeployZeropsYamlFound"
 	PushDeployZeropsYamlNotFound    = "PushDeployZeropsYamlNotFound"
 
