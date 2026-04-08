@@ -3,6 +3,7 @@ package entity
 import (
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
+	"github.com/zeropsio/zerops-go/types/stringId"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -25,4 +26,5 @@ type PostProject struct {
 	Mode         enum.ProjectModeEnum
 	SshIsolation types.StringNull
 	EnvIsolation types.StringNull
+	Location     stringId.LocationIdNull
 }
