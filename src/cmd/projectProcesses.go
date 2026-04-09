@@ -8,30 +8,26 @@ import (
 	"github.com/zeropsio/zcli/src/uxHelpers"
 )
 
-func serviceListCmd() *cmdBuilder.Cmd {
+func projectProcessesCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
-		Use("list").
-		Short(i18n.T(i18n.CmdDescServiceList)).
+		Use("processes").
+		Short(i18n.T(i18n.CmdDescProjectProcesses)).
+		Long(i18n.T(i18n.CmdDescProjectProcessesLong)).
 		ScopeLevel(cmdBuilder.ScopeProject()).
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
-		StringFlag("format", "table", i18n.T(i18n.ServiceListFormatFlag)).
-		HelpFlag(i18n.T(i18n.CmdHelpServiceList)).
+		HelpFlag(i18n.T(i18n.CmdHelpProjectProcesses)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			project, err := cmdData.Project.Expect("project is null")
 			if err != nil {
 				return err
 			}
-			if err := uxHelpers.PrintServiceList(
+
+			return uxHelpers.PrintProcessList(
 				ctx,
 				cmdData.RestApiClient,
 				cmdData.Stdout,
-				project,
-				uxHelpers.PrintServiceListConfig{
-					Format: cmdData.Params.GetString("format"),
-				},
-			); err != nil {
-				return err
-			}
-			return nil
+				project.OrgId,
+				project.Id,
+			)
 		})
 }
