@@ -61,40 +61,9 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return errors.Errorf("Invalid --mode, expected one of %s, got %s", enum.ServiceStackModeEnumAllPublic(), mode)
 			}
 
-			envFilePath := cmdData.Params.GetString("env-file")
-			var envFile types.TextNull
-			if envFilePath != "" {
-				workingDir := cmdData.Params.GetString("working-dir")
-				envFilePath = path.Join(workingDir, envFilePath)
-				envFilePath, err = filepath.Abs(envFilePath)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				stat, err := os.Stat(envFilePath)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				if stat.IsDir() {
-					return errors.New("--env-file must point to a file")
-				}
-				if stat.Size() > int64(maxEnvFileSize) {
-					return errors.Errorf("Env file size too large, max allowed size %s", units.ByteCountIEC(maxEnvFileSize))
-				}
-				envFileContent, err := os.ReadFile(envFilePath)
-				if err != nil {
-					return errors.WithStack(err)
-				}
-				envFile = types.NewTextNull(string(envFileContent))
-			}
-
-			envSlice := cmdData.Params.GetStringSlice("env")
-			if len(envSlice) > 0 {
-				envs := strings.Join(envSlice, "\n")
-				if f, filled := envFile.Get(); filled {
-					envFile = types.NewTextNull(f.Native() + "\n" + envs)
-				} else {
-					envFile = types.NewTextNull(envs)
-				}
+			envFile, err := readServiceEnvFile(cmdData)
+			if err != nil {
+				return err
 			}
 
 			outFormat := cmdData.Params.GetString("out")
@@ -125,33 +94,9 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				suggestions = setups
 			}
 
-			label := styles.NewStringBuilder()
-			label.WriteString("Type ")
-			label.WriteStyledString(
-				styles.SelectStyle().
-					Bold(true),
-				"service",
-			)
-			label.WriteString(" name")
-
-			name := cmdData.Params.GetString("name")
-			if name == "" && terminal.IsTerminal() {
-				name, err = uxBlock.Run(
-					input.NewRoot(
-						ctx,
-						input.WithLabel(label.String()),
-						input.WithHelpPlaceholder(),
-						input.WithPlaceholderStyle(styles.HelpStyle()),
-						input.WithoutPrompt(),
-						input.WithSetSuggestions(suggestions),
-					),
-					input.GetValueFunc,
-				)
-				if err != nil {
-					return err
-				}
-			} else if name == "" {
-				return errors.New("Must specify name with --name")
+			name, err := resolveServiceName(ctx, cmdData.Params.GetString("name"), suggestions)
+			if err != nil {
+				return err
 			}
 
 			postService := entity.PostService{
@@ -228,4 +173,69 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 
 			return nil
 		})
+}
+
+func readServiceEnvFile(cmdData *cmdBuilder.LoggedUserCmdData) (types.TextNull, error) {
+	var envFile types.TextNull
+	envFilePath := cmdData.Params.GetString("env-file")
+	if envFilePath != "" {
+		workingDir := cmdData.Params.GetString("working-dir")
+		absPath, err := filepath.Abs(path.Join(workingDir, envFilePath))
+		if err != nil {
+			return envFile, errors.WithStack(err)
+		}
+		stat, err := os.Stat(absPath)
+		if err != nil {
+			return envFile, errors.WithStack(err)
+		}
+		if stat.IsDir() {
+			return envFile, errors.New("--env-file must point to a file")
+		}
+		if stat.Size() > int64(maxEnvFileSize) {
+			return envFile, errors.Errorf("Env file size too large, max allowed size %s", units.ByteCountIEC(maxEnvFileSize))
+		}
+		content, err := os.ReadFile(absPath)
+		if err != nil {
+			return envFile, errors.WithStack(err)
+		}
+		envFile = types.NewTextNull(string(content))
+	}
+
+	envSlice := cmdData.Params.GetStringSlice("env")
+	if len(envSlice) > 0 {
+		envs := strings.Join(envSlice, "\n")
+		if f, filled := envFile.Get(); filled {
+			envFile = types.NewTextNull(f.Native() + "\n" + envs)
+		} else {
+			envFile = types.NewTextNull(envs)
+		}
+	}
+
+	return envFile, nil
+}
+
+func resolveServiceName(ctx context.Context, flagName string, suggestions []string) (string, error) {
+	if flagName != "" {
+		return flagName, nil
+	}
+	if !terminal.IsTerminal() {
+		return "", errors.New("Must specify name with --name")
+	}
+
+	label := styles.NewStringBuilder()
+	label.WriteString("Type ")
+	label.WriteStyledString(styles.SelectStyle().Bold(true), "service")
+	label.WriteString(" name")
+
+	return uxBlock.Run(
+		input.NewRoot(
+			ctx,
+			input.WithLabel(label.String()),
+			input.WithHelpPlaceholder(),
+			input.WithPlaceholderStyle(styles.HelpStyle()),
+			input.WithoutPrompt(),
+			input.WithSetSuggestions(suggestions),
+		),
+		input.GetValueFunc,
+	)
 }
