@@ -185,6 +185,14 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 		return entity.Service{}, err
 	}
 
+	// Service-level location picker is intentionally disabled for now —
+	// users should not be prompted for location on service creation yet.
+	// location, err := uxHelpers.PrintLocationSelector(ctx, cmdData.RestApiClient)
+	// if err != nil {
+	// 	return entity.Service{}, err
+	// }
+	// cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+
 	process, service, err := repository.PostGenericService(
 		ctx,
 		cmdData.RestApiClient,
@@ -192,6 +200,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 			ProjectId: project.Id,
 			Name:      types.NewString(name),
 			Mode:      enum.ServiceStackModeEnumNonHa,
+			// Location:  location.Id.LocationIdNull(),
 		},
 	)
 	if err != nil {

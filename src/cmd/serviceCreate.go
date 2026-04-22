@@ -24,6 +24,7 @@ import (
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
+	"github.com/zeropsio/zerops-go/types/stringId"
 )
 
 const maxEnvFileSize = units.MiB
@@ -41,6 +42,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("env-file", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml). Max file size is "+units.ByteCountIEC(maxEnvFileSize)).
 		StringFlag("env-isolation", "service", "Env isolation rule [service, none] for more info see docs https://docs.zerops.io/features/env-variables#isolation-modes").
 		StringFlag("ssh-isolation", "vpn", "SSH isolation rules, for more info see docs https://docs.zerops.io/references/ssh#ssh-access-control").
+		StringFlag("location", "", "Service location (e.g. eu-central).", cmdBuilder.HiddenFlag()).
 		StringSliceFlag("env", nil, "Envs to be set as secrets, runtime envs can be defined in zerops.yml. Accepts comma separated string or repeated flag. Format: {key}={value}").
 		BoolFlag("start-without-code", false, "Start service immediately, empty without deploy").
 		BoolFlag("noop", false, "Creates service only if none with the same name exists").
@@ -152,18 +154,33 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return errors.New("Must specify name with --name")
 			}
 
+			postService := entity.PostService{
+				ProjectId:        project.Id,
+				Name:             types.NewString(name),
+				Mode:             enum.ServiceStackModeEnum(mode),
+				EnvFile:          envFile,
+				StartWithoutCode: types.NewBool(startWithoutCode),
+				SshIsolation:     types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
+				EnvIsolation:     types.NewStringNull(cmdData.Params.GetString("env-isolation")),
+			}
+			if loc := cmdData.Params.GetString("location"); loc != "" {
+				postService.Location = stringId.NewLocationIdNullFromString(loc)
+			}
+			// Service-level location picker is intentionally disabled for now —
+			// the --location flag stays available (hidden) for internal testing.
+			// } else if terminal.IsTerminal() {
+			// 	location, err := uxHelpers.PrintLocationSelector(ctx, cmdData.RestApiClient)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	postService.Location = location.Id.LocationIdNull()
+			// 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+			// }
+
 			process, service, err := repository.PostGenericService(
 				ctx,
 				cmdData.RestApiClient,
-				entity.PostService{
-					ProjectId:        project.Id,
-					Name:             types.NewString(name),
-					Mode:             enum.ServiceStackModeEnum(mode),
-					EnvFile:          envFile,
-					StartWithoutCode: types.NewBool(startWithoutCode),
-					SshIsolation:     types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
-					EnvIsolation:     types.NewStringNull(cmdData.Params.GetString("env-isolation")),
-				},
+				postService,
 			)
 			if err != nil {
 				noop := cmdData.Params.GetBool("noop")

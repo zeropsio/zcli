@@ -205,10 +205,17 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 		return entity.Project{}, err
 	}
 
+	location, err := uxHelpers.PrintLocationSelector(ctx, cmdData.RestApiClient)
+	if err != nil {
+		return entity.Project{}, err
+	}
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+
 	project, err := repository.PostProject(ctx, cmdData.RestApiClient, entity.PostProject{
-		OrgId: selectedOrg.Id,
-		Name:  types.NewString(name),
-		Mode:  enum.ProjectModeEnumLight,
+		OrgId:    selectedOrg.Id,
+		Name:     types.NewString(name),
+		Mode:     enum.ProjectModeEnumLight,
+		Location: location.Id.LocationIdNull(),
 	})
 	if err != nil {
 		return entity.Project{}, err

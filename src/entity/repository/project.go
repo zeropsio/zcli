@@ -83,6 +83,7 @@ func PostProject(
 		TagList:      post.Tags,
 		SshIsolation: post.SshIsolation,
 		EnvIsolation: post.EnvIsolation,
+		Location:     post.Location,
 	}
 	if postBody.TagList == nil {
 		postBody.TagList = make(types.StringArray, 0)
