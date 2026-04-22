@@ -139,6 +139,7 @@ func PostGenericService(
 		StartWithoutCode: types.NewBoolNull(post.StartWithoutCode.Native()),
 		EnvIsolation:     post.EnvIsolation,
 		SshIsolation:     post.SshIsolation,
+		Location:         post.Location,
 	}
 	response, err := restApiClient.PostProjectServiceStack(
 		ctx,

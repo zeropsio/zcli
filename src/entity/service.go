@@ -28,4 +28,5 @@ type PostService struct {
 	StartWithoutCode types.Bool
 	SshIsolation     types.StringNull
 	EnvIsolation     types.StringNull
+	Location         stringId.LocationIdNull
 }
