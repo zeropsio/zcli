@@ -161,7 +161,7 @@ func PostGenericService(
 	return processFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
 }
 func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
-	return entity.Service{
+	svc := entity.Service{
 		Id:                          esServiceStack.Id,
 		ProjectId:                   esServiceStack.ProjectId,
 		OrgId:                       esServiceStack.ClientId,
@@ -171,6 +171,11 @@ func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
 		ServiceTypeCategory:         esServiceStack.ServiceStackTypeInfo.ServiceStackTypeCategory,
 		ServiceStackTypeVersionName: esServiceStack.ServiceStackTypeInfo.ServiceStackTypeVersionName,
 	}
+	if esServiceStack.ActiveAppVersion != nil {
+		svc.ActiveAppVersionId = uuid.NewAppVersionIdNull(esServiceStack.ActiveAppVersion.Id)
+		svc.ActiveAppVersionCreated = types.NewDateTimeNull(esServiceStack.ActiveAppVersion.Created.Native())
+	}
+	return svc
 }
 
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {

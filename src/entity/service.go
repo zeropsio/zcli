@@ -16,6 +16,8 @@ type Service struct {
 	ServiceTypeId               stringId.ServiceStackTypeId
 	ServiceTypeCategory         enum.ServiceStackTypeCategoryEnum
 	ServiceStackTypeVersionName types.String
+	ActiveAppVersionId          uuid.AppVersionIdNull
+	ActiveAppVersionCreated     types.DateTimeNull
 }
 
 var ServiceFields = entityTemplateFields[Service]()
