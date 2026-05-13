@@ -71,22 +71,6 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
-<<<<<<< HEAD
-			if err := uxHelpers.RunProcessWithSpinner(
-				ctx,
-				cmdData.UxBlocks,
-				uxHelpers.Process{
-					F:              uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage: i18n.T(i18n.ServiceDeleting),
-					ErrorMessage:   i18n.T(i18n.ServiceDeleteFailed),
-					SuccessMessage: i18n.T(i18n.ServiceDeleted),
-				},
-			); err != nil {
-				return err
-			}
-
-			return nil
-=======
 			return uxHelpers.WatchProcess(
 				ctx,
 				cmdData.UxBlocks,
@@ -98,6 +82,5 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 					Success: i18n.T(i18n.ServiceDeleted),
 				},
 			)
->>>>>>> 8a23fa6 (refactor(cmd): migrate remaining single-process call sites to WatchProcess)
 		})
 }

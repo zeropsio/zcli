@@ -165,6 +165,68 @@ func TestWithSpinner_HeaderSurvivesAcrossCalls(t *testing.T) {
 	}
 }
 
+func TestWithSpinners_EmptyJobs(t *testing.T) {
+	err := newTestBlocks().WithSpinners(context.Background(), nil)
+	require.NoError(t, err)
+}
+
+func TestWithSpinners_AllSucceed(t *testing.T) {
+	const n = 4
+	var called int32
+	jobs := make([]SpinnerJob, n)
+	for i := range jobs {
+		jobs[i] = SpinnerJob{
+			Spec: SpinnerSpec{Message: "j", SuccessMessage: "done"},
+			Run: func(_ SpinnerHandle) error {
+				atomic.AddInt32(&called, 1)
+				return nil
+			},
+		}
+	}
+	err := newTestBlocks().WithSpinners(context.Background(), jobs)
+	require.NoError(t, err)
+	require.Equal(t, int32(n), atomic.LoadInt32(&called))
+}
+
+func TestWithSpinners_FirstErrorWins(t *testing.T) {
+	// Errgroup semantics: first non-nil error returned. We can't
+	// deterministically force which goroutine wins the race, but the
+	// returned error must be one of the two we raised.
+	errA := errors.New("err-a")
+	errB := errors.New("err-b")
+	err := newTestBlocks().WithSpinners(context.Background(), []SpinnerJob{
+		{Spec: SpinnerSpec{Message: "a"}, Run: func(_ SpinnerHandle) error { return errA }},
+		{Spec: SpinnerSpec{Message: "b"}, Run: func(_ SpinnerHandle) error { return errB }},
+	})
+	require.Error(t, err)
+	require.Truef(t, errors.Is(err, errA) || errors.Is(err, errB),
+		"expected errA or errB, got %v", err)
+}
+
+func TestWithSpinners_AllJobsInvokedEvenWhenOneErrors(t *testing.T) {
+	// We don't gate sibling jobs on context — the errgroup-derived
+	// ctx is not forwarded today (see comment in WithSpinners). So
+	// all jobs run to completion regardless of one erroring. Pin
+	// this behavior; revisit if we forward gctx.
+	const n = 3
+	var called int32
+	jobs := make([]SpinnerJob, n)
+	jobs[0] = SpinnerJob{Spec: SpinnerSpec{Message: "fail"}, Run: func(_ SpinnerHandle) error {
+		atomic.AddInt32(&called, 1)
+		return errors.New("boom")
+	}}
+	for i := 1; i < n; i++ {
+		jobs[i] = SpinnerJob{Spec: SpinnerSpec{Message: "ok"}, Run: func(_ SpinnerHandle) error {
+			atomic.AddInt32(&called, 1)
+			time.Sleep(5 * time.Millisecond)
+			return nil
+		}}
+	}
+	err := newTestBlocks().WithSpinners(context.Background(), jobs)
+	require.Error(t, err)
+	require.Equal(t, int32(n), atomic.LoadInt32(&called))
+}
+
 func TestWithSpinner_ClosureCompletesInBoundedTime(t *testing.T) {
 	// Belt-and-braces: WithSpinner must return promptly once the
 	// closure returns, not hang waiting for some unrelated signal.
