@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -15,12 +16,31 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
+	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	getVersion "github.com/zeropsio/zcli/src/version"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
+
+// buildScopeHeader composes the persistent header surfaced above every
+// active spinner: the command path plus whichever scope info has been
+// resolved by this point (region, project, service).
+func buildScopeHeader(cobraCmd *cobra.Command, regionData region.Item, cmdData *LoggedUserCmdData) string {
+	parts := []string{"cmd=" + cobraCmd.CommandPath()}
+	if regionData.Name != "" {
+		parts = append(parts, "region="+regionData.Name)
+	}
+	if project, ok := cmdData.Project.Get(); ok {
+		parts = append(parts, "project="+project.Name.String())
+	}
+	if service, ok := cmdData.Service.Get(); ok {
+		parts = append(parts, "service="+service.Name.String())
+	}
+	return styles.InfoWithValueLine("scope", strings.Join(parts, "  ")).String()
+}
 
 type GuestCmdData struct {
 	CliStorage *cliStorage.Handler
@@ -119,6 +139,8 @@ func createCmdRunFunc(
 				return err
 			}
 		}
+
+		uxBlocks.SetHeader(buildScopeHeader(cobraCmd, storedData.RegionData, cmdData))
 
 		return cmd.loggedUserRunFunc(ctx, cmdData)
 	}
