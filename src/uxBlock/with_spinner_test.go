@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/require"
 )
 
@@ -244,6 +247,33 @@ func TestSpinner_LogStreamCreatesDistinctPanesInInsertionOrder(t *testing.T) {
 	require.Equal(t, []string{"build", "prepare"}, sp.namedOrder,
 		"insertion order is preserved")
 	require.Len(t, sp.namedLogs, 2, "one log model per unique name")
+}
+
+func TestSpinner_LogStreamPaneInheritsLastWindowSize(t *testing.T) {
+	// Regression: panes created after the spinner's first
+	// WindowSizeMsg must inherit that size, otherwise their viewport
+	// stays at 0x0 and never renders any buffered content (the
+	// "no build logs visible during `zcli push`" bug).
+	sp := NewSpinner("running")
+	sp.update(tea.WindowSizeMsg{Width: 120, Height: 40})
+
+	w := sp.LogStream("build")
+	_, err := w.Write([]byte("hello-build-log\n"))
+	require.NoError(t, err)
+	require.NoError(t, w.Close())
+
+	sp.namedMu.Lock()
+	lv := sp.namedLogs["build"]
+	sp.namedMu.Unlock()
+
+	// Pump the buffer into the viewport via a tick (Update reads
+	// m.buffer into viewport.SetContent each call). Retry briefly to
+	// let the LogStream's io.Pipe goroutine drain into lv.buffer.
+	require.Eventually(t, func() bool {
+		lv.Update(spinner.TickMsg{})
+		return strings.Contains(lv.View(), "hello-build-log")
+	}, time.Second, 10*time.Millisecond,
+		"pane created after the initial WindowSizeMsg must render buffered content")
 }
 
 func TestSpinner_LogStreamSameNameReusesPane(t *testing.T) {

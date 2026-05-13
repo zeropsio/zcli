@@ -143,6 +143,13 @@ type Spinner struct {
 	namedLogs  map[string]*logView.Model
 	namedOrder []string
 	namedMu    sync.Mutex
+
+	// lastSize is the most recent tea.WindowSizeMsg seen by this
+	// spinner. Bubble Tea only sends WindowSizeMsg at program start
+	// (and on actual terminal resizes), so panes created mid-run via
+	// LogStream would otherwise stay at 0x0 and render empty viewports.
+	// Captured under namedMu.
+	lastSize tea.WindowSizeMsg
 }
 
 func NewSpinner(line string) *Spinner {
@@ -178,13 +185,22 @@ func (s *Spinner) LogView(opts ...logView.Option) io.WriteCloser {
 func (s *Spinner) LogStream(name string, opts ...logView.Option) io.WriteCloser {
 	s.namedMu.Lock()
 	lv, exists := s.namedLogs[name]
+	var sizeMsg tea.WindowSizeMsg
 	if !exists {
 		lv = gn.ApplyOptionsWithDefault(*logView.New(), opts...)
 		lv.Enable()
 		s.namedLogs[name] = lv
 		s.namedOrder = append(s.namedOrder, name)
+		sizeMsg = s.lastSize
 	}
 	s.namedMu.Unlock()
+
+	// Replay the latest terminal size into the new pane so its
+	// viewport gets sized; without this, the pane is created after
+	// Bubble Tea's startup WindowSizeMsg and stays at 0x0.
+	if !exists && sizeMsg.Width > 0 && sizeMsg.Height > 0 {
+		lv.Update(sizeMsg)
+	}
 	r, w := io.Pipe()
 	go func() {
 		defer r.Close()
@@ -204,6 +220,12 @@ func (s *Spinner) init() tea.Cmd {
 }
 
 func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
+	if r, ok := msg.(tea.WindowSizeMsg); ok {
+		s.namedMu.Lock()
+		s.lastSize = r
+		s.namedMu.Unlock()
+	}
+
 	var cmds []tea.Cmd
 	s.spinner, cmd = s.spinner.Update(msg)
 	cmds = append(cmds, cmd)
