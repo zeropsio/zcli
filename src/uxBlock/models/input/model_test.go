@@ -2,7 +2,6 @@ package input
 
 import (
 	"bytes"
-	"context"
 	"testing"
 	"time"
 
@@ -14,8 +13,9 @@ import (
 
 const testTermWidth, testTermHeight = 80, 24
 
-func newInput(_ *testing.T, opts ...Option) *RootModel {
-	return NewRoot(context.Background(), opts...)
+func newInput(t *testing.T, opts ...Option) *RootModel {
+	t.Helper()
+	return NewRoot(t.Context(), opts...)
 }
 
 // Typing characters then Enter submits the value; GetValueFunc reports it.
