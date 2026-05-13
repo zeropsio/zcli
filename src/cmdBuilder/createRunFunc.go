@@ -91,7 +91,11 @@ func createCmdRunFunc(
 		storedData := cliStorage.Data()
 
 		token := storedData.Token
-		if envToken, ok := os.LookupEnv(constants.CliTokenEnvVar); ok {
+		// An empty value (e.g. `export ZEROPS_TOKEN=` in a shell, or a
+		// process inheriting an explicitly cleared env) must not overwrite
+		// the token persisted by `zcli login` — otherwise the user appears
+		// silently logged out.
+		if envToken := os.Getenv(constants.CliTokenEnvVar); envToken != "" {
 			token = envToken
 		}
 		if token == "" {
