@@ -130,7 +130,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				Message:        i18n.T(i18n.PushDeployUploadingPackageStart),
 				ErrorMessage:   i18n.T(i18n.PushDeployUploadPackageFailed),
 				SuccessMessage: i18n.T(i18n.PushDeployUploadingPackageDone),
-			}, func(_ uxBlock.SpinnerHandle) error {
+			}, func(h uxBlock.SpinnerHandle) error {
 				reader, writer := io.Pipe()
 				var finalReader io.Reader = reader
 				if cmdData.Params.GetString("archive-file-path") != "" {
@@ -143,6 +143,11 @@ func servicePushCmd() *cmdBuilder.Cmd {
 					}
 					finalReader = io.TeeReader(reader, packageFile)
 				}
+				// Live byte counter on the spinner line — the upload is a
+				// streaming pipe with no known total, so we report bytes
+				// uploaded rather than a percent.
+				progressReader, stopProgress := uxBlock.ProgressReader(h, i18n.T(i18n.PushDeployUploadingPackageStart), finalReader)
+				defer stopProgress()
 
 				wg := sync.WaitGroup{}
 				wg.Add(1)
@@ -150,7 +155,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				go func() {
 					defer wg.Done()
 					// if an error occurred during upload, return it (it could be even auth error, before upload starts)
-					if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+					if err := packageStream(ctx, appVersion.UploadUrl, progressReader); err != nil {
 						_ = reader.CloseWithError(err)
 						uploadErr = err // in case the reader is already closed with EOF, sometimes happened with timeouts
 					}
