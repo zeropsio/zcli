@@ -15,7 +15,6 @@ package serviceLogs
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -49,29 +48,24 @@ func (h *Handler) getFullByRfc(logData []Data, rfc string) error {
 	return nil
 }
 
-// add missing 0 to have the same length for all timestamps
+// fixTimestamp pads fractional seconds to six digits so all timestamps
+// have the same width. Accepts RFC 3339 timestamps with or without a
+// fractional-second component; on parse failure returns the input
+// unchanged (the downstream Fprintf will still produce *something*).
 func fixTimestamp(timestamp string) string {
-	if 27-len(timestamp) == 0 {
+	t, err := time.Parse(time.RFC3339Nano, timestamp)
+	if err != nil {
 		return timestamp
 	}
-	splitVal := strings.Split(timestamp, ".")
-	millis := ""
-	if len(splitVal) == 2 {
-		millis = strings.Split(splitVal[1], "Z")[0]
-	}
-	for len(millis) < 6 {
-		millis += "0"
-	}
-	return fmt.Sprintf("%s.%sZ", splitVal[0], millis)
+	return t.UTC().Format("2006-01-02T15:04:05.000000Z")
 }
 
 func rfc3164TimeFormat(timestamp string) string {
-	layout := "2006-01-02T15:04:05.000000Z"
-	timeStamp, err := time.Parse(layout, timestamp)
+	t, err := time.Parse("2006-01-02T15:04:05.000000Z", timestamp)
 	if err != nil {
 		return err.Error()
 	}
-	return timeStamp.Format("Jan 02 15:04:05")
+	return t.Format("Jan 02 15:04:05")
 }
 
 // get response log data or "-"

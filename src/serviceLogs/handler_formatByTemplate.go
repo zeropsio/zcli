@@ -7,8 +7,6 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 
 	"github.com/zeropsio/zcli/src/i18n"
 )
@@ -51,21 +49,26 @@ func testTokens(tokens []string) error {
 	return nil
 }
 
-// change lowercase first letters to uppercase to match the struct
-func fixTemplate(template string) (string, error) {
-	tokens := strings.Split(template, "} {")
+// fixTemplate normalizes Data field names in the user's format string to
+// match Go struct casing — e.g. `{{.message}}` becomes `{{.Message}}` —
+// so the renderer doesn't have to require correctly-cased input.
+func fixTemplate(tmpl string) (string, error) {
+	tokens := strings.Split(tmpl, "} {")
 	if err := testTokens(tokens); err != nil {
 		return "", err
 	}
 	repl := strings.NewReplacer("{", "", "}", "", ".", "")
 	keys := make([]string, len(tokens))
-
 	for i, val := range tokens {
-		out := strings.Trim(repl.Replace(val), " ")
-		titleStr := cases.Title(language.Und, cases.NoLower).String(out)
-		item := fmt.Sprintf("{{.%s}}", titleStr)
-		keys[i] = item
+		out := strings.TrimSpace(repl.Replace(val))
+		keys[i] = fmt.Sprintf("{{.%s}}", upperFirst(out))
 	}
-
 	return strings.Join(keys, " "), nil
+}
+
+func upperFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }

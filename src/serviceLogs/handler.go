@@ -1,6 +1,7 @@
 package serviceLogs
 
 import (
+	"context"
 	"io"
 	"os"
 
@@ -42,4 +43,12 @@ func New(out io.Writer, restApiClient *zeropsRestApiClient.Handler) *Handler {
 		restApiClient: restApiClient,
 		out:           out,
 	}
+}
+
+func (h *Handler) Run(ctx context.Context, config RunConfig) error {
+	inputs, err := h.checkInputValues(config)
+	if err != nil {
+		return err
+	}
+	return h.printLogs(ctx, inputs, config.Project.Id, config.ServiceId, config.Container.Id)
 }
