@@ -39,8 +39,10 @@ func newFixture(t *testing.T) *fixture {
 	dir := t.TempDir()
 	dataPath := filepath.Join(dir, "cli.data")
 	logPath := filepath.Join(dir, "zcli.log")
+	yamlPath := filepath.Join(dir, "zcli.yml")
 	t.Setenv(constants.CliDataFilePathEnvVar, dataPath)
 	t.Setenv(constants.CliLogFilePathEnvVar, logPath)
+	t.Setenv(constants.CliZcliYamlFilePathEnvVar, yamlPath)
 	t.Setenv(constants.CliTokenEnvVar, "")
 
 	return &fixture{
