@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // service deploy variant of the happy path: same scaffolding as push but the
@@ -18,9 +20,7 @@ func TestServiceDeployCommand_HappyPath(t *testing.T) {
 	writeZeropsYaml(t, workDir, "demo")
 	// service deploy archives files relative to working-dir; give it a single
 	// file so the tar isn't empty and the upload handler sees bytes.
-	if err := os.WriteFile(filepath.Join(workDir, "index.html"), []byte("<html/>"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "index.html"), []byte("<html/>"), 0o600))
 
 	s := registerDeployStubs(t, f, "demo")
 

@@ -5,6 +5,9 @@ package cmd
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestVersionCommand(t *testing.T) {
@@ -12,10 +15,6 @@ func TestVersionCommand(t *testing.T) {
 
 	res := f.Run(nil, "version")
 
-	if res.ExitCode != 0 {
-		t.Fatalf("exit=%d stderr=%q", res.ExitCode, res.Stderr)
-	}
-	if !strings.HasPrefix(res.Stdout, "zcli version ") {
-		t.Fatalf("unexpected stdout: %q", res.Stdout)
-	}
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
+	assert.Truef(t, strings.HasPrefix(res.Stdout, "zcli version "), "unexpected stdout: %q", res.Stdout)
 }
