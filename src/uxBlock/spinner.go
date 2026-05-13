@@ -28,6 +28,12 @@ func (b *Blocks) RunSpinners(ctx context.Context, spinners []*Spinner) (func(), 
 		spinners: spinners,
 	}
 
+	// While the Bubble Tea program is drawing, suspend the SafeStderr so
+	// any raw write (slog stderr handler, subprocess stderr that slipped
+	// past the slog adapter) is buffered instead of tearing the frame.
+	// Resumed after the program exits.
+	b.stderr.suspend()
+
 	p := tea.NewProgram(model, tea.WithoutSignalHandler(), tea.WithContext(ctx), tea.WithFPS(100))
 	go func() {
 		//nolint:errcheck // Why: I'm not interest in the error
@@ -40,6 +46,7 @@ func (b *Blocks) RunSpinners(ctx context.Context, spinners []*Spinner) (func(), 
 	return func() {
 			p.Send(spinnerEndCmd{})
 			p.Wait()
+			b.stderr.resume()
 		}, func(msg tea.Msg) {
 			p.Send(msg)
 		}
