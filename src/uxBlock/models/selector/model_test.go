@@ -2,7 +2,6 @@ package selector
 
 import (
 	"bytes"
-	"context"
 	"testing"
 	"time"
 
@@ -25,7 +24,7 @@ func newSelectorWithRows(t *testing.T, rows ...string) *RootModel {
 	for _, r := range rows {
 		body.AddStringsRow(r)
 	}
-	return NewRoot(context.Background(), body, WithLabel("Pick one"))
+	return NewRoot(t.Context(), body, WithLabel("Pick one"))
 }
 
 // Pressing the down arrow then enter selects the row at index 1.
@@ -80,7 +79,8 @@ func TestSelector_DownPastEndStaysOnLastRow(t *testing.T) {
 
 	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
 
-	final := tm.FinalModel(t).(*RootModel)
+	final, ok := tm.FinalModel(t).(*RootModel)
+	require.True(t, ok)
 	require.NoError(t, final.Err())
 	assert.Equal(t, 2, final.Selected()[0], "cursor should clamp at the last row (index 2)")
 }
@@ -89,12 +89,13 @@ func TestSelector_DownPastEndStaysOnLastRow(t *testing.T) {
 
 // newMultiSelectorWithRows builds a multi-select selector. Spacebar toggles
 // the row at the cursor, Enter exits and returns all toggled indices.
-func newMultiSelectorWithRows(_ *testing.T, rows ...string) *RootModel {
+func newMultiSelectorWithRows(t *testing.T, rows ...string) *RootModel {
+	t.Helper()
 	body := table.NewBody()
 	for _, r := range rows {
 		body.AddStringsRow(r)
 	}
-	return NewRoot(context.Background(), body,
+	return NewRoot(t.Context(), body,
 		WithLabel("Pick many"),
 		WithEnableMultiSelect(),
 	)
@@ -199,7 +200,7 @@ func TestSelector_FilterModeNarrowsAndSelects(t *testing.T) {
 	body.AddStringsRow("alpha")
 	body.AddStringsRow("beta")
 	body.AddStringsRow("gamma")
-	root := NewRoot(context.Background(), body, WithEnableFiltering())
+	root := NewRoot(t.Context(), body, WithEnableFiltering())
 
 	tm := teatest.NewTestModel(t, root,
 		teatest.WithInitialTermSize(testTermWidth, testTermHeight),
@@ -212,7 +213,8 @@ func TestSelector_FilterModeNarrowsAndSelects(t *testing.T) {
 
 	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
 
-	final := tm.FinalModel(t).(*RootModel)
+	final, ok := tm.FinalModel(t).(*RootModel)
+	require.True(t, ok)
 	require.NoError(t, final.Err())
 	selected := final.Selected()
 	require.Len(t, selected, 1)
@@ -225,7 +227,7 @@ func TestSelector_FilterModeNarrowsAndSelects(t *testing.T) {
 func TestSelector_LabelAppearsInOutput(t *testing.T) {
 	body := table.NewBody()
 	body.AddStringsRow("alpha")
-	root := NewRoot(context.Background(), body,
+	root := NewRoot(t.Context(), body,
 		WithLabel("Pick one"),
 		WithEnableFiltering(),
 	)

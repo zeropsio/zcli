@@ -1,7 +1,6 @@
 package prompt
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -13,8 +12,9 @@ import (
 
 const testTermWidth, testTermHeight = 80, 24
 
-func newPrompt(_ *testing.T, message string, choices ...string) *RootModel {
-	return NewRoot(context.Background(), message, choices)
+func newPrompt(t *testing.T, message string, choices ...string) *RootModel {
+	t.Helper()
+	return NewRoot(t.Context(), message, choices)
 }
 
 // Right then Enter advances the cursor and confirms; GetChoiceCursor reports
@@ -90,7 +90,7 @@ func TestPrompt_EscReturnsError(t *testing.T) {
 // WithCursorPosition pre-positions the cursor and clamps out-of-range values.
 func TestPrompt_WithCursorPositionInitial(t *testing.T) {
 	t.Run("in-range", func(t *testing.T) {
-		root := NewRoot(context.Background(), "Pick", []string{"A", "B", "C"}, WithCursorPosition(2))
+		root := NewRoot(t.Context(), "Pick", []string{"A", "B", "C"}, WithCursorPosition(2))
 		tm := teatest.NewTestModel(t, root, teatest.WithInitialTermSize(testTermWidth, testTermHeight))
 		tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 		tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
@@ -99,7 +99,7 @@ func TestPrompt_WithCursorPositionInitial(t *testing.T) {
 		assert.Equal(t, 2, cur)
 	})
 	t.Run("over-range-clamps-to-last", func(t *testing.T) {
-		root := NewRoot(context.Background(), "Pick", []string{"A", "B", "C"}, WithCursorPosition(99))
+		root := NewRoot(t.Context(), "Pick", []string{"A", "B", "C"}, WithCursorPosition(99))
 		tm := teatest.NewTestModel(t, root, teatest.WithInitialTermSize(testTermWidth, testTermHeight))
 		tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 		tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
@@ -108,7 +108,7 @@ func TestPrompt_WithCursorPositionInitial(t *testing.T) {
 		assert.Equal(t, 2, cur)
 	})
 	t.Run("under-range-clamps-to-zero", func(t *testing.T) {
-		root := NewRoot(context.Background(), "Pick", []string{"A", "B", "C"}, WithCursorPosition(-5))
+		root := NewRoot(t.Context(), "Pick", []string{"A", "B", "C"}, WithCursorPosition(-5))
 		tm := teatest.NewTestModel(t, root, teatest.WithInitialTermSize(testTermWidth, testTermHeight))
 		tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 		tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
