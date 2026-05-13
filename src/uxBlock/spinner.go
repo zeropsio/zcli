@@ -133,15 +133,25 @@ type Spinner struct {
 	line     string
 	finished bool
 	spinner  bubblesSpinner.Model
-	logView  *logView.Model
+	logView  *logView.Model // default unnamed pane (preserved for LogView)
+
+	// namedLogs holds additional log panes addressable by name. Each
+	// pane renders independently in insertion order, stacked above the
+	// spinner line. Used by callers (e.g. servicePush) that interleave
+	// concurrent streams (build/prepare) and want them visually
+	// separated rather than merged into one pane.
+	namedLogs  map[string]*logView.Model
+	namedOrder []string
+	namedMu    sync.Mutex
 }
 
 func NewSpinner(line string) *Spinner {
 	return &Spinner{
-		id:      nextID(),
-		line:    line,
-		spinner: bubblesSpinner.New(bubblesSpinner.WithSpinner(bubblesSpinner.MiniDot)),
-		logView: logView.New(),
+		id:        nextID(),
+		line:      line,
+		spinner:   bubblesSpinner.New(bubblesSpinner.WithSpinner(bubblesSpinner.MiniDot)),
+		logView:   logView.New(),
+		namedLogs: map[string]*logView.Model{},
 	}
 }
 
@@ -152,6 +162,33 @@ func (s *Spinner) LogView(opts ...logView.Option) io.WriteCloser {
 	go func() {
 		defer r.Close()
 		_, err := io.Copy(s.logView, r)
+		if err != nil {
+			panic(err)
+		}
+	}()
+	return w
+}
+
+// LogStream returns a writer streaming into a named log pane on this
+// spinner. The first call with a given name creates the pane (which
+// renders above the spinner line, stacked under any earlier streams).
+// Subsequent calls with the same name reuse it. Names are
+// case-sensitive; pick short labels — they're not rendered, just used
+// to address the pane.
+func (s *Spinner) LogStream(name string, opts ...logView.Option) io.WriteCloser {
+	s.namedMu.Lock()
+	lv, exists := s.namedLogs[name]
+	if !exists {
+		lv = gn.ApplyOptionsWithDefault(*logView.New(), opts...)
+		lv.Enable()
+		s.namedLogs[name] = lv
+		s.namedOrder = append(s.namedOrder, name)
+	}
+	s.namedMu.Unlock()
+	r, w := io.Pipe()
+	go func() {
+		defer r.Close()
+		_, err := io.Copy(lv, r)
 		if err != nil {
 			panic(err)
 		}
@@ -173,6 +210,23 @@ func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
 	s.logView, cmd = s.logView.Update(msg)
 	cmds = append(cmds, cmd)
 
+	// Forward msg to every named log pane so its scroll/follow state
+	// keeps updating. The map is mutated only via LogStream — take a
+	// snapshot under the lock and update outside it.
+	s.namedMu.Lock()
+	views := make([]*logView.Model, 0, len(s.namedOrder))
+	for _, name := range s.namedOrder {
+		views = append(views, s.namedLogs[name])
+	}
+	s.namedMu.Unlock()
+	for i, lv := range views {
+		updated, c := lv.Update(msg)
+		cmds = append(cmds, c)
+		s.namedMu.Lock()
+		s.namedLogs[s.namedOrder[i]] = updated
+		s.namedMu.Unlock()
+	}
+
 	if finishMsg, isFinnish := msg.(spinnerFinish); isFinnish && finishMsg.id == s.id {
 		if finishMsg.msg != nil {
 			s.line = *finishMsg.msg
@@ -188,27 +242,27 @@ func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
 }
 
 func (s *Spinner) view() string {
-	if s.finished {
-		if s.logView.Enabled() {
-			return lipgloss.JoinVertical(
-				lipgloss.Left,
-				s.logView.View(),
-				s.line,
-			)
+	parts := make([]string, 0, 4)
+
+	// Named log panes stack above the default pane, in insertion order.
+	s.namedMu.Lock()
+	for _, name := range s.namedOrder {
+		if lv := s.namedLogs[name]; lv != nil && lv.Enabled() {
+			parts = append(parts, lv.View())
 		}
-		return s.line
 	}
+	s.namedMu.Unlock()
+
 	if s.logView.Enabled() {
-		return lipgloss.JoinVertical(
-			lipgloss.Left,
-			s.logView.View(),
-			s.spinner.View()+" "+s.line,
-		)
+		parts = append(parts, s.logView.View())
 	}
-	return lipgloss.JoinVertical(
-		lipgloss.Left,
-		s.spinner.View()+" "+s.line,
-	)
+
+	if s.finished {
+		parts = append(parts, s.line)
+	} else {
+		parts = append(parts, s.spinner.View()+" "+s.line)
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, parts...)
 }
 
 type spinnerFinish struct {

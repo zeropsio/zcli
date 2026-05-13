@@ -227,6 +227,40 @@ func TestWithSpinners_AllJobsInvokedEvenWhenOneErrors(t *testing.T) {
 	require.Equal(t, int32(n), atomic.LoadInt32(&called))
 }
 
+func TestSpinner_LogStreamCreatesDistinctPanesInInsertionOrder(t *testing.T) {
+	// LogStream should hand out a fresh pane per unique name and
+	// preserve insertion order in the rendered view. Verified at the
+	// Spinner level since the test blocks run in non-terminal mode
+	// (no Bubble Tea program is alive).
+	sp := NewSpinner("running")
+	wBuild := sp.LogStream("build")
+	wPrep := sp.LogStream("prepare")
+	require.NotNil(t, wBuild)
+	require.NotNil(t, wPrep)
+	require.NotSame(t, wBuild, wPrep, "distinct names must return distinct writers")
+
+	sp.namedMu.Lock()
+	defer sp.namedMu.Unlock()
+	require.Equal(t, []string{"build", "prepare"}, sp.namedOrder,
+		"insertion order is preserved")
+	require.Len(t, sp.namedLogs, 2, "one log model per unique name")
+}
+
+func TestSpinner_LogStreamSameNameReusesPane(t *testing.T) {
+	// Calling LogStream("x") twice must reference the same underlying
+	// model — callers expect repeated calls to be idempotent for
+	// addressing purposes (different writers though, since each call
+	// creates a new pipe).
+	sp := NewSpinner("running")
+	_ = sp.LogStream("build")
+	_ = sp.LogStream("build")
+
+	sp.namedMu.Lock()
+	defer sp.namedMu.Unlock()
+	require.Equal(t, []string{"build"}, sp.namedOrder, "no duplicate key in order")
+	require.Len(t, sp.namedLogs, 1, "single model retained")
+}
+
 func TestWithSpinner_ClosureCompletesInBoundedTime(t *testing.T) {
 	// Belt-and-braces: WithSpinner must return promptly once the
 	// closure returns, not hang waiting for some unrelated signal.
