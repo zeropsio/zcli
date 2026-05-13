@@ -207,11 +207,12 @@ func TestServicePushCommand_ProcessFails(t *testing.T) {
 	requireNonZeroExit(t, res)
 }
 
-// TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi documents current
-// behavior: a --setup value not present in zerops.yaml is forwarded verbatim
-// to the API, with no client-side check that the chosen setup exists in the
-// local yaml.
-func TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi(t *testing.T) {
+// TestServicePushCommand_SetupNotFoundInYamlRejectedLocally checks that a
+// --setup value not present in zerops.yaml is rejected client-side before any
+// API call. The error message names the offending value and lists the
+// available setups so the user can correct a typo without round-tripping
+// through the server.
+func TestServicePushCommand_SetupNotFoundInYamlRejectedLocally(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
 	workDir := t.TempDir()
@@ -228,7 +229,13 @@ func TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	assertPushSuccess(t, res, s, "nonexistent")
+	requireNonZeroExit(t, res)
+	assert.Contains(t, res.Stderr, "nonexistent", "stderr should name the missing setup")
+	assert.Contains(t, res.Stderr, "web", "stderr should list available setups")
+	assert.Contains(t, res.Stderr, "db", "stderr should list available setups")
+	// No API request should have followed the local rejection.
+	assert.Zero(t, s.uploadBytes.Load(), "upload should not happen on local validation failure")
+	assert.Equal(t, int32(0), s.deployHits.Load(), "deploy endpoint must not be hit")
 }
 
 // --- Tier 2: polling, scope, archive-file-path ----------------------------
