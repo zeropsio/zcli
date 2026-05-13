@@ -9,6 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // --- Happy paths ----------------------------------------------------------
@@ -76,9 +79,7 @@ func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 	assertPushSuccess(t, res, s, "demo")
 
 	body, _ := s.appVersionBody.Load().(map[string]any)
-	if body["name"] != "v1.2.3" {
-		t.Errorf("app-version body name=%v, want %q", body["name"], "v1.2.3")
-	}
+	assert.Equal(t, "v1.2.3", body["name"], "app-version body should carry --version-name")
 }
 
 // --- Error paths / variant coverage ---------------------------------------
@@ -99,12 +100,11 @@ func TestServicePushCommand_MissingZeropsYaml(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
-	if !strings.Contains(res.Stderr, "zerops.yaml") && !strings.Contains(res.Stderr, "zerops.yml") {
-		t.Errorf("stderr should mention zerops.yaml; got: %q", res.Stderr)
-	}
+	requireNonZeroExit(t, res)
+	assert.Truef(t,
+		strings.Contains(res.Stderr, "zerops.yaml") || strings.Contains(res.Stderr, "zerops.yml"),
+		"stderr should mention zerops.yaml/.yml; got: %q", res.Stderr,
+	)
 }
 
 // Zero-byte zerops.yaml is treated as an explicit error, not "no setups".
@@ -112,9 +112,7 @@ func TestServicePushCommand_EmptyZeropsYaml(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
 	workDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(workDir, "zerops.yaml"), nil, 0o600); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "zerops.yaml"), nil, 0o600))
 
 	registerPushStubs(t, f, "demo")
 
@@ -125,9 +123,7 @@ func TestServicePushCommand_EmptyZeropsYaml(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
+	requireNonZeroExit(t, res)
 }
 
 // --workspace-state must be one of all/staged/clean. An arbitrary value fails
@@ -147,12 +143,8 @@ func TestServicePushCommand_InvalidWorkspaceState(t *testing.T) {
 		"--workspace-state", "garbage",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
-	if !strings.Contains(res.Stderr, "workspace-state") {
-		t.Errorf("stderr should explain the bad --workspace-state value; got: %q", res.Stderr)
-	}
+	requireNonZeroExit(t, res)
+	assert.Contains(t, res.Stderr, "workspace-state", "stderr should explain the bad --workspace-state value")
 }
 
 // Non-TTY (test) run with no auto-match and no --setup flag must fail with the
@@ -173,12 +165,8 @@ func TestServicePushCommand_NoSetupMatchNoFlagFailsInNonTTY(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
-	if !strings.Contains(res.Stderr, "--setup") {
-		t.Errorf("stderr should ask for --setup; got: %q", res.Stderr)
-	}
+	requireNonZeroExit(t, res)
+	assert.Contains(t, res.Stderr, "--setup", "stderr should ask for --setup")
 }
 
 // Process polling returns FAILED on the first poll — the spinner loop must
@@ -199,9 +187,7 @@ func TestServicePushCommand_ProcessFails(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
+	requireNonZeroExit(t, res)
 }
 
 // Current behavior documented: a --setup value not present in zerops.yaml is
@@ -248,9 +234,7 @@ func TestServicePushCommand_PendingThenRunningThenFinished(t *testing.T) {
 		"--disable-logs",
 	)
 	assertPushSuccess(t, res, s, "demo")
-	if got := s.processPollCount.Load(); got < 3 {
-		t.Errorf("expected at least 3 process polls, got %d", got)
-	}
+	assert.GreaterOrEqual(t, s.processPollCount.Load(), int32(3), "should poll at least 3 times for PENDING→RUNNING→FINISHED")
 }
 
 // A 404 on the service-stack endpoint surfaces as a non-zero exit with a
@@ -282,12 +266,8 @@ func TestServicePushCommand_InvalidServiceIdErrors(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
-	if !strings.Contains(strings.ToLower(res.Stderr), "service") {
-		t.Errorf("stderr should mention the service error; got: %q", res.Stderr)
-	}
+	requireNonZeroExit(t, res)
+	assert.Contains(t, strings.ToLower(res.Stderr), "service", "stderr should mention the service error")
 }
 
 // --archive-file-path writes a copy of the uploaded package to disk via a
@@ -299,9 +279,7 @@ func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
 	writeZeropsYaml(t, workDir, "demo")
 	// Give the archive at least one file to include, so the resulting tar is
 	// not just a gzip header.
-	if err := os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
 
 	archivePath := "out.tar.gz" // resolved relative to --working-dir by openPackageFile
 	s := registerPushStubs(t, f, "demo")
@@ -317,12 +295,8 @@ func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
 	assertPushSuccess(t, res, s, "demo")
 
 	info, err := os.Stat(filepath.Join(workDir, archivePath))
-	if err != nil {
-		t.Fatalf("expected archive file at %s: %v", archivePath, err)
-	}
-	if info.Size() == 0 {
-		t.Errorf("archive file is empty")
-	}
+	require.NoError(t, err, "archive file should exist")
+	assert.NotZero(t, info.Size(), "archive file should not be empty")
 }
 
 // openPackageFile refuses to overwrite an existing --archive-file-path. The
@@ -334,9 +308,7 @@ func TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors(t *testing.T) {
 	writeZeropsYaml(t, workDir, "demo")
 
 	archivePath := "out.tar.gz"
-	if err := os.WriteFile(filepath.Join(workDir, archivePath), []byte("preexisting"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, archivePath), []byte("preexisting"), 0o600))
 
 	s := registerPushStubs(t, f, "demo")
 
@@ -348,15 +320,11 @@ func TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors(t *testing.T) {
 		"--no-git",
 		"--disable-logs",
 	)
-	if res.ExitCode == 0 {
-		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	}
-	// The existing file must be untouched (size still 11 bytes from preexisting).
-	if info, err := os.Stat(filepath.Join(workDir, archivePath)); err == nil && info.Size() != int64(len("preexisting")) {
-		t.Errorf("archive file was overwritten despite the error: size=%d", info.Size())
+	requireNonZeroExit(t, res)
+	// The existing file must be untouched.
+	if info, err := os.Stat(filepath.Join(workDir, archivePath)); err == nil {
+		assert.Equal(t, int64(len("preexisting")), info.Size(), "archive file should not be overwritten")
 	}
 	// And no upload should have hit the server.
-	if got := s.uploadBytes.Load(); got != 0 {
-		t.Errorf("upload happened despite pre-flight error: %d bytes", got)
-	}
+	assert.Zero(t, s.uploadBytes.Load(), "upload should not happen when pre-flight check fails")
 }

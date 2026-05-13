@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
@@ -70,12 +71,8 @@ func (f *fixture) SeedLogin(token string) {
 	f.t.Helper()
 	data := cliStorage.Data{Token: token, RegionData: f.Region}
 	b, err := json.Marshal(data)
-	if err != nil {
-		f.t.Fatalf("marshal seed data: %v", err)
-	}
-	if err := os.WriteFile(f.DataPath, b, 0o600); err != nil {
-		f.t.Fatalf("write seed data: %v", err)
-	}
+	require.NoError(f.t, err, "marshal seed data")
+	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
 }
 
 // HandleJSON registers an exact-path handler returning the given status and
@@ -116,12 +113,8 @@ func (f *fixture) Run(ctx context.Context, args ...string) result {
 func (f *fixture) LoadStorage() cliStorage.Data {
 	f.t.Helper()
 	b, err := os.ReadFile(f.DataPath)
-	if err != nil {
-		f.t.Fatalf("read storage: %v", err)
-	}
+	require.NoError(f.t, err, "read storage")
 	var d cliStorage.Data
-	if err := json.Unmarshal(b, &d); err != nil {
-		f.t.Fatalf("unmarshal storage: %v", err)
-	}
+	require.NoError(f.t, json.Unmarshal(b, &d), "unmarshal storage")
 	return d
 }

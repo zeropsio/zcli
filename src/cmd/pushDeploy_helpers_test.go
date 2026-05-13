@@ -10,6 +10,9 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Test-fixture identifiers shared by the push/deploy integration suites. These
@@ -230,9 +233,16 @@ func writeZeropsYaml(t *testing.T, dir string, setups ...string) {
 		b = append(b, "  - setup: "+s+"\n"...)
 		b = append(b, "    build:\n      base: ubuntu\n"...)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "zerops.yaml"), b, 0o600); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "zerops.yaml"), b, 0o600))
+}
+
+// requireNonZeroExit fails the test immediately if the CLI exited 0. Used by
+// error-path tests where downstream assertions only make sense after we've
+// confirmed the command failed.
+func requireNonZeroExit(t *testing.T, res result) {
+	t.Helper()
+	require.NotEqualf(t, 0, res.ExitCode,
+		"expected non-zero exit\n--- stderr ---\n%s\n--- stdout ---\n%s", res.Stderr, res.Stdout)
 }
 
 // assertPushSuccess is the happy-path postcondition shared by push tests:
@@ -240,16 +250,9 @@ func writeZeropsYaml(t *testing.T, dir string, setups ...string) {
 // exactly once, and the resolved setup was forwarded in the body.
 func assertPushSuccess(t *testing.T, res result, s *pushStubs, wantSetup string) {
 	t.Helper()
-	if res.ExitCode != 0 {
-		t.Fatalf("exit=%d\n--- stderr ---\n%s\n--- stdout ---\n%s", res.ExitCode, res.Stderr, res.Stdout)
-	}
-	if s.uploadBytes.Load() == 0 {
-		t.Error("upload handler received no bytes")
-	}
-	if got := s.deployHits.Load(); got != 1 {
-		t.Errorf("deploy endpoint called %d times, want 1", got)
-	}
-	if got, _ := s.deployBody.Load().(map[string]any); got["zeropsYamlSetup"] != wantSetup {
-		t.Errorf("deploy body zeropsYamlSetup=%v, want %q", got["zeropsYamlSetup"], wantSetup)
-	}
+	require.Equalf(t, 0, res.ExitCode, "non-zero exit\n--- stderr ---\n%s\n--- stdout ---\n%s", res.Stderr, res.Stdout)
+	assert.NotZerof(t, s.uploadBytes.Load(), "upload handler received no bytes")
+	assert.Equalf(t, int32(1), s.deployHits.Load(), "deploy endpoint hit count")
+	body, _ := s.deployBody.Load().(map[string]any)
+	assert.Equal(t, wantSetup, body["zeropsYamlSetup"], "deploy body zeropsYamlSetup")
 }

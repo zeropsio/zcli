@@ -3,8 +3,10 @@
 package cmd
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProjectListCommand(t *testing.T) {
@@ -48,12 +50,8 @@ func TestProjectListCommand(t *testing.T) {
 
 	res := f.Run(nil, "project", "list")
 
-	if res.ExitCode != 0 {
-		t.Fatalf("exit=%d stderr=%q", res.ExitCode, res.Stderr)
-	}
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	for _, want := range []string{"demo-project", "Acme Org", "00000000-0000-0000-0000-0000000000bb"} {
-		if !strings.Contains(res.Stdout, want) {
-			t.Errorf("stdout missing %q\n--- stdout ---\n%s", want, res.Stdout)
-		}
+		assert.Containsf(t, res.Stdout, want, "stdout should contain %q", want)
 	}
 }
