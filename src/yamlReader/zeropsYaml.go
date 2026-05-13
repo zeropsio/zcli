@@ -46,6 +46,13 @@ func WithReturnErrOnZeropsYamlNotFound(b bool) ReadZeropsYamlOption {
 // and it always prints INFO line with a used zerops.yaml path, which is redundant and confusing
 var zeropsYamlContent []byte
 
+// ResetCache clears the cached zerops.yaml bytes. Intended for tests that
+// invoke the CLI in-process multiple times within a single process; production
+// code should never call it. TODO: refactor the cache out of package scope.
+func ResetCache() {
+	zeropsYamlContent = nil
+}
+
 // ReadZeropsYamlContent WARN: reads and caches zerops.yaml at first call, all other calls will use cache only
 func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string, selectedZeropsYamlPath string, opts ...ReadZeropsYamlOption) ([]byte, error) {
 	if zeropsYamlContent != nil {
