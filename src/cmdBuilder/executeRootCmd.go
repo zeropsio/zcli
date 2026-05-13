@@ -34,6 +34,7 @@ import (
 type RunOptions struct {
 	// Ctx is the root context. If nil, a fresh context.Background() is used
 	// and OS signals are wired to cancel it.
+	//nolint:containedctx // intentional: callers (tests, ExecuteRootCmd) pass the root ctx by value
 	Ctx context.Context
 	// Args overrides os.Args[1:] when non-nil. Useful for tests.
 	Args []string
