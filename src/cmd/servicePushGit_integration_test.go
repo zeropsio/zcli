@@ -248,6 +248,82 @@ func TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir(t *testing.
 	assert.True(t, archiveContains(entries, "main.go"), "main.go should still be present")
 }
 
+// --workspace-state=staged includes files that are staged (added to index)
+// but not yet committed. Unstaged working-tree changes must be excluded.
+func TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not on PATH")
+	}
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
+	gitInit(t, workDir)
+	gitAddCommit(t, workDir, "initial")
+
+	// Stage one new file (in the index but not committed) and leave another
+	// unstaged in the working tree.
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "staged.txt"), []byte("staged"), 0o600))
+	runGit(t, workDir, "add", "staged.txt")
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "unstaged.txt"), []byte("unstaged"), 0o600))
+
+	s := registerPushStubs(t, f, "demo")
+
+	res := f.Run(nil,
+		"service", "push",
+		"--service-id", pushServiceID,
+		"--working-dir", workDir,
+		"--workspace-state", "staged",
+		"--disable-logs",
+	)
+	assertPushSuccess(t, res, s, "demo")
+
+	body, _ := s.uploadBody.Load().([]byte)
+	require.NotEmpty(t, body)
+	entries := archiveEntries(t, body)
+	assert.True(t, archiveContains(entries, "main.go"), "committed main.go should be present")
+	assert.True(t, archiveContains(entries, "staged.txt"), "staged.txt should be in staged archive; got: %v", keys(entries))
+	assert.False(t, archiveContains(entries, "unstaged.txt"), "unstaged.txt must not be in staged archive; got: %v", keys(entries))
+}
+
+// --workspace-state=all (the default) captures everything: committed, staged,
+// and unstaged working-tree changes.
+func TestServicePushCommand_GitArchive_WorkspaceAllIncludesUncommitted(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not on PATH")
+	}
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
+	gitInit(t, workDir)
+	gitAddCommit(t, workDir, "initial")
+
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "staged.txt"), []byte("staged"), 0o600))
+	runGit(t, workDir, "add", "staged.txt")
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, "unstaged.txt"), []byte("unstaged"), 0o600))
+
+	s := registerPushStubs(t, f, "demo")
+
+	// Omitting --workspace-state defaults to "all".
+	res := f.Run(nil,
+		"service", "push",
+		"--service-id", pushServiceID,
+		"--working-dir", workDir,
+		"--disable-logs",
+	)
+	assertPushSuccess(t, res, s, "demo")
+
+	body, _ := s.uploadBody.Load().([]byte)
+	require.NotEmpty(t, body)
+	entries := archiveEntries(t, body)
+	assert.True(t, archiveContains(entries, "main.go"), "committed file present")
+	assert.True(t, archiveContains(entries, "staged.txt"), "staged file present")
+	assert.Truef(t, archiveContains(entries, "unstaged.txt"), "unstaged file should also be in workspace=all archive; got: %v", keys(entries))
+}
+
 // keys returns the map keys in undefined order; helper for error messages.
 func keys(m map[string]string) []string {
 	out := make([]string, 0, len(m))

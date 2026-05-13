@@ -299,6 +299,119 @@ func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
 	assert.NotZero(t, info.Size(), "archive file should not be empty")
 }
 
+// --project-id flag combined with a non-UUID positional service arg drives
+// the by-name lookup path: scopeProject resolves the project via flag, then
+// scopeService falls through to GetServiceByIdOrName, which first tries the
+// arg as a UUID (gets ServiceStackNotFound) and then looks up by name.
+func TestServicePushCommand_ProjectFlagAndServiceByName(t *testing.T) {
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+
+	// Standard push stubs handle the rest of the flow; we just need to wire
+	// the two extra service-lookup endpoints. The default service-stack/{id}
+	// handler from registerPushStubs is on a different path (pushServiceID),
+	// so it does not clash with /service-stack/demo.
+	s := registerPushStubs(t, f, "demo")
+
+	f.Mux.HandleFunc("/api/rest/public/service-stack/demo", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"error": map[string]any{
+				"code":    "serviceStackNotFound",
+				"message": "Service stack not found",
+			},
+		})
+	})
+
+	// The by-name lookup returns the same shape as the by-id endpoint.
+	f.HandleJSON("/api/rest/public/service-stack-by-name/"+pushProjectID+"/demo", 200, map[string]any{
+		"id":                 pushServiceID,
+		"projectId":          pushProjectID,
+		"name":               "demo",
+		"status":             "ACTIVE",
+		"serviceStackTypeId": "nodejs@20",
+		"serviceStackTypeInfo": map[string]any{
+			"serviceStackTypeName":        "Node.js",
+			"serviceStackTypeCategory":    "USER",
+			"serviceStackTypeVersionName": "20",
+		},
+		"project": map[string]any{
+			"id": pushProjectID, "clientId": pushClientID, "name": "demo-project",
+			"mode": "LIGHT", "status": "ACTIVE",
+			"created": "2024-01-01T00:00:00.000Z", "lastUpdate": "2024-01-01T00:00:00.000Z",
+			"tagList": []string{},
+		},
+		"serviceStackTypeVersionId": "nodejs@20",
+		"created":                   "2024-01-01T00:00:00.000Z",
+		"lastUpdate":                "2024-01-01T00:00:00.000Z",
+		"mode":                      "NON_HA",
+	})
+
+	res := f.Run(nil,
+		"service", "push",
+		"demo", // positional service-id-or-name
+		"--project-id", pushProjectID,
+		"--working-dir", workDir,
+		"--no-git",
+		"--disable-logs",
+	)
+	assertPushSuccess(t, res, s, "demo")
+}
+
+// A saved project scope (set previously by `zcli scope project ...`) lets
+// push run without --project-id, resolving the service by name within the
+// scoped project.
+func TestServicePushCommand_ScopeFromSavedProjectId(t *testing.T) {
+	f := newFixture(t)
+	f.SeedScopedLogin("test-token", pushProjectID)
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+
+	s := registerPushStubs(t, f, "demo")
+
+	f.Mux.HandleFunc("/api/rest/public/service-stack/demo", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"error": map[string]any{"code": "serviceStackNotFound", "message": "Service stack not found"},
+		})
+	})
+	f.HandleJSON("/api/rest/public/service-stack-by-name/"+pushProjectID+"/demo", 200, map[string]any{
+		"id":                 pushServiceID,
+		"projectId":          pushProjectID,
+		"name":               "demo",
+		"status":             "ACTIVE",
+		"serviceStackTypeId": "nodejs@20",
+		"serviceStackTypeInfo": map[string]any{
+			"serviceStackTypeName":        "Node.js",
+			"serviceStackTypeCategory":    "USER",
+			"serviceStackTypeVersionName": "20",
+		},
+		"project": map[string]any{
+			"id": pushProjectID, "clientId": pushClientID, "name": "demo-project",
+			"mode": "LIGHT", "status": "ACTIVE",
+			"created": "2024-01-01T00:00:00.000Z", "lastUpdate": "2024-01-01T00:00:00.000Z",
+			"tagList": []string{},
+		},
+		"serviceStackTypeVersionId": "nodejs@20",
+		"created":                   "2024-01-01T00:00:00.000Z",
+		"lastUpdate":                "2024-01-01T00:00:00.000Z",
+		"mode":                      "NON_HA",
+	})
+
+	res := f.Run(nil,
+		"service", "push",
+		"demo", // positional service name
+		"--working-dir", workDir,
+		"--no-git",
+		"--disable-logs",
+	)
+	assertPushSuccess(t, res, s, "demo")
+}
+
 // openPackageFile refuses to overwrite an existing --archive-file-path. The
 // push should fail before any upload happens.
 func TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors(t *testing.T) {

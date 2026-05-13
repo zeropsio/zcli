@@ -18,6 +18,7 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/yamlReader"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 // fixture wires an httptest.Server, an isolated cliStorage path, and a
@@ -70,6 +71,20 @@ func newFixture(t *testing.T) *fixture {
 func (f *fixture) SeedLogin(token string) {
 	f.t.Helper()
 	data := cliStorage.Data{Token: token, RegionData: f.Region}
+	b, err := json.Marshal(data)
+	require.NoError(f.t, err, "marshal seed data")
+	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
+}
+
+// SeedScopedLogin is SeedLogin plus a persisted project scope, simulating a
+// previously completed `zcli scope project ...`.
+func (f *fixture) SeedScopedLogin(token, projectID string) {
+	f.t.Helper()
+	data := cliStorage.Data{
+		Token:          token,
+		RegionData:     f.Region,
+		ScopeProjectId: uuid.NewProjectIdNullFromString(projectID),
+	}
 	b, err := json.Marshal(data)
 	require.NoError(f.t, err, "marshal seed data")
 	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
