@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -73,7 +74,49 @@ func withSpinner(ctx context.Context, blocks *uxBlock.Blocks) {
 		return fmt.Errorf("something broke at step 42")
 	})
 
+	// 4) Live byte counter via ProgressReader. Simulates a 4 MiB
+	// upload by reading from a slow source; the spinner line ticks
+	// every 500ms with bytes consumed.
+	_ = blocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
+		Message:        "uploading package",
+		SuccessMessage: "uploaded",
+	}, func(h uxBlock.SpinnerHandle) error {
+		const total = 4 * 1024 * 1024
+		source := &slowReader{remaining: total, perChunk: 64 * 1024, delay: 80 * time.Millisecond}
+		reader, stop := uxBlock.ProgressReader(h, "uploading package", source)
+		defer stop()
+		_, err := io.Copy(io.Discard, reader)
+		return err
+	})
+
 	fmt.Println("========= WithSpinner block end =========")
+}
+
+// slowReader simulates a network read: hands out perChunk bytes every
+// delay until remaining is exhausted.
+type slowReader struct {
+	remaining int
+	perChunk  int
+	delay     time.Duration
+}
+
+func (s *slowReader) Read(p []byte) (int, error) {
+	if s.remaining <= 0 {
+		return 0, io.EOF
+	}
+	time.Sleep(s.delay)
+	n := s.perChunk
+	if n > len(p) {
+		n = len(p)
+	}
+	if n > s.remaining {
+		n = s.remaining
+	}
+	for i := range n {
+		p[i] = 'x'
+	}
+	s.remaining -= n
+	return n, nil
 }
 
 func spinners(ctx context.Context, blocks *uxBlock.Blocks) {

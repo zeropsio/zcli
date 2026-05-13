@@ -109,7 +109,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				Message:        i18n.T(i18n.PushDeployUploadingPackageStart),
 				ErrorMessage:   i18n.T(i18n.PushDeployUploadPackageFailed),
 				SuccessMessage: i18n.T(i18n.PushDeployUploadingPackageDone),
-			}, func(_ uxBlock.SpinnerHandle) error {
+			}, func(h uxBlock.SpinnerHandle) error {
 				ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("working-dir"))
 				if err != nil {
 					return err
@@ -140,6 +140,9 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					}
 					finalReader = io.TeeReader(reader, packageFile)
 				}
+				// Live byte counter on the spinner line.
+				progressReader, stopProgress := uxBlock.ProgressReader(h, i18n.T(i18n.PushDeployUploadingPackageStart), finalReader)
+				defer stopProgress()
 
 				wg := sync.WaitGroup{}
 				wg.Add(1)
@@ -149,7 +152,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					writer.CloseWithError(err)
 				}()
 
-				if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+				if err := packageStream(ctx, appVersion.UploadUrl, progressReader); err != nil {
 					// if an error occurred while packing the app, return that error
 					return err
 				}
