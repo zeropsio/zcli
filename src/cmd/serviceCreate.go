@@ -145,6 +145,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+<<<<<<< HEAD
 			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
@@ -153,6 +154,17 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 					RunningMessage: "Creating service",
 					ErrorMessage:   "Service creation failed",
 					SuccessMessage: "Service created",
+=======
+			if err := uxHelpers.WatchProcess(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				process.Id,
+				uxHelpers.ProcessMessages{
+					Running: "Creating service",
+					Error:   "Service creation failed",
+					Success: "Service created",
+>>>>>>> 8a23fa6 (refactor(cmd): migrate remaining single-process call sites to WatchProcess)
 				},
 			); err != nil {
 				return err

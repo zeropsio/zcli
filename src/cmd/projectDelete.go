@@ -72,6 +72,7 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
+<<<<<<< HEAD
 			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
@@ -86,5 +87,18 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 			}
 
 			return nil
+=======
+			return uxHelpers.WatchProcess(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				processId,
+				uxHelpers.ProcessMessages{
+					Running: i18n.T(i18n.ProjectDeleting),
+					Error:   i18n.T(i18n.ProjectDeleteFailed),
+					Success: i18n.T(i18n.ProjectDeleted),
+				},
+			)
+>>>>>>> 8a23fa6 (refactor(cmd): migrate remaining single-process call sites to WatchProcess)
 		})
 }

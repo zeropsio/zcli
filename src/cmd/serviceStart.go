@@ -39,6 +39,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
+<<<<<<< HEAD
 			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
@@ -53,5 +54,18 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 			}
 
 			return nil
+=======
+			return uxHelpers.WatchProcess(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				processId,
+				uxHelpers.ProcessMessages{
+					Running: i18n.T(i18n.ServiceStarting),
+					Error:   i18n.T(i18n.ServiceStartFailed),
+					Success: i18n.T(i18n.ServiceStarted),
+				},
+			)
+>>>>>>> 8a23fa6 (refactor(cmd): migrate remaining single-process call sites to WatchProcess)
 		})
 }

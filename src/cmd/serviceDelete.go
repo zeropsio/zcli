@@ -71,6 +71,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
+<<<<<<< HEAD
 			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
@@ -85,5 +86,18 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 			}
 
 			return nil
+=======
+			return uxHelpers.WatchProcess(
+				ctx,
+				cmdData.UxBlocks,
+				cmdData.RestApiClient,
+				processId,
+				uxHelpers.ProcessMessages{
+					Running: i18n.T(i18n.ServiceDeleting),
+					Error:   i18n.T(i18n.ServiceDeleteFailed),
+					Success: i18n.T(i18n.ServiceDeleted),
+				},
+			)
+>>>>>>> 8a23fa6 (refactor(cmd): migrate remaining single-process call sites to WatchProcess)
 		})
 }
