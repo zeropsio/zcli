@@ -2,6 +2,7 @@ package cmdBuilder
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -15,6 +16,8 @@ func buildCobraCmd(
 	flagParams *flagParams.Handler,
 	uxBlocks *uxBlock.Blocks,
 	cliStorage *cliStorage.Handler,
+	stdout io.Writer,
+	stderr io.Writer,
 ) (*cobra.Command, error) {
 	cobraCmd := &cobra.Command{
 		Short:         cmd.short,
@@ -67,11 +70,11 @@ func buildCobraCmd(
 	}
 
 	if cmd.guestRunFunc != nil || cmd.loggedUserRunFunc != nil {
-		cobraCmd.RunE = createCmdRunFunc(cmd, flagParams, uxBlocks, cliStorage)
+		cobraCmd.RunE = createCmdRunFunc(cmd, flagParams, uxBlocks, cliStorage, stdout, stderr)
 	}
 
 	for _, childrenCmd := range cmd.childrenCmds {
-		cobraChildrenCmd, err := buildCobraCmd(childrenCmd, flagParams, uxBlocks, cliStorage)
+		cobraChildrenCmd, err := buildCobraCmd(childrenCmd, flagParams, uxBlocks, cliStorage, stdout, stderr)
 		if err != nil {
 			return nil, err
 		}
