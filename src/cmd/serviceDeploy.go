@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync"
 
@@ -140,19 +141,24 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					}
 					finalReader = io.TeeReader(reader, packageFile)
 				}
-				// Live byte counter on the spinner line.
-				progressReader, stopProgress := uxBlock.ProgressReader(h, i18n.T(i18n.PushDeployUploadingPackageStart), finalReader)
-				defer stopProgress()
 
 				wg := sync.WaitGroup{}
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					err := arch.TarFiles(writer, files)
+					// Determinate progress: we know the full file list
+					// up-front (FindFilesByRules), so we can render
+					// "N / M files" as TarFiles processes each one.
+					// More meaningful than a compressed-byte counter on
+					// the upload side, where total bytes aren't known.
+					err := arch.TarFiles(writer, files, archiveClient.WithProgress(func(processed, total int) {
+						h.SetMessage(fmt.Sprintf("%s (%d / %d files)",
+							i18n.T(i18n.PushDeployUploadingPackageStart), processed, total))
+					}))
 					writer.CloseWithError(err)
 				}()
 
-				if err := packageStream(ctx, appVersion.UploadUrl, progressReader); err != nil {
+				if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
 					// if an error occurred while packing the app, return that error
 					return err
 				}

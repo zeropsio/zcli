@@ -50,3 +50,41 @@ func TestSymlink(t *testing.T) {
 		}
 	}
 }
+
+func TestTarFiles_WithProgress(t *testing.T) {
+	// WithProgress must fire once per file, monotonically, with the
+	// running processed count and the constant total. Order matches
+	// the input slice.
+	archiver := New(Config{})
+	files := []File{
+		{SourcePath: "./test/var/www/file1.1.txt", ArchivePath: "file1.1.txt"},
+		{SourcePath: "./test/var/www/dir/file2.1.txt", ArchivePath: "dir/file2.1.txt"},
+		{SourcePath: "./test/var/www/dir/subDir/file3.1.txt", ArchivePath: "dir/subDir/file3.1.txt"},
+	}
+
+	type call struct{ processed, total int }
+	var calls []call
+	require.NoError(t, archiver.TarFiles(
+		bytes.NewBuffer(nil),
+		files,
+		WithProgress(func(processed, total int) {
+			calls = append(calls, call{processed, total})
+		}),
+	))
+
+	require.Equal(t, []call{
+		{1, 3}, {2, 3}, {3, 3},
+	}, calls, "callback fires once per file with running count + constant total")
+}
+
+func TestTarFiles_WithoutProgressIsNoOp(t *testing.T) {
+	// Backwards-compat: no opts means no callback machinery — the
+	// existing tests (TestSymlink) already cover this, but pin it
+	// explicitly to discourage accidentally making the callback
+	// mandatory later.
+	archiver := New(Config{})
+	require.NoError(t, archiver.TarFiles(
+		bytes.NewBuffer(nil),
+		[]File{{SourcePath: "./test/var/www/file1.1.txt", ArchivePath: "file1.1.txt"}},
+	))
+}
