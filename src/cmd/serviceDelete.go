@@ -49,7 +49,7 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 					return err
 				}
 				if !confirmed {
-					cmdData.UxBlocks.PrintInfoText(i18n.T(i18n.DestructiveOperationConfirmationFailed))
+					cmdData.UxBlocks.Print(styles.InfoLine, i18n.T(i18n.DestructiveOperationConfirmationFailed))
 					return nil
 				}
 			}

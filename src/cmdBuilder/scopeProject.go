@@ -138,7 +138,7 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		}
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name.String()))
+	cmdData.UxBlocks.Print(styles.InfoWithValue(i18n.T(i18n.SelectedProject)), project.Name.String())
 
 	return nil
 }
@@ -180,7 +180,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 		return entity.Project{}, err
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", selectedOrg.Name.String()))
+	cmdData.UxBlocks.Print(styles.InfoWithValue("Selected org"), selectedOrg.Name.String())
 
 	label := styles.NewStringBuilder()
 	label.WriteString("Type ")
@@ -209,7 +209,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 	if err != nil {
 		return entity.Project{}, err
 	}
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+	cmdData.UxBlocks.Print(styles.InfoWithValue("Selected location"), location.Name.String())
 
 	project, err := repository.PostProject(ctx, cmdData.RestApiClient, entity.PostProject{
 		OrgId:    selectedOrg.Id,
@@ -220,7 +220,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 	if err != nil {
 		return entity.Project{}, err
 	}
-	cmdData.UxBlocks.PrintSuccessText("Project created")
+	cmdData.UxBlocks.Print(styles.SuccessLine, "Project created")
 
 	return project, nil
 }

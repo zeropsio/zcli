@@ -135,7 +135,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 		cmdData.Service = optional.New(service)
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedService), service.Name.String()))
+	cmdData.UxBlocks.Print(styles.InfoWithValue(i18n.T(i18n.SelectedService)), service.Name.String())
 
 	if !cmdData.Project.Filled() {
 		if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
@@ -191,7 +191,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 	// if err != nil {
 	// 	return entity.Service{}, err
 	// }
-	// cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+	// cmdData.UxBlocks.Print(styles.InfoWithValue("Selected location"), location.Name.String())
 
 	process, service, err := repository.PostGenericService(
 		ctx,

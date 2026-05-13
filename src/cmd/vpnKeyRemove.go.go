@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
@@ -37,7 +38,7 @@ func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
 					return err
 				}
 				if getResponse.Err() != nil {
-					cmdData.UxBlocks.PrintWarningTextf("Public key not found: %s", publicKey)
+					cmdData.UxBlocks.Printf(styles.WarningLine, "Public key not found: %s", publicKey)
 					continue
 				}
 
@@ -53,7 +54,7 @@ func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
 					return err
 				}
 
-				cmdData.UxBlocks.PrintSuccessTextf("Removed registered public key from project via API: %s", publicKey)
+				cmdData.UxBlocks.Printf(styles.SuccessLine, "Removed registered public key from project via API: %s", publicKey)
 			}
 
 			return nil

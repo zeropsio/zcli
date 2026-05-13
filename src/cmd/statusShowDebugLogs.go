@@ -38,7 +38,7 @@ func statusShowDebugLogsCmd() *cmdBuilder.Cmd {
 			filesize := stat.Size()
 
 			if filesize == 0 {
-				cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.DebugLogsNotFound)))
+				cmdData.UxBlocks.Print(styles.InfoLine, i18n.T(i18n.DebugLogsNotFound))
 				return nil
 			}
 

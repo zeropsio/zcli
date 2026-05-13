@@ -33,7 +33,7 @@ func ReadImportYamlContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, wor
 		return nil, errors.New(i18n.T(i18n.ImportYamlNotFound))
 	}
 
-	uxBlocks.PrintInfo(styles.InfoLine(fmt.Sprintf("%s: %s", i18n.T(i18n.ImportYamlFound), importYamlPath)))
+	uxBlocks.Print(styles.InfoLine, fmt.Sprintf("%s: %s", i18n.T(i18n.ImportYamlFound), importYamlPath))
 
 	if fileInfo.Size() == 0 {
 		return nil, errors.New(i18n.T(i18n.ImportYamlEmpty))
@@ -52,7 +52,7 @@ func ReadImportYamlContent(uxBlocks uxBlock.UxBlocks, importYamlPath string, wor
 		return nil, errors.New(i18n.T(i18n.ImportYamlCorrupted))
 	}
 
-	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ImportYamlOk)))
+	uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ImportYamlOk))
 	return yamlContent, nil
 }
 
@@ -71,6 +71,6 @@ func ReadImportYamlContentFromStdin(uxBlocks uxBlock.UxBlocks) ([]byte, error) {
 		return nil, errors.New(i18n.T(i18n.ImportYamlTooLarge))
 	}
 
-	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ImportYamlOk)))
+	uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ImportYamlOk))
 	return buf.Bytes(), nil
 }

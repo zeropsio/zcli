@@ -6,8 +6,12 @@ func SuccessLine(text string) Line {
 	return NewLine(SuccessText(SuccessIcon), " ", SuccessPrefix(), " ", SuccessText(text))
 }
 
-func InfoWithValueLine(text string, value string) Line {
-	return NewLine(InfoText(InfoIcon), " ", InfoPrefix(), " ", InfoText(text), ": ", SelectText(value))
+// InfoWithValue is the curried form of an info line that carries a value:
+// returns a style fn suitable for uxBlock.Blocks.Print(style, value).
+func InfoWithValue(label string) func(string) Line {
+	return func(value string) Line {
+		return NewLine(InfoText(InfoIcon), " ", InfoPrefix(), " ", InfoText(label), ": ", SelectText(value))
+	}
 }
 
 func InfoLine(text string) Line {

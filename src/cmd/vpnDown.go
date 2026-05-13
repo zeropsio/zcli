@@ -52,7 +52,7 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks, dnsSetup, che
 		return err
 	}
 
-	uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnDown)))
+	uxBlocks.Print(styles.SuccessLine, i18n.T(i18n.VpnDown))
 
 	return nil
 }

@@ -79,7 +79,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 						return err
 					}
 					if !confirmed {
-						cmdData.UxBlocks.PrintInfoText("VPN is still connected")
+						cmdData.UxBlocks.Print(styles.InfoLine, "VPN is still connected")
 						return nil
 					}
 
@@ -125,7 +125,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
+			uxBlocks.Print(styles.InfoWithValue(i18n.T(i18n.VpnConfigSaved)), filePath)
 
 			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
 				if data.ProjectVpnKeyRegistry == nil {
@@ -156,9 +156,9 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 			if vpnTest && dnsSetup {
 				// wait for the vpn to be up
 				if isVpnUp(ctx, uxBlocks, 6) {
-					uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.VpnUp)))
+					uxBlocks.Print(styles.SuccessLine, i18n.T(i18n.VpnUp))
 				} else {
-					uxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPingFailed)))
+					uxBlocks.Print(styles.WarningLine, i18n.T(i18n.VpnPingFailed))
 				}
 			}
 
@@ -194,7 +194,7 @@ func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.Logged
 			return wgKey, nil
 		}
 
-		cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPrivateKeyCorrupted)))
+		cmdData.UxBlocks.Print(styles.WarningLine, i18n.T(i18n.VpnPrivateKeyCorrupted))
 	}
 
 	vpnKey, err := wgtypes.GeneratePrivateKey()
@@ -202,7 +202,7 @@ func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.Logged
 		return wgtypes.Key{}, err
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnPrivateKeyCreated)))
+	cmdData.UxBlocks.Print(styles.InfoLine, i18n.T(i18n.VpnPrivateKeyCreated))
 
 	return vpnKey, nil
 }

@@ -19,7 +19,7 @@ func scopeResetCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ScopeReset)))
+			cmdData.UxBlocks.Print(styles.InfoLine, i18n.T(i18n.ScopeReset))
 
 			return nil
 		})

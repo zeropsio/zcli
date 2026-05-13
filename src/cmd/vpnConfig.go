@@ -98,7 +98,7 @@ func vpnConfigCmd() *cmdBuilder.Cmd {
 			}
 
 			if outputPath != "-" {
-				uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
+				uxBlocks.Print(styles.InfoWithValue(i18n.T(i18n.VpnConfigSaved)), filePath)
 			}
 
 			if _, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {

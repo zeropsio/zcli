@@ -1,4 +1,5 @@
 //go:build exclude
+
 package archiveClient
 
 import (
@@ -355,7 +356,7 @@ func TestFindFilesByRules(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	uxBlocks := mocks.NewMockUxBlocks(ctrl)
-	uxBlocks.EXPECT().PrintInfo(gomock.Any()).AnyTimes()
+	uxBlocks.EXPECT().Print(gomock.Any(), gomock.Any()).AnyTimes()
 
 	for _, test := range findByRulesTestCases {
 		test := test // scope lint

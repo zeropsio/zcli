@@ -11,12 +11,8 @@ import (
 //go:generate go run --mod=mod github.com/golang/mock/mockgen -source=$GOFILE -destination=$PWD/mocks/$GOFILE -package=mocks
 
 type UxBlocks interface {
-	PrintInfo(line styles.Line)
-	PrintInfoText(string)
-	PrintWarning(line styles.Line)
-	PrintWarningText(string)
-	PrintError(line styles.Line)
-	PrintErrorText(string)
+	Print(style func(string) styles.Line, msg string)
+	Printf(style func(string) styles.Line, format string, args ...any)
 	RunSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg))
 }
 

@@ -80,7 +80,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					}
 				}
 			}
-			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup))
+			cmdData.UxBlocks.Print(styles.InfoWithValue("Selected setup"), setup)
 
 			if err := validateZeropsYamlContent(
 				ctx,
@@ -92,7 +92,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.PushDeployCreatingPackageStart))
 
 			appVersion, err := createAppVersion(
 				ctx,
@@ -168,13 +168,13 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageDone)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.PushDeployCreatingPackageDone))
 
 			if cmdData.Params.GetString("archive-file-path") != "" {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archive-file-path"))))
+				uxBlocks.Print(styles.InfoLine, i18n.T(i18n.PushDeployPackageSavedInto, cmdData.Params.GetString("archive-file-path")))
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.PushDeployDeployingStart))
 
 			deployResponse, err := cmdData.RestApiClient.PutAppVersionDeploy(
 				ctx,

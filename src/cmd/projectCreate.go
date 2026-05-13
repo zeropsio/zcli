@@ -80,7 +80,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", org.Name.String()))
+			cmdData.UxBlocks.Print(styles.InfoWithValue("Selected org"), org.Name.String())
 
 			label := styles.NewStringBuilder()
 			label.WriteString("Type ")
@@ -126,7 +126,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 					return err
 				}
 				postProject.Location = location.Id.LocationIdNull()
-				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+				cmdData.UxBlocks.Print(styles.InfoWithValue("Selected location"), location.Name.String())
 			}
 
 			project, err := repository.PostProject(ctx, cmdData.RestApiClient, postProject)
@@ -134,7 +134,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			cmdData.UxBlocks.PrintSuccessText("Project created")
+			cmdData.UxBlocks.Print(styles.SuccessLine, "Project created")
 
 			if outTemplate != nil {
 				if err := outTemplate.Execute(cmdData.Stdout, project); err != nil {

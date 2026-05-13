@@ -17,6 +17,7 @@ import (
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	getVersion "github.com/zeropsio/zcli/src/version"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
@@ -65,7 +66,7 @@ func createCmdRunFunc(
 			if err != nil {
 				return err
 			}
-			uxBlocks.PrintWarningText(versionCheckMismatch)
+			uxBlocks.Print(styles.WarningLine, versionCheckMismatch)
 		}
 
 		flagParams.Bind(cobraCmd)
