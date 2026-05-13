@@ -11,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/terminal"
+	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
@@ -104,66 +105,59 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = uxHelpers.ProcessCheckWithSpinner(
-				ctx,
-				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F: func(ctx context.Context, _ *uxHelpers.Process) error {
-						ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("working-dir"))
-						if err != nil {
-							return err
-						}
+			err = cmdData.UxBlocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
+				Message:        i18n.T(i18n.PushDeployUploadingPackageStart),
+				ErrorMessage:   i18n.T(i18n.PushDeployUploadPackageFailed),
+				SuccessMessage: i18n.T(i18n.PushDeployUploadingPackageDone),
+			}, func(_ uxBlock.SpinnerHandle) error {
+				ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("working-dir"))
+				if err != nil {
+					return err
+				}
 
-						files, err := arch.FindFilesByRules(
-							uxBlocks,
-							cmdData.Params.GetString("working-dir"),
-							cmdData.Params.GetStringSlice("path-to-file-or-dir"),
-							ignorer,
-						)
-						if err != nil {
-							return err
-						}
+				files, err := arch.FindFilesByRules(
+					uxBlocks,
+					cmdData.Params.GetString("working-dir"),
+					cmdData.Params.GetStringSlice("path-to-file-or-dir"),
+					ignorer,
+				)
+				if err != nil {
+					return err
+				}
 
-						reader, writer := io.Pipe()
-						var finalReader io.Reader = reader
-						if cmdData.Params.GetString("archive-file-path") != "" {
-							packageFile, err := openPackageFile(
-								cmdData.Params.GetString("archive-file-path"),
-								cmdData.Params.GetString("working-dir"),
-							)
-							if err != nil {
-								return err
-							}
-							if _, err := packageFile.Stat(); err != nil {
-								return err
-							}
+				reader, writer := io.Pipe()
+				var finalReader io.Reader = reader
+				if cmdData.Params.GetString("archive-file-path") != "" {
+					packageFile, err := openPackageFile(
+						cmdData.Params.GetString("archive-file-path"),
+						cmdData.Params.GetString("working-dir"),
+					)
+					if err != nil {
+						return err
+					}
+					if _, err := packageFile.Stat(); err != nil {
+						return err
+					}
+					finalReader = io.TeeReader(reader, packageFile)
+				}
 
-							finalReader = io.TeeReader(reader, packageFile)
-						}
+				wg := sync.WaitGroup{}
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					err := arch.TarFiles(writer, files)
+					writer.CloseWithError(err)
+				}()
 
-						wg := sync.WaitGroup{}
-						wg.Add(1)
-						go func() {
-							defer wg.Done()
-							err := arch.TarFiles(writer, files)
-							writer.CloseWithError(err)
-						}()
+				if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+					// if an error occurred while packing the app, return that error
+					return err
+				}
 
-						if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
-							// if an error occurred while packing the app, return that error
-							return err
-						}
-
-						// Wait for upload to finish
-						wg.Wait()
-
-						return nil
-					},
-					RunningMessage:      i18n.T(i18n.PushDeployUploadingPackageStart),
-					ErrorMessageMessage: i18n.T(i18n.PushDeployUploadPackageFailed),
-					SuccessMessage:      i18n.T(i18n.PushDeployUploadingPackageDone),
-				}},
-			)
+				// Wait for upload to finish
+				wg.Wait()
+				return nil
+			})
 			if err != nil {
 				return err
 			}
@@ -195,21 +189,16 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			return uxHelpers.WatchProcess(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage:      i18n.T(i18n.DeployRunning),
-					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
-					SuccessMessage:      i18n.T(i18n.DeployFinished),
-				}},
+				cmdData.RestApiClient,
+				deployProcess.Id,
+				uxHelpers.ProcessMessages{
+					Running: i18n.T(i18n.DeployRunning),
+					Error:   i18n.T(i18n.DeployFailed),
+					Success: i18n.T(i18n.DeployFinished),
+				},
 			)
-
-			if err != nil {
-				return err
-			}
-
-			return nil
 		})
 }
