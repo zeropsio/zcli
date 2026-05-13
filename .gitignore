@@ -1,7 +1,6 @@
 /.direnv/
 /result
 .idea
-.sandbox
 include/
 .sandbox/
 .tool-versions
