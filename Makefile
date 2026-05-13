@@ -1,4 +1,4 @@
-.PHONY: help
+.PHONY: help install
 
 define helpMessage
 possible targets:
@@ -6,6 +6,7 @@ possible targets:
 - test-integration
 - lint
 - all
+- install
 - windows-amd
 - linux-amd
 - dawrin-amd
@@ -48,6 +49,13 @@ darwin-arm:
 #########
 # OTHER #
 #########
+
+# build zcli for the host platform and install into $GOPATH/bin
+install:
+	@VERSION="$$(git rev-parse --abbrev-ref HEAD):$$(git describe --tags)-($$(git config --get user.name):<$$(git config --get user.email)>)" && \
+	go install -tags devel \
+		-ldflags "-X 'github.com/zeropsio/zcli/src/version.version=$$VERSION'" \
+		./cmd/zcli
 
 # showcase of ui elements
 showcase:
