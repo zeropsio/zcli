@@ -49,11 +49,10 @@ func TestGetLogs_HappyPath(t *testing.T) {
 	require.Equal(t, "hello\n", buf.String())
 }
 
-func TestGetLogs_NonJSONBodyReturnsError(t *testing.T) {
-	// Locks in current behavior: any non-JSON body (including an HTTP error
-	// page from a 4xx/5xx) surfaces as a JSON unmarshal error rather than a
-	// "request failed" message. The review-noted refactor would add a status
-	// check before parsing — update this test then.
+func TestGetLogs_HTTPErrorStatusSurfaced(t *testing.T) {
+	// getLogs now checks resp.StatusCode before parsing — a 5xx with a
+	// non-JSON body produces a request-failed error mentioning the status
+	// and body, not a generic JSON unmarshal error.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("upstream broke"))
@@ -63,6 +62,8 @@ func TestGetLogs_NonJSONBodyReturnsError(t *testing.T) {
 	h := &Handler{out: &discardWriter{}}
 	err := h.getLogs(context.Background(), http.MethodGet, srv.URL, FULL, "", STREAM)
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "500")
+	require.Contains(t, err.Error(), "upstream broke")
 }
 
 func TestGetLogs_ContextCancelled(t *testing.T) {

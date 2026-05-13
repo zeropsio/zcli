@@ -65,7 +65,10 @@ func getDesc(mode string) int {
 }
 
 func getWsUrl(apiUrl string) string {
-	urlSplit := strings.Split(apiUrl, "?")
-	url, token := urlSplit[0], urlSplit[1]
-	return strings.ReplaceAll(url, HTTPS, WSS) + "/stream?" + token
+	base, query, _ := strings.Cut(apiUrl, "?")
+	wsBase := strings.ReplaceAll(base, HTTPS, WSS) + "/stream"
+	if query == "" {
+		return wsBase
+	}
+	return wsBase + "?" + query
 }

@@ -40,13 +40,13 @@ func TestPrintStreamLog_EmptyItemsLeavesIdUntouched(t *testing.T) {
 	require.Equal(t, "previous", h.lastMsgId)
 }
 
-func TestPrintStreamLog_MalformedJSONIsCurrentlySilent(t *testing.T) {
-	// Current behavior: parseResponse error is discarded, function returns
-	// nil, and lastMsgId is left unchanged. Pinning this so the refactor
-	// item that proposes propagating the JSON error has a failing test to
-	// flip.
+func TestPrintStreamLog_MalformedJSONReturnsError(t *testing.T) {
+	// printStreamLog now surfaces parseResponse errors instead of silently
+	// swallowing them. lastMsgId is left unchanged so the next reconnect
+	// re-requests from the previous cursor.
 	h := &Handler{out: &discardWriter{}, lastMsgId: "previous"}
-	require.NoError(t, h.printStreamLog([]byte("not json"), FULL, "{{.Message}}"))
+	err := h.printStreamLog([]byte("not json"), FULL, "{{.Message}}")
+	require.Error(t, err)
 	require.Equal(t, "previous", h.lastMsgId)
 }
 
