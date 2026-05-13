@@ -2,6 +2,7 @@ package flagParams
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -30,7 +31,13 @@ type Handler struct {
 	localZCliYamlFileName string
 }
 
-func New() *Handler {
+// New constructs a flagParams handler. notice receives one line per config
+// file that was successfully read. Pass os.Stderr for production behavior or
+// io.Discard / a buffer in tests.
+func New(notice io.Writer) *Handler {
+	if notice == nil {
+		notice = os.Stderr
+	}
 	v := viper.New()
 	v.SetEnvPrefix("ZEROPS")
 	v.AutomaticEnv()
@@ -40,7 +47,7 @@ func New() *Handler {
 		v.SetConfigFile(cliDataPath)
 	}
 	if err := v.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		fmt.Fprintln(notice, "Using config file:", v.ConfigFileUsed())
 	}
 
 	h := &Handler{
@@ -51,7 +58,7 @@ func New() *Handler {
 	v.SetConfigName(constants.CliZcliYamlBaseFileName)
 	v.SetConfigType("yaml")
 	if err := v.MergeInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", v.ConfigFileUsed()) // TODO (lh): log instead of print to stderr
+		fmt.Fprintln(notice, "Using config file:", v.ConfigFileUsed())
 		h.localZCliYamlFileName = v.ConfigFileUsed()
 	}
 
