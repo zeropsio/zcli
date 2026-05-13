@@ -46,6 +46,7 @@ type cmdFlag struct {
 	defaultValue interface{}
 	description  string
 	hidden       bool
+	persistent   bool
 	shorthand    string
 }
 
@@ -148,6 +149,14 @@ func HiddenFlag() FlagOption {
 func ShortHand(shorthand string) FlagOption {
 	return func(cfg *cmdFlag) {
 		cfg.shorthand = shorthand
+	}
+}
+
+// Persistent marks a flag as inheritable by all subcommands. Use sparingly:
+// only for cross-cutting concerns like --verbose.
+func Persistent() FlagOption {
+	return func(cfg *cmdFlag) {
+		cfg.persistent = true
 	}
 }
 

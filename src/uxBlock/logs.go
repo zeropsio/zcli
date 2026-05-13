@@ -3,22 +3,24 @@ package uxBlock
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
+	"log/slog"
+	"os"
 
-	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
-func (b *Blocks) GetOutputLogger() logger.Logger {
-	return b.outputLogger
+// styledOutput receives a styles.Line and renders it to stderr followed by a
+// newline. Plain io.Writer semantics — no logging side effects.
+func (b *Blocks) styledOutput(line styles.Line) {
+	_, _ = fmt.Fprintln(os.Stderr, line.String())
 }
 
-func (b *Blocks) GetDebugFileLogger() logger.Logger {
-	return b.debugFileLogger
-}
-
-func (b *Blocks) LogDebug(message string) {
-	b.debugFileLogger.Debug(message)
+// mirrorToLog dispatches a styled line to slog.Default at the given level
+// with the styles stripped, so the debug log records what the user saw.
+func mirrorToLog(level slog.Level, line styles.Line) {
+	slog.Default().Log(context.Background(), level, line.DisableStyle().String())
 }
 
 func (b *Blocks) PrintSuccessText(in string) {
@@ -44,8 +46,8 @@ func (b *Blocks) PrintInfoTextf(format string, args ...any) {
 }
 
 func (b *Blocks) PrintInfo(line styles.Line) {
-	b.outputLogger.Info(line)
-	b.debugFileLogger.Info(line.DisableStyle())
+	b.styledOutput(line)
+	mirrorToLog(slog.LevelInfo, line)
 }
 
 func (b *Blocks) PrintWarningText(in string) {
@@ -60,8 +62,8 @@ func (b *Blocks) PrintWarningTextf(format string, args ...any) {
 }
 
 func (b *Blocks) PrintWarning(line styles.Line) {
-	b.outputLogger.Warning(line)
-	b.debugFileLogger.Warning(line.DisableStyle())
+	b.styledOutput(line)
+	mirrorToLog(slog.LevelWarn, line)
 }
 
 func (b *Blocks) PrintErrorText(in string) {
@@ -76,6 +78,6 @@ func (b *Blocks) PrintErrorTextf(format string, args ...any) {
 }
 
 func (b *Blocks) PrintError(line styles.Line) {
-	b.outputLogger.Error(line)
-	b.debugFileLogger.Error(line.DisableStyle())
+	b.styledOutput(line)
+	mirrorToLog(slog.LevelError, line)
 }

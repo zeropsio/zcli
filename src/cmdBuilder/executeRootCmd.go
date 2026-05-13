@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/signal"
 	"regexp"
@@ -86,9 +87,11 @@ func RunRootCmd(rootCmd *Cmd, opts RunOptions) int {
 
 	isTerminal := terminal.IsTerminal()
 	terminalWidth, terminalHeight, _ := term.GetSize(0)
-	outputLogger, debugFileLogger := createLoggers(isTerminal, stderr)
 
-	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
+	logCloser := installLogger(isTerminal, verboseFromArgs(os.Args[1:]))
+	defer logCloser.Close()
+
+	uxBlocks := uxBlock.NewBlocks(isTerminal, terminalWidth, terminalHeight, cancel)
 
 	cliStorage, err := createCliStorage()
 	if err != nil {
@@ -119,7 +122,7 @@ func errorExitCode(err error, uxBlocks uxBlock.UxBlocks) int {
 	if err == nil {
 		return 0
 	}
-	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
+	slog.Debug("command.error", "err", fmt.Sprintf("%+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
 		uxBlocks.PrintErrorText(err.Error())
@@ -148,23 +151,38 @@ func errorExitCode(err error, uxBlocks uxBlock.UxBlocks) int {
 	return 1
 }
 
-func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.Handler) {
-	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
-		IsTerminal: isTerminal,
-		Out:        stderr,
-	})
-
-	loggerFilePath, fileMode, err := constants.LogFilePath()
+// installLogger builds the slog logger described by the runtime environment
+// and installs it as slog.Default. The returned io.Closer flushes any owned
+// sinks; callers should defer Close.
+func installLogger(_ bool, verbose bool) io.Closer {
+	logFilePath, fileMode, err := constants.LogFilePath()
 	if err != nil {
-		outputLogger.Warning(styles.WarningLine(err.Error()))
+		// Best effort: warn directly to stderr; logger isn't up yet.
+		fmt.Fprintln(os.Stderr, styles.WarningLine(err.Error()).String())
 	}
-
-	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
-		FilePath: loggerFilePath,
+	l, closer, _ := logger.New(logger.Config{
+		FilePath: logFilePath,
 		FileMode: fileMode,
+		Verbose:  verbose,
 	})
+	slog.SetDefault(l)
+	return closer
+}
 
-	return outputLogger, debugFileLogger
+// verboseFromArgs scans the raw command-line for the persistent --verbose
+// (a.k.a. -v) flag so we can configure the logger before cobra parses
+// anything.
+func verboseFromArgs(args []string) bool {
+	for _, a := range args {
+		switch a {
+		case "-v", "--verbose":
+			return true
+		}
+		if strings.HasPrefix(a, "--verbose=") {
+			return a[len("--verbose="):] == "true" || a[len("--verbose="):] == "1"
+		}
+	}
+	return false
 }
 
 func regSignals(contextCancel func()) {

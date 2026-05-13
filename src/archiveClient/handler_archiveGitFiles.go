@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,16 +46,14 @@ func (h *Handler) ArchiveGitFiles(ctx context.Context, uxBlocks uxBlock.UxBlocks
 
 func (h *Handler) getRootDir(ctx context.Context, workingDir string) (string, error) {
 	gitCommand := func(args ...string) (string, error) {
-		if h.config.Verbose {
-			h.config.Logger.Info("git ", strings.Join(args, " "))
-		}
+		slog.Debug("exec", "cmd", "git", "args", strings.Join(args, " "))
 
 		out := &strings.Builder{}
 		cmd := cmdRunner.CommandContext(ctx, "git", args...)
 		cmd.Dir = workingDir
 		cmd.Stdout = out
 		if h.config.Verbose {
-			cmd.Stderr = h.config.Logger
+			cmd.Stderr = os.Stderr
 		}
 
 		if err := cmd.Run(); err != nil {
@@ -99,7 +98,7 @@ func (h *Handler) createNoGitArchive(uxBlocks uxBlock.UxBlocks, workingDir strin
 
 // createSimpleArchive creates an archive without the .git directory
 func (h *Handler) createSimpleArchive(ctx context.Context, workingDir string, writer io.Writer) error {
-	archiver := newGitArchiver(workingDir, h.config.PushWorkspaceState, h.config.Verbose, h.config.Logger)
+	archiver := newGitArchiver(workingDir, h.config.PushWorkspaceState, h.config.Verbose)
 	if err := archiver.initialize(ctx); err != nil {
 		return err
 	}

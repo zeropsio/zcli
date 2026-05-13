@@ -39,7 +39,6 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
 		StringSliceFlag("path-to-file-or-dir", []string{"."}, "path to file or directory to be deployed. Can be repeated.").
-		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
 		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
@@ -50,7 +49,6 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			}
 
 			arch := archiveClient.New(archiveClient.Config{
-				Logger:          uxBlocks.GetDebugFileLogger(),
 				Verbose:         cmdData.Params.GetBool("verbose"),
 				DeployGitFolder: cmdData.Params.GetBool("deploy-git-folder"),
 			})
