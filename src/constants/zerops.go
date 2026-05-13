@@ -21,9 +21,10 @@ const (
 	CliDataFileName         = "cli.data"
 	CliZcliYamlBaseFileName = ".zcli"
 	CliZcliYamlFileName     = CliZcliYamlBaseFileName + ".yml"
-	CliDataFilePathEnvVar   = "ZEROPS_CLI_DATA_FILE_PATH"
-	CliLogFilePathEnvVar    = "ZEROPS_CLI_LOG_FILE_PATH"
-	CliWgConfigPathEnvVar   = "ZEROPS_WG_CONFIG_FILE_PATH"
+	CliDataFilePathEnvVar     = "ZEROPS_CLI_DATA_FILE_PATH"
+	CliLogFilePathEnvVar      = "ZEROPS_CLI_LOG_FILE_PATH"
+	CliWgConfigPathEnvVar     = "ZEROPS_WG_CONFIG_FILE_PATH"
+	CliZcliYamlFilePathEnvVar = "ZEROPS_CLI_YAML_FILE_PATH"
 	CliTerminalMode         = "ZEROPS_CLI_TERMINAL_MODE"
 	CliTokenEnvVar          = "ZEROPS_TOKEN" //nolint:gosec
 )
