@@ -33,9 +33,19 @@ type SpinnerHandle interface {
 	// multi-phase work where the prompt should reflect the current phase.
 	SetMessage(msg string)
 
-	// LogView returns an io.Writer streaming into the spinner's log
-	// pane. Falls back to os.Stdout when not attached to a terminal.
+	// LogView returns an io.Writer streaming into the spinner's
+	// default (unnamed) log pane. Falls back to os.Stdout when not
+	// attached to a terminal.
 	LogView(opts ...logView.Option) io.Writer
+
+	// LogStream returns an io.Writer streaming into a named log pane
+	// stacked above the spinner line. Use this when multiple
+	// independent log streams (e.g. concurrent build + prepare
+	// phases) should render side by side rather than interleave in a
+	// single pane. The first call with a given name creates the
+	// pane; subsequent calls reuse it. Falls back to os.Stdout when
+	// not attached to a terminal.
+	LogStream(name string, opts ...logView.Option) io.Writer
 }
 
 // WithSpinner runs fn with a live spinner showing spec.Message. The
@@ -83,6 +93,13 @@ func (h *spinnerHandle) LogView(opts ...logView.Option) io.Writer {
 		return os.Stdout
 	}
 	return h.spinner.LogView(opts...)
+}
+
+func (h *spinnerHandle) LogStream(name string, opts ...logView.Option) io.Writer {
+	if !terminal.IsTerminal() {
+		return os.Stdout
+	}
+	return h.spinner.LogStream(name, opts...)
 }
 
 // spinnerSetMessage is the tea.Msg that swaps a running spinner's line.

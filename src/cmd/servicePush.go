@@ -202,9 +202,12 @@ func servicePushCmd() *cmdBuilder.Cmd {
 
 			guiHost := cmdData.CliStorage.Data().RegionData.GuiAddress.OrDefault("app.zerops.io")
 
-			var buildPhase bool
-			var preparePhase bool
-			var logsHandler *serviceLogs.Handler
+			// Build and prepare logs render in two separate panes
+			// stacked above the spinner line. They previously merged
+			// into one pane via a shared logsHandler — readable but
+			// noisy when both phases were active.
+			maxLogHeight := max(15, int(float64(cmdData.UxBlocks.TerminalHeight)*0.35))
+			var buildLogs, prepareLogs *serviceLogs.Handler
 			if err := cmdData.UxBlocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
 				Message:        i18n.T(i18n.PushRunning),
 				ErrorMessage:   i18n.T(i18n.PushFailed),
@@ -218,35 +221,28 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						if !apiProcess.Status.IsRunning() {
 							return nil
 						}
-						if logsHandler == nil {
+						if buildLogs == nil {
 							pipelineLink := styles.NewStringBuilder()
 							pipelineLink.WriteInfoColor("View full pipeline at ")
 							pipelineLink.WriteStyledString(
-								styles.SuccessStyle().
-									Bold(true),
+								styles.SuccessStyle().Bold(true),
 								fmt.Sprintf(
 									"https://%s/service-stack/%s/deploy/%s",
-									guiHost,
-									service.Id,
-									apiProcess.AppVersion.Id,
+									guiHost, service.Id, apiProcess.AppVersion.Id,
 								),
 							)
-
-							logsHandler = serviceLogs.New(
-								h.LogView(
+							buildLogs = serviceLogs.New(
+								h.LogStream("build",
 									logView.WithAdditionalText(pipelineLink.String()),
 									logView.WithVerticalOffset(3),
-									logView.WithMaxHeight(max(30, int(float64(cmdData.UxBlocks.TerminalHeight)*0.75))),
+									logView.WithMaxHeight(maxLogHeight),
 								),
 								serviceLogs.Config{},
 								cmdData.RestApiClient,
 							)
-						}
-						if !buildPhase {
-							buildPhase = true
 							buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
 							go func() {
-								if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
+								if err := buildLogs.Run(ctx, serviceLogs.RunConfig{
 									Project:        project,
 									ServiceId:      buildServiceId,
 									Limit:          100,
@@ -260,11 +256,11 @@ func servicePushCmd() *cmdBuilder.Cmd {
 									},
 									Levels: serviceLogs.DefaultLevels,
 								}); err != nil {
-									fmt.Fprintf(logsHandler.Writer(), "\nbuild logs error: %s\n", err.Error())
+									fmt.Fprintf(buildLogs.Writer(), "\nbuild logs error: %s\n", err.Error())
 								}
 							}()
 						}
-						if !preparePhase {
+						if prepareLogs == nil {
 							if apiProcess.AppVersion.PrepareCustomRuntime == nil {
 								return nil
 							}
@@ -272,9 +268,16 @@ func servicePushCmd() *cmdBuilder.Cmd {
 							if !ok {
 								return nil
 							}
-							preparePhase = true
+							prepareLogs = serviceLogs.New(
+								h.LogStream("prepare",
+									logView.WithVerticalOffset(3),
+									logView.WithMaxHeight(maxLogHeight),
+								),
+								serviceLogs.Config{},
+								cmdData.RestApiClient,
+							)
 							go func() {
-								if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
+								if err := prepareLogs.Run(ctx, serviceLogs.RunConfig{
 									Project:        project,
 									ServiceId:      prepareServiceId,
 									Limit:          100,
@@ -285,7 +288,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 									Follow:         true,
 									Levels:         serviceLogs.DefaultLevels,
 								}); err != nil {
-									fmt.Fprintf(logsHandler.Writer(), "\nprepare runtime logs error: %s\n", err.Error())
+									fmt.Fprintf(prepareLogs.Writer(), "\nprepare runtime logs error: %s\n", err.Error())
 								}
 							}()
 						}

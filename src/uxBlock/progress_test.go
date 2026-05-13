@@ -30,6 +30,10 @@ func (h *spinnerHandleStub) LogView(_ ...logView.Option) io.Writer {
 	return io.Discard
 }
 
+func (h *spinnerHandleStub) LogStream(_ string, _ ...logView.Option) io.Writer {
+	return io.Discard
+}
+
 func (h *spinnerHandleStub) snapshot() []string {
 	h.mu.Lock()
 	defer h.mu.Unlock()
