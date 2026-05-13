@@ -28,14 +28,51 @@ func main() {
 	do(ctx, blocks)
 }
 
-func do(ctx context.Context, blocks uxBlock.UxBlocks) {
+func do(ctx context.Context, blocks *uxBlock.Blocks) {
 	prompts(ctx, blocks)
 	spinners(ctx, blocks)
+	withSpinner(ctx, blocks)
 	texts(ctx, blocks)
 	tables(ctx, blocks)
 }
 
-func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
+func withSpinner(ctx context.Context, blocks *uxBlock.Blocks) {
+	fmt.Println("========= WithSpinner block =========")
+
+	// 1) Successful phase with SetMessage transitions.
+	_ = blocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
+		Message:        "preparing",
+		SuccessMessage: "deployed",
+	}, func(h uxBlock.SpinnerHandle) error {
+		time.Sleep(800 * time.Millisecond)
+		h.SetMessage("uploading package")
+		time.Sleep(800 * time.Millisecond)
+		h.SetMessage("running deploy")
+		time.Sleep(800 * time.Millisecond)
+		return nil
+	})
+
+	// 2) Error path with custom ErrorMessage.
+	_ = blocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
+		Message:      "running risky thing",
+		ErrorMessage: "risky thing failed",
+	}, func(_ uxBlock.SpinnerHandle) error {
+		time.Sleep(800 * time.Millisecond)
+		return fmt.Errorf("oh no")
+	})
+
+	// 3) Error path with no ErrorMessage — falls back to err.Error().
+	_ = blocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
+		Message: "trying something",
+	}, func(_ uxBlock.SpinnerHandle) error {
+		time.Sleep(800 * time.Millisecond)
+		return fmt.Errorf("something broke at step 42")
+	})
+
+	fmt.Println("========= WithSpinner block end =========")
+}
+
+func spinners(ctx context.Context, blocks *uxBlock.Blocks) {
 	{
 		fmt.Println("========= spinners block =========")
 
@@ -75,7 +112,7 @@ func spinners(ctx context.Context, blocks uxBlock.UxBlocks) {
 	}
 }
 
-func prompts(ctx context.Context, blocks uxBlock.UxBlocks) {
+func prompts(ctx context.Context, blocks *uxBlock.Blocks) {
 	fmt.Println("========= prompt block =========")
 	choices := []string{"yes", "no", "maybe"}
 	choice, err := uxBlock.Run(
@@ -95,7 +132,7 @@ func prompts(ctx context.Context, blocks uxBlock.UxBlocks) {
 	fmt.Println("========= prompt block end =========")
 }
 
-func texts(_ context.Context, blocks uxBlock.UxBlocks) {
+func texts(_ context.Context, blocks *uxBlock.Blocks) {
 	fmt.Println("========= texts block =========")
 	blocks.Print(InfoLine, "info line")
 	blocks.Print(InfoWithValue("info line"), "value")
@@ -106,7 +143,7 @@ func texts(_ context.Context, blocks uxBlock.UxBlocks) {
 	fmt.Println("========= texts block end =========")
 }
 
-func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
+func tables(ctx context.Context, blocks *uxBlock.Blocks) {
 	tableData := [][]string{
 		{"lorem", "ipsum", "dolor", "sit"},
 		{
@@ -181,7 +218,7 @@ func regSignals(contextCancel func()) {
 	}()
 }
 
-func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
+func createBlocks(contextCancelFunc func()) *uxBlock.Blocks {
 	isTerminal := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
 
 	width, height, err := term.GetSize(0)
