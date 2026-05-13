@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -44,7 +45,12 @@ func buildCobraCmd(
 	}
 
 	for _, flag := range cmd.flags {
-		flagSet := cobraCmd.Flags()
+		var flagSet *pflag.FlagSet
+		if flag.persistent {
+			flagSet = cobraCmd.PersistentFlags()
+		} else {
+			flagSet = cobraCmd.Flags()
+		}
 		switch defaultValue := flag.defaultValue.(type) {
 		case string:
 			flagSet.StringP(flag.name, flag.shorthand, defaultValue, flag.description)

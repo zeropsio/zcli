@@ -5,16 +5,12 @@ import (
 	"context"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 //go:generate go run --mod=mod github.com/golang/mock/mockgen -source=$GOFILE -destination=$PWD/mocks/$GOFILE -package=mocks
 
 type UxBlocks interface {
-	GetOutputLogger() logger.Logger
-	GetDebugFileLogger() logger.Logger
-	LogDebug(message string)
 	PrintInfo(line styles.Line)
 	PrintInfoText(string)
 	PrintWarning(line styles.Line)
@@ -25,11 +21,9 @@ type UxBlocks interface {
 }
 
 type Blocks struct {
-	outputLogger    logger.Logger
-	debugFileLogger logger.Logger
-	isTerminal      bool
-	TerminalWidth   int
-	TerminalHeight  int
+	isTerminal     bool
+	TerminalWidth  int
+	TerminalHeight int
 
 	// ctxCancel is used to cancel the context of the command.
 	// Bubbles package that we use to render graphic components steals the signal handler.
@@ -40,8 +34,6 @@ type Blocks struct {
 }
 
 func NewBlocks(
-	outputLogger logger.Logger,
-	debugFileLogger logger.Logger,
 	isTerminal bool,
 	terminalWidth int,
 	terminalHeight int,
@@ -53,11 +45,9 @@ func NewBlocks(
 	}
 
 	return &Blocks{
-		outputLogger:    outputLogger,
-		debugFileLogger: debugFileLogger,
-		isTerminal:      isTerminal,
-		TerminalWidth:   terminalWidth,
-		TerminalHeight:  terminalHeight,
-		ctxCancel:       ctxCancel,
+		isTerminal:     isTerminal,
+		TerminalWidth:  terminalWidth,
+		TerminalHeight: terminalHeight,
+		ctxCancel:      ctxCancel,
 	}
 }

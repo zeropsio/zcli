@@ -23,6 +23,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		Use("zcli").
 		SetHelpTemplate(getRootTemplate()).
 		SilenceError(true).
+		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.Persistent(), cmdBuilder.ShortHand("v")).
 		AddChildrenCmd(loginCmd()).
 		AddChildrenCmd(logoutCmd()).
 		AddChildrenCmd(versionCmd()).

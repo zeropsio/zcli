@@ -43,7 +43,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("version-name", "", i18n.T(i18n.BuildVersionName)).
 		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("setup", "", i18n.T(i18n.ZeropsYamlSetup)).
-		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
 		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
 		StringFlag("workspace-state", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
 		BoolFlag("no-git", false, i18n.T(i18n.NoGit)).
@@ -120,7 +119,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			}
 
 			arch := archiveClient.New(archiveClient.Config{
-				Logger:             uxBlocks.GetDebugFileLogger(),
 				Verbose:            cmdData.Params.GetBool("verbose"),
 				DeployGitFolder:    cmdData.Params.GetBool("deploy-git-folder"),
 				PushWorkspaceState: cmdData.Params.GetString("workspace-state"),

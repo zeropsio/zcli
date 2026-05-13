@@ -2,7 +2,7 @@ package cmdBuilder
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/pkg/errors"
@@ -55,7 +55,7 @@ func createCmdRunFunc(
 	return func(cobraCmd *cobra.Command, args []string) (err error) {
 		ctx := cobraCmd.Context()
 
-		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
+		slog.Debug("command.start", "path", cobraCmd.CommandPath())
 
 		if getVersion.IsVersionCheckMismatch(ctx) {
 			versionCheckMismatch, err := getVersion.GetVersionCheckMismatch()

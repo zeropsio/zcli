@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -185,21 +186,18 @@ func regSignals(contextCancel func()) {
 func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
 	isTerminal := isatty.IsTerminal(os.Stdout.Fd()) || isatty.IsCygwinTerminal(os.Stdout.Fd())
 
-	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
-		IsTerminal: isTerminal,
-	})
-
 	width, height, err := term.GetSize(0)
 	if err != nil {
 		width = 100
 		height = 25
 	}
 
-	debugFileLogger := logger.NewDebugFileLogger(logger.DebugFileConfig{
+	l, _, _ := logger.New(logger.Config{
 		FilePath: "/tmp/zerops-showcase.log",
 	})
+	slog.SetDefault(l)
 
-	blocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, width, height, contextCancelFunc)
+	blocks := uxBlock.NewBlocks(isTerminal, width, height, contextCancelFunc)
 
 	return blocks
 }

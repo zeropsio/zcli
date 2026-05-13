@@ -2,13 +2,13 @@ package archiveClient
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"path"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/zeropsio/zcli/src/cmdRunner"
-	"github.com/zeropsio/zcli/src/logger"
 )
 
 type gitArchiver struct {
@@ -19,16 +19,14 @@ type gitArchiver struct {
 	indexFile      string
 
 	verbose bool
-	logger  logger.Logger
 }
 
-func newGitArchiver(workingDir string, workspaceState string, verbose bool, logger logger.Logger) *gitArchiver {
+func newGitArchiver(workingDir string, workspaceState string, verbose bool) *gitArchiver {
 	return &gitArchiver{
 		env:            os.Environ(),
 		workingDir:     workingDir,
 		workspaceState: workspaceState,
 		verbose:        verbose,
-		logger:         logger,
 	}
 }
 
@@ -49,9 +47,7 @@ func (h *gitArchiver) initialize(ctx context.Context) error {
 		h.indexFile = path.Join(".git", "zcli-tmp-index-"+uuid.New().String())
 		h.env = append(h.env, "GIT_INDEX_FILE="+h.indexFile)
 
-		if h.verbose {
-			h.logger.Info("Using git index file: " + h.indexFile)
-		}
+		slog.Debug("git.index_file", "path", h.indexFile)
 
 		if _, err := h.runCommand(ctx, "git", "read-tree", "HEAD"); err != nil {
 			return err
@@ -77,9 +73,7 @@ func (h *gitArchiver) initialize(ctx context.Context) error {
 		// TODO(ms): add option for user to specify commit or tag, instead of forcing HEAD
 		h.commit = "HEAD"
 	}
-	if h.verbose {
-		h.logger.Info("Using git commit: " + h.commit)
-	}
+	slog.Debug("git.commit", "commit", h.commit)
 	return nil
 }
 
@@ -95,9 +89,7 @@ func (h *gitArchiver) cleanup(ctx context.Context) {
 	}
 
 	if h.indexFile != "" {
-		if h.verbose {
-			h.logger.Info("Removing git index file: " + h.indexFile)
-		}
+		slog.Debug("git.index_file.remove", "path", h.indexFile)
 		_ = os.Remove(path.Join(h.workingDir, h.indexFile))
 	}
 }
@@ -118,14 +110,12 @@ func (h *gitArchiver) runCommand(ctx context.Context, command string, args ...st
 }
 
 func (h *gitArchiver) getCommand(ctx context.Context, command string, args ...string) *cmdRunner.ExecCmd {
-	if h.verbose {
-		h.logger.Info(command, " ", strings.Join(args, " "))
-	}
+	slog.Debug("exec", "cmd", command, "args", strings.Join(args, " "))
 	cmd := cmdRunner.CommandContext(ctx, command, args...)
 	cmd.Env = h.env
 	cmd.Dir = h.workingDir
 	if h.verbose {
-		cmd.Stderr = h.logger
+		cmd.Stderr = os.Stderr
 	}
 	return cmd
 }
