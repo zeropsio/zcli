@@ -242,7 +242,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 												logView.WithVerticalOffset(3),
 												logView.WithMaxHeight(max(30, int(float64(cmdData.UxBlocks.TerminalHeight)*0.75))),
 											),
-											serviceLogs.Config{},
 											cmdData.RestApiClient,
 										)
 									}
@@ -262,7 +261,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 												Tags: []string{
 													"zbuilder@" + appVersion.Id.Native(),
 												},
-												Levels: serviceLogs.DefaultLevels,
 											}); err != nil {
 												fmt.Fprintf(logsHandler.Writer(), "\nbuild logs error: %s\n", err.Error())
 											}
@@ -287,7 +285,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 												Format:         "FULL",
 												FormatTemplate: "{{.Message}}",
 												Follow:         true,
-												Levels:         serviceLogs.DefaultLevels,
 											}); err != nil {
 												fmt.Fprintf(logsHandler.Writer(), "\nprepare runtime logs error: %s\n", err.Error())
 											}

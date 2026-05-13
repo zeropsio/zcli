@@ -39,29 +39,25 @@ func (h *Handler) printLogs(
 }
 
 func makeQueryParams(inputs InputValues, serviceId uuid.ServiceStackId, containerId uuid.ContainerId) string {
+	// RESPONSE mode returns the newest N entries (server orders DESC); STREAM
+	// mode returns oldest-first so live tails read naturally.
+	desc := 0
+	if inputs.mode == RESPONSE {
+		desc = 1
+	}
 	query := fmt.Sprintf("&limit=%d&desc=%d&facility=%d&serviceStackId=%s",
-		inputs.limit, getDesc(inputs.mode), inputs.facility, serviceId)
+		inputs.limit, desc, inputs.facility, serviceId)
 
 	if inputs.minSeverity != -1 {
 		query += fmt.Sprintf("&minimumSeverity=%d", inputs.minSeverity)
 	}
-
 	if len(inputs.tags) > 0 {
 		query += fmt.Sprintf("&tags=%s", strings.Join(inputs.tags, ","))
 	}
-
 	if containerId != "" {
 		query += fmt.Sprintf("&containerId=%s", containerId)
 	}
-
 	return query
-}
-
-func getDesc(mode string) int {
-	if mode == RESPONSE {
-		return 1
-	}
-	return 0
 }
 
 func getWsUrl(apiUrl string) string {

@@ -71,12 +71,6 @@ func TestMakeQueryParams_OmitsOptionalFields(t *testing.T) {
 	}
 }
 
-func TestGetDesc(t *testing.T) {
-	require.Equal(t, 1, getDesc(RESPONSE))
-	require.Equal(t, 0, getDesc(STREAM))
-	require.Equal(t, 0, getDesc("anything-else"))
-}
-
 func TestGetWsUrl(t *testing.T) {
 	got := getWsUrl("https://api.example.com/log?token=abc")
 	require.Equal(t, "wss://api.example.com/log/stream?token=abc", got)
