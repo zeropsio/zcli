@@ -112,7 +112,7 @@ func createCmdRunFunc(
 		if host == "" {
 			host = constants.DefaultRegion
 		}
-		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, "https://"+host)
+		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, host)
 
 		if cmd.scopeLevel != nil {
 			if err := cmd.scopeLevel.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
