@@ -3,6 +3,7 @@
 define helpMessage
 possible targets:
 - test
+- test-integration
 - lint
 - all
 - windows-amd
@@ -18,6 +19,9 @@ help:
 
 test:
 	 go test -v ./cmd/... ./src/...
+
+test-integration:
+	 go test -v -tags devel ./src/cmd/...
 
 lint:
 	GOOS=darwin GOARCH=arm64 gomodrun golangci-lint run  ./cmd/... ./src/... --verbose
