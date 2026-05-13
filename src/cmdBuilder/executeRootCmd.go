@@ -21,7 +21,7 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/flagParams"
-	"github.com/zeropsio/zcli/src/logger"
+	"github.com/zeropsio/zcli/src/logfile"
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -48,8 +48,7 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 	isTerminal := terminal.IsTerminal()
 	terminalWidth, terminalHeight, _ := term.GetSize(0)
 
-	logCloser := installLogger(isTerminal, verboseFromArgs(os.Args[1:]))
-	defer logCloser.Close()
+	installLogger(verboseFromArgs(os.Args[1:]))
 
 	uxBlocks := uxBlock.NewBlocks(isTerminal, terminalWidth, terminalHeight, cancel)
 
@@ -107,22 +106,40 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	os.Exit(1)
 }
 
-// installLogger builds the slog logger described by the runtime environment
-// and installs it as slog.Default. The returned io.Closer flushes any owned
-// sinks; callers should defer Close.
-func installLogger(_ bool, verbose bool) io.Closer {
-	logFilePath, fileMode, err := constants.LogFilePath()
-	if err != nil {
+// installLogger assembles slog handlers (file + optional stderr) and
+// installs the resulting logger as slog.Default.
+func installLogger(verbose bool) {
+	level := slog.LevelInfo
+	if verbose {
+		level = slog.LevelDebug
+	}
+	opts := &slog.HandlerOptions{Level: level}
+
+	var handlers []slog.Handler
+	if logFilePath, fileMode, err := constants.LogFilePath(); err != nil {
 		// Best effort: warn directly to stderr; logger isn't up yet.
 		fmt.Fprintln(os.Stderr, styles.WarningLine(err.Error()).String())
+	} else {
+		handlers = append(handlers, logfile.New(logfile.Config{
+			Path: logFilePath,
+			Mode: fileMode,
+			Opts: opts,
+		}))
 	}
-	l, closer, _ := logger.New(logger.Config{
-		FilePath: logFilePath,
-		FileMode: fileMode,
-		Verbose:  verbose,
-	})
-	slog.SetDefault(l)
-	return closer
+	if verbose {
+		handlers = append(handlers, slog.NewTextHandler(os.Stderr, opts))
+	}
+
+	var h slog.Handler
+	switch len(handlers) {
+	case 0:
+		h = slog.NewTextHandler(io.Discard, opts)
+	case 1:
+		h = handlers[0]
+	default:
+		h = slog.NewMultiHandler(handlers...)
+	}
+	slog.SetDefault(slog.New(h))
 }
 
 // verboseFromArgs scans the raw command-line for the persistent --verbose
