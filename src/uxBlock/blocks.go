@@ -21,12 +21,23 @@ type Blocks struct {
 	TerminalWidth  int
 	TerminalHeight int
 
+	// header is a status line rendered above every active spinner —
+	// typically the resolved scope (project, service, region) so the
+	// user always sees what they're operating on. Empty by default.
+	header string
+
 	// ctxCancel is used to cancel the context of the command.
 	// Bubbles package that we use to render graphic components steals the signal handler.
 	// In case that I want to cancel the context of a running component, e.g. spinner, the main context is not canceled.
 	// Therefore, we need to pass the cancel function to the uxBlocks.
 	// If the graphic component is canceled, we cancel the main context.
 	ctxCancel context.CancelFunc
+}
+
+// SetHeader replaces the persistent status line shown above every
+// active spinner. Pass an empty string to clear it.
+func (b *Blocks) SetHeader(s string) {
+	b.header = s
 }
 
 func NewBlocks(

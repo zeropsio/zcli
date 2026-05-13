@@ -88,6 +88,9 @@ func (m *spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *spinnerModel) View() string {
 	var s string
+	if m.uxBlocks.header != "" {
+		s += m.uxBlocks.header + "\n"
+	}
 	for _, spinner := range m.spinners {
 		if m.canceled {
 			s += "canceled\n"
