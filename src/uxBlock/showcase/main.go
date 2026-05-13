@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/mattn/go-isatty"
-	"github.com/zeropsio/zcli/src/logger"
+	"github.com/zeropsio/zcli/src/logfile"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
@@ -192,10 +192,9 @@ func createBlocks(contextCancelFunc func()) uxBlock.UxBlocks {
 		height = 25
 	}
 
-	l, _, _ := logger.New(logger.Config{
-		FilePath: "/tmp/zerops-showcase.log",
-	})
-	slog.SetDefault(l)
+	slog.SetDefault(slog.New(logfile.New(logfile.Config{
+		Path: "/tmp/zerops-showcase.log",
+	})))
 
 	blocks := uxBlock.NewBlocks(isTerminal, width, height, contextCancelFunc)
 
