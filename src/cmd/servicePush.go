@@ -90,6 +90,9 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			switch {
 			case cmdData.Params.IsSet("setup"):
 				setup = cmdData.Params.GetString("setup")
+				if err := validateSetupInYaml(setup, setups); err != nil {
+					return err
+				}
 			default:
 				if match, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String())); hasMatch {
 					setup = match

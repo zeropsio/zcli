@@ -73,9 +73,10 @@
 //   - TestServicePushCommand_ProcessFails
 //     Process polling returns FAILED → spinner reports the failure and the
 //     command exits non-zero.
-//   - TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi
-//     Documents current behavior: a --setup value not present in the local
-//     yaml is forwarded to the API unvalidated.
+//   - TestServicePushCommand_SetupNotFoundInYamlRejectedLocally
+//     A --setup value missing from zerops.yaml is rejected client-side with
+//     an error that names the value and lists the available setups; no API
+//     call is made.
 //
 // ### Tier 2: polling, scope, archive-file-path
 //
