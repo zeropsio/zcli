@@ -217,6 +217,42 @@ func TestServicePushCommand_SetupSelectedByFlag(t *testing.T) {
 	assertPushSuccess(t, res, s, "api-prod")
 }
 
+// BUG: when the service name matches a setup name in zerops.yaml AND the user
+// passes an explicit --setup, the auto-match silently wins and --setup is
+// ignored. Reproduced from a real pipeline running `--setup showcase-backend`
+// on a service named "backend" with both setups present.
+//
+// servicePush.go (and serviceDeploy.go) currently does:
+//
+//	setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
+//	if !hasMatch { /* only then consult --setup */ }
+//
+// Expected precedence: explicit --setup flag > auto-match by service name >
+// interactive selector (TTY) / hard error (non-TTY). Fix is to invert the
+// branches so the flag is checked first. This test is skipped until the fix
+// lands; remove the t.Skip to re-enable it.
+func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
+	t.Skip("known bug: --setup is ignored when service name matches a setup in zerops.yaml; see comment above")
+
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "backend", "showcase-backend")
+
+	s := registerPushStubs(t, f, "backend")
+
+	res := f.Run(nil,
+		"service", "push",
+		"--service-id", pushServiceID,
+		"--working-dir", workDir,
+		"--setup", "showcase-backend",
+		"--no-git",
+		"--disable-logs",
+	)
+	assertPushSuccess(t, res, s, "showcase-backend")
+}
+
 // --version-name flag is forwarded to the POST /app-version request body.
 func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 	f := newFixture(t)
