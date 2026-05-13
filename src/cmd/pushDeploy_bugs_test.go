@@ -15,23 +15,14 @@ import (
 	"testing"
 )
 
-// TestServicePushCommand_SetupFlagOverridesAutoMatch reproduces a confirmed
-// bug: when the service name matches a setup name in zerops.yaml AND the user
-// passes an explicit --setup, the auto-match silently wins and --setup is
-// ignored. Reproduced from a real pipeline running `--setup showcase-backend`
-// on a service named "backend" with both setups present.
-//
-// servicePush.go (and serviceDeploy.go) currently does:
-//
-//	setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
-//	if !hasMatch { /* only then consult --setup */ }
-//
-// Expected precedence: explicit --setup flag > auto-match by service name >
-// interactive selector (TTY) / hard error (non-TTY). Fix is to invert the
-// branches so the flag is checked first.
+// TestServicePushCommand_SetupFlagOverridesAutoMatch is a regression lock-in:
+// when the service name matches a setup name in zerops.yaml AND the user
+// passes an explicit --setup, the flag must win. Pins the fix in
+// servicePush.go / serviceDeploy.go that puts the flag check before the
+// auto-match by service name. Reproduced from a real pipeline running
+// `--setup showcase-backend` on a service named "backend" with both setups
+// present.
 func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
-	t.Skip("known bug: --setup is ignored when service name matches a setup in zerops.yaml")
-
 	f := newFixture(t)
 	f.SeedLogin("test-token")
 
