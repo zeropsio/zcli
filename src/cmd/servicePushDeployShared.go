@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
@@ -100,6 +101,26 @@ func packageStream(ctx context.Context, uploadUrl types.String, reader io.Reader
 	}
 
 	return nil
+}
+
+// validateSetupInYaml ensures that an explicitly requested setup name exists
+// in the local zerops.yaml. The API rejects unknown setups too, but a
+// client-side check produces a faster, friendlier error that lists the
+// available setups instead of a generic ZeropsYamlSetupNotFound from the
+// server.
+func validateSetupInYaml(setup string, setups []string) error {
+	if setup == "" {
+		return nil
+	}
+	for _, s := range setups {
+		if s == setup {
+			return nil
+		}
+	}
+	if len(setups) == 0 {
+		return errors.Errorf("setup %q was not found in zerops.yaml: the file has no setups defined", setup)
+	}
+	return errors.Errorf("setup %q was not found in zerops.yaml; available setups: %s", setup, strings.Join(setups, ", "))
 }
 
 func validateZeropsYamlContent(
