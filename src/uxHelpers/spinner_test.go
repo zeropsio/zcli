@@ -9,17 +9,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock"
 )
 
 // newTestBlocks builds a *uxBlock.Blocks in non-terminal mode so RunSpinners
-// takes the no-op path (no Bubble Tea program is started) and all logger
-// output is discarded.
+// takes the no-op path (no Bubble Tea program is started).
 func newTestBlocks() *uxBlock.Blocks {
-	out := logger.NewOutputLogger(logger.OutputConfig{IsTerminal: false})
-	dbg := logger.NewDebugFileLogger(logger.DebugFileConfig{})
-	return uxBlock.NewBlocks(out, dbg, false, 80, 24, nil)
+	return uxBlock.NewBlocks(false, 80, 24, nil)
 }
 
 func TestRunProcessWithSpinner_Success(t *testing.T) {
