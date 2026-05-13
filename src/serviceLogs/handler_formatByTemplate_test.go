@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/require"
 )
@@ -40,9 +41,11 @@ func TestTemplateFix_SingleToken(t *testing.T) {
 func TestFormatDataByTemplate_Renders(t *testing.T) {
 	var buf bytes.Buffer
 	h := &Handler{out: &buf}
+	tmpl, err := template.New("").Parse("{{.Hostname}}: {{.Message}}")
+	require.NoError(t, err)
 	require.NoError(t, h.formatDataByTemplate(
 		Data{Message: "hello", Hostname: "host-a"},
-		"{{.Hostname}}: {{.Message}}",
+		tmpl,
 	))
 	require.Equal(t, "host-a: hello\n", buf.String())
 }

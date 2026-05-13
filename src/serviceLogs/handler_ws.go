@@ -2,12 +2,12 @@ package serviceLogs
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
-	"time"
+	"net"
 
 	"github.com/gorilla/websocket"
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/zeropsio/zcli/src/i18n"
 )
@@ -21,7 +21,7 @@ func (h *Handler) getLogStream(
 
 	conn, reps, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
-		return errors.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
+		return pkgerrors.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
 	}
 	defer reps.Body.Close()
 	defer conn.Close()
@@ -29,17 +29,15 @@ func (h *Handler) getLogStream(
 	done := make(chan error) // Channel to indicate that the receiverHandler is done and send error
 	go h.receiveHandler(conn, inputs.format, inputs.formatTemplate, done)
 
-	for {
-		select {
-		case <-ctx.Done():
-			// Close the websocket connection
-			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				return err
-			}
-		case err := <-done:
-			return err
-		}
+	select {
+	case <-ctx.Done():
+		// Send a normal-close frame so the server tears down cleanly, then
+		// return the context error. Without the return the previous
+		// `for { select{} }` loop would re-fire ctx.Done() forever.
+		_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+		return ctx.Err()
+	case err := <-done:
+		return err
 	}
 }
 
@@ -58,15 +56,18 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format, formatTempl
 	for {
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
-			// on token expiration
+			// token-expiration / remote close: let the outer caller decide
+			// whether to reconnect; just exit the read loop cleanly.
 			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) || websocket.IsUnexpectedCloseError(err) {
-				time.Sleep(time.Second * 5)
 				return
 			}
-			finishedByUser := strings.Contains(err.Error(), "use of closed network connection")
-			if !finishedByUser {
-				done <- errors.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
+			// The connection was closed locally (e.g. ctx cancel triggered
+			// our deferred conn.Close in getLogStream). Don't surface that
+			// as a reading-failed error.
+			if errors.Is(err, net.ErrClosed) {
+				return
 			}
+			done <- pkgerrors.Errorf("%s %s\n", i18n.T(i18n.LogReadingFailed), err.Error())
 			return
 		}
 
@@ -78,14 +79,14 @@ func (h *Handler) receiveHandler(connection *websocket.Conn, format, formatTempl
 }
 
 func (h *Handler) printStreamLog(data []byte, format, formatTemplate string) error {
-	jsonData, _ := parseResponse(data)
-	// only if there is a new message coming
-	if len(jsonData.Items) > 0 {
-		// update last msg ID for ws reconnection
-		h.lastMsgId = jsonData.Items[len(jsonData.Items)-1].Id
-		if err := h.parseResponseByFormat(jsonData, format, formatTemplate, STREAM); err != nil {
-			return err
-		}
+	jsonData, err := parseResponse(data)
+	if err != nil {
+		return err
 	}
-	return nil
+	if len(jsonData.Items) == 0 {
+		return nil
+	}
+	// update last msg ID for ws reconnection
+	h.lastMsgId = jsonData.Items[len(jsonData.Items)-1].Id
+	return h.parseResponseByFormat(jsonData, format, formatTemplate, STREAM)
 }

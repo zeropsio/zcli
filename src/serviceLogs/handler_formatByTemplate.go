@@ -18,26 +18,24 @@ func (h *Handler) getFullWithTemplate(logData []Data, formatTemplate string) err
 	if err != nil {
 		return err
 	}
+	tmpl, err := template.New("").Parse(ft)
+	if err != nil {
+		return errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
+	}
 	for _, o := range logData {
-		err := h.formatDataByTemplate(o, ft)
-		if err != nil {
+		if err := h.formatDataByTemplate(o, tmpl); err != nil {
 			return errors.Errorf("%s %s", i18n.T(i18n.LogFormatTemplateInvalid), err)
 		}
 	}
 	return nil
 }
 
-func (h *Handler) formatDataByTemplate(data Data, formatTemplate string) error {
+func (h *Handler) formatDataByTemplate(data Data, tmpl *template.Template) error {
 	var b bytes.Buffer
-	t, err := template.New("").Parse(formatTemplate)
-	if err != nil {
+	if err := tmpl.Execute(&b, data); err != nil {
 		return err
 	}
-	err = t.Execute(&b, data)
-	if err != nil {
-		return err
-	}
-	_, err = fmt.Fprintln(h.out, b.String())
+	_, err := fmt.Fprintln(h.out, b.String())
 	return err
 }
 

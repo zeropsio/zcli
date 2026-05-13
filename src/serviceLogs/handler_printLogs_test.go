@@ -86,3 +86,10 @@ func TestGetWsUrl_PreservesQueryString(t *testing.T) {
 	got := getWsUrl("https://api.example.com/log?a=1&b=2")
 	require.Equal(t, "wss://api.example.com/log/stream?a=1&b=2", got)
 }
+
+func TestGetWsUrl_NoQueryString(t *testing.T) {
+	// Prior implementation panicked on URLs without "?". New behavior:
+	// wss-rewrite and append /stream without a trailing "?".
+	got := getWsUrl("https://api.example.com/log")
+	require.Equal(t, "wss://api.example.com/log/stream", got)
+}

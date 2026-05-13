@@ -1,9 +1,9 @@
 package serviceLogs
 
 import (
-	"html/template"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/i18n"
