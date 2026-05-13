@@ -48,9 +48,12 @@ func ExecuteRootCmd(rootCmd *Cmd) {
 	isTerminal := terminal.IsTerminal()
 	terminalWidth, terminalHeight, _ := term.GetSize(0)
 
-	installLogger(verboseFromArgs(os.Args[1:]))
-
 	uxBlocks := uxBlock.NewBlocks(isTerminal, terminalWidth, terminalHeight, cancel)
+
+	// Route the slog stderr handler through the TUI-aware writer so
+	// verbose log records buffer behind any active spinner instead of
+	// tearing the frame.
+	installLogger(uxBlocks.Stderr(), verboseFromArgs(os.Args[1:]))
 
 	cliStorage, err := createCliStorage()
 	if err != nil {
@@ -112,7 +115,10 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 // The file sink is always built at LevelDebug so the log file is a
 // complete trace regardless of the --verbose flag; --verbose only
 // controls whether the stderr mirror is attached (and at which level).
-func installLogger(verbose bool) {
+//
+// stderr is the destination for the verbose mirror — pass
+// uxBlocks.Stderr() so writes buffer behind any active TUI program.
+func installLogger(stderr io.Writer, verbose bool) {
 	stderrLevel := slog.LevelInfo
 	if verbose {
 		stderrLevel = slog.LevelDebug
@@ -121,7 +127,7 @@ func installLogger(verbose bool) {
 	var handlers []slog.Handler
 	if logFilePath, fileMode, err := constants.LogFilePath(); err != nil {
 		// Best effort: warn directly to stderr; logger isn't up yet.
-		fmt.Fprintln(os.Stderr, styles.WarningLine(err.Error()).String())
+		fmt.Fprintln(stderr, styles.WarningLine(err.Error()).String())
 	} else {
 		handlers = append(handlers, logfile.New(logfile.Config{
 			Path: logFilePath,
@@ -130,7 +136,7 @@ func installLogger(verbose bool) {
 		}))
 	}
 	if verbose {
-		handlers = append(handlers, slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: stderrLevel}))
+		handlers = append(handlers, slog.NewTextHandler(stderr, &slog.HandlerOptions{Level: stderrLevel}))
 	}
 
 	var h slog.Handler
