@@ -69,13 +69,20 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
-			if !hasMatch {
+			// Precedence: explicit --setup flag > auto-match by service name >
+			// interactive selector (TTY) / hard error (non-TTY). The flag must
+			// be consulted first; otherwise a service whose name happens to
+			// equal one of the yaml setups silently ignores the user's --setup.
+			var setup string
+			switch {
+			case cmdData.Params.IsSet("setup"):
 				setup = cmdData.Params.GetString("setup")
-				switch {
-				case !terminal.IsTerminal() && !cmdData.Params.IsSet("setup"):
+			default:
+				if match, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String())); hasMatch {
+					setup = match
+				} else if !terminal.IsTerminal() {
 					return errors.New("Cannot find corresponding setup in zerops.yaml, please select with --setup")
-				case !cmdData.Params.IsSet("setup"):
+				} else {
 					setup, err = uxHelpers.PrintSetupSelector(ctx, setups)
 					if err != nil {
 						return err
