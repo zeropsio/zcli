@@ -40,7 +40,7 @@ func buildScopeHeader(cobraCmd *cobra.Command, regionData region.Item, cmdData *
 	if service, ok := cmdData.Service.Get(); ok {
 		parts = append(parts, "service="+service.Name.String())
 	}
-	return styles.InfoWithValueLine("scope", strings.Join(parts, "  ")).String()
+	return styles.InfoWithValue("scope")(strings.Join(parts, "  ")).String()
 }
 
 type GuestCmdData struct {

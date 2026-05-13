@@ -40,19 +40,16 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
-			if err := uxHelpers.RunProcessWithSpinner(
+			return uxHelpers.WatchProcess(
 				ctx,
 				cmdData.UxBlocks,
-				uxHelpers.Process{
-					F:              uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage: i18n.T(i18n.ServiceStopping),
-					ErrorMessage:   i18n.T(i18n.ServiceStopFailed),
-					SuccessMessage: i18n.T(i18n.ServiceStopped),
+				cmdData.RestApiClient,
+				processId,
+				uxHelpers.ProcessMessages{
+					Running: i18n.T(i18n.ServiceStopping),
+					Error:   i18n.T(i18n.ServiceStopFailed),
+					Success: i18n.T(i18n.ServiceStopped),
 				},
-			); err != nil {
-				return err
-			}
-
-			return nil
+			)
 		})
 }

@@ -40,7 +40,7 @@ func withSpinner(ctx context.Context, blocks *uxBlock.Blocks) {
 	fmt.Println("========= WithSpinner block =========")
 
 	// Set a persistent header that survives every spinner in this block.
-	blocks.SetHeader(InfoWithValueLine("scope", "project=demo  service=api  region=prg1").String())
+	blocks.SetHeader(InfoWithValue("scope")("project=demo  service=api  region=prg1").String())
 	defer blocks.SetHeader("")
 
 	// 1) Successful phase with SetMessage transitions.
