@@ -85,6 +85,35 @@ func TestSelector_DownPastEndStaysOnLastRow(t *testing.T) {
 	assert.Equal(t, 2, final.Selected()[0], "cursor should clamp at the last row (index 2)")
 }
 
+// Filter-mode round trip: "/" enters filter mode, typed chars narrow the
+// rows, first Enter confirms the filter and resets the cursor, second Enter
+// selects the cursor-row. The returned Selected() index is the original
+// (unfiltered) row index.
+func TestSelector_FilterModeNarrowsAndSelects(t *testing.T) {
+	body := table.NewBody()
+	body.AddStringsRow("alpha")
+	body.AddStringsRow("beta")
+	body.AddStringsRow("gamma")
+	root := NewRoot(context.Background(), body, WithEnableFiltering())
+
+	tm := teatest.NewTestModel(t, root,
+		teatest.WithInitialTermSize(testTermWidth, testTermHeight),
+	)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}}) // enter filter mode
+	tm.Type("be")
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // exit filter mode
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // confirm selection
+
+	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
+
+	final := tm.FinalModel(t).(*RootModel)
+	require.NoError(t, final.Err())
+	selected := final.Selected()
+	require.Len(t, selected, 1)
+	assert.Equal(t, 1, selected[0], "filter 'be' should isolate 'beta' (original index 1)")
+}
+
 // The label passed via WithLabel renders in the initial frame when
 // filtering is enabled (model.go's View only emits the label alongside the
 // filter input — otherwise the filter placeholder overwrites it).
