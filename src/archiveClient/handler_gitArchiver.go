@@ -11,6 +11,20 @@ import (
 	"github.com/zeropsio/zcli/src/cmdRunner"
 )
 
+// slogStderr is an io.Writer that turns each Write into a slog.Debug
+// record. Used for subprocess stderr so the output is captured in the
+// debug log file without writing directly to os.Stderr, which would
+// clobber Bubble Tea raw-mode frames during a spinner.
+type slogStderr struct {
+	event string
+}
+
+func (w *slogStderr) Write(p []byte) (int, error) {
+	slog.LogAttrs(context.Background(), slog.LevelDebug, w.event,
+		slog.String("data", strings.TrimRight(string(p), "\n")))
+	return len(p), nil
+}
+
 type gitArchiver struct {
 	commit         string
 	workingDir     string
@@ -114,8 +128,10 @@ func (h *gitArchiver) getCommand(ctx context.Context, command string, args ...st
 	cmd := cmdRunner.CommandContext(ctx, command, args...)
 	cmd.Env = h.env
 	cmd.Dir = h.workingDir
-	if h.verbose {
-		cmd.Stderr = os.Stderr
-	}
+	// Route subprocess stderr through slog (Debug level) rather than
+	// os.Stderr so it never breaks a running spinner's raw-mode frame.
+	// Capture is unconditional: under --verbose the slog stderr handler
+	// surfaces it back to the user; otherwise it lands in the log file.
+	cmd.Stderr = &slogStderr{event: "git.stderr"}
 	return cmd
 }

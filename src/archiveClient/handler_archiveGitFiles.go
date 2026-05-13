@@ -52,9 +52,9 @@ func (h *Handler) getRootDir(ctx context.Context, workingDir string) (string, er
 		cmd := cmdRunner.CommandContext(ctx, "git", args...)
 		cmd.Dir = workingDir
 		cmd.Stdout = out
-		if h.config.Verbose {
-			cmd.Stderr = os.Stderr
-		}
+		// See slogStderr in handler_gitArchiver.go for why this routes
+		// through slog rather than os.Stderr.
+		cmd.Stderr = &slogStderr{event: "git.stderr"}
 
 		if err := cmd.Run(); err != nil {
 			return "", err
