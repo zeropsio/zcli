@@ -71,53 +71,10 @@ func New(cfg Config) (*slog.Logger, io.Closer, error) {
 	case 1:
 		handler = handlers[0]
 	default:
-		handler = multiHandler(handlers)
+		handler = slog.NewMultiHandler(handlers...)
 	}
 
 	return slog.New(handler), multiCloser(closers), nil
-}
-
-// multiHandler fans an slog.Record out to every child handler. The first
-// non-nil error from a child is returned but every child is still given a
-// chance to handle the record (matches logrus hook behavior).
-type multiHandler []slog.Handler
-
-func (m multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	for _, h := range m {
-		if h.Enabled(ctx, level) {
-			return true
-		}
-	}
-	return false
-}
-
-func (m multiHandler) Handle(ctx context.Context, r slog.Record) error {
-	var firstErr error
-	for _, h := range m {
-		if !h.Enabled(ctx, r.Level) {
-			continue
-		}
-		if err := h.Handle(ctx, r.Clone()); err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
-	return firstErr
-}
-
-func (m multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	out := make(multiHandler, len(m))
-	for i, h := range m {
-		out[i] = h.WithAttrs(attrs)
-	}
-	return out
-}
-
-func (m multiHandler) WithGroup(name string) slog.Handler {
-	out := make(multiHandler, len(m))
-	for i, h := range m {
-		out[i] = h.WithGroup(name)
-	}
-	return out
 }
 
 // appendFileHandler opens the configured log file on every Handle call,
