@@ -3,8 +3,10 @@
 package cmd
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
@@ -29,18 +31,11 @@ func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
 
 	res := f.Run(nil, "login", "secret-token", "--region-url", f.Server.URL+"/regions")
 
-	if res.ExitCode != 0 {
-		t.Fatalf("exit=%d stderr=%q", res.ExitCode, res.Stderr)
-	}
-	if !strings.Contains(res.Stderr, "Test User") {
-		t.Errorf("expected success message naming the user, got stderr=%q", res.Stderr)
-	}
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
+	assert.Contains(t, res.Stderr, "Test User", "success message should name the user")
 
 	stored := f.LoadStorage()
-	if stored.Token != "secret-token" {
-		t.Errorf("token not persisted: got %q", stored.Token)
-	}
-	if stored.RegionData.Name != "prg1" || stored.RegionData.Address != f.Server.URL {
-		t.Errorf("region not persisted: %+v", stored.RegionData)
-	}
+	assert.Equal(t, "secret-token", stored.Token, "token not persisted")
+	assert.Equal(t, "prg1", stored.RegionData.Name, "region name not persisted")
+	assert.Equal(t, f.Server.URL, stored.RegionData.Address, "region address not persisted")
 }
