@@ -53,6 +53,7 @@ func (hook *VarLogHook) Fire(entry *logrus.Entry) error {
 }
 
 type TerminalHook struct {
+	out       io.Writer
 	levels    []logrus.Level
 	formatter logrus.Formatter
 }
@@ -73,6 +74,10 @@ func (hook *TerminalHook) Fire(entry *logrus.Entry) error {
 		msg = append(msg, '\n')
 	}
 
-	_, _ = os.Stderr.Write(msg)
+	out := hook.out
+	if out == nil {
+		out = os.Stderr
+	}
+	_, _ = out.Write(msg)
 	return nil
 }

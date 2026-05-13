@@ -3,6 +3,7 @@ package cmdBuilder
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/pkg/errors"
@@ -51,6 +52,8 @@ func createCmdRunFunc(
 	flagParams *flagParams.Handler,
 	uxBlocks *uxBlock.Blocks,
 	cliStorage *cliStorage.Handler,
+	stdout io.Writer,
+	stderr io.Writer,
 ) func(*cobra.Command, []string) error {
 	return func(cobraCmd *cobra.Command, args []string) (err error) {
 		ctx := cobraCmd.Context()
@@ -77,8 +80,8 @@ func createCmdRunFunc(
 			UxBlocks:   uxBlocks,
 			Args:       argsMap,
 			Params:     flagParams,
-			Stdout:     printer.NewPrinter(os.Stdout),
-			Stderr:     printer.NewPrinter(os.Stderr),
+			Stdout:     printer.NewPrinter(stdout),
+			Stderr:     printer.NewPrinter(stderr),
 
 			PrintHelp: func() {
 				cobraCmd.HelpFunc()(cobraCmd, []string{})

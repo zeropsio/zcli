@@ -3,6 +3,7 @@ package cmdBuilder
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"regexp"
@@ -28,6 +29,21 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 )
 
+// RunOptions controls how RunRootCmd executes. The zero value matches the
+// production defaults used by ExecuteRootCmd.
+type RunOptions struct {
+	// Ctx is the root context. If nil, a fresh context.Background() is used
+	// and OS signals are wired to cancel it.
+	Ctx context.Context
+	// Args overrides os.Args[1:] when non-nil. Useful for tests.
+	Args []string
+	// Stdout receives command output. Defaults to os.Stdout when nil.
+	Stdout io.Writer
+	// Stderr receives error/log output (including uxBlock messages).
+	// Defaults to os.Stderr when nil.
+	Stderr io.Writer
+}
+
 var matchFirstCap = regexp.MustCompile("([A-Z]+)")
 
 func camelCaseToKebabCase(camel string) string {
@@ -38,46 +54,75 @@ func normalizeFlagNames(_ *pflag.FlagSet, name string) pflag.NormalizedName {
 	return pflag.NormalizedName(camelCaseToKebabCase(name))
 }
 
+// ExecuteRootCmd runs the CLI with production defaults and exits the process
+// with the resulting status code.
 func ExecuteRootCmd(rootCmd *Cmd) {
-	ctx, cancel := context.WithCancel(context.Background())
-	regSignals(cancel)
+	os.Exit(RunRootCmd(rootCmd, RunOptions{}))
+}
+
+// RunRootCmd is the test-friendly entry point. It never calls os.Exit and
+// instead returns the exit code the process should use.
+func RunRootCmd(rootCmd *Cmd, opts RunOptions) int {
+	stdout := opts.Stdout
+	if stdout == nil {
+		stdout = os.Stdout
+	}
+	stderr := opts.Stderr
+	if stderr == nil {
+		stderr = os.Stderr
+	}
+
+	ctx := opts.Ctx
+	var cancel context.CancelFunc
+	if ctx == nil {
+		ctx, cancel = context.WithCancel(context.Background())
+		regSignals(cancel)
+	} else {
+		ctx, cancel = context.WithCancel(ctx)
+	}
+	defer cancel()
 	ctx = support.Context(ctx)
 
 	isTerminal := terminal.IsTerminal()
 	terminalWidth, terminalHeight, _ := term.GetSize(0)
-	outputLogger, debugFileLogger := createLoggers(isTerminal)
+	outputLogger, debugFileLogger := createLoggers(isTerminal, stderr)
 
 	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
 	cliStorage, err := createCliStorage()
 	if err != nil {
-		printError(err, uxBlocks)
+		return errorExitCode(err, uxBlocks)
 	}
 
 	flagParams := flagParams.New()
 
-	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage)
+	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage, stdout, stderr)
 	if err != nil {
-		printError(err, uxBlocks)
+		return errorExitCode(err, uxBlocks)
 	}
 
 	cobraCmd.SetGlobalNormalizationFunc(normalizeFlagNames)
-
-	err = cobraCmd.ExecuteContext(ctx)
-	if err != nil {
-		printError(err, uxBlocks)
+	cobraCmd.SetOut(stdout)
+	cobraCmd.SetErr(stderr)
+	if opts.Args != nil {
+		cobraCmd.SetArgs(opts.Args)
 	}
+
+	if err := cobraCmd.ExecuteContext(ctx); err != nil {
+		return errorExitCode(err, uxBlocks)
+	}
+	return 0
 }
 
-func printError(err error, uxBlocks uxBlock.UxBlocks) {
+func errorExitCode(err error, uxBlocks uxBlock.UxBlocks) int {
 	if err == nil {
-		return
+		return 0
 	}
 	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
 		uxBlocks.PrintErrorText(err.Error())
-		os.Exit(1)
+		return 1
 	}
 
 	var apiErr apiError.Error
@@ -90,22 +135,22 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 			}
 			uxBlocks.PrintErrorText(string(meta))
 		}
-
-		os.Exit(1)
+		return 1
 	}
 
 	if errors.Is(err, models.ErrCtrlC) {
 		uxBlocks.PrintInfo(styles.InfoLine("canceled"))
-		os.Exit(0)
+		return 0
 	}
 
 	uxBlocks.PrintErrorText(err.Error())
-	os.Exit(1)
+	return 1
 }
 
-func createLoggers(isTerminal bool) (*logger.Handler, *logger.Handler) {
+func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.Handler) {
 	outputLogger := logger.NewOutputLogger(logger.OutputConfig{
 		IsTerminal: isTerminal,
+		Out:        stderr,
 	})
 
 	loggerFilePath, fileMode, err := constants.LogFilePath()

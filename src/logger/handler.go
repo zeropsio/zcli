@@ -13,6 +13,9 @@ type Handler struct {
 
 type OutputConfig struct {
 	IsTerminal bool
+	// Out is the writer terminal output is delivered to. Defaults to os.Stderr
+	// when nil, preserving historical behavior.
+	Out io.Writer
 }
 
 func NewOutputLogger(config OutputConfig) *Handler {
@@ -25,7 +28,13 @@ func NewOutputLogger(config OutputConfig) *Handler {
 		formatter = &logrus.TextFormatter{DisableColors: true}
 	}
 
+	out := config.Out
+	if out == nil {
+		out = os.Stderr
+	}
+
 	l.AddHook(&TerminalHook{
+		out:       out,
 		levels:    []logrus.Level{logrus.DebugLevel, logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel},
 		formatter: formatter,
 	})
