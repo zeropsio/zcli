@@ -4,297 +4,14 @@ package cmd
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 	"testing"
 )
 
-const (
-	pushServiceID    = "0000000000000000000000"
-	pushProjectID    = "1111111111111111111111"
-	pushClientID     = "2222222222222222222222"
-	pushAppVersionID = "3333333333333333333333"
-	pushDeployProcID = "4444444444444444444444"
-)
-
-// pushStubs holds the counters/recorded payloads that tests assert on.
-type pushStubs struct {
-	uploadBytes      atomic.Int64
-	deployHits       atomic.Int32
-	deployBody       atomic.Value // map[string]any
-	appVersionBody   atomic.Value // map[string]any
-	processPollCount atomic.Int32
-
-	// processStatus overrides what the GET /process/{id} endpoint reports.
-	// Defaults to "FINISHED" when unset.
-	processStatus atomic.Value // string
-}
-
-func (s *pushStubs) status() string {
-	v, _ := s.processStatus.Load().(string)
-	if v == "" {
-		return "FINISHED"
-	}
-	return v
-}
-
-// registerPushStubs wires up every API endpoint that `service push` touches,
-// returning recorders the test can inspect. serviceName lets each test pick the
-// name returned by the service-stack endpoint (it drives the setup auto-match
-// logic in servicePush.go).
-func registerPushStubs(t *testing.T, f *fixture, serviceName string) *pushStubs {
-	t.Helper()
-	s := &pushStubs{}
-	uploadURL := f.Server.URL + "/upload/" + pushAppVersionID
-
-	f.HandleJSON("/api/rest/public/service-stack/"+pushServiceID, 200, map[string]any{
-		"id":                 pushServiceID,
-		"projectId":          pushProjectID,
-		"name":               serviceName,
-		"status":             "ACTIVE",
-		"serviceStackTypeId": "nodejs@20",
-		"serviceStackTypeInfo": map[string]any{
-			"serviceStackTypeName":        "Node.js",
-			"serviceStackTypeCategory":    "USER",
-			"serviceStackTypeVersionName": "20",
-		},
-		"project": map[string]any{
-			"id":         pushProjectID,
-			"clientId":   pushClientID,
-			"name":       "demo-project",
-			"mode":       "LIGHT",
-			"status":     "ACTIVE",
-			"created":    "2024-01-01T00:00:00.000Z",
-			"lastUpdate": "2024-01-01T00:00:00.000Z",
-			"tagList":    []string{},
-		},
-		"serviceStackTypeVersionId": "nodejs@20",
-		"created":                   "2024-01-01T00:00:00.000Z",
-		"lastUpdate":                "2024-01-01T00:00:00.000Z",
-		"mode":                      "NON_HA",
-	})
-
-	f.HandleJSON("/api/rest/public/project/"+pushProjectID, 200, map[string]any{
-		"id":         pushProjectID,
-		"clientId":   pushClientID,
-		"name":       "demo-project",
-		"mode":       "LIGHT",
-		"status":     "ACTIVE",
-		"created":    "2024-01-01T00:00:00.000Z",
-		"lastUpdate": "2024-01-01T00:00:00.000Z",
-		"tagList":    []string{},
-	})
-
-	f.HandleJSON("/api/rest/public/service-stack/zerops-yaml-validation", 200, map[string]any{})
-
-	f.Mux.HandleFunc("/api/rest/public/service-stack/"+pushServiceID+"/app-version", func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		_ = json.NewDecoder(r.Body).Decode(&body)
-		s.appVersionBody.Store(body)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":             pushAppVersionID,
-			"clientId":       pushClientID,
-			"projectId":      pushProjectID,
-			"serviceStackId": pushServiceID,
-			"sequence":       1,
-			"status":         "UPLOADING",
-			"userDataList":   []any{},
-			"created":        "2024-01-01T00:00:00.000Z",
-			"lastUpdate":     "2024-01-01T00:00:00.000Z",
-			"uploadUrl":      uploadURL,
-		})
-	})
-
-	f.Mux.HandleFunc("/upload/"+pushAppVersionID, func(w http.ResponseWriter, r *http.Request) {
-		n, _ := io.Copy(io.Discard, r.Body)
-		s.uploadBytes.Store(n)
-		w.WriteHeader(http.StatusOK)
-	})
-
-	f.Mux.HandleFunc("/api/rest/public/app-version/"+pushAppVersionID+"/build-and-deploy", func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		_ = json.NewDecoder(r.Body).Decode(&body)
-		s.deployBody.Store(body)
-		s.deployHits.Add(1)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":              pushDeployProcID,
-			"clientId":        pushClientID,
-			"projectId":       pushProjectID,
-			"status":          "RUNNING",
-			"sequence":        1,
-			"actionName":      "stack.build_and_deploy",
-			"created":         "2024-01-01T00:00:00.000Z",
-			"lastUpdate":      "2024-01-01T00:00:00.000Z",
-			"createdBySystem": false,
-			"createdByUser":   map[string]any{},
-			"serviceStacks":   []any{},
-		})
-	})
-
-	f.Mux.HandleFunc("/api/rest/public/process/"+pushDeployProcID, func(w http.ResponseWriter, r *http.Request) {
-		s.processPollCount.Add(1)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":              pushDeployProcID,
-			"clientId":        pushClientID,
-			"projectId":       pushProjectID,
-			"status":          s.status(),
-			"sequence":        1,
-			"actionName":      "stack.build_and_deploy",
-			"created":         "2024-01-01T00:00:00.000Z",
-			"lastUpdate":      "2024-01-01T00:00:00.000Z",
-			"createdBySystem": false,
-			"createdByUser":   map[string]any{},
-			"serviceStacks":   []any{},
-		})
-	})
-
-	return s
-}
-
-// registerDeployStubs mirrors registerPushStubs but wires the final deploy
-// endpoint to /app-version/{id}/deploy instead of /build-and-deploy, matching
-// the `service deploy` command's flow.
-func registerDeployStubs(t *testing.T, f *fixture, serviceName string) *pushStubs {
-	t.Helper()
-	s := &pushStubs{}
-	uploadURL := f.Server.URL + "/upload/" + pushAppVersionID
-
-	f.HandleJSON("/api/rest/public/service-stack/"+pushServiceID, 200, map[string]any{
-		"id":                 pushServiceID,
-		"projectId":          pushProjectID,
-		"name":               serviceName,
-		"status":             "ACTIVE",
-		"serviceStackTypeId": "nodejs@20",
-		"serviceStackTypeInfo": map[string]any{
-			"serviceStackTypeName":        "Node.js",
-			"serviceStackTypeCategory":    "USER",
-			"serviceStackTypeVersionName": "20",
-		},
-		"project": map[string]any{
-			"id":         pushProjectID,
-			"clientId":   pushClientID,
-			"name":       "demo-project",
-			"mode":       "LIGHT",
-			"status":     "ACTIVE",
-			"created":    "2024-01-01T00:00:00.000Z",
-			"lastUpdate": "2024-01-01T00:00:00.000Z",
-			"tagList":    []string{},
-		},
-		"serviceStackTypeVersionId": "nodejs@20",
-		"created":                   "2024-01-01T00:00:00.000Z",
-		"lastUpdate":                "2024-01-01T00:00:00.000Z",
-		"mode":                      "NON_HA",
-	})
-	f.HandleJSON("/api/rest/public/project/"+pushProjectID, 200, map[string]any{
-		"id":         pushProjectID,
-		"clientId":   pushClientID,
-		"name":       "demo-project",
-		"mode":       "LIGHT",
-		"status":     "ACTIVE",
-		"created":    "2024-01-01T00:00:00.000Z",
-		"lastUpdate": "2024-01-01T00:00:00.000Z",
-		"tagList":    []string{},
-	})
-	f.HandleJSON("/api/rest/public/service-stack/zerops-yaml-validation", 200, map[string]any{})
-	f.Mux.HandleFunc("/api/rest/public/service-stack/"+pushServiceID+"/app-version", func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		_ = json.NewDecoder(r.Body).Decode(&body)
-		s.appVersionBody.Store(body)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":             pushAppVersionID,
-			"clientId":       pushClientID,
-			"projectId":      pushProjectID,
-			"serviceStackId": pushServiceID,
-			"sequence":       1,
-			"status":         "UPLOADING",
-			"userDataList":   []any{},
-			"created":        "2024-01-01T00:00:00.000Z",
-			"lastUpdate":     "2024-01-01T00:00:00.000Z",
-			"uploadUrl":      uploadURL,
-		})
-	})
-	f.Mux.HandleFunc("/upload/"+pushAppVersionID, func(w http.ResponseWriter, r *http.Request) {
-		n, _ := io.Copy(io.Discard, r.Body)
-		s.uploadBytes.Store(n)
-		w.WriteHeader(http.StatusOK)
-	})
-	f.Mux.HandleFunc("/api/rest/public/app-version/"+pushAppVersionID+"/deploy", func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		_ = json.NewDecoder(r.Body).Decode(&body)
-		s.deployBody.Store(body)
-		s.deployHits.Add(1)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":              pushDeployProcID,
-			"clientId":        pushClientID,
-			"projectId":       pushProjectID,
-			"status":          "RUNNING",
-			"sequence":        1,
-			"actionName":      "stack.deploy",
-			"created":         "2024-01-01T00:00:00.000Z",
-			"lastUpdate":      "2024-01-01T00:00:00.000Z",
-			"createdBySystem": false,
-			"createdByUser":   map[string]any{},
-			"serviceStacks":   []any{},
-		})
-	})
-	f.Mux.HandleFunc("/api/rest/public/process/"+pushDeployProcID, func(w http.ResponseWriter, r *http.Request) {
-		s.processPollCount.Add(1)
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{
-			"id":              pushDeployProcID,
-			"clientId":        pushClientID,
-			"projectId":       pushProjectID,
-			"status":          s.status(),
-			"sequence":        1,
-			"actionName":      "stack.deploy",
-			"created":         "2024-01-01T00:00:00.000Z",
-			"lastUpdate":      "2024-01-01T00:00:00.000Z",
-			"createdBySystem": false,
-			"createdByUser":   map[string]any{},
-			"serviceStacks":   []any{},
-		})
-	})
-	return s
-}
-
-// writeZeropsYaml creates a zerops.yaml in dir with the given setup names.
-func writeZeropsYaml(t *testing.T, dir string, setups ...string) {
-	t.Helper()
-	var b []byte
-	b = append(b, "zerops:\n"...)
-	for _, s := range setups {
-		b = append(b, "  - setup: "+s+"\n"...)
-		b = append(b, "    build:\n      base: ubuntu\n"...)
-	}
-	if err := os.WriteFile(filepath.Join(dir, "zerops.yaml"), b, 0o600); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func assertPushSuccess(t *testing.T, res result, s *pushStubs, wantSetup string) {
-	t.Helper()
-	if res.ExitCode != 0 {
-		t.Fatalf("exit=%d\n--- stderr ---\n%s\n--- stdout ---\n%s", res.ExitCode, res.Stderr, res.Stdout)
-	}
-	if s.uploadBytes.Load() == 0 {
-		t.Error("upload handler received no bytes")
-	}
-	if got := s.deployHits.Load(); got != 1 {
-		t.Errorf("build-and-deploy called %d times, want 1", got)
-	}
-	if got, _ := s.deployBody.Load().(map[string]any); got["zeropsYamlSetup"] != wantSetup {
-		t.Errorf("deploy body zeropsYamlSetup=%v, want %q", got["zeropsYamlSetup"], wantSetup)
-	}
-}
+// --- Happy paths ----------------------------------------------------------
 
 // Service name matches a setup in zerops.yaml — no --setup flag needed,
 // auto-match picks it.
@@ -338,42 +55,6 @@ func TestServicePushCommand_SetupSelectedByFlag(t *testing.T) {
 	assertPushSuccess(t, res, s, "api-prod")
 }
 
-// BUG: when the service name matches a setup name in zerops.yaml AND the user
-// passes an explicit --setup, the auto-match silently wins and --setup is
-// ignored. Reproduced from a real pipeline running `--setup showcase-backend`
-// on a service named "backend" with both setups present.
-//
-// servicePush.go (and serviceDeploy.go) currently does:
-//
-//	setup, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String()))
-//	if !hasMatch { /* only then consult --setup */ }
-//
-// Expected precedence: explicit --setup flag > auto-match by service name >
-// interactive selector (TTY) / hard error (non-TTY). Fix is to invert the
-// branches so the flag is checked first. This test is skipped until the fix
-// lands; remove the t.Skip to re-enable it.
-func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
-	t.Skip("known bug: --setup is ignored when service name matches a setup in zerops.yaml; see comment above")
-
-	f := newFixture(t)
-	f.SeedLogin("test-token")
-
-	workDir := t.TempDir()
-	writeZeropsYaml(t, workDir, "backend", "showcase-backend")
-
-	s := registerPushStubs(t, f, "backend")
-
-	res := f.Run(nil,
-		"service", "push",
-		"--service-id", pushServiceID,
-		"--working-dir", workDir,
-		"--setup", "showcase-backend",
-		"--no-git",
-		"--disable-logs",
-	)
-	assertPushSuccess(t, res, s, "showcase-backend")
-}
-
 // --version-name flag is forwarded to the POST /app-version request body.
 func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 	f := newFixture(t)
@@ -400,7 +81,7 @@ func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 	}
 }
 
-// --- Tier 1 error / variant coverage --------------------------------------
+// --- Error paths / variant coverage ---------------------------------------
 
 // Working directory without zerops.yaml or zerops.yml — yamlReader returns a
 // not-found error before any API call is made.
@@ -545,164 +226,137 @@ func TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi(t *testing.T) {
 	assertPushSuccess(t, res, s, "nonexistent")
 }
 
-// service deploy variant of the happy path: same scaffolding, but the final
-// request goes to /app-version/{id}/deploy instead of /build-and-deploy.
-func TestServiceDeployCommand_HappyPath(t *testing.T) {
-	f := newFixture(t)
-	f.SeedLogin("test-token")
-	workDir := t.TempDir()
-	writeZeropsYaml(t, workDir, "demo")
-	// service deploy archives files relative to working-dir; give it a single
-	// file so the tar isn't empty and the upload handler sees bytes.
-	if err := os.WriteFile(filepath.Join(workDir, "index.html"), []byte("<html/>"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+// --- Tier 2: polling, scope, archive-file-path ----------------------------
 
-	s := registerDeployStubs(t, f, "demo")
-
-	res := f.Run(nil,
-		"service", "deploy",
-		"--service-id", pushServiceID,
-		"--working-dir", workDir,
-	)
-	if res.ExitCode != 0 {
-		t.Fatalf("exit=%d\n--- stderr ---\n%s\n--- stdout ---\n%s", res.ExitCode, res.Stderr, res.Stdout)
-	}
-	if s.uploadBytes.Load() == 0 {
-		t.Error("upload handler received no bytes")
-	}
-	if got := s.deployHits.Load(); got != 1 {
-		t.Errorf("deploy endpoint called %d times, want 1", got)
-	}
-	if got, _ := s.deployBody.Load().(map[string]any); got["zeropsYamlSetup"] != "demo" {
-		t.Errorf("deploy body zeropsYamlSetup=%v, want %q", got["zeropsYamlSetup"], "demo")
-	}
-}
-
-// CONFIRMED BUG: servicePush.go's log-streaming callback dereferences
-// apiProcess.AppVersion.Id (push.go:235) and apiProcess.AppVersion.Build
-// (push.go:251) the first time a poll returns status=RUNNING. AppVersion is a
-// pointer in output.Process — if the API returns RUNNING before AppVersion is
-// populated, the CLI nil-derefs in the spinner goroutine and crashes the
-// binary (Go's runtime can't recover panics from goroutines you don't own,
-// and ProcessCheckWithSpinner spawns its own goroutine for the poller).
-//
-// Confirmed by removing t.Skip on this test:
-//
-//	panic: runtime error: invalid memory address or nil pointer dereference
-//	[signal SIGSEGV: segmentation violation]
-//	github.com/zeropsio/zcli/src/cmd.servicePushCmd.func1.2 (servicePush.go:235)
-//	github.com/zeropsio/zcli/src/uxHelpers.CheckZeropsProcess.func1 (spinner.go:149)
-//	created by ProcessCheckWithSpinner (spinner.go:48)
-//
-// Fix: guard with `if apiProcess.AppVersion == nil { return nil }` before
-// push.go:235; same for AppVersion.Build before :251. Once fixed, drop the
-// t.Skip and this test locks the fix in.
-//
-// Builds its own handler set rather than calling registerPushStubs because the
-// /process/{id} response must be call-count dependent and http.ServeMux
-// doesn't allow re-registering a pattern.
-func TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE(t *testing.T) {
-	t.Skip("CONFIRMED BUG: push.go:235 nil-deref crashes the binary; remove t.Skip after fix")
-
+// Process polling visits PENDING, then RUNNING, then FINISHED across three
+// consecutive polls. The CLI must keep looping until a terminal state is
+// reached.
+func TestServicePushCommand_PendingThenRunningThenFinished(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
 	workDir := t.TempDir()
 	writeZeropsYaml(t, workDir, "demo")
 
-	uploadURL := f.Server.URL + "/upload/" + pushAppVersionID
+	s := registerPushStubs(t, f, "demo")
+	s.processStatusSeq.Store([]string{"PENDING", "RUNNING", "FINISHED"})
 
-	f.HandleJSON("/api/rest/public/service-stack/"+pushServiceID, 200, map[string]any{
-		"id":                 pushServiceID,
-		"projectId":          pushProjectID,
-		"name":               "demo",
-		"status":             "ACTIVE",
-		"serviceStackTypeId": "nodejs@20",
-		"serviceStackTypeInfo": map[string]any{
-			"serviceStackTypeName":        "Node.js",
-			"serviceStackTypeCategory":    "USER",
-			"serviceStackTypeVersionName": "20",
-		},
-		"project": map[string]any{
-			"id": pushProjectID, "clientId": pushClientID, "name": "demo-project",
-			"mode": "LIGHT", "status": "ACTIVE",
-			"created": "2024-01-01T00:00:00.000Z", "lastUpdate": "2024-01-01T00:00:00.000Z",
-			"tagList": []string{},
-		},
-		"serviceStackTypeVersionId": "nodejs@20",
-		"created":                   "2024-01-01T00:00:00.000Z",
-		"lastUpdate":                "2024-01-01T00:00:00.000Z",
-		"mode":                      "NON_HA",
-	})
-	f.HandleJSON("/api/rest/public/project/"+pushProjectID, 200, map[string]any{
-		"id": pushProjectID, "clientId": pushClientID, "name": "demo-project",
-		"mode": "LIGHT", "status": "ACTIVE",
-		"created": "2024-01-01T00:00:00.000Z", "lastUpdate": "2024-01-01T00:00:00.000Z",
-		"tagList": []string{},
-	})
-	f.HandleJSON("/api/rest/public/service-stack/zerops-yaml-validation", 200, map[string]any{})
-	f.HandleJSON("/api/rest/public/service-stack/"+pushServiceID+"/app-version", 200, map[string]any{
-		"id":             pushAppVersionID,
-		"clientId":       pushClientID,
-		"projectId":      pushProjectID,
-		"serviceStackId": pushServiceID,
-		"sequence":       1,
-		"status":         "UPLOADING",
-		"userDataList":   []any{},
-		"created":        "2024-01-01T00:00:00.000Z",
-		"lastUpdate":     "2024-01-01T00:00:00.000Z",
-		"uploadUrl":      uploadURL,
-	})
-	f.Mux.HandleFunc("/upload/"+pushAppVersionID, func(w http.ResponseWriter, r *http.Request) {
-		_, _ = io.Copy(io.Discard, r.Body)
-		w.WriteHeader(http.StatusOK)
-	})
-	f.HandleJSON("/api/rest/public/app-version/"+pushAppVersionID+"/build-and-deploy", 200, map[string]any{
-		"id":              pushDeployProcID,
-		"clientId":        pushClientID,
-		"projectId":       pushProjectID,
-		"status":          "RUNNING",
-		"sequence":        1,
-		"actionName":      "stack.build_and_deploy",
-		"created":         "2024-01-01T00:00:00.000Z",
-		"lastUpdate":      "2024-01-01T00:00:00.000Z",
-		"createdBySystem": false,
-		"createdByUser":   map[string]any{},
-		"serviceStacks":   []any{},
-	})
-
-	var pollCount atomic.Int32
-	f.Mux.HandleFunc("/api/rest/public/process/"+pushDeployProcID, func(w http.ResponseWriter, r *http.Request) {
-		n := pollCount.Add(1)
-		w.Header().Set("Content-Type", "application/json")
-		base := map[string]any{
-			"id":              pushDeployProcID,
-			"clientId":        pushClientID,
-			"projectId":       pushProjectID,
-			"sequence":        1,
-			"actionName":      "stack.build_and_deploy",
-			"created":         "2024-01-01T00:00:00.000Z",
-			"lastUpdate":      "2024-01-01T00:00:00.000Z",
-			"createdBySystem": false,
-			"createdByUser":   map[string]any{},
-			"serviceStacks":   []any{},
-			"appVersion":      nil, // <-- the trigger
-		}
-		if n == 1 {
-			base["status"] = "RUNNING"
-		} else {
-			base["status"] = "FINISHED"
-		}
-		_ = json.NewEncoder(w).Encode(base)
-	})
-
-	// Run WITHOUT --disable-logs so the log-streaming callback fires and the
-	// nil-deref on apiProcess.AppVersion is reached.
 	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
 		"--no-git",
+		"--disable-logs",
 	)
-	t.Logf("exit=%d stderr=%q", res.ExitCode, res.Stderr)
+	assertPushSuccess(t, res, s, "demo")
+	if got := s.processPollCount.Load(); got < 3 {
+		t.Errorf("expected at least 3 process polls, got %d", got)
+	}
+}
+
+// A 404 on the service-stack endpoint surfaces as a non-zero exit with a
+// user-facing error rather than a panic or generic dump.
+func TestServicePushCommand_InvalidServiceIdErrors(t *testing.T) {
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+
+	// Only register the one handler this test needs — registerPushStubs
+	// would 200 the service-stack lookup and we want it to fail.
+	f.Mux.HandleFunc("/api/rest/public/service-stack/"+pushServiceID, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"error": map[string]any{
+				"code":     "serviceStackNotFound",
+				"message":  "Service stack not found",
+				"category": "invalidUserInput",
+			},
+		})
+	})
+
+	res := f.Run(nil,
+		"service", "push",
+		"--service-id", pushServiceID,
+		"--working-dir", workDir,
+		"--no-git",
+		"--disable-logs",
+	)
+	if res.ExitCode == 0 {
+		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	}
+	if !strings.Contains(strings.ToLower(res.Stderr), "service") {
+		t.Errorf("stderr should mention the service error; got: %q", res.Stderr)
+	}
+}
+
+// --archive-file-path writes a copy of the uploaded package to disk via a
+// tee'd reader. The file should exist after the push and have non-zero size.
+func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+	// Give the archive at least one file to include, so the resulting tar is
+	// not just a gzip header.
+	if err := os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	archivePath := "out.tar.gz" // resolved relative to --working-dir by openPackageFile
+	s := registerPushStubs(t, f, "demo")
+
+	res := f.Run(nil,
+		"service", "push",
+		"--service-id", pushServiceID,
+		"--working-dir", workDir,
+		"--archive-file-path", archivePath,
+		"--no-git",
+		"--disable-logs",
+	)
+	assertPushSuccess(t, res, s, "demo")
+
+	info, err := os.Stat(filepath.Join(workDir, archivePath))
+	if err != nil {
+		t.Fatalf("expected archive file at %s: %v", archivePath, err)
+	}
+	if info.Size() == 0 {
+		t.Errorf("archive file is empty")
+	}
+}
+
+// openPackageFile refuses to overwrite an existing --archive-file-path. The
+// push should fail before any upload happens.
+func TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors(t *testing.T) {
+	f := newFixture(t)
+	f.SeedLogin("test-token")
+	workDir := t.TempDir()
+	writeZeropsYaml(t, workDir, "demo")
+
+	archivePath := "out.tar.gz"
+	if err := os.WriteFile(filepath.Join(workDir, archivePath), []byte("preexisting"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	s := registerPushStubs(t, f, "demo")
+
+	res := f.Run(nil,
+		"service", "push",
+		"--service-id", pushServiceID,
+		"--working-dir", workDir,
+		"--archive-file-path", archivePath,
+		"--no-git",
+		"--disable-logs",
+	)
+	if res.ExitCode == 0 {
+		t.Fatalf("expected non-zero exit; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	}
+	// The existing file must be untouched (size still 11 bytes from preexisting).
+	if info, err := os.Stat(filepath.Join(workDir, archivePath)); err == nil && info.Size() != int64(len("preexisting")) {
+		t.Errorf("archive file was overwritten despite the error: size=%d", info.Size())
+	}
+	// And no upload should have hit the server.
+	if got := s.uploadBytes.Load(); got != 0 {
+		t.Errorf("upload happened despite pre-flight error: %d bytes", got)
+	}
 }
