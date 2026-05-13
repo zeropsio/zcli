@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
@@ -15,7 +14,6 @@ import (
 type UxBlocks interface {
 	Print(style func(string) styles.Line, msg string)
 	Printf(style func(string) styles.Line, format string, args ...any)
-	RunSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg))
 }
 
 type Blocks struct {
