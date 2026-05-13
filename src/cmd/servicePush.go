@@ -127,11 +127,11 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				NoGit:              cmdData.Params.GetBool("no-git"),
 			})
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			err = uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F: func(ctx context.Context, _ *uxHelpers.Process) (err error) {
+				uxHelpers.Process{
+					F: func(ctx context.Context, _ uxHelpers.Handle) (err error) {
 						reader, writer := io.Pipe()
 						var finalReader io.Reader = reader
 						if cmdData.Params.GetString("archive-file-path") != "" {
@@ -170,10 +170,10 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						wg.Wait()
 						return uploadErr
 					},
-					RunningMessage:      i18n.T(i18n.PushDeployUploadingPackageStart),
-					ErrorMessageMessage: i18n.T(i18n.PushDeployUploadPackageFailed),
-					SuccessMessage:      i18n.T(i18n.PushDeployUploadingPackageDone),
-				}},
+					RunningMessage: i18n.T(i18n.PushDeployUploadingPackageStart),
+					ErrorMessage:   i18n.T(i18n.PushDeployUploadPackageFailed),
+					SuccessMessage: i18n.T(i18n.PushDeployUploadingPackageDone),
+				},
 			)
 			if err != nil {
 				return err
@@ -208,96 +208,94 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			var buildPhase bool
 			var preparePhase bool
 			var logsHandler *serviceLogs.Handler
-			if err := uxHelpers.ProcessCheckWithSpinner(
+			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{
-					{
-						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks,
-							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
-								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
-									if cmdData.Params.GetBool("disable-logs") {
-										return nil
-									}
-									if !apiProcess.Status.IsRunning() {
-										return nil
-									}
-									if logsHandler == nil {
-										pipelineLink := styles.NewStringBuilder()
-										pipelineLink.WriteInfoColor("View full pipeline at ")
-										pipelineLink.WriteStyledString(
-											styles.SuccessStyle().
-												Bold(true),
-											fmt.Sprintf(
-												"https://%s/service-stack/%s/deploy/%s",
-												guiHost,
-												service.Id,
-												apiProcess.AppVersion.Id,
-											),
-										)
-
-										logsHandler = serviceLogs.New(
-											process.LogView(
-												logView.WithAdditionalText(pipelineLink.String()),
-												logView.WithVerticalOffset(3),
-												logView.WithMaxHeight(max(30, int(float64(cmdData.UxBlocks.TerminalHeight)*0.75))),
-											),
-											cmdData.RestApiClient,
-										)
-									}
-									if !buildPhase {
-										buildPhase = true
-										buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
-										go func() {
-											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
-												Project:        project,
-												ServiceId:      buildServiceId,
-												Limit:          100,
-												MinSeverity:    "DEBUG",
-												MsgType:        "APPLICATION",
-												Format:         "FULL",
-												FormatTemplate: "{{.Message}}",
-												Follow:         true,
-												Tags: []string{
-													"zbuilder@" + appVersion.Id.Native(),
-												},
-											}); err != nil {
-												fmt.Fprintf(logsHandler.Writer(), "\nbuild logs error: %s\n", err.Error())
-											}
-										}()
-									}
-									if !preparePhase {
-										if apiProcess.AppVersion.PrepareCustomRuntime == nil {
-											return nil
-										}
-										prepareServiceId, ok := apiProcess.AppVersion.PrepareCustomRuntime.ServiceStackId.Get()
-										if !ok {
-											return nil
-										}
-										preparePhase = true
-										go func() {
-											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
-												Project:        project,
-												ServiceId:      prepareServiceId,
-												Limit:          100,
-												MinSeverity:    "DEBUG",
-												MsgType:        "APPLICATION",
-												Format:         "FULL",
-												FormatTemplate: "{{.Message}}",
-												Follow:         true,
-											}); err != nil {
-												fmt.Fprintf(logsHandler.Writer(), "\nprepare runtime logs error: %s\n", err.Error())
-											}
-										}()
-									}
+				uxHelpers.Process{
+					F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks,
+						uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
+							func(ctx context.Context, h uxHelpers.Handle, apiProcess output.Process) error {
+								if cmdData.Params.GetBool("disable-logs") {
 									return nil
-								},
-							),
+								}
+								if !apiProcess.Status.IsRunning() {
+									return nil
+								}
+								if logsHandler == nil {
+									pipelineLink := styles.NewStringBuilder()
+									pipelineLink.WriteInfoColor("View full pipeline at ")
+									pipelineLink.WriteStyledString(
+										styles.SuccessStyle().
+											Bold(true),
+										fmt.Sprintf(
+											"https://%s/service-stack/%s/deploy/%s",
+											guiHost,
+											service.Id,
+											apiProcess.AppVersion.Id,
+										),
+									)
+
+									logsHandler = serviceLogs.New(
+										h.LogView(
+											logView.WithAdditionalText(pipelineLink.String()),
+											logView.WithVerticalOffset(3),
+											logView.WithMaxHeight(max(30, int(float64(cmdData.UxBlocks.TerminalHeight)*0.75))),
+										),
+										cmdData.RestApiClient,
+									)
+								}
+								if !buildPhase {
+									buildPhase = true
+									buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
+									go func() {
+										if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
+											Project:        project,
+											ServiceId:      buildServiceId,
+											Limit:          100,
+											MinSeverity:    "DEBUG",
+											MsgType:        "APPLICATION",
+											Format:         "FULL",
+											FormatTemplate: "{{.Message}}",
+											Follow:         true,
+											Tags: []string{
+												"zbuilder@" + appVersion.Id.Native(),
+											},
+										}); err != nil {
+											fmt.Fprintf(logsHandler.Writer(), "\nbuild logs error: %s\n", err.Error())
+										}
+									}()
+								}
+								if !preparePhase {
+									if apiProcess.AppVersion.PrepareCustomRuntime == nil {
+										return nil
+									}
+									prepareServiceId, ok := apiProcess.AppVersion.PrepareCustomRuntime.ServiceStackId.Get()
+									if !ok {
+										return nil
+									}
+									preparePhase = true
+									go func() {
+										if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
+											Project:        project,
+											ServiceId:      prepareServiceId,
+											Limit:          100,
+											MinSeverity:    "DEBUG",
+											MsgType:        "APPLICATION",
+											Format:         "FULL",
+											FormatTemplate: "{{.Message}}",
+											Follow:         true,
+										}); err != nil {
+											fmt.Fprintf(logsHandler.Writer(), "\nprepare runtime logs error: %s\n", err.Error())
+										}
+									}()
+								}
+								return nil
+							},
 						),
-						RunningMessage:      i18n.T(i18n.PushRunning),
-						ErrorMessageMessage: i18n.T(i18n.PushFailed),
-						SuccessMessage:      i18n.T(i18n.PushFinished),
-					},
+					),
+					RunningMessage: i18n.T(i18n.PushRunning),
+					ErrorMessage:   i18n.T(i18n.PushFailed),
+					SuccessMessage: i18n.T(i18n.PushFinished),
 				},
 			); err != nil {
 				return err

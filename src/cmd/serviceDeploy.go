@@ -106,11 +106,11 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			err = uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F: func(ctx context.Context, _ *uxHelpers.Process) error {
+				uxHelpers.Process{
+					F: func(ctx context.Context, _ uxHelpers.Handle) error {
 						ignorer, err := archiveClient.LoadDeployFileIgnorer(cmdData.Params.GetString("working-dir"))
 						if err != nil {
 							return err
@@ -161,10 +161,10 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 						return nil
 					},
-					RunningMessage:      i18n.T(i18n.PushDeployUploadingPackageStart),
-					ErrorMessageMessage: i18n.T(i18n.PushDeployUploadPackageFailed),
-					SuccessMessage:      i18n.T(i18n.PushDeployUploadingPackageDone),
-				}},
+					RunningMessage: i18n.T(i18n.PushDeployUploadingPackageStart),
+					ErrorMessage:   i18n.T(i18n.PushDeployUploadPackageFailed),
+					SuccessMessage: i18n.T(i18n.PushDeployUploadingPackageDone),
+				},
 			)
 			if err != nil {
 				return err
@@ -197,18 +197,16 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage:      i18n.T(i18n.DeployRunning),
-					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
-					SuccessMessage:      i18n.T(i18n.DeployFinished),
-				}},
-			)
-
-			if err != nil {
+				uxHelpers.Process{
+					F:              uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks),
+					RunningMessage: i18n.T(i18n.DeployRunning),
+					ErrorMessage:   i18n.T(i18n.DeployFailed),
+					SuccessMessage: i18n.T(i18n.DeployFinished),
+				},
+			); err != nil {
 				return err
 			}
 
