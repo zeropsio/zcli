@@ -16,6 +16,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/yamlReader"
 )
 
 // fixture wires an httptest.Server, an isolated cliStorage path, and a
@@ -35,6 +36,11 @@ func newFixture(t *testing.T) *fixture {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
+
+	// The yamlReader package caches zerops.yaml bytes in a package-level
+	// variable; reset before and after each test to keep fixtures isolated.
+	yamlReader.ResetCache()
+	t.Cleanup(yamlReader.ResetCache)
 
 	dir := t.TempDir()
 	dataPath := filepath.Join(dir, "cli.data")
