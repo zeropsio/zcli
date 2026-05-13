@@ -43,7 +43,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], "https://"+reg.Address)
+			restApiClient := zeropsRestApiClient.NewAuthorizedClient(cmdData.Args["token"][0], reg.Address)
 
 			response, err := restApiClient.GetUserInfo(ctx)
 			if err != nil {
