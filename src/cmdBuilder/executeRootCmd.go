@@ -152,12 +152,15 @@ func errorExitCode(err error, uxBlocks uxBlock.UxBlocks) int {
 
 // installLogger assembles slog handlers (file + optional stderr) and
 // installs the resulting logger as slog.Default.
+//
+// The file sink is always built at LevelDebug so the log file is a
+// complete trace regardless of the --verbose flag; --verbose only
+// controls whether the stderr mirror is attached (and at which level).
 func installLogger(verbose bool) {
-	level := slog.LevelInfo
+	stderrLevel := slog.LevelInfo
 	if verbose {
-		level = slog.LevelDebug
+		stderrLevel = slog.LevelDebug
 	}
-	opts := &slog.HandlerOptions{Level: level}
 
 	var handlers []slog.Handler
 	if logFilePath, fileMode, err := constants.LogFilePath(); err != nil {
@@ -167,17 +170,17 @@ func installLogger(verbose bool) {
 		handlers = append(handlers, logfile.New(logfile.Config{
 			Path: logFilePath,
 			Mode: fileMode,
-			Opts: opts,
+			Opts: &slog.HandlerOptions{Level: slog.LevelDebug},
 		}))
 	}
 	if verbose {
-		handlers = append(handlers, slog.NewTextHandler(os.Stderr, opts))
+		handlers = append(handlers, slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: stderrLevel}))
 	}
 
 	var h slog.Handler
 	switch len(handlers) {
 	case 0:
-		h = slog.NewTextHandler(io.Discard, opts)
+		h = slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelInfo})
 	case 1:
 		h = handlers[0]
 	default:
