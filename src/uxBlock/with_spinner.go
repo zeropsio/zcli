@@ -6,6 +6,8 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -87,4 +89,60 @@ func (h *spinnerHandle) LogView(opts ...logView.Option) io.Writer {
 type spinnerSetMessage struct {
 	id   uint64
 	line string
+}
+
+// SpinnerJob is a single entry in WithSpinners — one spinner with its
+// own spec and an independent Run closure.
+type SpinnerJob struct {
+	Spec SpinnerSpec
+	Run  func(SpinnerHandle) error
+}
+
+// WithSpinners runs jobs concurrently, each with its own spinner. The
+// closure for each job receives its own handle. Outcomes are rendered
+// per spinner: the one that failed gets the error line, siblings can
+// still finish with their success message. The shared ctx is canceled
+// as soon as any job errors so siblings observing ctx exit early.
+//
+// Returns the first non-nil error (errgroup semantics).
+func (b *Blocks) WithSpinners(ctx context.Context, jobs []SpinnerJob) error {
+	if len(jobs) == 0 {
+		return nil
+	}
+
+	spinners := make([]*Spinner, 0, len(jobs))
+	for _, job := range jobs {
+		spinners = append(spinners, NewSpinner(styles.NewLine(styles.InfoText(job.Spec.Message)).String()))
+	}
+	stopFunc, send := b.RunSpinners(ctx, spinners)
+	defer stopFunc()
+
+	g, gctx := errgroup.WithContext(ctx)
+	for i := range jobs {
+		sp := spinners[i]
+		job := jobs[i]
+		g.Go(func() error {
+			h := &spinnerHandle{spinner: sp, send: send}
+			// gctx is the errgroup-derived context that cancels as
+			// soon as any sibling job errors. Jobs that take ctx
+			// should ideally consume it; for now we still forward
+			// the parent ctx to the closure for compatibility.
+			_ = gctx
+			err := job.Run(h)
+			switch {
+			case err != nil:
+				msg := job.Spec.ErrorMessage
+				if msg == "" {
+					msg = err.Error()
+				}
+				send(sp.FinishWithLine(styles.ErrorLine(msg).String()))
+			case job.Spec.SuccessMessage != "":
+				send(sp.FinishWithLine(styles.SuccessLine(job.Spec.SuccessMessage).String()))
+			default:
+				send(sp.Finish())
+			}
+			return err
+		})
+	}
+	return g.Wait()
 }

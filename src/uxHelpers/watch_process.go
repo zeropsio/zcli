@@ -45,17 +45,17 @@ func WatchProcess(
 		SuccessMessage: messages.Success,
 		ErrorMessage:   messages.Error,
 	}, func(_ uxBlock.SpinnerHandle) error {
-		return pollProcess(ctx, client, blocks, processId, nil)
+		return PollProcess(ctx, client, blocks, processId, nil)
 	})
 }
 
-// pollProcess is the polling loop shared by WatchProcess and the
+// PollProcess is the polling loop shared by WatchProcess and the
 // legacy CheckZeropsProcess. callback, if non-nil, is invoked on every
 // successful poll with the latest process snapshot — callers that
 // stream phase-specific logs use this to attach loggers as phases
 // transition. Transient API errors are tolerated for up to one minute
 // before being surfaced.
-func pollProcess(
+func PollProcess(
 	ctx context.Context,
 	client *zeropsRestApiClient.Handler,
 	blocks *uxBlock.Blocks,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
@@ -62,23 +63,28 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			var processes []uxHelpers.Process
+			var jobs []uxBlock.SpinnerJob
 			for _, service := range responseOutput.ServiceStacks {
 				for _, process := range service.Processes {
-					processes = append(processes, uxHelpers.Process{
-						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
-						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
-						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
-						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
+					label := service.Name.String() + ": " + process.ActionName.String()
+					pid := process.Id
+					jobs = append(jobs, uxBlock.SpinnerJob{
+						Spec: uxBlock.SpinnerSpec{
+							Message:        label,
+							SuccessMessage: label,
+							ErrorMessage:   label,
+						},
+						Run: func(_ uxBlock.SpinnerHandle) error {
+							return uxHelpers.PollProcess(ctx, cmdData.RestApiClient, cmdData.UxBlocks, pid, nil)
+						},
 					})
 				}
 			}
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(jobs))))
 
-			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
-			if err != nil {
+			if err := cmdData.UxBlocks.WithSpinners(ctx, jobs); err != nil {
 				return err
 			}
 

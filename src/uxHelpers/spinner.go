@@ -108,6 +108,6 @@ func CheckZeropsProcess(
 				return raw(c, process, p)
 			}
 		}
-		return pollProcess(ctx, restApiClient, uxBlocks, processId, cb)
+		return PollProcess(ctx, restApiClient, uxBlocks, processId, cb)
 	}
 }
