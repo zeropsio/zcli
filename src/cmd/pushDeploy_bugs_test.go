@@ -2,10 +2,10 @@
 
 package cmd
 
-// This file collects integration tests that document confirmed bugs in the
-// push/deploy commands. Each test reproduces a bug with `t.Skip` so CI stays
-// green; remove the t.Skip after the underlying fix lands to lock the
-// regression in.
+// This file collects integration regression tests that pin previously
+// confirmed bugs in the push/deploy commands. Each test reproduces the
+// originally failing scenario and now must pass — they are the live guard
+// against regressions of the corresponding fixes.
 
 import (
 	"encoding/json"
@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"sync/atomic"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // TestServicePushCommand_SetupFlagOverridesAutoMatch is a regression lock-in:
@@ -43,16 +45,15 @@ func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
 	assertPushSuccess(t, res, s, "showcase-backend")
 }
 
-// TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE reproduces
-// a confirmed bug: servicePush.go's log-streaming callback dereferences
-// apiProcess.AppVersion.Id (push.go:235) and apiProcess.AppVersion.Build
-// (push.go:251) the first time a poll returns status=RUNNING. AppVersion is a
-// pointer in output.Process — if the API returns RUNNING before AppVersion is
-// populated, the CLI nil-derefs in the spinner goroutine and crashes the
-// binary (Go's runtime can't recover panics from goroutines you don't own,
-// and ProcessCheckWithSpinner spawns its own goroutine for the poller).
+// TestServicePushCommand_RunningProcessWithNullAppVersionNoCrash is a
+// regression lock-in: servicePush.go's log-streaming callback used to
+// dereference apiProcess.AppVersion.Id and apiProcess.AppVersion.Build on the
+// first poll that reported status=RUNNING. AppVersion is a pointer in
+// output.Process — when the API returned RUNNING before AppVersion was
+// populated, the CLI nil-deref'd in the spinner goroutine and crashed the
+// binary (Go's runtime can't recover panics from goroutines you don't own).
 //
-// Confirmed by removing t.Skip on this test:
+// Original stack trace before the fix:
 //
 //	panic: runtime error: invalid memory address or nil pointer dereference
 //	[signal SIGSEGV: segmentation violation]
@@ -60,16 +61,14 @@ func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
 //	github.com/zeropsio/zcli/src/uxHelpers.CheckZeropsProcess.func1 (spinner.go:149)
 //	created by ProcessCheckWithSpinner (spinner.go:48)
 //
-// Fix: guard with `if apiProcess.AppVersion == nil { return nil }` before
-// push.go:235; same for AppVersion.Build before :251. Once fixed, drop the
-// t.Skip and this test locks the fix in.
+// The fix nil-guards apiProcess.AppVersion (and separately .Build) before
+// the deref sites; this test drives a RUNNING + appVersion=null poll
+// followed by a FINISHED poll, and the push must complete cleanly.
 //
-// It builds its own handler set rather than calling registerPushStubs because
+// Builds its own handler set rather than calling registerPushStubs because
 // the /process/{id} response must be call-count dependent and http.ServeMux
 // doesn't allow re-registering a pattern.
-func TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE(t *testing.T) {
-	t.Skip("CONFIRMED BUG: push.go:235 nil-deref crashes the binary; remove t.Skip after fix")
-
+func TestServicePushCommand_RunningProcessWithNullAppVersionNoCrash(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
 	workDir := t.TempDir()
@@ -162,7 +161,10 @@ func TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE(t *testing
 	})
 
 	// Run WITHOUT --disable-logs so the log-streaming callback fires and the
-	// nil-deref on apiProcess.AppVersion is reached.
+	// nil-deref path is exercised. Before the fix this crashed the test
+	// binary with SIGSEGV; after the fix the callback should bail early on
+	// the null AppVersion and the second poll's FINISHED status completes
+	// the push.
 	res := f.Run(
 		nil,
 		"service", "push",
@@ -170,5 +172,10 @@ func TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE(t *testing
 		"--working-dir", workDir,
 		"--no-git",
 	)
-	t.Logf("exit=%d stderr=%q", res.ExitCode, res.Stderr)
+	require.Equalf(
+		t,
+		0,
+		res.ExitCode,
+		"push should complete cleanly even with appVersion=null on first poll\nstderr=%q", res.Stderr,
+	)
 }
