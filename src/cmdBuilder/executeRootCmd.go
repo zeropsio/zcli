@@ -94,7 +94,7 @@ func RunRootCmd(rootCmd *Cmd, opts RunOptions) int {
 		return errorExitCode(err, uxBlocks)
 	}
 
-	flagParams := flagParams.New()
+	flagParams := flagParams.New(stderr)
 
 	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage, stdout, stderr)
 	if err != nil {
