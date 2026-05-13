@@ -228,7 +228,14 @@ func servicePushCmd() *cmdBuilder.Cmd {
 						if !apiProcess.Status.IsRunning() {
 							return nil
 						}
-						if buildLogs == nil {
+						// AppVersion is a nullable pointer; the API can briefly
+						// report status=RUNNING before it's populated. Without
+						// this guard, the derefs below crash the binary from
+						// inside the spinner goroutine.
+						if apiProcess.AppVersion == nil {
+							return nil
+						}
+						if buildLogs == nil && apiProcess.AppVersion.Build != nil {
 							pipelineLink := styles.NewStringBuilder()
 							pipelineLink.WriteInfoColor("View full pipeline at ")
 							pipelineLink.WriteStyledString(
@@ -278,7 +285,6 @@ func servicePushCmd() *cmdBuilder.Cmd {
 									logView.WithVerticalOffset(3),
 									logView.WithMaxHeight(maxLogHeight),
 								),
-								serviceLogs.Config{},
 								cmdData.RestApiClient,
 							)
 							go func() {

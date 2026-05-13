@@ -126,25 +126,19 @@
 //   - TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir
 //     --deploy-git-folder embeds the .git/ directory in the upload archive.
 //
-// ## Confirmed-bug reproductions (pushDeploy_bugs_test.go)
+// ## Regression tests for fixed bugs (pushDeploy_bugs_test.go)
 //
-// Both tests are kept t.Skip'd so CI stays green; removing the Skip should
-// produce the documented failure (or success, once the underlying bug is
-// fixed) and lock the fix in.
-//
-//   - TestServicePushCommand_SetupFlagOverridesAutoMatch (skipped)
-//     servicePush.go and serviceDeploy.go check the auto-match against the
-//     service name BEFORE consulting the --setup flag. When the service name
-//     happens to equal a setup name in zerops.yaml, the explicit --setup is
-//     silently ignored. Reproduced from a real pipeline running
-//     `--setup showcase-backend` on a service named "backend" with both
-//     setups present. Fix: invert the branches so the flag wins.
-//   - TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE (skipped)
-//     servicePush.go's log-streaming callback dereferences
-//     apiProcess.AppVersion.Id (push.go:235) and apiProcess.AppVersion.Build
-//     (push.go:251) the first time a poll returns status=RUNNING. AppVersion
-//     is a pointer in output.Process; if the API returns RUNNING before
-//     AppVersion is populated, the CLI nil-derefs in the spinner goroutine
-//     and the binary crashes with SIGSEGV. Confirmed by running the probe in
-//     isolation. Fix: nil-guard before the deref sites.
+//   - TestServicePushCommand_SetupFlagOverridesAutoMatch
+//     Pins the fix for: servicePush.go / serviceDeploy.go used to check the
+//     auto-match against the service name BEFORE consulting the --setup
+//     flag. When the service name happened to equal a setup name in
+//     zerops.yaml, the explicit --setup was silently ignored. The fix
+//     inverts the branches so the flag wins.
+//   - TestServicePushCommand_RunningProcessWithNullAppVersionNoCrash
+//     Pins the fix for: servicePush.go's log-streaming callback used to
+//     dereference apiProcess.AppVersion.Id and .Build the first time a
+//     poll returned status=RUNNING. AppVersion is a pointer in
+//     output.Process; if the API returned RUNNING before AppVersion was
+//     populated, the CLI nil-derefed in the spinner goroutine and crashed
+//     with SIGSEGV. The fix nil-guards both deref sites.
 package cmd
