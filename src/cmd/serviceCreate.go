@@ -145,16 +145,15 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			if err := uxHelpers.ProcessCheckWithSpinner(
+			if err := uxHelpers.WatchProcess(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{
-					{
-						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
-						RunningMessage:      "Creating service",
-						ErrorMessageMessage: "Service creation failed",
-						SuccessMessage:      "Service created",
-					},
+				cmdData.RestApiClient,
+				process.Id,
+				uxHelpers.ProcessMessages{
+					Running: "Creating service",
+					Error:   "Service creation failed",
+					Success: "Service created",
 				},
 			); err != nil {
 				return err
