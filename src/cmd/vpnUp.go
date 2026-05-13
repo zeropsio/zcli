@@ -167,21 +167,17 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 }
 
 func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
-	err := uxHelpers.RunProcessWithSpinner(ctx, uxBlocks, uxHelpers.Process{
-		F: func(ctx context.Context, _ uxHelpers.Handle) error {
-			for i := 0; i < attempts; i++ {
-				err := nettools.Ping(ctx, vpnCheckAddress)
-				if err == nil {
-					return nil
-				}
-
-				time.Sleep(time.Millisecond * 500)
+	err := uxBlocks.WithSpinner(ctx, uxBlock.SpinnerSpec{
+		Message: i18n.T(i18n.VpnCheckingConnection),
+	}, func(_ uxBlock.SpinnerHandle) error {
+		for i := 0; i < attempts; i++ {
+			if err := nettools.Ping(ctx, vpnCheckAddress); err == nil {
+				return nil
 			}
-			return errors.New(i18n.T(i18n.VpnPingFailed))
-		},
-		RunningMessage: i18n.T(i18n.VpnCheckingConnection),
+			time.Sleep(time.Millisecond * 500)
+		}
+		return errors.New(i18n.T(i18n.VpnPingFailed))
 	})
-
 	return err == nil
 }
 
