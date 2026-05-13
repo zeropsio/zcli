@@ -165,6 +165,10 @@ func (s *Spinner) update(msg tea.Msg) (cmd tea.Cmd) {
 		s.finished = true
 	}
 
+	if setMsg, ok := msg.(spinnerSetMessage); ok && setMsg.id == s.id && !s.finished {
+		s.line = setMsg.line
+	}
+
 	return tea.Batch(cmds...)
 }
 
