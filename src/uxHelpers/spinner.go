@@ -4,30 +4,66 @@ import (
 	"context"
 	"io"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/zeropsio/zcli/src/gn"
+	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
-	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
-	"github.com/zeropsio/zerops-go/dto/output"
-
-	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-func ProcessCheckWithSpinner(
-	ctx context.Context,
-	uxBlocks *uxBlock.Blocks,
-	processList []Process,
-) error {
+// Handle is the live spinner context handed to ProcessFunc / ProcessCallback.
+// It exposes a writer for streaming log output into the spinner's log view
+// (or to stdout when not attached to a terminal).
+type Handle interface {
+	LogView(opts ...logView.Option) io.Writer
+}
+
+type ProcessFunc func(ctx context.Context, h Handle) error
+type ProcessCallback func(ctx context.Context, h Handle, apiProcess output.Process) error
+
+type Process struct {
+	F              ProcessFunc
+	RunningMessage string
+	ErrorMessage   string
+	SuccessMessage string
+}
+
+type spinnerHandle struct {
+	spinner *uxBlock.Spinner
+}
+
+func (h *spinnerHandle) LogView(opts ...logView.Option) io.Writer {
+	if !terminal.IsTerminal() {
+		return os.Stdout
+	}
+	return h.spinner.LogView(opts...)
+}
+
+// RunProcessWithSpinner runs a single process with a spinner and returns its
+// error. Use RunProcessesWithSpinner for the parallel form.
+func RunProcessWithSpinner(ctx context.Context, uxBlocks *uxBlock.Blocks, process Process) error {
+	return RunProcessesWithSpinner(ctx, uxBlocks, []Process{process})
+}
+
+// RunProcessesWithSpinner runs every process in parallel, each with its own
+// spinner. If any process returns an error, the shared context is canceled so
+// siblings observe the cancellation; the first non-nil error is returned.
+func RunProcessesWithSpinner(ctx context.Context, uxBlocks *uxBlock.Blocks, processList []Process) error {
+	if len(processList) == 0 {
+		return nil
+	}
 	spinners := make([]*uxBlock.Spinner, 0, len(processList))
 	for _, process := range processList {
 		spinners = append(spinners,
@@ -37,56 +73,29 @@ func ProcessCheckWithSpinner(
 	stopFunc, send := uxBlocks.RunSpinners(ctx, spinners)
 	defer stopFunc()
 
-	var returnErr error
-	var once sync.Once
-
-	var wg sync.WaitGroup
+	g, gctx := errgroup.WithContext(ctx)
 	for i := range processList {
 		spinner := spinners[i]
-		processList[i].spinner = spinner
-		wg.Add(1)
-		go func(process *Process) {
-			defer wg.Done()
-			err := process.F(ctx, process)
+		process := processList[i]
+		g.Go(func() error {
+			err := process.F(gctx, &spinnerHandle{spinner: spinner})
 			if err != nil {
-				if process.ErrorMessageMessage == "" {
+				if process.ErrorMessage == "" {
 					send(spinner.Finish())
 				} else {
-					send(spinner.FinishWithLine(styles.ErrorLine(process.ErrorMessageMessage).String()))
+					send(spinner.FinishWithLine(styles.ErrorLine(process.ErrorMessage).String()))
 				}
-				once.Do(func() {
-					returnErr = err
-				})
-				return
+				return err
 			}
 			if process.SuccessMessage == "" {
 				send(spinner.Finish())
 			} else {
 				send(spinner.FinishWithLine(styles.SuccessLine(process.SuccessMessage).String()))
 			}
-		}(&processList[i])
+			return nil
+		})
 	}
-	wg.Wait()
-
-	return returnErr
-}
-
-type ProcessFunc func(ctx context.Context, process *Process) error
-type ProcessCallback func(ctx context.Context, process *Process, apiProcess output.Process) error
-
-type Process struct {
-	F                   ProcessFunc
-	RunningMessage      string
-	ErrorMessageMessage string
-	SuccessMessage      string
-	spinner             *uxBlock.Spinner
-}
-
-func (p *Process) LogView(opts ...logView.Option) io.Writer {
-	if !terminal.IsTerminal() {
-		return os.Stdout
-	}
-	return p.spinner.LogView(opts...)
+	return g.Wait()
 }
 
 func CheckZeropsProcessWithProcessOutputCallback(callback ProcessCallback) gn.Option[checkZeropsProcessSetup] {
@@ -106,7 +115,7 @@ func CheckZeropsProcess(
 	options ...gn.Option[checkZeropsProcessSetup],
 ) ProcessFunc {
 	setup := gn.ApplyOptions(options...)
-	return func(ctx context.Context, process *Process) error {
+	return func(ctx context.Context, h Handle) error {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
 
@@ -146,7 +155,7 @@ func CheckZeropsProcess(
 				firstErrTime = time.Time{}
 
 				if callback, exists := setup.processOutputCallback.Get(); exists {
-					if err := callback(ctx, process, processOutput); err != nil {
+					if err := callback(ctx, h, processOutput); err != nil {
 						return err
 					}
 				}

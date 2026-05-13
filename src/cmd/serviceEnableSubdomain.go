@@ -40,17 +40,16 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage:      i18n.T(i18n.ServiceEnablingSubdomain),
-					ErrorMessageMessage: i18n.T(i18n.ServiceEnableSubdomainFailed),
-					SuccessMessage:      i18n.T(i18n.ServiceEnabledSubdomain),
-				}},
-			)
-			if err != nil {
+				uxHelpers.Process{
+					F:              uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
+					RunningMessage: i18n.T(i18n.ServiceEnablingSubdomain),
+					ErrorMessage:   i18n.T(i18n.ServiceEnableSubdomainFailed),
+					SuccessMessage: i18n.T(i18n.ServiceEnabledSubdomain),
+				},
+			); err != nil {
 				return err
 			}
 

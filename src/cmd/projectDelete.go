@@ -72,17 +72,16 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage:      i18n.T(i18n.ProjectDeleting),
-					ErrorMessageMessage: i18n.T(i18n.ProjectDeleteFailed),
-					SuccessMessage:      i18n.T(i18n.ProjectDeleted),
-				}},
-			)
-			if err != nil {
+				uxHelpers.Process{
+					F:              uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
+					RunningMessage: i18n.T(i18n.ProjectDeleting),
+					ErrorMessage:   i18n.T(i18n.ProjectDeleteFailed),
+					SuccessMessage: i18n.T(i18n.ProjectDeleted),
+				},
+			); err != nil {
 				return err
 			}
 

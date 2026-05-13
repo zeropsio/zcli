@@ -39,17 +39,16 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 
 			processId := responseOutput.Id
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			if err := uxHelpers.RunProcessWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
-				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
-					RunningMessage:      i18n.T(i18n.ServiceStarting),
-					ErrorMessageMessage: i18n.T(i18n.ServiceStartFailed),
-					SuccessMessage:      i18n.T(i18n.ServiceStarted),
-				}},
-			)
-			if err != nil {
+				uxHelpers.Process{
+					F:              uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
+					RunningMessage: i18n.T(i18n.ServiceStarting),
+					ErrorMessage:   i18n.T(i18n.ServiceStartFailed),
+					SuccessMessage: i18n.T(i18n.ServiceStarted),
+				},
+			); err != nil {
 				return err
 			}
 

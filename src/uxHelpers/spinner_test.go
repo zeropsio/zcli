@@ -22,68 +22,68 @@ func newTestBlocks() *uxBlock.Blocks {
 	return uxBlock.NewBlocks(out, dbg, false, 80, 24, nil)
 }
 
-func TestProcessCheckWithSpinner_EmptyList(t *testing.T) {
-	err := ProcessCheckWithSpinner(context.Background(), newTestBlocks(), nil)
-	require.NoError(t, err)
-}
-
-func TestProcessCheckWithSpinner_SingleSuccess(t *testing.T) {
+func TestRunProcessWithSpinner_Success(t *testing.T) {
 	var called int32
-	err := ProcessCheckWithSpinner(
+	err := RunProcessWithSpinner(
 		context.Background(),
 		newTestBlocks(),
-		[]Process{{
+		Process{
 			RunningMessage: "running",
 			SuccessMessage: "done",
-			F: func(_ context.Context, _ *Process) error {
+			F: func(_ context.Context, _ Handle) error {
 				atomic.AddInt32(&called, 1)
 				return nil
 			},
-		}},
+		},
 	)
 	require.NoError(t, err)
 	require.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
-func TestProcessCheckWithSpinner_SingleError(t *testing.T) {
+func TestRunProcessWithSpinner_Error(t *testing.T) {
 	boom := errors.New("boom")
-	err := ProcessCheckWithSpinner(
+	err := RunProcessWithSpinner(
 		context.Background(),
 		newTestBlocks(),
-		[]Process{{
-			RunningMessage:      "running",
-			ErrorMessageMessage: "oh no",
-			F: func(_ context.Context, _ *Process) error {
+		Process{
+			RunningMessage: "running",
+			ErrorMessage:   "oh no",
+			F: func(_ context.Context, _ Handle) error {
 				return boom
 			},
-		}},
+		},
 	)
 	require.ErrorIs(t, err, boom)
 }
 
-func TestProcessCheckWithSpinner_EmptySuccessAndErrorMessagesAreAllowed(t *testing.T) {
-	// SuccessMessage / ErrorMessageMessage being empty is the documented
-	// "skip the final line" sentinel — must not panic and must not change the
-	// returned error.
-	require.NoError(t, ProcessCheckWithSpinner(
+func TestRunProcessesWithSpinner_EmptyList(t *testing.T) {
+	err := RunProcessesWithSpinner(context.Background(), newTestBlocks(), nil)
+	require.NoError(t, err)
+}
+
+func TestRunProcessesWithSpinner_EmptyMessagesAreAllowed(t *testing.T) {
+	// SuccessMessage / ErrorMessage being empty is the documented
+	// "skip the final line" sentinel — must not panic and must not change
+	// the returned error.
+	require.NoError(t, RunProcessWithSpinner(
 		context.Background(),
 		newTestBlocks(),
-		[]Process{{
-			F: func(_ context.Context, _ *Process) error { return nil },
-		}},
+		Process{
+			F: func(_ context.Context, _ Handle) error { return nil },
+		},
 	))
 
 	boom := errors.New("boom")
-	require.ErrorIs(t, ProcessCheckWithSpinner(
+	require.ErrorIs(t, RunProcessWithSpinner(
 		context.Background(),
 		newTestBlocks(),
-		[]Process{{
-			F: func(_ context.Context, _ *Process) error { return boom },
-		}},
+		Process{
+			F: func(_ context.Context, _ Handle) error { return boom },
+		},
 	), boom)
 }
 
-func TestProcessCheckWithSpinner_AllSucceed(t *testing.T) {
+func TestRunProcessesWithSpinner_AllSucceed(t *testing.T) {
 	const n = 5
 	var called int32
 	procs := make([]Process, n)
@@ -91,93 +91,64 @@ func TestProcessCheckWithSpinner_AllSucceed(t *testing.T) {
 		procs[i] = Process{
 			RunningMessage: "running",
 			SuccessMessage: "done",
-			F: func(_ context.Context, _ *Process) error {
+			F: func(_ context.Context, _ Handle) error {
 				atomic.AddInt32(&called, 1)
 				return nil
 			},
 		}
 	}
-	require.NoError(t, ProcessCheckWithSpinner(context.Background(), newTestBlocks(), procs))
+	require.NoError(t, RunProcessesWithSpinner(context.Background(), newTestBlocks(), procs))
 	require.Equal(t, int32(n), atomic.LoadInt32(&called))
 }
 
-func TestProcessCheckWithSpinner_AllRunEvenWhenOneFails(t *testing.T) {
-	// Current behavior: a failure in one process does not cancel siblings;
-	// every F is invoked and waited on.
-	const n = 4
-	var called int32
-	procs := make([]Process, n)
-	procs[0] = Process{F: func(_ context.Context, _ *Process) error {
-		atomic.AddInt32(&called, 1)
-		return errors.New("first")
-	}}
-	for i := 1; i < n; i++ {
-		procs[i] = Process{F: func(_ context.Context, _ *Process) error {
-			atomic.AddInt32(&called, 1)
-			// Take a beat so the failing goroutine is likely to finish first;
-			// we still assert siblings were invoked even though one returned err.
-			time.Sleep(5 * time.Millisecond)
-			return nil
-		}}
-	}
-	err := ProcessCheckWithSpinner(context.Background(), newTestBlocks(), procs)
-	require.Error(t, err)
-	require.Equal(t, int32(n), atomic.LoadInt32(&called))
-}
-
-func TestProcessCheckWithSpinner_FirstErrorWins(t *testing.T) {
-	// Current behavior: only the first error captured via sync.Once is
-	// returned; subsequent errors are dropped. We can't deterministically
-	// force which goroutine wins, but the returned error must be one of the
-	// real ones (not a wrapper/zero value).
-	errA := errors.New("err-a")
-	errB := errors.New("err-b")
-	err := ProcessCheckWithSpinner(
+func TestRunProcessesWithSpinner_FirstErrorWinsAndCancelsSiblings(t *testing.T) {
+	// errgroup contract: the first non-nil error is returned, and the shared
+	// context is canceled so siblings can observe the cancellation.
+	boom := errors.New("boom")
+	siblingSawCancel := make(chan struct{}, 1)
+	err := RunProcessesWithSpinner(
 		context.Background(),
 		newTestBlocks(),
 		[]Process{
-			{F: func(_ context.Context, _ *Process) error { return errA }},
-			{F: func(_ context.Context, _ *Process) error { return errB }},
+			{F: func(_ context.Context, _ Handle) error { return boom }},
+			{F: func(c context.Context, _ Handle) error {
+				select {
+				case <-c.Done():
+					siblingSawCancel <- struct{}{}
+					return c.Err()
+				case <-time.After(2 * time.Second):
+					return errors.New("sibling did not observe cancel")
+				}
+			}},
 		},
 	)
-	require.Error(t, err)
-	require.Truef(t, errors.Is(err, errA) || errors.Is(err, errB),
-		"expected errA or errB, got %v", err)
+	require.ErrorIs(t, err, boom)
+	select {
+	case <-siblingSawCancel:
+	default:
+		t.Fatal("sibling goroutine was not signaled when first error fired")
+	}
 }
 
-func TestProcessCheckWithSpinner_SpinnerInjectedBeforeF(t *testing.T) {
-	// ProcessCheckWithSpinner assigns processList[i].spinner before calling F
-	// so that Process.LogView works from inside F. Lock that contract in.
-	var seen *uxBlock.Spinner
-	err := ProcessCheckWithSpinner(
+func TestRunProcessesWithSpinner_HandleNonNil(t *testing.T) {
+	// F must receive a non-nil Handle so it can call LogView from inside the
+	// process function.
+	var seen Handle
+	err := RunProcessWithSpinner(
 		context.Background(),
 		newTestBlocks(),
-		[]Process{{
-			F: func(_ context.Context, p *Process) error {
-				seen = p.spinner
+		Process{
+			F: func(_ context.Context, h Handle) error {
+				seen = h
 				return nil
 			},
-		}},
+		},
 	)
 	require.NoError(t, err)
-	require.NotNil(t, seen, "F must receive a Process with spinner set")
+	require.NotNil(t, seen, "F must receive a non-nil Handle")
 }
 
-func TestProcessCheckWithSpinner_FReceivesPointerIntoProcessList(t *testing.T) {
-	// F is invoked with &processList[i]; mutating fields on the passed pointer
-	// is visible to the caller after the call returns. Some callers rely on
-	// this (or at least don't break if it changes), so pin current behavior.
-	procs := []Process{{
-		F: func(_ context.Context, p *Process) error {
-			p.SuccessMessage = "mutated"
-			return nil
-		},
-	}}
-	require.NoError(t, ProcessCheckWithSpinner(context.Background(), newTestBlocks(), procs))
-	require.Equal(t, "mutated", procs[0].SuccessMessage)
-}
-
-func TestProcessCheckWithSpinner_PropagatesContextToF(t *testing.T) {
+func TestRunProcessesWithSpinner_PropagatesContextToF(t *testing.T) {
 	// F should observe the caller's context: cancel parent ctx and F's ctx
 	// must be canceled too.
 	ctx, cancel := context.WithCancel(context.Background())
@@ -187,16 +158,16 @@ func TestProcessCheckWithSpinner_PropagatesContextToF(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		fErr = ProcessCheckWithSpinner(
+		fErr = RunProcessWithSpinner(
 			ctx,
 			newTestBlocks(),
-			[]Process{{
-				F: func(c context.Context, _ *Process) error {
+			Process{
+				F: func(c context.Context, _ Handle) error {
 					close(started)
 					<-c.Done()
 					return c.Err()
 				},
-			}},
+			},
 		)
 	}()
 	<-started
@@ -205,19 +176,18 @@ func TestProcessCheckWithSpinner_PropagatesContextToF(t *testing.T) {
 	require.ErrorIs(t, fErr, context.Canceled)
 }
 
-func TestProcessCheckWithSpinner_AlreadyCanceledContext(t *testing.T) {
+func TestRunProcessesWithSpinner_AlreadyCanceledContext(t *testing.T) {
 	// If the caller hands in a context that's already canceled, F still runs
-	// (ProcessCheckWithSpinner itself does not gate on ctx) and sees the
-	// canceled ctx.
+	// (the runner does not gate on ctx itself) and sees the canceled ctx.
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	var observedErr error
-	err := ProcessCheckWithSpinner(ctx, newTestBlocks(), []Process{{
-		F: func(c context.Context, _ *Process) error {
+	err := RunProcessWithSpinner(ctx, newTestBlocks(), Process{
+		F: func(c context.Context, _ Handle) error {
 			observedErr = c.Err()
 			return nil
 		},
-	}})
+	})
 	require.NoError(t, err)
 	require.ErrorIs(t, observedErr, context.Canceled)
 }
