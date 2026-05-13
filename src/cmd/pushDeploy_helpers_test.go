@@ -30,6 +30,7 @@ const (
 // assert on. Shared between registerPushStubs and registerDeployStubs.
 type pushStubs struct {
 	uploadBytes      atomic.Int64
+	uploadBody       atomic.Value // []byte — full body the upload handler received
 	deployHits       atomic.Int32
 	deployBody       atomic.Value // map[string]any
 	appVersionBody   atomic.Value // map[string]any
@@ -198,8 +199,9 @@ func registerSharedScopeStubs(f *fixture, serviceName string, s *pushStubs, uplo
 	})
 
 	f.Mux.HandleFunc("/upload/"+pushAppVersionID, func(w http.ResponseWriter, r *http.Request) {
-		n, _ := io.Copy(io.Discard, r.Body)
-		s.uploadBytes.Store(n)
+		body, _ := io.ReadAll(r.Body)
+		s.uploadBytes.Store(int64(len(body)))
+		s.uploadBody.Store(body)
 		w.WriteHeader(http.StatusOK)
 	})
 }
