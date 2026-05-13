@@ -25,16 +25,19 @@ func TestFixTimestamp(t *testing.T) {
 			want: "2024-01-02T10:00:00.123000Z",
 		},
 		{
-			// fixTimestamp splits on "." — when the input has no decimal
-			// point, splitVal[0] retains the trailing "Z" and the rebuilt
-			// string ends up doubly-Z'd. This is current behavior; the
-			// refactor item flagged in the review proposes replacing the
-			// hand-rolled padding with time.Parse/Format, which would
-			// produce "2024-01-02T10:00:00.000000Z". Update this expectation
-			// when that lands.
-			name: "no millis: known-buggy double-Z output",
+			name: "no millis padded to six zeros",
 			in:   "2024-01-02T10:00:00Z",
-			want: "2024-01-02T10:00:00Z.000000Z",
+			want: "2024-01-02T10:00:00.000000Z",
+		},
+		{
+			name: "timezone offset normalized to UTC",
+			in:   "2024-01-02T11:00:00.5+01:00",
+			want: "2024-01-02T10:00:00.500000Z",
+		},
+		{
+			name: "unparseable input passes through unchanged",
+			in:   "not a timestamp",
+			want: "not a timestamp",
 		},
 	}
 	for _, tc := range cases {

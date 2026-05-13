@@ -1,8 +1,6 @@
 package serviceLogs
 
 const (
-	BUILD       = "BUILD"
-	RUNTIME     = "RUNTIME"
 	RESPONSE    = "RESPONSE"
 	STREAM      = "STREAM"
 	APPLICATION = "APPLICATION"
@@ -11,7 +9,6 @@ const (
 	SHORT       = "SHORT"
 	JSON        = "JSON"
 	JSONSTREAM  = "JSONSTREAM"
-	AT          = "@"
 	HTTPS       = "https://"
 	WSS         = "wss://"
 	RFC5424     = "5424"
