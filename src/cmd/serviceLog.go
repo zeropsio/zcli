@@ -36,10 +36,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			handler := serviceLogs.NewStdout(
-				serviceLogs.Config{},
-				cmdData.RestApiClient,
-			)
+			handler := serviceLogs.NewStdout(cmdData.RestApiClient)
 
 			serviceId := service.Id
 			if cmdData.Params.GetBool("showBuildLogs") {
@@ -73,8 +70,6 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 				Format:         cmdData.Params.GetString("format"),
 				FormatTemplate: cmdData.Params.GetString("format-template"),
 				Follow:         cmdData.Params.GetBool("follow"),
-				// TODO - janhajek better place?
-				Levels: serviceLogs.DefaultLevels,
 			})
 		})
 }

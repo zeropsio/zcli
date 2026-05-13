@@ -19,7 +19,6 @@ func baseRunConfig() RunConfig {
 		MinSeverity: "",
 		MsgType:     "APPLICATION",
 		Format:      "FULL",
-		Levels:      DefaultLevels,
 	}
 }
 
@@ -54,7 +53,7 @@ func TestGetMinSeverity(t *testing.T) {
 	h := newHandler()
 
 	t.Run("empty input returns -1", func(t *testing.T) {
-		got, err := h.getMinSeverity(RunConfig{Levels: DefaultLevels})
+		got, err := h.getMinSeverity(RunConfig{})
 		require.NoError(t, err)
 		require.Equal(t, -1, got)
 	})
@@ -77,7 +76,7 @@ func TestGetMinSeverity(t *testing.T) {
 	}
 	for _, tc := range nameCases {
 		t.Run("name "+tc.input, func(t *testing.T) {
-			got, err := h.getMinSeverity(RunConfig{MinSeverity: tc.input, Levels: DefaultLevels})
+			got, err := h.getMinSeverity(RunConfig{MinSeverity: tc.input})
 			require.NoError(t, err)
 			require.Equal(t, tc.want, got)
 		})
@@ -92,19 +91,19 @@ func TestGetMinSeverity(t *testing.T) {
 	}
 	for _, tc := range numericCases {
 		t.Run("numeric "+tc.input, func(t *testing.T) {
-			got, err := h.getMinSeverity(RunConfig{MinSeverity: tc.input, Levels: DefaultLevels})
+			got, err := h.getMinSeverity(RunConfig{MinSeverity: tc.input})
 			require.NoError(t, err)
 			require.Equal(t, tc.want, got)
 		})
 	}
 
 	t.Run("unknown name returns error", func(t *testing.T) {
-		_, err := h.getMinSeverity(RunConfig{MinSeverity: "bogus", Levels: DefaultLevels})
+		_, err := h.getMinSeverity(RunConfig{MinSeverity: "bogus"})
 		require.Error(t, err)
 	})
 
 	t.Run("out-of-range number returns error", func(t *testing.T) {
-		_, err := h.getMinSeverity(RunConfig{MinSeverity: "9", Levels: DefaultLevels})
+		_, err := h.getMinSeverity(RunConfig{MinSeverity: "9"})
 		require.Error(t, err)
 	})
 }
@@ -120,16 +119,15 @@ func TestGetFacility(t *testing.T) {
 		{"application", 16, false},
 		{"WEBSERVER", 17, false},
 		{"webserver", 17, false},
-		{"", 16, true},
-		{"BOGUS", 16, true},
+		{"", 0, true},
+		{"BOGUS", 0, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.msgType, func(t *testing.T) {
 			got, err := h.getFacility(RunConfig{MsgType: tc.msgType})
 			if tc.wantErr {
 				require.Error(t, err)
-				// current behavior: returns 16 even on error
-				require.Equal(t, 16, got)
+				require.Equal(t, 0, got)
 				return
 			}
 			require.NoError(t, err)
@@ -181,13 +179,6 @@ func TestGetFormat(t *testing.T) {
 		_, _, err := h.getFormat(RunConfig{Format: "FULL", FormatTemplate: "{{.Message"})
 		require.Error(t, err)
 	})
-}
-
-func TestGetTags(t *testing.T) {
-	h := newHandler()
-	tags := []string{"zbuilder@id", "extra"}
-	require.Equal(t, tags, h.getTags(RunConfig{Tags: tags}))
-	require.Nil(t, h.getTags(RunConfig{}))
 }
 
 func TestCheckInputValues_HappyPath(t *testing.T) {
@@ -244,13 +235,13 @@ func TestCheckInputValues_PropagatesValidationErrors(t *testing.T) {
 	}
 }
 
-func TestDefaultLevels_IndexMatchesSeverity(t *testing.T) {
-	// The Levels array is indexed by severity number (0..7); the second
-	// column happens to also be the stringified index. checkInputValues
-	// relies on both invariants — pin them here.
-	require.Len(t, DefaultLevels, 8)
+func TestSeverityLevels_IndexMatchesSeverity(t *testing.T) {
+	// severityLevels is indexed by severity number (0..7). getMinSeverity
+	// also accepts the stringified index, so the index/name correspondence
+	// is load-bearing.
+	require.Len(t, severityLevels, 8)
 	expected := []string{"EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFORMATIONAL", "DEBUG"}
 	for i, name := range expected {
-		require.Equal(t, name, DefaultLevels[i][0], "level %d name", i)
+		require.Equal(t, name, severityLevels[i], "level %d name", i)
 	}
 }
