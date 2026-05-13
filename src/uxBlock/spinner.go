@@ -12,7 +12,12 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
 )
 
-func (b *Blocks) RunSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg)) {
+// runSpinners is the low-level Bubble Tea program launcher used by
+// WithSpinner and WithSpinners. Returns a stop closure that ends the
+// program and a send closure that posts tea.Msg values (typically
+// spinnerFinish / spinnerSetMessage). Not exported: callers should
+// use the closure-scoped WithSpinner / WithSpinners APIs.
+func (b *Blocks) runSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg)) {
 	if !b.isTerminal {
 		return func() {
 				for _, spinner := range spinners {

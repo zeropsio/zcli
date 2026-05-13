@@ -45,7 +45,7 @@ type SpinnerHandle interface {
 // handle.
 func (b *Blocks) WithSpinner(ctx context.Context, spec SpinnerSpec, fn func(SpinnerHandle) error) error {
 	spinner := NewSpinner(styles.NewLine(styles.InfoText(spec.Message)).String())
-	stopFunc, send := b.RunSpinners(ctx, []*Spinner{spinner})
+	stopFunc, send := b.runSpinners(ctx, []*Spinner{spinner})
 	defer stopFunc()
 
 	h := &spinnerHandle{spinner: spinner, send: send}
@@ -114,7 +114,7 @@ func (b *Blocks) WithSpinners(ctx context.Context, jobs []SpinnerJob) error {
 	for _, job := range jobs {
 		spinners = append(spinners, NewSpinner(styles.NewLine(styles.InfoText(job.Spec.Message)).String()))
 	}
-	stopFunc, send := b.RunSpinners(ctx, spinners)
+	stopFunc, send := b.runSpinners(ctx, spinners)
 	defer stopFunc()
 
 	g, gctx := errgroup.WithContext(ctx)

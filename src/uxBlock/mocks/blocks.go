@@ -5,12 +5,9 @@
 package mocks
 
 import (
-	context "context"
 	reflect "reflect"
 
-	tea "github.com/charmbracelet/bubbletea"
 	gomock "github.com/golang/mock/gomock"
-	uxBlock "github.com/zeropsio/zcli/src/uxBlock"
 	styles "github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
@@ -107,19 +104,4 @@ func (m *MockUxBlocks) PrintWarningText(arg0 string) {
 func (mr *MockUxBlocksMockRecorder) PrintWarningText(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintWarningText", reflect.TypeOf((*MockUxBlocks)(nil).PrintWarningText), arg0)
-}
-
-// RunSpinners mocks base method.
-func (m *MockUxBlocks) RunSpinners(ctx context.Context, spinners []*uxBlock.Spinner) (func(), func(tea.Msg)) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunSpinners", ctx, spinners)
-	ret0, _ := ret[0].(func())
-	ret1, _ := ret[1].(func(tea.Msg))
-	return ret0, ret1
-}
-
-// RunSpinners indicates an expected call of RunSpinners.
-func (mr *MockUxBlocksMockRecorder) RunSpinners(ctx, spinners interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSpinners", reflect.TypeOf((*MockUxBlocks)(nil).RunSpinners), ctx, spinners)
 }

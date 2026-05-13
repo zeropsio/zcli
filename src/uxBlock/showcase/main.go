@@ -120,43 +120,44 @@ func (s *slowReader) Read(p []byte) (int, error) {
 }
 
 func spinners(ctx context.Context, blocks *uxBlock.Blocks) {
-	{
-		fmt.Println("========= spinners block =========")
+	fmt.Println("========= spinners block =========")
 
-		spinner1 := uxBlock.NewSpinner(NewLine("Running 1").String())
-		spinner2 := uxBlock.NewSpinner(NewLine("Running 2").String())
-		spinner3 := uxBlock.NewSpinner(NewLine("Running 3").String())
+	// Three concurrent jobs, each with its own outcome rendered in
+	// place on its spinner. Order of completion is independent.
+	_ = blocks.WithSpinners(ctx, []uxBlock.SpinnerJob{
+		{
+			Spec: uxBlock.SpinnerSpec{
+				Message:      "Running 1",
+				ErrorMessage: "finished with error",
+			},
+			Run: func(_ uxBlock.SpinnerHandle) error {
+				time.Sleep(1200 * time.Millisecond)
+				return fmt.Errorf("simulated failure")
+			},
+		},
+		{
+			Spec: uxBlock.SpinnerSpec{
+				Message:        "Running 2",
+				SuccessMessage: "Finished successfully",
+			},
+			Run: func(_ uxBlock.SpinnerHandle) error {
+				time.Sleep(600 * time.Millisecond)
+				return nil
+			},
+		},
+		{
+			Spec: uxBlock.SpinnerSpec{
+				Message:        "Running 3",
+				SuccessMessage: "Finish with success", // rendered green; warning-styled outcome would require a custom hook.
+			},
+			Run: func(_ uxBlock.SpinnerHandle) error {
+				time.Sleep(1800 * time.Millisecond)
+				return nil
+			},
+		},
+	})
 
-		stop, send := blocks.RunSpinners(ctx, []*uxBlock.Spinner{spinner1, spinner2, spinner3})
-
-		counter := 0
-		tick := time.NewTicker(time.Millisecond * 300)
-		defer tick.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-tick.C:
-				counter++
-				if counter == 2 {
-					send(spinner2.FinishWithLine(SuccessLine("Finished successfully").String()))
-				}
-				if counter == 4 {
-					send(spinner1.FinishWithLine(ErrorLine("finished with error").String()))
-				}
-				if counter == 6 {
-					send(spinner3.FinishWithLine(WarningLine("Finish with warning").String()))
-				}
-			}
-			if counter == 6 {
-				break
-			}
-		}
-
-		stop()
-
-		fmt.Println("========= spinners block end =========")
-	}
+	fmt.Println("========= spinners block end =========")
 }
 
 func prompts(ctx context.Context, blocks *uxBlock.Blocks) {
