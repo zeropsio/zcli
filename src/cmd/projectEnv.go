@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/types"
@@ -73,7 +74,7 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 			for scanner.Scan() {
 				parts := strings.SplitN(scanner.Text(), "=", 2)
 				if len(parts) != 2 {
-					cmdData.UxBlocks.PrintWarningText(fmt.Sprintf("unexpected env format: %s", scanner.Text()))
+					cmdData.UxBlocks.Print(styles.WarningLine, fmt.Sprintf("unexpected env format: %s", scanner.Text()))
 					continue
 				}
 				if err := tmpl.Execute(output, Env{

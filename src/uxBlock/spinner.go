@@ -10,13 +10,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
 func (b *Blocks) RunSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg)) {
 	if !b.isTerminal {
 		return func() {
 				for _, spinner := range spinners {
-					b.PrintInfoText(spinner.line)
+					b.Print(styles.InfoLine, spinner.line)
 				}
 			},
 			func(tea.Msg) {}

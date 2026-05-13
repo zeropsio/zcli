@@ -2,8 +2,9 @@ package uxBlock
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -21,61 +22,18 @@ func (b *Blocks) LogDebug(message string) {
 	b.debugFileLogger.Debug(message)
 }
 
-func (b *Blocks) PrintSuccessText(in string) {
-	scan := bufio.NewScanner(bytes.NewBufferString(in))
+// Print emits each line of msg styled via the given style fn to stderr.
+// Multi-line input is split on \n so every line receives the style
+// decoration. Print has no logging side effect — callers wanting trace
+// data write to slog directly.
+func (b *Blocks) Print(style func(string) styles.Line, msg string) {
+	scan := bufio.NewScanner(strings.NewReader(msg))
 	for scan.Scan() {
-		b.PrintInfo(styles.SuccessLine(scan.Text()))
+		fmt.Fprintln(os.Stderr, style(scan.Text()).String())
 	}
 }
 
-func (b *Blocks) PrintSuccessTextf(format string, args ...any) {
-	b.PrintSuccessText(fmt.Sprintf(format, args...))
-}
-
-func (b *Blocks) PrintInfoText(in string) {
-	scan := bufio.NewScanner(bytes.NewBufferString(in))
-	for scan.Scan() {
-		b.PrintInfo(styles.InfoLine(scan.Text()))
-	}
-}
-
-func (b *Blocks) PrintInfoTextf(format string, args ...any) {
-	b.PrintInfoText(fmt.Sprintf(format, args...))
-}
-
-func (b *Blocks) PrintInfo(line styles.Line) {
-	b.outputLogger.Info(line)
-	b.debugFileLogger.Info(line.DisableStyle())
-}
-
-func (b *Blocks) PrintWarningText(in string) {
-	scan := bufio.NewScanner(bytes.NewBufferString(in))
-	for scan.Scan() {
-		b.PrintWarning(styles.WarningLine(scan.Text()))
-	}
-}
-
-func (b *Blocks) PrintWarningTextf(format string, args ...any) {
-	b.PrintWarningText(fmt.Sprintf(format, args...))
-}
-
-func (b *Blocks) PrintWarning(line styles.Line) {
-	b.outputLogger.Warning(line)
-	b.debugFileLogger.Warning(line.DisableStyle())
-}
-
-func (b *Blocks) PrintErrorText(in string) {
-	scan := bufio.NewScanner(bytes.NewBufferString(in))
-	for scan.Scan() {
-		b.PrintError(styles.ErrorLine(scan.Text()))
-	}
-}
-
-func (b *Blocks) PrintErrorTextf(format string, args ...any) {
-	b.PrintErrorText(fmt.Sprintf(format, args...))
-}
-
-func (b *Blocks) PrintError(line styles.Line) {
-	b.outputLogger.Error(line)
-	b.debugFileLogger.Error(line.DisableStyle())
+// Printf is fmt.Sprintf + Print.
+func (b *Blocks) Printf(style func(string) styles.Line, format string, args ...any) {
+	b.Print(style, fmt.Sprintf(format, args...))
 }

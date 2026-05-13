@@ -76,30 +76,30 @@ func printError(err error, uxBlocks uxBlock.UxBlocks) {
 	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
 
 	if userErr := errorsx.AsUserError(err); userErr != nil {
-		uxBlocks.PrintErrorText(err.Error())
+		uxBlocks.Print(styles.ErrorLine, err.Error())
 		os.Exit(1)
 	}
 
 	var apiErr apiError.Error
 	if errors.As(err, &apiErr) {
-		uxBlocks.PrintErrorText(apiErr.GetMessage())
+		uxBlocks.Print(styles.ErrorLine, apiErr.GetMessage())
 		if apiErr.GetMeta() != nil {
 			meta, err := yaml.Marshal(apiErr.GetMeta())
 			if err != nil {
-				uxBlocks.PrintErrorText(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage()))
+				uxBlocks.Print(styles.ErrorLine, fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage()))
 			}
-			uxBlocks.PrintErrorText(string(meta))
+			uxBlocks.Print(styles.ErrorLine, string(meta))
 		}
 
 		os.Exit(1)
 	}
 
 	if errors.Is(err, models.ErrCtrlC) {
-		uxBlocks.PrintInfo(styles.InfoLine("canceled"))
+		uxBlocks.Print(styles.InfoLine, "canceled")
 		os.Exit(0)
 	}
 
-	uxBlocks.PrintErrorText(err.Error())
+	uxBlocks.Print(styles.ErrorLine, err.Error())
 	os.Exit(1)
 }
 

@@ -79,16 +79,16 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.CoreServices)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.QueuedProcesses, len(processes)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.CoreServices))
 
 			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)
 			if err != nil {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ProjectImported)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ProjectImported))
 
 			return nil
 		})

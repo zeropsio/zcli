@@ -64,7 +64,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email)))
+			uxBlocks.Print(styles.SuccessLine, i18n.T(i18n.LoginSuccess, output.FullName, output.Email))
 
 			return nil
 		})
@@ -97,7 +97,7 @@ func getLoginRegion(
 		return region.Item{}, regionNotFoundErr
 	}
 
-	uxBlocks.PrintWarning(styles.WarningLine(regionNotFoundErr.Error()))
+	uxBlocks.Print(styles.WarningLine, regionNotFoundErr.Error())
 
 	header := table.NewRowFromStrings("name", "default")
 
@@ -124,6 +124,6 @@ func getLoginRegion(
 	}
 
 	reg := regions[selected]
-	uxBlocks.PrintInfo(styles.InfoWithValueLine("Selected region", reg.Name))
+	uxBlocks.Print(styles.InfoWithValue("Selected region"), reg.Name)
 	return reg, nil
 }

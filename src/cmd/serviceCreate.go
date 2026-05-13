@@ -119,7 +119,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			// 		return err
 			// 	}
 			// 	postService.Location = location.Id.LocationIdNull()
-			// 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+			// 	cmdData.UxBlocks.Print(styles.InfoWithValue("Selected location"), location.Name.String())
 			// }
 
 			process, service, err := repository.PostGenericService(
@@ -134,7 +134,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 					if err != nil {
 						return err
 					}
-					cmdData.UxBlocks.PrintInfoText("Service with the same name already exists")
+					cmdData.UxBlocks.Print(styles.InfoLine, "Service with the same name already exists")
 					if outTemplate != nil {
 						if err := outTemplate.Execute(cmdData.Stdout, service); err != nil {
 							return errors.WithStack(err)

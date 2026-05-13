@@ -17,7 +17,7 @@ func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string,
 		return nil, err
 	}
 
-	uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientWorkingDirectory, workingDir)))
+	uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ArchClientWorkingDirectory, workingDir))
 
 	// resulting function returns File from provided path
 	// if file shouldn't be included in the result, File.ArchivePath will be empty
@@ -57,9 +57,9 @@ func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string,
 
 		if fileInfo.IsDir() {
 			source = strings.TrimSuffix(source, string(os.PathSeparator)) + string(os.PathSeparator)
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientPackingDirectory, source)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ArchClientPackingDirectory, source))
 		} else {
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientPackingFile, source)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ArchClientPackingFile, source))
 		}
 
 		trimPath, err := filepath.Abs(filepath.Join(workingDir, parts[0]))
@@ -81,7 +81,7 @@ func (h *Handler) FindFilesByRules(uxBlocks uxBlock.UxBlocks, workingDir string,
 			if file.ArchivePath != "" {
 				if ignorer != nil && ignorer.MatchesPath(file.ArchivePath) {
 					// TODO: PrintDebug.
-					uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ArchClientFileIgnored, file.ArchivePath)))
+					uxBlocks.Print(styles.InfoLine, i18n.T(i18n.ArchClientFileIgnored, file.ArchivePath))
 					return nil
 				}
 				files = append(files, file)

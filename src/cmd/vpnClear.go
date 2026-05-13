@@ -5,6 +5,7 @@ import (
 
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -24,7 +25,7 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 			}
 
 			if vpnDownErr := disconnectVpn(ctx, cmdData.UxBlocks, false, false); vpnDownErr != nil {
-				cmdData.UxBlocks.PrintWarningTextf("vpn down: %s", vpnDownErr)
+				cmdData.UxBlocks.Printf(styles.WarningLine, "vpn down: %s", vpnDownErr)
 			}
 
 			if vpnKey, ok := cmdData.CliStorage.Data().ProjectVpnKeyRegistry[project.Id]; ok {
@@ -45,11 +46,11 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 					return err
 				}
 
-				cmdData.UxBlocks.PrintSuccessTextf("Removed registered public key from project via API: %s", wgKey.PublicKey().String())
+				cmdData.UxBlocks.Printf(styles.SuccessLine, "Removed registered public key from project via API: %s", wgKey.PublicKey().String())
 
 				_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
 					delete(data.ProjectVpnKeyRegistry, project.Id)
-					cmdData.UxBlocks.PrintSuccessText("Deleted locally stored wg keys.")
+					cmdData.UxBlocks.Print(styles.SuccessLine, "Deleted locally stored wg keys.")
 					return data
 				})
 				if err != nil {

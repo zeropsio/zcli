@@ -15,12 +15,8 @@ type UxBlocks interface {
 	GetOutputLogger() logger.Logger
 	GetDebugFileLogger() logger.Logger
 	LogDebug(message string)
-	PrintInfo(line styles.Line)
-	PrintInfoText(string)
-	PrintWarning(line styles.Line)
-	PrintWarningText(string)
-	PrintError(line styles.Line)
-	PrintErrorText(string)
+	Print(style func(string) styles.Line, msg string)
+	Printf(style func(string) styles.Line, format string, args ...any)
 	RunSpinners(ctx context.Context, spinners []*Spinner) (func(), func(msg tea.Msg))
 }
 

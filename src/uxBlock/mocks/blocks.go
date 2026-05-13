@@ -78,76 +78,33 @@ func (mr *MockUxBlocksMockRecorder) LogDebug(message interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogDebug", reflect.TypeOf((*MockUxBlocks)(nil).LogDebug), message)
 }
 
-// PrintError mocks base method.
-func (m *MockUxBlocks) PrintError(line styles.Line) {
+// Print mocks base method.
+func (m *MockUxBlocks) Print(style func(string) styles.Line, msg string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PrintError", line)
+	m.ctrl.Call(m, "Print", style, msg)
 }
 
-// PrintError indicates an expected call of PrintError.
-func (mr *MockUxBlocksMockRecorder) PrintError(line interface{}) *gomock.Call {
+// Print indicates an expected call of Print.
+func (mr *MockUxBlocksMockRecorder) Print(style, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintError", reflect.TypeOf((*MockUxBlocks)(nil).PrintError), line)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Print", reflect.TypeOf((*MockUxBlocks)(nil).Print), style, msg)
 }
 
-// PrintErrorText mocks base method.
-func (m *MockUxBlocks) PrintErrorText(arg0 string) {
+// Printf mocks base method.
+func (m *MockUxBlocks) Printf(style func(string) styles.Line, format string, args ...any) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PrintErrorText", arg0)
+	varargs := []interface{}{style, format}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	m.ctrl.Call(m, "Printf", varargs...)
 }
 
-// PrintErrorText indicates an expected call of PrintErrorText.
-func (mr *MockUxBlocksMockRecorder) PrintErrorText(arg0 interface{}) *gomock.Call {
+// Printf indicates an expected call of Printf.
+func (mr *MockUxBlocksMockRecorder) Printf(style, format interface{}, args ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintErrorText", reflect.TypeOf((*MockUxBlocks)(nil).PrintErrorText), arg0)
-}
-
-// PrintInfo mocks base method.
-func (m *MockUxBlocks) PrintInfo(line styles.Line) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PrintInfo", line)
-}
-
-// PrintInfo indicates an expected call of PrintInfo.
-func (mr *MockUxBlocksMockRecorder) PrintInfo(line interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintInfo", reflect.TypeOf((*MockUxBlocks)(nil).PrintInfo), line)
-}
-
-// PrintInfoText mocks base method.
-func (m *MockUxBlocks) PrintInfoText(arg0 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PrintInfoText", arg0)
-}
-
-// PrintInfoText indicates an expected call of PrintInfoText.
-func (mr *MockUxBlocksMockRecorder) PrintInfoText(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintInfoText", reflect.TypeOf((*MockUxBlocks)(nil).PrintInfoText), arg0)
-}
-
-// PrintWarning mocks base method.
-func (m *MockUxBlocks) PrintWarning(line styles.Line) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PrintWarning", line)
-}
-
-// PrintWarning indicates an expected call of PrintWarning.
-func (mr *MockUxBlocksMockRecorder) PrintWarning(line interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintWarning", reflect.TypeOf((*MockUxBlocks)(nil).PrintWarning), line)
-}
-
-// PrintWarningText mocks base method.
-func (m *MockUxBlocks) PrintWarningText(arg0 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PrintWarningText", arg0)
-}
-
-// PrintWarningText indicates an expected call of PrintWarningText.
-func (mr *MockUxBlocksMockRecorder) PrintWarningText(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrintWarningText", reflect.TypeOf((*MockUxBlocks)(nil).PrintWarningText), arg0)
+	varargs := append([]interface{}{style, format}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Printf", reflect.TypeOf((*MockUxBlocks)(nil).Printf), varargs...)
 }
 
 // RunSpinners mocks base method.

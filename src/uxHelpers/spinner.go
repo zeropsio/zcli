@@ -118,7 +118,7 @@ func CheckZeropsProcess(
 			if time.Since(firstErrTime) >= time.Minute {
 				return err
 			}
-			uxBlocks.PrintWarningTextf("failed to get process detail: %v", err)
+			uxBlocks.Printf(styles.WarningLine, "failed to get process detail: %v", err)
 			return nil
 		}
 

@@ -89,21 +89,19 @@ func prompts(ctx context.Context, blocks uxBlock.UxBlocks) {
 		return
 	}
 
-	blocks.PrintInfo(InfoWithValueLine("selected", choices[choice]))
+	blocks.Print(InfoWithValue("selected"), choices[choice])
 
 	fmt.Println("========= prompt block end =========")
 }
 
 func texts(_ context.Context, blocks uxBlock.UxBlocks) {
 	fmt.Println("========= texts block =========")
-	blocks.PrintInfo(NewLine("line without style"))
-	blocks.PrintInfo(InfoLine("info line"))
-	blocks.PrintInfo(InfoWithValueLine("info line", "value"))
-	blocks.PrintInfo(SuccessLine("success line"))
-	blocks.PrintWarning(WarningLine("warning line"))
-	blocks.PrintError(ErrorLine("Error line"))
-	blocks.PrintInfo(SelectLine("Select line"))
-	blocks.PrintInfo(NewLine(WarningText("NewLine"), " with ", InfoIcon, InfoText("mixed"), " ", ErrorText("styles")))
+	blocks.Print(InfoLine, "info line")
+	blocks.Print(InfoWithValue("info line"), "value")
+	blocks.Print(SuccessLine, "success line")
+	blocks.Print(WarningLine, "warning line")
+	blocks.Print(ErrorLine, "Error line")
+	blocks.Print(SelectLine, "Select line")
 	fmt.Println("========= texts block end =========")
 }
 
@@ -138,7 +136,7 @@ func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
 		return
 	}
 
-	blocks.PrintInfo(InfoWithValueLine("selected", tableData[line][0]))
+	blocks.Print(InfoWithValue("selected"), tableData[line][0])
 
 	fmt.Println("========= table single selection end =========")
 	fmt.Println("========= table multi selection block =========")
@@ -159,13 +157,13 @@ func tables(ctx context.Context, blocks uxBlock.UxBlocks) {
 	}
 
 	for _, line := range lines {
-		blocks.PrintInfo(InfoWithValueLine("selected", tableData[line][0]))
+		blocks.Print(InfoWithValue("selected"), tableData[line][0])
 	}
 
 	fmt.Println("========= table multi selection end =========")
 	fmt.Println("========= print table block =========")
 
-	blocks.PrintInfo(InfoLine("printing table"))
+	blocks.Print(InfoLine, "printing table")
 	fmt.Println(table.Render(body, table.WithHeader(header)))
 
 	fmt.Println("========= print table block end =========")

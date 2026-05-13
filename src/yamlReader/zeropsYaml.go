@@ -75,7 +75,7 @@ func ReadZeropsYamlContent(uxBlocks uxBlock.UxBlocks, selectedWorkingDir string,
 		for _, path := range pathsToCheck {
 			zeropsYamlStat, err := os.Stat(path)
 			if err == nil {
-				uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployZeropsYamlFound, path)))
+				uxBlocks.Print(styles.InfoLine, i18n.T(i18n.PushDeployZeropsYamlFound, path))
 
 				if zeropsYamlStat.Size() == 0 {
 					return "", errors.New(i18n.T(i18n.PushDeployZeropsYamlEmpty))

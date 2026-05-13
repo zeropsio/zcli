@@ -27,7 +27,7 @@ func logoutCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.LogoutVpnDisconnecting)))
+			uxBlocks.Print(styles.InfoLine, i18n.T(i18n.LogoutVpnDisconnecting))
 			vpnActive, err := wg.InterfaceExists()
 			if err != nil {
 				return err
@@ -35,7 +35,7 @@ func logoutCmd() *cmdBuilder.Cmd {
 			if vpnActive {
 				_ = disconnectVpn(ctx, uxBlocks, false, false)
 			}
-			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LogoutSuccess)))
+			uxBlocks.Print(styles.SuccessLine, i18n.T(i18n.LogoutSuccess))
 
 			return nil
 		})
