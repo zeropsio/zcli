@@ -137,6 +137,34 @@ func TestWithSpinner_AlreadyCanceledContext(t *testing.T) {
 	require.ErrorIs(t, observedErr, context.Canceled)
 }
 
+func TestSetHeader_StoresAndClears(t *testing.T) {
+	// The header is a simple persistent field; tested via the public
+	// setter and observed through the unexported field (same package).
+	b := newTestBlocks()
+	require.Empty(t, b.header)
+
+	b.SetHeader("project=demo  service=api")
+	require.Equal(t, "project=demo  service=api", b.header)
+
+	b.SetHeader("")
+	require.Empty(t, b.header, "SetHeader(\"\") clears the header")
+}
+
+func TestWithSpinner_HeaderSurvivesAcrossCalls(t *testing.T) {
+	// Pin the documented contract: SetHeader is sticky, multiple
+	// WithSpinner calls in a row all see it. Verified at the Blocks
+	// level since the rendered output is non-terminal mode no-op.
+	b := newTestBlocks()
+	b.SetHeader("scope")
+
+	for range 3 {
+		err := b.WithSpinner(context.Background(), SpinnerSpec{Message: "x"},
+			func(_ SpinnerHandle) error { return nil })
+		require.NoError(t, err)
+		require.Equal(t, "scope", b.header, "header must persist across WithSpinner calls")
+	}
+}
+
 func TestWithSpinner_ClosureCompletesInBoundedTime(t *testing.T) {
 	// Belt-and-braces: WithSpinner must return promptly once the
 	// closure returns, not hang waiting for some unrelated signal.
