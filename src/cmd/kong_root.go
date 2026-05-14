@@ -4,5 +4,6 @@ package cmd
 // (cobra) into here one at a time during phase 3. When every command lives
 // here, ExecuteCmd flips to kong and rootCmd() goes away.
 type kongRootCLI struct {
+	Login   LoginCmd   `cmd:"" help:"Login into Zerops with generated Zerops token"`
 	Version VersionCmd `cmd:"" help:"Print zcli version."`
 }
