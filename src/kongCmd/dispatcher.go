@@ -122,18 +122,32 @@ func RunRootCmd(cli any, opts RunOptions) int {
 	if args == nil {
 		args = os.Args[1:]
 	}
-	kctx, err := parser.Parse(args)
-	if err != nil {
-		return errorExitCode(err, uxBlocks)
+
+	// Empty-args special case: kong's parser rejects "no subcommand" before
+	// any flag hooks fire, so we can't rely on the "leaf == nil" branch
+	// below. Run the root's welcome (if implemented) and then trigger the
+	// help printer via the --help hook so the user sees the same output
+	// they'd get from `zcli --help` once one of the commands is supplied.
+	if len(args) == 0 {
+		if runner, ok := cli.(Runner); ok {
+			if err := runner.Run(ctx, d); err != nil {
+				return errorExitCode(err, uxBlocks)
+			}
+		}
+		_, _ = parser.Parse([]string{"--help"})
+		return 0
 	}
+
+	kctx, err := parser.Parse(args)
 	if helpShown {
 		return 0
+	}
+	if err != nil {
+		return errorExitCode(err, uxBlocks)
 	}
 
 	leaf := kctx.Selected()
 	if leaf == nil {
-		// No subcommand selected. If the root grammar struct implements
-		// Runner, call it (welcome path), then render the help below.
 		if runner, ok := cli.(Runner); ok {
 			if err := runner.Run(ctx, d); err != nil {
 				return errorExitCode(err, uxBlocks)
