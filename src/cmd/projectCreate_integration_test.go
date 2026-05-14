@@ -48,7 +48,7 @@ func TestProjectCreate_PostsProjectAndRendersTemplate(t *testing.T) {
 		"description": nil,
 	})
 
-	res := f.Run(nil,
+	res := f.RunKong(nil,
 		"project", "create",
 		"--name", "demo-project",
 		"--org-id", projectCreateOrgID,
