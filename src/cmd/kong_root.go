@@ -13,4 +13,5 @@ type kongRootCLI struct {
 	ShowDebugLogs ShowDebugLogsCmd `cmd:"show-debug-logs" help:"Display zcli debug logs."`
 	Support       SupportCmd       `cmd:"" help:"Display Zerops contact info."`
 	Version       VersionCmd       `cmd:"" help:"Print zcli version."`
+	Vpn           VpnCmd           `cmd:"" help:"VPN commands group."`
 }
