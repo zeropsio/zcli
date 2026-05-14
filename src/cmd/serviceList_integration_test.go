@@ -55,7 +55,7 @@ func TestServiceList_RendersServiceTable(t *testing.T) {
 		})
 	})
 
-	res := f.Run(nil, "service", "list", "--project-id", serviceListProjID)
+	res := f.RunKong(nil, "service", "list", "--project-id", serviceListProjID)
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "api", "service name should appear in the table")

@@ -9,6 +9,7 @@ type kongRootCLI struct {
 	Logout        LogoutCmd        `cmd:"" help:"Disconnect from VPN and log out from your Zerops account"`
 	Project       ProjectCmd       `cmd:"" help:"Project commands group"`
 	Scope         ScopeCmd         `cmd:"" help:"Scope commands group"`
+	Service       ServiceCmd       `cmd:"" help:"Service commands group"`
 	ShowDebugLogs ShowDebugLogsCmd `cmd:"show-debug-logs" help:"Display zcli debug logs."`
 	Support       SupportCmd       `cmd:"" help:"Display Zerops contact info."`
 	Version       VersionCmd       `cmd:"" help:"Print zcli version."`
