@@ -101,11 +101,20 @@ func RunRootCmd(cli any, opts RunOptions) int {
 		d.Auth = newAuth(d, zeropsRestApiClient.NewAuthorizedClient(token, host), store.Data().ProjectVpnKeyRegistry)
 	}
 
+	// Help printer flips this on; we then skip dispatch and return 0. Kong's
+	// helpFlag BeforeReset calls ctx.Kong.Exit(0) — but our Exit override is
+	// a no-op (we own exit codes), so without this flag we'd fall through and
+	// run the selected command's Run after already printing help.
+	helpShown := false
 	parser, err := kong.New(cli,
 		kong.Name("zcli"),
 		kong.Resolvers(cfg),
 		kong.Writers(stdout, stderr),
-		kong.Exit(func(int) {}), // we own the exit code via the int return
+		kong.Help(func(opts kong.HelpOptions, kctx *kong.Context) error {
+			helpShown = true
+			return Help(opts, kctx)
+		}),
+		kong.Exit(func(int) {}),
 	)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
@@ -118,6 +127,9 @@ func RunRootCmd(cli any, opts RunOptions) int {
 	kctx, err := parser.Parse(args)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
+	}
+	if helpShown {
+		return 0
 	}
 
 	leaf := kctx.Selected()
