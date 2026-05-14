@@ -17,23 +17,34 @@ type Runner interface {
 	Run(ctx context.Context, d *CmdData) error
 }
 
-// CmdData is the shared context every command receives. Auth is nil when
-// the user has no token; commands that need REST access call RequireAuth().
+// CmdData is the shared context every command receives. The authentication
+// handle is unexported; commands reach it through Auth() (presence check)
+// or RequireAuth() (error on absence).
 type CmdData struct {
 	CliStorage        *cliStorage.Handler
 	UxBlocks          *uxBlock.Blocks
 	Stdout            printer.Printer
 	Stderr            printer.Printer
-	Config            *Config
 	LocalZcliYamlFile string
-	Auth              *Auth
+
+	auth *Auth
+}
+
+// Auth returns the active authentication handle and a presence flag. Use
+// when the command behaves differently for guests but doesn't need to error
+// (the no-subcommand welcome is the canonical example).
+func (d *CmdData) Auth() (*Auth, bool) {
+	if d.auth == nil {
+		return nil, false
+	}
+	return d.auth, true
 }
 
 // RequireAuth returns the active Auth or an error if the user is not
 // authenticated. Commands that need REST access start with this call.
 func (d *CmdData) RequireAuth() (*Auth, error) {
-	if d.Auth == nil {
+	if d.auth == nil {
 		return nil, errors.New(i18n.T(i18n.UnauthenticatedUser))
 	}
-	return d.Auth, nil
+	return d.auth, nil
 }

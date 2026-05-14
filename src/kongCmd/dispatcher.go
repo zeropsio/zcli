@@ -84,7 +84,6 @@ func RunRootCmd(cli any, opts RunOptions) int {
 		UxBlocks:          uxBlocks,
 		Stdout:            printer.NewPrinter(stdout),
 		Stderr:            printer.NewPrinter(stderr),
-		Config:            cfg,
 		LocalZcliYamlFile: localFileOrEmpty(cfg),
 	}
 
@@ -97,7 +96,7 @@ func RunRootCmd(cli any, opts RunOptions) int {
 		if host == "" {
 			host = constants.DefaultRegion
 		}
-		d.Auth = newAuth(d, zeropsRestApiClient.NewAuthorizedClient(token, host), store.Data().ProjectVpnKeyRegistry)
+		d.auth = newAuth(d, zeropsRestApiClient.NewAuthorizedClient(token, host), store.Data().ProjectVpnKeyRegistry)
 	}
 
 	// Help printer flips this on; we then skip dispatch and return 0. Kong's

@@ -37,13 +37,14 @@ type kongRootCLI struct {
 // the appropriate welcome (guest vs logged-in) — help is appended by the
 // dispatcher after we return.
 func (*kongRootCLI) Run(ctx context.Context, d *kongCmd.CmdData) error {
-	if d.Auth == nil {
+	auth, loggedIn := d.Auth()
+	if !loggedIn {
 		d.Stdout.PrintLines(i18n.T(i18n.GuestWelcome), printer.EmptyLine)
 		return nil
 	}
 
 	loggedUser := "anonymous"
-	if info, err := d.Auth.RestApiClient.GetUserInfo(ctx); err != nil {
+	if info, err := auth.RestApiClient.GetUserInfo(ctx); err != nil {
 		loggedUser = err.Error()
 	} else if out, err := info.Output(); err != nil {
 		loggedUser = err.Error()
@@ -52,7 +53,7 @@ func (*kongRootCLI) Run(ctx context.Context, d *kongCmd.CmdData) error {
 	}
 
 	if storedID, set := d.CliStorage.Data().ScopeProjectId.Get(); set {
-		project, err := repository.GetProjectById(ctx, d.Auth.RestApiClient, storedID)
+		project, err := repository.GetProjectById(ctx, auth.RestApiClient, storedID)
 		switch {
 		case err != nil && errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)):
 			if _, err := d.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
