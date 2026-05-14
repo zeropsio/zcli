@@ -14,7 +14,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/zeropsio/zcli/src/cliStorage"
-	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/kongCmd"
 	"github.com/zeropsio/zcli/src/region"
@@ -107,31 +106,9 @@ type result struct {
 	ExitCode int
 }
 
-// Run executes the CLI in-process with the given args via the legacy cobra
-// path. ctx defaults to context.Background() when nil.
-//
-// Once a command has migrated to kong (phase 3), its integration test should
-// call RunKong instead — the kong dispatcher is what runs in production after
-// phase 4.
+// Run drives the in-process CLI through the kong dispatcher and the
+// kongRootCLI grammar. ctx defaults to context.Background() when nil.
 func (f *fixture) Run(ctx context.Context, args ...string) result {
-	f.t.Helper()
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	var stdout, stderr bytes.Buffer
-	code := cmdBuilder.RunRootCmd(rootCmd(), cmdBuilder.RunOptions{
-		Ctx:    ctx,
-		Args:   args,
-		Stdout: &stdout,
-		Stderr: &stderr,
-	})
-	return result{Stdout: stdout.String(), Stderr: stderr.String(), ExitCode: code}
-}
-
-// RunKong drives the in-process CLI through the kong dispatcher and the
-// kongRootCLI grammar. Use this for integration tests covering commands that
-// have already migrated. ctx defaults to context.Background() when nil.
-func (f *fixture) RunKong(ctx context.Context, args ...string) result {
 	f.t.Helper()
 	if ctx == nil {
 		ctx = context.Background()
@@ -144,6 +121,11 @@ func (f *fixture) RunKong(ctx context.Context, args ...string) result {
 		Stderr: &stderr,
 	})
 	return result{Stdout: stdout.String(), Stderr: stderr.String(), ExitCode: code}
+}
+
+// RunKong is the legacy alias from the migration. New tests use Run.
+func (f *fixture) RunKong(ctx context.Context, args ...string) result {
+	return f.Run(ctx, args...)
 }
 
 // LoadStorage reads back the persisted cliStorage data — useful for asserting

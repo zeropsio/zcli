@@ -1,26 +1,10 @@
 package cmd
 
-import (
-	"fmt"
-	"strings"
+import "github.com/zeropsio/zcli/src/kongCmd"
 
-	"github.com/zeropsio/zcli/src/gn"
-)
-
-func enumDefaultForFlag[T ~string](in T) string {
-	s := string(in)
-	s = strings.ToLower(s)
-	return s
-}
-
-func enumValuesForFlag[T ~string](values []T) string {
-	v := gn.TransformSlice(
-		values,
-		func(in T) string {
-			s := string(in)
-			s = strings.ToLower(s)
-			return s
-		},
-	)
-	return fmt.Sprintf("[%s]", strings.Join(v, ", "))
+// ExecuteCmd is the binary entry point. Routes through the kong dispatcher
+// against the kongRootCLI grammar. The cobra-era root + cmdBuilder linger
+// for `project scope` only — that one gets retired in a future refactor.
+func ExecuteCmd() {
+	kongCmd.ExecuteRootCmd(&kongRootCLI{})
 }
