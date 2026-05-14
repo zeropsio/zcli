@@ -23,7 +23,7 @@ import (
 func TestEnvCommand_PrintsPathsInTable(t *testing.T) {
 	f := newFixture(t)
 
-	res := f.Run(nil, "env")
+	res := f.RunKong(nil, "env")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "Path to a log file",
