@@ -29,8 +29,7 @@ import (
 )
 
 // RunOptions controls how RunRootCmd executes. Zero value matches production
-// defaults used by ExecuteRootCmd. Shape mirrors cmdBuilder.RunOptions so the
-// integration test fixture migrates with a one-line import change.
+// defaults used by ExecuteRootCmd.
 type RunOptions struct {
 	//nolint:containedctx // intentional: callers (tests, ExecuteRootCmd) pass the root ctx by value
 	Ctx    context.Context

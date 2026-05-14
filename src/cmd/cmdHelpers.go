@@ -1,16 +1,6 @@
-// Helpers extracted from the cobra-side command files. These survive the
-// cobra → kong cutover because the kong commands still depend on them.
-//
-// Sourced from (pre-deletion):
-//   - disconnectVpn, isVpnUp, vpnCheckAddress: vpnDown.go / vpnUp.go
-//   - getLoginRegion: login.go
-//   - guestInfoPart: env.go
-//   - Env (struct): projectEnv.go
-//   - maxEnvFileSize (const): serviceCreate.go
-//
-// Will fold back into the migrated command files (or get dropped) when the
-// remaining cobra cmdBuilder framework retires — which is gated on
-// `project scope` migrating.
+// Helpers shared across multiple kong commands. Folded out of the cobra
+// files when those files retired. Each helper has a single conceptual home
+// but multiple callers, so we keep them centralized here.
 
 package cmd
 
@@ -47,6 +37,7 @@ type Env struct {
 	Key, Value string
 }
 
+// disconnectVpn brings WireGuard down. Shared by vpn down/clear, logout.
 func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks, dnsSetup, checkInstallation bool) error {
 	if err := wg.CheckWgInstallation(checkInstallation, dnsSetup); err != nil {
 		return err
@@ -69,6 +60,7 @@ func disconnectVpn(ctx context.Context, uxBlocks uxBlock.UxBlocks, dnsSetup, che
 	return nil
 }
 
+// isVpnUp pings vpnCheckAddress up to attempts times with a 500ms gap.
 func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 	err := uxHelpers.ProcessCheckWithSpinner(ctx, uxBlocks, []uxHelpers.Process{{
 		F: func(ctx context.Context, _ *uxHelpers.Process) error {
@@ -85,6 +77,8 @@ func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 	return err == nil
 }
 
+// getLoginRegion picks the region for `zcli login`. Default region first,
+// flag match second, interactive picker otherwise (TTY only).
 func getLoginRegion(
 	ctx context.Context,
 	uxBlocks uxBlock.UxBlocks,
@@ -135,6 +129,8 @@ func getLoginRegion(
 	return reg, nil
 }
 
+// guestInfoPart appends rows describing the currently-resolved file paths
+// (cliStorage, log, wg) to the table body. Used by `zcli env`.
 func guestInfoPart(tableBody *table.Body) {
 	cliDataFilePath, _, err := constants.CliDataFilePath()
 	if err != nil {

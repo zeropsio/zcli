@@ -6,7 +6,7 @@
 // All integration tests build under the `devel` build tag (so the
 // production-version-check HTTP call from src/version is stubbed to a no-op)
 // and run via `make test-integration`. They drive the CLI in-process through
-// cmdBuilder.RunRootCmd, point the REST client at an httptest.Server, and
+// kongCmd.RunRootCmd, point the REST client at an httptest.Server, and
 // isolate per-test state by setting ZEROPS_CLI_DATA_FILE_PATH,
 // ZEROPS_CLI_LOG_FILE_PATH, and ZEROPS_CLI_YAML_FILE_PATH to per-test temp
 // files. yamlReader's package-level cache is reset before and after each
