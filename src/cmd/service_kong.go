@@ -6,6 +6,7 @@ type ServiceCmd struct {
 	Delete          ServiceDeleteCmd          `cmd:"" help:"Delete the scoped service."`
 	EnableSubdomain ServiceEnableSubdomainCmd `cmd:"enable-subdomain" help:"Enable zerops subdomain for the scoped service."`
 	List            ServiceListCmd            `cmd:"" help:"List of all services in the scoped project."`
+	Log             ServiceLogCmd             `cmd:"" help:"Stream logs from the scoped service."`
 	Start           ServiceStartCmd           `cmd:"" help:"Start the scoped service."`
 	Stop            ServiceStopCmd            `cmd:"" help:"Stop the scoped service."`
 }
