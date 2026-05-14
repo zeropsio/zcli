@@ -14,8 +14,6 @@ import (
 
 type ParamsReader interface {
 	IsSet(key string) bool
-	HasSet(keys ...string) bool
-	AllSet(keys ...string) bool
 
 	GetString(name string) string
 	GetStringSlice(name string) []string
@@ -71,24 +69,6 @@ func (h *Handler) GetLocalZCliYamlFileName() (string, bool) {
 
 func (h *Handler) Bind(cmd *cobra.Command) {
 	_ = h.viper.BindPFlags(cmd.Flags())
-}
-
-func (h *Handler) HasSet(flags ...string) bool {
-	for _, f := range flags {
-		if h.viper.IsSet(f) {
-			return true
-		}
-	}
-	return false
-}
-
-func (h *Handler) AllSet(flags ...string) bool {
-	for _, f := range flags {
-		if !h.viper.IsSet(f) {
-			return false
-		}
-	}
-	return true
 }
 
 func capitalize(s string) string {

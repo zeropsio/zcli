@@ -1,12 +1,7 @@
 package cmdBuilder
 
 import (
-	"bufio"
 	"context"
-	"strings"
-	"unicode/utf8"
-
-	"github.com/zeropsio/zcli/src/terminal"
 )
 
 type loggedUserRunFunc func(ctx context.Context, cmdData *LoggedUserCmdData) error
@@ -175,7 +170,7 @@ func (c *Cmd) HelpFlag(description string, auxOptions ...FlagOption) *Cmd {
 func (c *Cmd) addFlag(name string, defaultValue interface{}, description string, auxOptions ...FlagOption) *Cmd {
 	cfg := cmdFlag{
 		name:         name,
-		description:  warpStringForTerminal(description),
+		description:  description,
 		defaultValue: defaultValue,
 	}
 	for _, opt := range auxOptions {
@@ -184,37 +179,4 @@ func (c *Cmd) addFlag(name string, defaultValue interface{}, description string,
 
 	c.flags = append(c.flags, cfg)
 	return c
-}
-
-func warpStringForTerminal(s string) string {
-	width, _ := terminal.GetSize()
-	if width < 0 {
-		return s
-	}
-	maxRunes := min(70, uint(float64(width)*.30))
-	return warpString(s, maxRunes)
-}
-
-// warpString wraps string after num of runes (excluding space as rune), keeping words intact
-func warpString(s string, runeCutCount uint) string {
-	if s == "" {
-		return ""
-	}
-	output := strings.Builder{}
-	scanner := bufio.NewScanner(strings.NewReader(s))
-	scanner.Split(bufio.ScanWords)
-	var runeCount uint
-	for scanner.Scan() {
-		//nolint:gosec
-		runeCount += uint(utf8.RuneCount(scanner.Bytes()))
-		if runeCount >= runeCutCount {
-			runeCount = 0
-			output.WriteString(scanner.Text())
-			output.WriteRune('\n')
-			continue
-		}
-		output.WriteString(scanner.Text())
-		output.WriteRune(' ')
-	}
-	return output.String()[:output.Len()-1]
 }

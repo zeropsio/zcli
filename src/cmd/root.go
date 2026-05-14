@@ -57,7 +57,6 @@ func rootCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			// TODO: krls - check whole block
 			if cmdData.CliStorage.Data().ScopeProjectId.Filled() {
 				// project scope is set
 				projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
