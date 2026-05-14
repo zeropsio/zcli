@@ -6,6 +6,7 @@ package cmd
 type kongRootCLI struct {
 	Login         LoginCmd         `cmd:"" help:"Login into Zerops with generated Zerops token"`
 	Logout        LogoutCmd        `cmd:"" help:"Disconnect from VPN and log out from your Zerops account"`
+	Project       ProjectCmd       `cmd:"" help:"Project commands group"`
 	Scope         ScopeCmd         `cmd:"" help:"Scope commands group"`
 	ShowDebugLogs ShowDebugLogsCmd `cmd:"show-debug-logs" help:"Display zcli debug logs."`
 	Support       SupportCmd       `cmd:"" help:"Display Zerops contact info."`
