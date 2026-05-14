@@ -39,7 +39,7 @@ func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
 
 	s := registerPushStubs(t, f, "backend")
 
-	res := f.Run(nil,
+	res := f.RunKong(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -169,7 +169,7 @@ func TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE(t *testing
 
 	// Run WITHOUT --disable-logs so the log-streaming callback fires and the
 	// nil-deref on apiProcess.AppVersion is reached.
-	res := f.Run(nil,
+	res := f.RunKong(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
