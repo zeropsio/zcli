@@ -134,7 +134,14 @@ func RunRootCmd(cli any, opts RunOptions) int {
 
 	leaf := kctx.Selected()
 	if leaf == nil {
-		// no subcommand: kong prints help by default — nothing to dispatch
+		// No subcommand selected. If the root grammar struct implements
+		// Runner, call it (welcome path), then render the help below.
+		if runner, ok := cli.(Runner); ok {
+			if err := runner.Run(ctx, d); err != nil {
+				return errorExitCode(err, uxBlocks)
+			}
+		}
+		_ = Help(kong.HelpOptions{}, kctx)
 		return 0
 	}
 
