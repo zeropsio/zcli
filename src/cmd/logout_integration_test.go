@@ -15,7 +15,7 @@ func TestLogoutCommand_ClearsStorageAndPrintsSuccess(t *testing.T) {
 
 	f.HandleJSON("/api/rest/public/auth/logout", 200, map[string]any{})
 
-	res := f.Run(nil, "logout")
+	res := f.RunKong(nil, "logout")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "Successfully logged out",
