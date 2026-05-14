@@ -4,5 +4,6 @@ package cmd
 // phase 3 progresses.
 type ProjectCmd struct {
 	Create ProjectCreateCmd `cmd:"" help:"Creates a new project for specified org."`
+	Delete ProjectDeleteCmd `cmd:"" help:"Deletes the selected project."`
 	List   ProjectListCmd   `cmd:"" help:"List of all imported projects."`
 }
