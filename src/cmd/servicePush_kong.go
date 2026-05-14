@@ -58,7 +58,7 @@ func (c *ServicePushCmd) Run(ctx context.Context, d *kongCmd.CmdData) error {
 	if err != nil {
 		return err
 	}
-	project, err := auth.RequireProject(ctx, c.ProjectScope)
+	project, err := auth.RequireProject(ctx, c.ServiceScope.ProjectScope)
 	if err != nil {
 		return err
 	}
