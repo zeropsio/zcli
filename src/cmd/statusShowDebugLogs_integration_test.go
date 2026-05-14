@@ -21,7 +21,7 @@ func TestShowDebugLogs_TailsExistingFile(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Dir(logPath), 0o700))
 	require.NoError(t, os.WriteFile(logPath, []byte("first\nsecond\nthird\n"), 0o600))
 
-	res := f.RunKong(nil, "show-debug-logs")
+	res := f.Run(nil, "show-debug-logs")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "second", "expected log line to be tailed")
@@ -41,7 +41,7 @@ func TestShowDebugLogs_EmptyFileExitsZero(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Dir(logPath), 0o700))
 	require.NoError(t, os.WriteFile(logPath, []byte{}, 0o600))
 
-	res := f.RunKong(nil, "show-debug-logs")
+	res := f.Run(nil, "show-debug-logs")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 }

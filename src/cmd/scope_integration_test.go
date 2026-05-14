@@ -27,7 +27,7 @@ func TestScopeProject_PersistsByID(t *testing.T) {
 		"description": nil,
 	})
 
-	res := f.RunKong(nil, "scope", "project", scopeProjectID)
+	res := f.Run(nil, "scope", "project", scopeProjectID)
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "demo-project", "selected-project info should reference the persisted project")
@@ -42,7 +42,7 @@ func TestScopeReset_ClearsPersistedScope(t *testing.T) {
 	f := newFixture(t)
 	f.SeedScopedLogin("test-token", scopeProjectID)
 
-	res := f.RunKong(nil, "scope", "reset")
+	res := f.Run(nil, "scope", "reset")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "Scope was reset", "reset message should appear")

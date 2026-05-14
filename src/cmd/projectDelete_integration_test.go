@@ -64,7 +64,7 @@ func TestProjectDelete_DeletesViaFlagAndWaitsForProcess(t *testing.T) {
 		"lastUpdate": "2024-01-01T00:00:00.000Z",
 	})
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"project", "delete",
 		"--project-id", projectDeleteID,
 		"--confirm",

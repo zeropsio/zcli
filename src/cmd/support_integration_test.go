@@ -12,7 +12,7 @@ import (
 func TestSupportCommand_PrintsContactInfo(t *testing.T) {
 	f := newFixture(t)
 
-	res := f.RunKong(nil, "support")
+	res := f.Run(nil, "support")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "team@zerops.io", "email contact must appear")

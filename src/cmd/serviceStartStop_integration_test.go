@@ -79,7 +79,7 @@ func TestServiceStart(t *testing.T) {
 		"stack.start", "FINISHED",
 	)
 
-	res := f.RunKong(nil, "service", "start", "--service-id", serviceLifecycleServiceID)
+	res := f.Run(nil, "service", "start", "--service-id", serviceLifecycleServiceID)
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "api", "selected-service info should appear")
@@ -93,7 +93,7 @@ func TestServiceStop(t *testing.T) {
 		"stack.stop", "FINISHED",
 	)
 
-	res := f.RunKong(nil, "service", "stop", "--service-id", serviceLifecycleServiceID)
+	res := f.Run(nil, "service", "stop", "--service-id", serviceLifecycleServiceID)
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 }
@@ -106,7 +106,7 @@ func TestServiceEnableSubdomain(t *testing.T) {
 		"stack.enableSubdomain", "FINISHED",
 	)
 
-	res := f.RunKong(nil, "service", "enable-subdomain", "--service-id", serviceLifecycleServiceID)
+	res := f.Run(nil, "service", "enable-subdomain", "--service-id", serviceLifecycleServiceID)
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 }

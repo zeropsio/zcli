@@ -106,7 +106,7 @@ func TestServicePushCommand_GitNotInitializedErrors(t *testing.T) {
 
 	registerPushStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -130,7 +130,7 @@ func TestServicePushCommand_GitZeroCommitsErrors(t *testing.T) {
 
 	registerPushStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -158,7 +158,7 @@ func TestServicePushCommand_GitArchive_CommittedFilesUploaded(t *testing.T) {
 
 	s := registerPushStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -191,7 +191,7 @@ func TestServicePushCommand_GitArchive_WorkspaceCleanIgnoresUncommitted(t *testi
 
 	s := registerPushStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -223,7 +223,7 @@ func TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir(t *testing.
 
 	s := registerPushStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -270,7 +270,7 @@ func TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged(t
 
 	s := registerPushStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -308,7 +308,7 @@ func TestServicePushCommand_GitArchive_WorkspaceAllIncludesUncommitted(t *testin
 	s := registerPushStubs(t, f, "demo")
 
 	// Omitting --workspace-state defaults to "all".
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,

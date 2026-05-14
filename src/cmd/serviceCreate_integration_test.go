@@ -92,7 +92,7 @@ func TestServiceCreate_CreatesAndRendersTemplate(t *testing.T) {
 	// After spinner: GET /service-stack/<id> to refresh.
 	f.HandleJSON("/api/rest/public/service-stack/"+serviceCreateSvcID, 200, svcBody)
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "create",
 		"--project-id", serviceCreateProjID,
 		"--name", "new-api",

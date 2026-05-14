@@ -24,7 +24,7 @@ func TestServiceDeployCommand_HappyPath(t *testing.T) {
 
 	s := registerDeployStubs(t, f, "demo")
 
-	res := f.RunKong(nil,
+	res := f.Run(nil,
 		"service", "deploy",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,

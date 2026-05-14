@@ -64,7 +64,7 @@ func TestServiceLog_ShowBuildLogsNoBuild(t *testing.T) {
 		"items":     []map[string]any{},
 	})
 
-	res := f.RunKong(nil, "service", "log",
+	res := f.Run(nil, "service", "log",
 		"--service-id", serviceLogSvcID,
 		"--show-build-logs",
 	)

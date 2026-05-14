@@ -77,7 +77,7 @@ func TestServiceDelete_DeletesAndPollsProcess(t *testing.T) {
 		"lastUpdate": "2024-01-01T00:00:00.000Z",
 	})
 
-	res := f.RunKong(nil, "service", "delete", "--service-id", serviceDeleteSvcID, "--confirm")
+	res := f.Run(nil, "service", "delete", "--service-id", serviceDeleteSvcID, "--confirm")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "doomed-service", "selected-service info should appear")

@@ -123,11 +123,6 @@ func (f *fixture) Run(ctx context.Context, args ...string) result {
 	return result{Stdout: stdout.String(), Stderr: stderr.String(), ExitCode: code}
 }
 
-// RunKong is the legacy alias from the migration. New tests use Run.
-func (f *fixture) RunKong(ctx context.Context, args ...string) result {
-	return f.Run(ctx, args...)
-}
-
 // LoadStorage reads back the persisted cliStorage data — useful for asserting
 // that a command updated state on disk.
 func (f *fixture) LoadStorage() cliStorage.Data {
