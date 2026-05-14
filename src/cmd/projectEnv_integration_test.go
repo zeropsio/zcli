@@ -39,7 +39,7 @@ func TestProjectEnv_RendersTemplatePerLine(t *testing.T) {
 		})
 	})
 
-	res := f.Run(nil, "project", "env", "--project-id", projectEnvProjID)
+	res := f.RunKong(nil, "project", "env", "--project-id", projectEnvProjID)
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q stdout=%q", res.Stderr, res.Stdout)
 	assert.Contains(t, res.Stdout, "FOO=bar")
