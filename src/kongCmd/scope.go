@@ -27,9 +27,21 @@ func WithCreateNewProject() ProjectOpt  { return func(c *projectReqCfg) { c.crea
 func WithSkipSelectProject() ProjectOpt { return func(c *projectReqCfg) { c.skipSelect = true } }
 
 type serviceReqCfg struct {
-	createNew bool
+	createNew      bool
+	workingDir     string
+	zeropsYamlPath string
 }
 
 type ServiceOpt func(*serviceReqCfg)
 
-func WithCreateNewService() ServiceOpt { return func(c *serviceReqCfg) { c.createNew = true } }
+// WithCreateNewService enables the interactive create-new flow when no
+// existing service matches. workingDir + zeropsYamlPath are needed because
+// the create flow reads service setup names from zerops.yaml to suggest as
+// service name auto-completions.
+func WithCreateNewService(workingDir, zeropsYamlPath string) ServiceOpt {
+	return func(c *serviceReqCfg) {
+		c.createNew = true
+		c.workingDir = workingDir
+		c.zeropsYamlPath = zeropsYamlPath
+	}
+}

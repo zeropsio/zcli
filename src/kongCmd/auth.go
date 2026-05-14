@@ -14,6 +14,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/models/input"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
@@ -222,11 +223,11 @@ func (a *Auth) RequireService(ctx context.Context, scope ServiceScope, opts ...S
 	if selected.Filled() {
 		a.setService(selected.Some())
 	} else if cfg.createNew && terminal.IsTerminal() {
-		// create-new flow lives in service-deploy/-push and uses
-		// zerops.yaml. Surface a clear error for now; those commands will
-		// wire a `WithCreateNewServiceConfig(workingDir, zeropsYaml)`
-		// option when they migrate.
-		return entity.Service{}, errNotImplemented("Auth.RequireService create-new flow")
+		svc, err := a.createNewService(ctx, project, cfg.workingDir, cfg.zeropsYamlPath)
+		if err != nil {
+			return entity.Service{}, err
+		}
+		a.setService(svc)
 	}
 
 	a.printServiceOnce()
@@ -304,6 +305,71 @@ func (a *Auth) createNewProject(ctx context.Context) (entity.Project, error) {
 
 	a.parent.UxBlocks.PrintSuccessText("Project created")
 	return project, nil
+}
+
+// createNewService runs the interactive new-service flow: read zerops.yaml
+// for setup-name suggestions, prompt the user, POST a fresh service to the
+// project, poll the resulting Process, and return the refreshed Service.
+// Caller is responsible for setting it on Auth.
+func (a *Auth) createNewService(ctx context.Context, project entity.Project, workingDir, zeropsYamlPath string) (entity.Service, error) {
+	configContent, err := yamlReader.ReadZeropsYamlContent(a.parent.UxBlocks, workingDir, zeropsYamlPath)
+	if err != nil {
+		return entity.Service{}, err
+	}
+	setups, err := yamlReader.ReadZeropsYamlSetups(configContent)
+	if err != nil {
+		return entity.Service{}, err
+	}
+
+	label := styles.NewStringBuilder()
+	label.WriteString("Type ")
+	label.WriteStyledString(styles.SelectStyle().Bold(true), "service")
+	label.WriteString(" name")
+
+	name, err := uxBlock.Run(
+		input.NewRoot(
+			ctx,
+			input.WithLabel(label.String()),
+			input.WithHelpPlaceholder(),
+			input.WithPlaceholderStyle(styles.HelpStyle()),
+			input.WithoutPrompt(),
+			input.WithSetSuggestions(setups),
+		),
+		input.GetValueFunc,
+	)
+	if err != nil {
+		return entity.Service{}, err
+	}
+
+	process, service, err := repository.PostGenericService(ctx, a.RestApiClient, entity.PostService{
+		ProjectId: project.Id,
+		Name:      types.NewString(name),
+		Mode:      enum.ServiceStackModeEnumNonHa,
+	})
+	if err != nil {
+		if apiError.HasErrorCode(err, errorCode.ServiceStackNameUnavailable) {
+			existing, err := repository.GetServiceByName(ctx, a.RestApiClient, project.Id, types.NewString(name))
+			if err != nil {
+				return entity.Service{}, err
+			}
+			return existing, nil
+		}
+		return entity.Service{}, err
+	}
+
+	if err := uxHelpers.ProcessCheckWithSpinner(
+		ctx,
+		a.parent.UxBlocks,
+		[]uxHelpers.Process{{
+			F:                   uxHelpers.CheckZeropsProcess(process.Id, a.RestApiClient, a.parent.UxBlocks),
+			RunningMessage:      "Creating service",
+			ErrorMessageMessage: "Service creation failed",
+			SuccessMessage:      "Service created",
+		}},
+	); err != nil {
+		return entity.Service{}, err
+	}
+	return repository.GetServiceById(ctx, a.RestApiClient, service.Id)
 }
 
 func (a *Auth) setProject(p entity.Project) { a.project = optional.New(p) }
