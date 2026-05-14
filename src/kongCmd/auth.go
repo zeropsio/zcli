@@ -135,13 +135,105 @@ func (a *Auth) RequireProject(ctx context.Context, scope ProjectScope, opts ...P
 	return entity.Project{}, nil
 }
 
-// RequireService resolves the active service. Phase 3 stub — implemented
-// when the first service-scoped command migrates.
-func (a *Auth) RequireService(_ context.Context, _ ServiceScope, _ ...ServiceOpt) (entity.Service, error) {
+// RequireService resolves the active service. Lookup order:
+//  1. cached
+//  2. scope.ServiceID flag → fetch by ID, project follows from it
+//  3. scope.ServiceArg as UUID (22 chars) → fetch by ID, project follows
+//  4. RequireProject + scope.ServiceArg as name → fetch by name
+//  5. interactive selector (create-new path not yet implemented; serviceDeploy
+//     and servicePush will add it when they migrate)
+//
+// "Selected service: <name>" prints once per Auth lifetime.
+func (a *Auth) RequireService(ctx context.Context, scope ServiceScope, opts ...ServiceOpt) (entity.Service, error) {
 	if s, ok := a.service.Get(); ok {
 		return s, nil
 	}
-	return entity.Service{}, errNotImplemented("Auth.RequireService")
+	cfg := serviceReqCfg{}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	// 1. --service-id flag wins outright
+	if scope.ServiceID != "" {
+		svc, err := repository.GetServiceById(ctx, a.RestApiClient, uuid.ServiceStackId(scope.ServiceID))
+		if err != nil {
+			return entity.Service{}, errorsx.Convert(err,
+				errorsx.InvalidUserInput(
+					"id",
+					errorsx.InvalidUserInputErrorMessage(
+						func(_ apiError.Error, meta map[string]interface{}) string {
+							return i18n.T(i18n.ErrorInvalidServiceId, scope.ServiceID, meta["message"])
+						},
+					),
+				),
+			)
+		}
+		a.setService(svc)
+		// derive project so subsequent RequireProject in this run is free
+		if !a.project.Filled() {
+			if project, err := repository.GetProjectById(ctx, a.RestApiClient, svc.ProjectId); err == nil {
+				a.setProject(project)
+			}
+		}
+		a.printServiceOnce()
+		return svc, nil
+	}
+
+	// 2. positional that looks like a UUID
+	if len(scope.ServiceArg) == 22 {
+		if svc, err := repository.GetServiceById(ctx, a.RestApiClient, uuid.ServiceStackId(scope.ServiceArg)); err == nil {
+			a.setService(svc)
+			if !a.project.Filled() {
+				if project, err := repository.GetProjectById(ctx, a.RestApiClient, svc.ProjectId); err == nil {
+					a.setProject(project)
+				}
+			}
+			a.printServiceOnce()
+			return svc, nil
+		}
+	}
+
+	// 3. resolve project then look up by name
+	project, err := a.RequireProject(ctx, scope.ProjectScope)
+	if err != nil {
+		return entity.Service{}, err
+	}
+
+	if scope.ServiceArg != "" {
+		svc, err := repository.GetServiceByIdOrName(ctx, a.RestApiClient, project.Id, scope.ServiceArg)
+		if err != nil {
+			return entity.Service{}, err
+		}
+		a.setService(svc)
+		a.printServiceOnce()
+		return svc, nil
+	}
+
+	// 4. interactive selector
+	selected, err := uxHelpers.PrintServiceSelector(
+		ctx,
+		a.RestApiClient,
+		project,
+		uxHelpers.WithCreateNewService(cfg.createNew),
+	)
+	if err != nil {
+		return entity.Service{}, err
+	}
+	if selected.Filled() {
+		a.setService(selected.Some())
+	} else if cfg.createNew && terminal.IsTerminal() {
+		// create-new flow lives in service-deploy/-push and uses
+		// zerops.yaml. Surface a clear error for now; those commands will
+		// wire a `WithCreateNewServiceConfig(workingDir, zeropsYaml)`
+		// option when they migrate.
+		return entity.Service{}, errNotImplemented("Auth.RequireService create-new flow")
+	}
+
+	a.printServiceOnce()
+	if s, ok := a.service.Get(); ok {
+		return s, nil
+	}
+	return entity.Service{}, nil
 }
 
 // SelectProject runs the interactive picker and, if no project is chosen and
@@ -215,6 +307,17 @@ func (a *Auth) createNewProject(ctx context.Context) (entity.Project, error) {
 }
 
 func (a *Auth) setProject(p entity.Project) { a.project = optional.New(p) }
+func (a *Auth) setService(s entity.Service) { a.service = optional.New(s) }
+
+func (a *Auth) printServiceOnce() {
+	if a.servicePrinted {
+		return
+	}
+	if s, ok := a.service.Get(); ok {
+		a.parent.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedService), s.Name.String()))
+	}
+	a.servicePrinted = true
+}
 
 func (a *Auth) printProjectOnce() {
 	if a.projectPrinted {
