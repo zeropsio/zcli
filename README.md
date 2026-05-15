@@ -130,6 +130,31 @@ For more information go through https://docs.zerops.io/references/cli.
 <br/>
 
 
+## Development setup
+
+Prerequisites: **Go 1.26+**, `git`, `make`, and `curl` (used to fetch pinned tooling).
+
+```shell
+git clone https://github.com/zeropsio/zcli && cd zcli
+make tools       # download pinned golangci-lint + goreleaser into ./bin
+make build-dev   # build ./bin/zcli for the host platform
+```
+
+Common targets (run `make help` for the full list):
+
+| Target | What it does |
+|---|---|
+| `make build-dev` | Build `./bin/zcli` with the `devel` tag, no optimizations (dlv-friendly). |
+| `make install` | Build a production `zcli` and install to `~/.local/bin` (same path as `install.sh`). |
+| `make install-dev` | Install a `zcli-dev` binary into `$GOBIN` (or `$GOPATH/bin`). |
+| `make test` | Run the full Go test suite. |
+| `make lint` | Run `golangci-lint` across darwin/arm64, linux/amd64, windows/amd64. |
+| `make all` | Cross-build dev binaries for all release platforms. |
+| `make goreleaser-snapshot` | Dry-run a full release build into `./dist` (no upload). |
+
+Tool versions (`golangci-lint`, `goreleaser`) are pinned at the top of the `Makefile`. Bumping a version triggers an automatic reinstall on next use; run `make clean-tools` to wipe `./bin` and force a fresh install.
+
+
 ## Want to Contribute?
 
 Contributions to zCLI are welcome and highly appreciated. However, We would like you to go through [CONTRIBUTING.md](https://github.com/zeropsio/zcli/blob/main/CONTRIBUTING.md).
