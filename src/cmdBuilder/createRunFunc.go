@@ -60,12 +60,9 @@ func createCmdRunFunc(
 
 		uxBlocks.LogDebug(fmt.Sprintf("Command: %s", cobraCmd.CommandPath()))
 
-		if getVersion.IsVersionCheckMismatch(ctx) {
-			versionCheckMismatch, err := getVersion.GetVersionCheckMismatch(ctx)
-			if err != nil {
-				return err
-			}
-			uxBlocks.PrintWarningText(versionCheckMismatch)
+		go getVersion.RefreshCacheIfStale(ctx)
+		if warning := getVersion.MismatchWarning(); warning != "" {
+			uxBlocks.PrintWarningText(warning)
 		}
 
 		flagParams.Bind(cobraCmd)

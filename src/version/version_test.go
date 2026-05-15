@@ -1,6 +1,10 @@
 package version
 
-import "testing"
+import (
+	"path/filepath"
+	"strings"
+	"testing"
+)
 
 func TestIsUpdateAvailable(t *testing.T) {
 	cases := []struct {
@@ -25,4 +29,54 @@ func TestIsUpdateAvailable(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMismatchWarning(t *testing.T) {
+	savedVersion := version
+	savedChannel := channel
+	t.Cleanup(func() { version = savedVersion; channel = savedChannel })
+
+	dir := t.TempDir()
+	t.Setenv("ZEROPS_CLI_DATA_FILE_PATH", filepath.Join(dir, "cli.data"))
+
+	if err := writeCacheEntry(&apiResponse{TagName: "v1.2.0"}); err != nil {
+		t.Fatalf("seed cache: %v", err)
+	}
+
+	t.Run("non-semver current returns empty", func(t *testing.T) {
+		version = "local"
+		if got := MismatchWarning(); got != "" {
+			t.Errorf("local: want empty, got %q", got)
+		}
+	})
+
+	t.Run("equal versions return empty", func(t *testing.T) {
+		version = "v1.2.0"
+		if got := MismatchWarning(); got != "" {
+			t.Errorf("equal: want empty, got %q", got)
+		}
+	})
+
+	t.Run("channel hint included", func(t *testing.T) {
+		version = "v1.0.0"
+		cases := []struct {
+			stamp string
+			want  string
+		}{
+			{"npm", "npm install -g @zerops/zcli"},
+			{"brew", "brew upgrade zcli"},
+			{"nix", "rebuild your profile or flake"},
+			{"manual", "github.com/zeropsio/zcli"},
+		}
+		for _, tc := range cases {
+			channel = tc.stamp
+			got := MismatchWarning()
+			if !strings.Contains(got, "v1.2.0") || !strings.Contains(got, "v1.0.0") {
+				t.Errorf("channel %q: %q missing version info", tc.stamp, got)
+			}
+			if !strings.Contains(got, tc.want) {
+				t.Errorf("channel %q: %q missing hint %q", tc.stamp, got, tc.want)
+			}
+		}
+	})
 }

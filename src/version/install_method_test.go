@@ -64,18 +64,17 @@ func TestDetectChannelStamp(t *testing.T) {
 }
 
 func TestInstallMethodPackageManager(t *testing.T) {
+	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew, InstallManual} {
+		if m.Hint() == "" {
+			t.Errorf("%v should have a non-empty hint", m)
+		}
+	}
 	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew} {
 		if !m.IsPackageManager() {
 			t.Errorf("%v should be a package manager", m)
 		}
-		if m.Hint() == "" {
-			t.Errorf("%v should have a hint", m)
-		}
 	}
 	if InstallManual.IsPackageManager() {
 		t.Error("InstallManual should not be a package manager")
-	}
-	if InstallManual.Hint() != "" {
-		t.Error("InstallManual should have empty hint")
 	}
 }
