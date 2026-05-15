@@ -2,7 +2,7 @@
 
 BIN := $(CURDIR)/bin
 GOLANGCI_LINT_VERSION := v2.12.0
-GORELEASER_VERSION := v2.5.0
+GORELEASER_VERSION := v2.15.4
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
 # golangci-lint releases use lowercase OS and amd64/arm64 in tarball names.
