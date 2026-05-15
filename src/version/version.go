@@ -1,5 +1,3 @@
-//go:build !devel
-
 package version
 
 import (
@@ -57,6 +55,9 @@ func GetLatestUrl(ctx context.Context) (string, error) {
 }
 
 func PrintVersionCheck(ctx context.Context, out printer.Printer) {
+	if !semver.IsValid(GetCurrent()) {
+		return
+	}
 	latestVersion, err := GetLatest(ctx)
 	if err != nil {
 		out.Printf("zcli latest version check failed\n")
@@ -73,6 +74,9 @@ func PrintVersionCheck(ctx context.Context, out printer.Printer) {
 }
 
 func IsVersionCheckMismatch(ctx context.Context) bool {
+	if !semver.IsValid(GetCurrent()) {
+		return false
+	}
 	latestVersion, err := GetLatest(ctx)
 	if err != nil {
 		return false
@@ -100,22 +104,38 @@ func isUpdateAvailable(current, latest string) bool {
 
 func fetch(ctx context.Context) (*apiResponse, error) {
 	fetchOnce.Do(func() {
-		client := httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Second * 5})
-		resp, err := client.Get(ctx, apiUrl)
+		if entry, err := loadCacheEntry(); err == nil && entry != nil && entry.Fresh() {
+			latestResponse = entry.Response
+			return
+		}
+		resp, err := fetchFromNetwork(ctx)
 		if err != nil {
-			fetchErr = errors.Wrapf(err, "version api request to %s failed", apiUrl)
+			// Stale cache beats no answer at all.
+			if entry, cacheErr := loadCacheEntry(); cacheErr == nil && entry != nil {
+				latestResponse = entry.Response
+				return
+			}
+			fetchErr = err
 			return
 		}
-		if resp.StatusCode != http.StatusOK {
-			fetchErr = errors.Errorf("version api %s returned status %d", apiUrl, resp.StatusCode)
-			return
-		}
-		out := &apiResponse{}
-		if err := json.Unmarshal(resp.Body, out); err != nil {
-			fetchErr = errors.Wrap(err, "version api response could not be decoded")
-			return
-		}
-		latestResponse = out
+		latestResponse = resp
+		_ = writeCacheEntry(resp)
 	})
 	return latestResponse, fetchErr
+}
+
+func fetchFromNetwork(ctx context.Context) (*apiResponse, error) {
+	client := httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Second * 5})
+	resp, err := client.Get(ctx, apiUrl)
+	if err != nil {
+		return nil, errors.Wrapf(err, "version api request to %s failed", apiUrl)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("version api %s returned status %d", apiUrl, resp.StatusCode)
+	}
+	out := &apiResponse{}
+	if err := json.Unmarshal(resp.Body, out); err != nil {
+		return nil, errors.Wrap(err, "version api response could not be decoded")
+	}
+	return out, nil
 }

@@ -1,5 +1,3 @@
-//go:build !devel
-
 package version
 
 import "testing"

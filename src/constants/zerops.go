@@ -19,6 +19,7 @@ const (
 	WgConfigFile              = "zerops.conf"
 	WgInterfaceName           = "zerops"
 	CliDataFileName           = "cli.data"
+	VersionCacheFileName      = "version.cache"
 	CliZcliYamlBaseFileName   = ".zcli"
 	CliZcliYamlFileName       = CliZcliYamlBaseFileName + ".yml"
 	CliDataFilePathEnvVar     = "ZEROPS_CLI_DATA_FILE_PATH"
