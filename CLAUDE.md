@@ -12,6 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make lint` — runs the pinned `./bin/golangci-lint` for darwin/arm64, linux/amd64, and windows/amd64. Config: `.golangci.yaml`.
 - `make build-dev` — build a dev binary for the host into `./bin/zcli` (build tag `devel`, debug-friendly via `-gcflags='all=-l -N'`, version injected from git).
 - `make all` — cross-builds dev binaries for windows-amd, linux-amd, darwin-amd, darwin-arm. Single-target builds: `make linux-amd` etc. All build targets share the `DEV_BUILD` recipe in the Makefile (version metadata, devel tag, gcflags).
+- `make install` — production install into `$GOBIN` (or `$GOPATH/bin`) as `zcli` (stripped, optimized, version from `git describe`). Same flag set as `.goreleaser.yaml`.
+- `make install-dev` — same as `build-dev` but installs to `$GOBIN` as `zcli-dev` so it can coexist on PATH with a production `zcli`.
 - `make goreleaser-check` / `make goreleaser-snapshot` — validate `.goreleaser.yaml` and dry-run a release build to `./dist`.
 - `make tools` — install pinned dev tooling (`golangci-lint`, `goreleaser`) into `./bin`. Versions are declared at the top of the Makefile; bumping them triggers reinstall via stamp files. `make lint` and the goreleaser targets depend on `tools`, so first invocation auto-installs.
 - `make showcase` — runs `src/uxBlock/showcase/main.go` to preview UI elements.

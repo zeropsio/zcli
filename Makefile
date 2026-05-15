@@ -10,7 +10,11 @@ GCI_OS := $(shell echo $(UNAME_S) | tr A-Z a-z)
 GCI_ARCH := $(if $(filter $(UNAME_M),x86_64),amd64,$(if $(filter $(UNAME_M),aarch64),arm64,$(UNAME_M)))
 GCI_DIR := golangci-lint-$(GOLANGCI_LINT_VERSION:v%=%)-$(GCI_OS)-$(GCI_ARCH)
 
-.PHONY: help test test-integration lint all build-dev windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
+.PHONY: help test test-integration lint all build-dev install install-dev windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
+
+# Where `make install` / `make install-dev` puts binaries: GOBIN if set,
+# else GOPATH/bin. The user is expected to have that directory on PATH.
+INSTALL_DIR := $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 
 # Dev-build version metadata (matches what tools/build.sh used to compose).
 DEV_VERSION := $(shell git rev-parse --abbrev-ref HEAD):$(shell git describe --tags 2>/dev/null)-($(shell git config --get user.name):<$(shell git config --get user.email)>)
@@ -18,6 +22,12 @@ DEV_VERSION := $(shell git rev-parse --abbrev-ref HEAD):$(shell git describe --t
 DEV_BUILD := go build -tags devel \
 	-gcflags='all=-l -N' \
 	-ldflags='-X "github.com/zeropsio/zcli/src/version.version=$(DEV_VERSION)"'
+
+# Production build flags mirror what .goreleaser.yaml uses for release builds:
+# optimized, stripped, version from `git describe`, paths trimmed.
+PROD_VERSION := $(shell git describe --tags 2>/dev/null)
+PROD_BUILD := go build -trimpath \
+	-ldflags='-s -w -X github.com/zeropsio/zcli/src/version.version=$(PROD_VERSION)'
 
 # Self-documenting help. Targets are listed in the order they appear here;
 # their description is the text after the '##' on the recipe line.
@@ -58,6 +68,16 @@ darwin-amd: ## Build the darwin/amd64 dev binary.
 
 darwin-arm: ## Build the darwin/arm64 dev binary.
 	GOOS=darwin GOARCH=arm64 $(DEV_BUILD) -o $(BIN)/zcli.darwin.arm64 ./cmd/zcli
+
+##@ Install
+
+install: ## Build a production zcli (stripped, optimized) and install it into $GOBIN.
+	$(PROD_BUILD) -o $(INSTALL_DIR)/zcli ./cmd/zcli
+	@echo "installed $(INSTALL_DIR)/zcli ($(PROD_VERSION))"
+
+install-dev: ## Build a dev zcli-dev (devel tag, debug-friendly) and install it into $GOBIN.
+	$(DEV_BUILD) -o $(INSTALL_DIR)/zcli-dev ./cmd/zcli
+	@echo "installed $(INSTALL_DIR)/zcli-dev"
 
 ##@ Release tooling
 
