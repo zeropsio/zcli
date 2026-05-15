@@ -28,18 +28,18 @@ func (m InstallMethod) String() string {
 	}
 }
 
-// Hint returns the command users should run to upgrade through their install
-// channel. Returns "" for InstallManual — those installs use `zcli upgrade`.
+// Hint returns the one-line upgrade instruction for this install channel.
+// Always non-empty so warnings always tell the user what to do.
 func (m InstallMethod) Hint() string {
 	switch m {
 	case InstallNix:
-		return "rebuild your nix profile or flake"
+		return "Update via Nix: rebuild your profile or flake."
 	case InstallNpm:
-		return "npm install -g @zerops/zcli"
+		return "Update via npm: npm install -g @zerops/zcli"
 	case InstallBrew:
-		return "brew upgrade zcli"
+		return "Update via Homebrew: brew upgrade zcli"
 	default:
-		return ""
+		return "Update via https://github.com/zeropsio/zcli#install-zcli"
 	}
 }
 

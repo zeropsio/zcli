@@ -66,8 +66,15 @@ func writeCacheEntry(resp *apiResponse) error {
 	if err != nil {
 		return errors.Wrap(err, "encode version cache")
 	}
-	if err := os.WriteFile(path, b, 0o644); err != nil {
+	// Write to a sibling tmpfile and rename so a process exit during the
+	// background refresh can't leave a half-written cache file behind.
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, b, 0o644); err != nil {
 		return errors.Wrap(err, "write version cache")
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		_ = os.Remove(tmp)
+		return errors.Wrap(err, "swap version cache")
 	}
 	return nil
 }

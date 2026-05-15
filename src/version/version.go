@@ -1,9 +1,7 @@
 package version
 
 import (
-	"bytes"
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -73,23 +71,48 @@ func PrintVersionCheck(ctx context.Context, out printer.Printer) {
 	}
 }
 
-func IsVersionCheckMismatch(ctx context.Context) bool {
-	if !semver.IsValid(GetCurrent()) {
-		return false
+// MismatchWarning returns the formatted update warning when a newer release
+// is known, or "" if there is nothing to warn about. Reads only from the
+// on-disk cache — never blocks on the network. The cache is populated by
+// RefreshCacheIfStale running in the background.
+func MismatchWarning() string {
+	current := GetCurrent()
+	if !semver.IsValid(current) {
+		return ""
 	}
-	latestVersion, err := GetLatest(ctx)
-	if err != nil {
-		return false
+	resp := loadCached()
+	if resp == nil {
+		return ""
 	}
-	return isUpdateAvailable(GetCurrent(), latestVersion)
+	if !isUpdateAvailable(current, resp.TagName) {
+		return ""
+	}
+	return fmt.Sprintf("zcli %s is available (you have %s). %s", resp.TagName, current, Detect().Hint())
 }
 
-func GetVersionCheckMismatch(ctx context.Context) (string, error) {
-	b := bytes.NewBuffer(nil)
-	if err := printMessageData(ctx, b); err != nil {
-		return "", err
+// RefreshCacheIfStale updates the on-disk cache when it's missing or older
+// than cacheTTL. Designed for fire-and-forget background use alongside a
+// synchronous MismatchWarning() call so subsequent invocations have fresh
+// data. Errors are swallowed — the next run will retry.
+func RefreshCacheIfStale(ctx context.Context) {
+	if entry, err := loadCacheEntry(); err == nil && entry != nil && entry.Fresh() {
+		return
 	}
-	return b.String(), nil
+	resp, err := fetchFromNetwork(ctx)
+	if err != nil {
+		return
+	}
+	_ = writeCacheEntry(resp)
+}
+
+// loadCached returns the cached API response or nil when the cache is
+// missing, malformed, or unavailable.
+func loadCached() *apiResponse {
+	entry, err := loadCacheEntry()
+	if err != nil || entry == nil {
+		return nil
+	}
+	return entry.Response
 }
 
 // isUpdateAvailable reports whether latest is strictly newer than current.
