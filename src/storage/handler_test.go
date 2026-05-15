@@ -21,7 +21,7 @@ func TestStorage(t *testing.T) {
 
 		{
 			d := storage.Data()
-			require.Equal(t, "", d.Param)
+			require.Empty(t, d.Param)
 		}
 
 		{

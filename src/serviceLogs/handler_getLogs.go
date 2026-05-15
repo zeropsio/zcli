@@ -36,11 +36,10 @@ type Data struct {
 func (h *Handler) getLogs(ctx context.Context, method, url, format, formatTemplate, mode string) error {
 	c := http.Client{Timeout: time.Duration(1) * time.Minute}
 
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
 		return err
 	}
-	req = req.WithContext(ctx)
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.Do(req)

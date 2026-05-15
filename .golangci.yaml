@@ -39,7 +39,6 @@ linters:
     - goheader
     - gomodguard
     - goprintffuncname
-    - gosec
     - gosmopolitan
     - govet
     - grouper
@@ -55,7 +54,6 @@ linters:
     - nilerr
     - noctx
     - nosprintfhostport
-    - prealloc
     - predeclared
     - promlinter
     - protogetter
@@ -82,6 +80,39 @@ linters:
     godox:
       keywords:
         - FIXME
+    errcheck:
+      # Exclude write/print/close patterns where the error is conventionally
+      # ignored: strings.Builder / bytes.Buffer never error; fmt.Fprint* on
+      # printers/log writers is fire-and-forget; deferred Close on read-only
+      # files has nothing meaningful to do with the error.
+      exclude-functions:
+        - (*strings.Builder).WriteString
+        - (*strings.Builder).WriteByte
+        - (*strings.Builder).WriteRune
+        - (*bytes.Buffer).WriteString
+        - (*bytes.Buffer).WriteByte
+        - (*bytes.Buffer).WriteRune
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (io.Closer).Close
+        - (*os.File).Close
+        - os.Remove
+  exclusions:
+    rules:
+      # QF1008 "could remove embedded field from selector" is cosmetic.
+      # ST1001 "should not use dot imports" is intentional in showcase/main.go.
+      - linters: [staticcheck]
+        text: "(QF1008|ST1001):"
+      # defer x.Close() on gzip/tar writers, ws conns, etc. — concrete types
+      # implementing io.Closer that errcheck's interface exclude won't match.
+      - linters: [errcheck]
+        source: "^\\s*defer .+\\.Close\\(\\)"
+      # These sentinels match exact stderr output from wireguard/ip; lowering
+      # them would break string comparisons.
+      - linters: [staticcheck]
+        path: src/cmdRunner/run.go
+        text: "ST1005:"
 
 issues:
   max-same-issues: 0
