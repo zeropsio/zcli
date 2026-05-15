@@ -1,4 +1,3 @@
-// nolint:tagliatelle
 package version
 
 import "time"

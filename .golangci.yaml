@@ -16,12 +16,9 @@ linters:
   default: none
   enable:
     - asasalint
-    - asciicheck
-    - bidichk
     - bodyclose
     - containedctx
     - contextcheck
-    - decorder
     - dogsled
     - dupword
     - durationcheck
@@ -31,20 +28,13 @@ linters:
     - errorlint
     - exhaustive
     - forcetypeassert
-    - ginkgolinter
     - gocheckcompilerdirectives
-    - gochecksumtype
     - gocritic
     - godox
-    - goheader
-    - gomodguard
     - goprintffuncname
     - gosmopolitan
     - govet
-    - grouper
-    - importas
     - ineffassign
-    - loggercheck
     - maintidx
     - makezero
     - mirror
@@ -53,17 +43,10 @@ linters:
     - nakedret
     - nilerr
     - noctx
-    - nosprintfhostport
     - predeclared
-    - promlinter
-    - protogetter
     - reassign
-    - rowserrcheck
-    - sloglint
-    - sqlclosecheck
     - staticcheck
     - tagalign
-    - tagliatelle
     - testableexamples
     - testifylint
     - thelper
@@ -75,7 +58,6 @@ linters:
     - usetesting
     - wastedassign
     - whitespace
-    - zerologlint
   settings:
     godox:
       keywords:

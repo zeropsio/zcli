@@ -205,7 +205,6 @@ func warpString(s string, runeCutCount uint) string {
 	scanner.Split(bufio.ScanWords)
 	var runeCount uint
 	for scanner.Scan() {
-		//nolint:gosec
 		runeCount += uint(utf8.RuneCount(scanner.Bytes()))
 		if runeCount >= runeCutCount {
 			runeCount = 0

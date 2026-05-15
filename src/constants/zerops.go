@@ -26,7 +26,7 @@ const (
 	CliWgConfigPathEnvVar     = "ZEROPS_WG_CONFIG_FILE_PATH"
 	CliZcliYamlFilePathEnvVar = "ZEROPS_CLI_YAML_FILE_PATH"
 	CliTerminalMode           = "ZEROPS_CLI_TERMINAL_MODE"
-	CliTokenEnvVar            = "ZEROPS_TOKEN" //nolint:gosec
+	CliTokenEnvVar            = "ZEROPS_TOKEN"
 )
 
 type pathReceiver func(fileMode os.FileMode) (path string, err error)
