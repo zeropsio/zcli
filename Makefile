@@ -10,7 +10,14 @@ GCI_OS := $(shell echo $(UNAME_S) | tr A-Z a-z)
 GCI_ARCH := $(if $(filter $(UNAME_M),x86_64),amd64,$(if $(filter $(UNAME_M),aarch64),arm64,$(UNAME_M)))
 GCI_DIR := golangci-lint-$(GOLANGCI_LINT_VERSION:v%=%)-$(GCI_OS)-$(GCI_ARCH)
 
-.PHONY: help test test-integration lint all windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
+.PHONY: help test test-integration lint all build-dev windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
+
+# Dev-build version metadata (matches what tools/build.sh used to compose).
+DEV_VERSION := $(shell git rev-parse --abbrev-ref HEAD):$(shell git describe --tags 2>/dev/null)-($(shell git config --get user.name):<$(shell git config --get user.email)>)
+# -gcflags disables inlining and optimizations so the binary is dlv-friendly.
+DEV_BUILD := go build -tags devel \
+	-gcflags='all=-l -N' \
+	-ldflags='-X "github.com/zeropsio/zcli/src/version.version=$(DEV_VERSION)"'
 
 # Self-documenting help. Targets are listed in the order they appear here;
 # their description is the text after the '##' on the recipe line.
@@ -35,20 +42,22 @@ lint: $(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION) ## Run golangci-lint for da
 
 ##@ Build
 
-# tools/build.sh embeds version metadata via -ldflags and writes to ./bin/.
-all: windows-amd linux-amd darwin-amd darwin-arm ## Cross-build all release targets.
+build-dev: ## Build a dev binary for the host into ./bin/zcli (devel tag, no optimizations).
+	$(DEV_BUILD) -o $(BIN)/zcli ./cmd/zcli
 
-windows-amd: ## Build the windows/amd64 binary.
-	GOOS=windows GOARCH=amd64 tools/build.sh zcli.win.exe
+all: windows-amd linux-amd darwin-amd darwin-arm ## Cross-build all dev targets.
 
-linux-amd: ## Build the linux/amd64 binary.
-	GOOS=linux GOARCH=amd64 tools/build.sh zcli.linux
+windows-amd: ## Build the windows/amd64 dev binary.
+	GOOS=windows GOARCH=amd64 $(DEV_BUILD) -o $(BIN)/zcli.win.exe ./cmd/zcli
 
-darwin-amd: ## Build the darwin/amd64 binary.
-	GOOS=darwin GOARCH=amd64 tools/build.sh zcli.darwin.amd64
+linux-amd: ## Build the linux/amd64 dev binary.
+	GOOS=linux GOARCH=amd64 $(DEV_BUILD) -o $(BIN)/zcli.linux ./cmd/zcli
 
-darwin-arm: ## Build the darwin/arm64 binary.
-	GOOS=darwin GOARCH=arm64 tools/build.sh zcli.darwin.arm64
+darwin-amd: ## Build the darwin/amd64 dev binary.
+	GOOS=darwin GOARCH=amd64 $(DEV_BUILD) -o $(BIN)/zcli.darwin.amd64 ./cmd/zcli
+
+darwin-arm: ## Build the darwin/arm64 dev binary.
+	GOOS=darwin GOARCH=arm64 $(DEV_BUILD) -o $(BIN)/zcli.darwin.arm64 ./cmd/zcli
 
 ##@ Release tooling
 

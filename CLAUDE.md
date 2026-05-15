@@ -10,7 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `make test` — runs `go test -v ./cmd/... ./src/...`. Run a single test with `go test -v -run TestName ./src/<pkg>/...`.
 - `make lint` — runs the pinned `./bin/golangci-lint` for darwin/arm64, linux/amd64, and windows/amd64. Config: `.golangci.yaml`.
-- `make all` — cross-builds binaries for windows-amd, linux-amd, darwin-amd, darwin-arm. Single-target builds: `make linux-amd` etc. Builds go through `tools/build.sh`, which sets the version via `-ldflags` from `git rev-parse`/`git describe`, uses build tag `devel`, and writes to `bin/`.
+- `make build-dev` — build a dev binary for the host into `./bin/zcli` (build tag `devel`, debug-friendly via `-gcflags='all=-l -N'`, version injected from git).
+- `make all` — cross-builds dev binaries for windows-amd, linux-amd, darwin-amd, darwin-arm. Single-target builds: `make linux-amd` etc. All build targets share the `DEV_BUILD` recipe in the Makefile (version metadata, devel tag, gcflags).
 - `make goreleaser-check` / `make goreleaser-snapshot` — validate `.goreleaser.yaml` and dry-run a release build to `./dist`.
 - `make tools` — install pinned dev tooling (`golangci-lint`, `goreleaser`) into `./bin`. Versions are declared at the top of the Makefile; bumping them triggers reinstall via stamp files. `make lint` and the goreleaser targets depend on `tools`, so first invocation auto-installs.
 - `make showcase` — runs `src/uxBlock/showcase/main.go` to preview UI elements.
