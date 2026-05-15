@@ -1,6 +1,6 @@
 module github.com/zeropsio/zcli
 
-go 1.24.0
+go 1.26
 
 require github.com/zeropsio/zerops-go v1.0.18
 
