@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-`zcli` is the Zerops CLI written in Go (module `github.com/zeropsio/zcli`, Go 1.24). The entrypoint is `cmd/zcli/main.go`, which delegates to `src/cmd.ExecuteCmd()`. All implementation lives under `src/`.
+`zcli` is the Zerops CLI written in Go (module `github.com/zeropsio/zcli`, Go 1.26). The entrypoint is `cmd/zcli/main.go`, which delegates to `src/cmd.ExecuteCmd()`. All implementation lives under `src/`.
 
 ## Common commands
 
