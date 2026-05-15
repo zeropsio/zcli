@@ -1,0 +1,105 @@
+version: 2
+
+project_name: zcli
+
+builds:
+  - id: linux-amd64
+    main: ./cmd/zcli/main.go
+    binary: zcli-linux-amd64
+    goos: [linux]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
+  - id: linux-386
+    main: ./cmd/zcli/main.go
+    binary: zcli-linux-i386
+    goos: [linux]
+    goarch: ["386"]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
+  - id: darwin-amd64
+    main: ./cmd/zcli/main.go
+    binary: zcli-darwin-amd64
+    goos: [darwin]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
+  - id: darwin-arm64
+    main: ./cmd/zcli/main.go
+    binary: zcli-darwin-arm64
+    goos: [darwin]
+    goarch: [arm64]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
+  - id: windows-amd64
+    main: ./cmd/zcli/main.go
+    binary: zcli-win-x64
+    goos: [windows]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
+upx:
+  - enabled: true
+    ids: [linux-amd64, linux-386]
+    compress: best
+
+archives:
+  - id: raw
+    builds: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
+    format: binary
+    name_template: >-
+      {{- if eq .Os "windows" -}}zcli-win-x64
+      {{- else if and (eq .Os "linux") (eq .Arch "386") -}}zcli-linux-i386
+      {{- else -}}zcli-{{ .Os }}-{{ .Arch }}
+      {{- end -}}
+
+  - id: npm
+    builds: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
+    format: tar.gz
+    wrap_in_directory: builds
+    files:
+      - none*
+    name_template: >-
+      {{- if eq .Os "windows" -}}zcli-win-x64.exe-npm
+      {{- else if and (eq .Os "linux") (eq .Arch "386") -}}zcli-linux-i386-npm
+      {{- else -}}zcli-{{ .Os }}-{{ .Arch }}-npm
+      {{- end -}}
+
+nfpms:
+  - id: deb
+    package_name: zcli
+    builds: [linux-amd64, linux-386]
+    maintainer: "Zerops <https://zerops.io>"
+    description: "Zerops CLI"
+    homepage: "https://github.com/zeropsio/zcli"
+    formats: [deb]
+    bindir: /usr/local/bin
+    file_name_template: >-
+      zcli_{{ .Tag }}_{{ if eq .Arch "386" }}i386{{ else }}{{ .Arch }}{{ end }}
+
+release:
+  mode: append
+  prerelease: auto
+
+changelog:
+  disable: true
