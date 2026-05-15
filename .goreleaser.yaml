@@ -65,8 +65,8 @@ upx:
 
 archives:
   - id: raw
-    builds: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
-    format: binary
+    ids: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
+    formats: [binary]
     name_template: >-
       {{- if eq .Os "windows" -}}zcli-win-x64
       {{- else if and (eq .Os "linux") (eq .Arch "386") -}}zcli-linux-i386
@@ -74,8 +74,8 @@ archives:
       {{- end -}}
 
   - id: npm
-    builds: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
-    format: tar.gz
+    ids: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
+    formats: [tar.gz]
     wrap_in_directory: builds
     files:
       - none*
@@ -88,7 +88,7 @@ archives:
 nfpms:
   - id: deb
     package_name: zcli
-    builds: [linux-amd64, linux-386]
+    ids: [linux-amd64, linux-386]
     maintainer: "Zerops <https://zerops.io>"
     description: "Zerops CLI"
     homepage: "https://github.com/zeropsio/zcli"
