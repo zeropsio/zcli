@@ -1,10 +1,14 @@
 .DEFAULT_GOAL := help
 
 BIN := $(CURDIR)/bin
-GOLANGCI_LINT_VERSION := v2.1.6
+GOLANGCI_LINT_VERSION := v2.12.0
 GORELEASER_VERSION := v2.5.0
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
+# golangci-lint releases use lowercase OS and amd64/arm64 in tarball names.
+GCI_OS := $(shell echo $(UNAME_S) | tr A-Z a-z)
+GCI_ARCH := $(if $(filter $(UNAME_M),x86_64),amd64,$(if $(filter $(UNAME_M),aarch64),arm64,$(UNAME_M)))
+GCI_DIR := golangci-lint-$(GOLANGCI_LINT_VERSION:v%=%)-$(GCI_OS)-$(GCI_ARCH)
 
 .PHONY: help test test-integration lint all windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
 
@@ -66,8 +70,9 @@ clean-tools: ## Remove installed tooling from ./bin.
 # gets reinstalled on the next `make lint` / `make goreleaser-*` / `make tools`.
 $(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION):
 	@mkdir -p $(BIN)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-		| sh -s -- -b $(BIN) $(GOLANGCI_LINT_VERSION)
+	curl -sSfL "https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/$(GCI_DIR).tar.gz" \
+		| tar -xz -C $(BIN) --strip-components=1 $(GCI_DIR)/golangci-lint
+	chmod +x $(BIN)/golangci-lint
 	@rm -f $(BIN)/.golangci-lint-*
 	@touch $@
 

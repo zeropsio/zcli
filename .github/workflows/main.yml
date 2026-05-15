@@ -1,4 +1,4 @@
-name: Main
+name: main
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
 
       - uses: golangci/golangci-lint-action@v7
         with:
-          version: v2.1.6
+          version: v2.12.0
           args: --verbose ./cmd/... ./src/...
 
   build:
