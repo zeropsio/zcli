@@ -66,7 +66,7 @@ func TestMismatchWarning(t *testing.T) {
 			{"npm", "npm install -g @zerops/zcli"},
 			{"brew", "brew upgrade zcli"},
 			{"nix", "rebuild your profile or flake"},
-			{"manual", "github.com/zeropsio/zcli"},
+			{"manual", "zcli upgrade"},
 		}
 		for _, tc := range cases {
 			channel = tc.stamp

@@ -26,6 +26,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(loginCmd()).
 		AddChildrenCmd(logoutCmd()).
 		AddChildrenCmd(versionCmd()).
+		AddChildrenCmd(upgradeCmd()).
 		AddChildrenCmd(scopeCmd()).
 		AddChildrenCmd(projectCmd()).
 		AddChildrenCmd(serviceCmd()).

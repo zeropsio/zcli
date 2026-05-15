@@ -39,7 +39,7 @@ func (m InstallMethod) Hint() string {
 	case InstallBrew:
 		return "Update via Homebrew: brew upgrade zcli"
 	default:
-		return "Update via https://github.com/zeropsio/zcli#install-zcli"
+		return "Run: zcli upgrade"
 	}
 }
 
