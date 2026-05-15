@@ -4,148 +4,48 @@ on:
   release:
     types:
       - released
+      - prereleased
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: build & upload ${{ matrix.name }}
+  goreleaser:
+    name: build & upload artifacts
     runs-on: ubuntu-22.04
-    env:
-      CGO_ENABLED: '0'
-    strategy:
-      matrix:
-        include:
-          - name: linux amd64
-            env:
-              GOOS: linux
-              GOARCH: amd64
-            file: zcli-linux-amd64
-            compress: true
-            strip: true
-            deb_arch: amd64
-
-          - name: linux 386
-            env:
-              GOOS: linux
-              GOARCH: 386
-            file: zcli-linux-i386
-            compress: true
-            strip: true
-            deb_arch: i386
-
-          - name: darwin amd64
-            env:
-              GOOS: darwin
-              GOARCH: amd64
-            file: zcli-darwin-amd64
-            compress: false
-            strip: false
-
-          - name: darwin arm64
-            env:
-              GOOS: darwin
-              GOARCH: arm64
-            file: zcli-darwin-arm64
-            compress: false
-            strip: false
-
-          - name: windows amd64
-            env:
-              GOOS: windows
-              GOARCH: amd64
-            file: zcli-win-x64.exe
-            compress: false
-            strip: false
-
+    timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
-      - name: checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name }}
 
-      - name: set up Go 1.x
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
-        id: go
 
-      - name: get dependencies
-        run: |
-          export GOPATH=$HOME/go
-          ./tools/install.sh
+      - name: install upx
+        run: sudo apt-get update && sudo apt-get install -y upx-ucl
 
-      - name: build
-        env: ${{ matrix.env }}
-        run: >-
-          go build
-          -o builds/${{ matrix.file }}
-          -ldflags "-s -w -X github.com/zeropsio/zcli/src/version.version=${{ github.event.release.tag_name }}"
-          ./cmd/zcli/main.go
-
-      - name: compress binary
-        if: ${{ matrix.compress }}
-        uses: svenstaro/upx-action@v2
+      - uses: goreleaser/goreleaser-action@v6
         with:
-          file: ./builds/${{ matrix.file }}
-          strip: ${{ matrix.strip }}
-
-      - name: prepare .deb package tree
-        if: ${{ matrix.deb_arch }}
-        run: |
-          mkdir -p .debpkg/usr/local/bin
-          cp builds/${{ matrix.file }} .debpkg/usr/local/bin/zcli
-          chmod +x .debpkg/usr/local/bin/zcli
-
-      - name: build .deb package
-        id: deb
-        if: ${{ matrix.deb_arch }}
-        uses: jiro4989/build-deb-action@v4
-        with:
-          package: zcli
-          package_root: .debpkg
-          maintainer: 'Zerops <https://zerops.io>'
-          version: ${{ github.event.release.tag_name }}
-          arch: ${{ matrix.deb_arch }}
-          desc: 'Zerops CLI'
-          homepage: 'https://github.com/zeropsio/zcli'
-
-      - name: upload .deb asset
-        if: ${{ matrix.deb_arch }}
-        uses: actions/upload-release-asset@v1
+          distribution: goreleaser
+          version: v2.5.0
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.deb.outputs.file_name }}
-          asset_name: zcli_${{ github.event.release.tag_name }}_${{ matrix.deb_arch }}.deb
-          asset_content_type: application/vnd.debian.binary-package
-
-      - name: package binaries for NPM
-        run: tar -czvf ${{ matrix.file }}-npm.tar.gz builds/${{ matrix.file }}
-
-      - name: upload asset for NPM
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./${{ matrix.file }}-npm.tar.gz
-          asset_name: ${{ matrix.file }}-npm.tar.gz
-          asset_content_type: application/octet-stream
-
-      - name: upload asset clean bin
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./builds/${{ matrix.file }}
-          asset_name: ${{ matrix.file }}
-          asset_content_type: application/octet-stream
 
   publish-npm:
-    needs: build
+    needs: goreleaser
+    if: github.event.action == 'released'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
@@ -156,11 +56,13 @@ jobs:
           replace-in-files --string='v0.0.0-zerops' --replacement='${{ github.event.release.tag_name }}' package.json
           npm publish --access=public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   report:
-    needs: build
+    needs: goreleaser
+    if: github.event.action == 'released'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Notify discord about new release
         uses: sarisia/actions-status-discord@v1.15.0
