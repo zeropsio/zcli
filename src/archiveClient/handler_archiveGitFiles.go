@@ -216,7 +216,6 @@ func (h *Handler) mergeGitArchive(gitArchiveReader io.Reader, tarWriter *tar.Wri
 		if err := tarWriter.WriteHeader(header); err != nil {
 			return err
 		}
-		//nolint:gosec // disable G110 - this is a local CLI util...
 		if _, err := io.Copy(tarWriter, tr); err != nil {
 			return err
 		}
