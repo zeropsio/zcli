@@ -24,9 +24,6 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: install tooling
-        run: ./tools/install.sh
-
       - name: test
         run: go test -v ./cmd/... ./src/...
 
@@ -41,11 +38,10 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: install tooling
-        run: ./tools/install.sh
-
-      - name: lint
-        run: gomodrun golangci-lint run ./cmd/... ./src/... --verbose
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.1.6
+          args: --verbose ./cmd/... ./src/...
 
   build:
     name: build ${{ matrix.name }}
