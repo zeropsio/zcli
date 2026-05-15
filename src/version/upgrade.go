@@ -7,6 +7,7 @@ import (
 	_ "crypto/sha256" // register SHA-256 for selfupdate.Apply
 	"encoding/hex"
 	"fmt"
+	"io"
 	"net/http"
 	"runtime"
 	"strings"
@@ -19,10 +20,19 @@ import (
 )
 
 const (
-	githubAssetUrl  = "https://github.com/zeropsio/zcli/releases/download/%s/%s"
 	checksumsName   = "checksums.txt"
 	downloadTimeout = 2 * time.Minute
 )
+
+// releasesURL is the printf template for release-asset URLs. Tests override
+// it to point Upgrade at an httptest server.
+var releasesURL = "https://github.com/zeropsio/zcli/releases/download/%s/%s"
+
+// applyUpdate is the binary swap implementation. Tests override it with a
+// stub so the test binary isn't actually replaced.
+var applyUpdate = func(r io.Reader, opts selfupdate.Options) error {
+	return selfupdate.Apply(r, opts)
+}
 
 type UpgradeOptions struct {
 	// TargetVersion is the release tag to install (e.g. "v0.9.0"). Empty
@@ -35,12 +45,11 @@ type UpgradePlan struct {
 	Target  string
 }
 
-// PlanUpgrade resolves the upgrade target and refuses package-managed
-// installs. Used by --check and as the input to Upgrade.
+// PlanUpgrade resolves the upgrade target. Always succeeds for valid input,
+// regardless of install method, so callers like `--check` can report status
+// for package-managed installs too. Use RequireSelfUpdatable to enforce the
+// channel restriction at the point where you actually intend to swap.
 func PlanUpgrade(ctx context.Context, opts UpgradeOptions) (*UpgradePlan, error) {
-	if method := Detect(); method.IsPackageManager() {
-		return nil, errors.Errorf("zcli was installed via %s; %s", method, method.Hint())
-	}
 	target := opts.TargetVersion
 	if target == "" {
 		resp, err := fetch(ctx)
@@ -50,6 +59,16 @@ func PlanUpgrade(ctx context.Context, opts UpgradeOptions) (*UpgradePlan, error)
 		target = resp.TagName
 	}
 	return &UpgradePlan{Current: GetCurrent(), Target: target}, nil
+}
+
+// RequireSelfUpdatable returns an error when the running binary was installed
+// through a package manager and shouldn't be replaced in place. Callers
+// should run this before calling Upgrade.
+func RequireSelfUpdatable() error {
+	if method := Detect(); method.IsPackageManager() {
+		return errors.Errorf("zcli was installed via %s; %s", method, method.Hint())
+	}
+	return nil
 }
 
 // Upgrade downloads the target binary, verifies its sha256 against the
@@ -73,7 +92,7 @@ func Upgrade(ctx context.Context, plan *UpgradePlan) error {
 		return errors.Wrap(err, "download binary")
 	}
 
-	if err := selfupdate.Apply(bytes.NewReader(binary), selfupdate.Options{
+	if err := applyUpdate(bytes.NewReader(binary), selfupdate.Options{
 		Checksum: expected,
 		Hash:     crypto.SHA256,
 	}); err != nil {
@@ -86,7 +105,7 @@ func Upgrade(ctx context.Context, plan *UpgradePlan) error {
 }
 
 func assetUrl(tag, asset string) string {
-	return fmt.Sprintf(githubAssetUrl, tag, asset)
+	return fmt.Sprintf(releasesURL, tag, asset)
 }
 
 // assetName returns the release asset filename for the current platform.
