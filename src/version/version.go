@@ -43,9 +43,9 @@ func GetLatestUrl(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	assetName := fmt.Sprintf("zcli-%s-%s", runtime.GOOS, runtime.GOARCH)
+	want := assetName()
 	for _, asset := range resp.Assets {
-		if asset.Name == assetName {
+		if asset.Name == want {
 			return asset.BrowserDownloadUrl, nil
 		}
 	}
