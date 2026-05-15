@@ -1,6 +1,12 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help test test-integration lint all windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot
+BIN := $(CURDIR)/bin
+GOLANGCI_LINT_VERSION := v2.1.6
+GORELEASER_VERSION := v2.5.0
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
+.PHONY: help test test-integration lint all windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
 
 # Self-documenting help. Targets are listed in the order they appear here;
 # their description is the text after the '##' on the recipe line.
@@ -18,10 +24,10 @@ test-integration: ## Run the integration test suite (devel build tag).
 	go test -v -tags devel ./src/cmd/...
 
 # Lint each target GOOS in turn so platform-specific build tags get covered.
-lint: ## Run golangci-lint for darwin/arm64, linux/amd64, windows/amd64.
-	GOOS=darwin  GOARCH=arm64 gomodrun golangci-lint run ./cmd/... ./src/... --verbose
-	GOOS=linux   GOARCH=amd64 gomodrun golangci-lint run ./cmd/... ./src/... --verbose
-	GOOS=windows GOARCH=amd64 gomodrun golangci-lint run ./cmd/... ./src/... --verbose
+lint: $(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION) ## Run golangci-lint for darwin/arm64, linux/amd64, windows/amd64.
+	GOOS=darwin  GOARCH=arm64 $(BIN)/golangci-lint run ./cmd/... ./src/... --verbose
+	GOOS=linux   GOARCH=amd64 $(BIN)/golangci-lint run ./cmd/... ./src/... --verbose
+	GOOS=windows GOARCH=amd64 $(BIN)/golangci-lint run ./cmd/... ./src/... --verbose
 
 ##@ Build
 
@@ -42,13 +48,36 @@ darwin-arm: ## Build the darwin/arm64 binary.
 
 ##@ Release tooling
 
-# Both targets shell out to the pinned goreleaser in ./bin via gomodrun;
-# tools/install.sh provisions it alongside golangci-lint.
-goreleaser-check: ## Validate .goreleaser.yaml without building.
-	gomodrun goreleaser check
+goreleaser-check: $(BIN)/.goreleaser-$(GORELEASER_VERSION) ## Validate .goreleaser.yaml without building.
+	$(BIN)/goreleaser check
 
-goreleaser-snapshot: ## Dry-run a full release build to ./dist (no upload, no publish).
-	gomodrun goreleaser release --snapshot --clean --skip=publish
+goreleaser-snapshot: $(BIN)/.goreleaser-$(GORELEASER_VERSION) ## Dry-run a full release build to ./dist (no upload, no publish).
+	$(BIN)/goreleaser release --snapshot --clean --skip=publish
+
+##@ Tooling
+
+tools: $(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION) $(BIN)/.goreleaser-$(GORELEASER_VERSION) ## Install pinned dev tooling into ./bin.
+
+clean-tools: ## Remove installed tooling from ./bin.
+	rm -f $(BIN)/golangci-lint $(BIN)/goreleaser $(BIN)/.golangci-lint-* $(BIN)/.goreleaser-*
+
+# Stamp files encode the pinned version. Bumping a version above retargets
+# the dependency, the old stamp is removed inside the recipe, and the tool
+# gets reinstalled on the next `make lint` / `make goreleaser-*` / `make tools`.
+$(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION):
+	@mkdir -p $(BIN)
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $(BIN) $(GOLANGCI_LINT_VERSION)
+	@rm -f $(BIN)/.golangci-lint-*
+	@touch $@
+
+$(BIN)/.goreleaser-$(GORELEASER_VERSION):
+	@mkdir -p $(BIN)
+	curl -sSfL "https://github.com/goreleaser/goreleaser/releases/download/$(GORELEASER_VERSION)/goreleaser_$(UNAME_S)_$(UNAME_M).tar.gz" \
+		| tar -xz -C $(BIN) goreleaser
+	chmod +x $(BIN)/goreleaser
+	@rm -f $(BIN)/.goreleaser-*
+	@touch $@
 
 ##@ Other
 
