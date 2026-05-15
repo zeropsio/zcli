@@ -11,6 +11,8 @@ possible targets:
 - dawrin-amd
 - darwin-arm
 - showcase
+- goreleaser-check
+- goreleaser-snapshot
 endef
 export helpMessage
 
@@ -52,3 +54,11 @@ darwin-arm:
 # showcase of ui elements
 showcase:
 	go run src/uxBlock/showcase/main.go
+
+# validate .goreleaser.yaml
+goreleaser-check:
+	gomodrun goreleaser check
+
+# dry-run release build to ./dist (no upload, no publish)
+goreleaser-snapshot:
+	gomodrun goreleaser release --snapshot --clean --skip=publish
