@@ -12,9 +12,12 @@ GCI_DIR := golangci-lint-$(GOLANGCI_LINT_VERSION:v%=%)-$(GCI_OS)-$(GCI_ARCH)
 
 .PHONY: help test test-integration lint all build-dev install install-dev windows-amd linux-amd darwin-amd darwin-arm showcase goreleaser-check goreleaser-snapshot tools clean-tools
 
-# Where `make install` / `make install-dev` puts binaries: GOBIN if set,
-# else GOPATH/bin. The user is expected to have that directory on PATH.
-INSTALL_DIR := $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
+# `make install` matches install.sh — puts zcli into ~/.local/bin so it
+# lands on the same PATH entry end users get from the install script.
+# `make install-dev` uses Go's convention ($GOBIN, else $GOPATH/bin) so
+# zcli-dev sits with the user's other Go dev tools.
+PROD_INSTALL_DIR := $(HOME)/.local/bin
+DEV_INSTALL_DIR  := $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 
 # Dev-build version metadata (matches what tools/build.sh used to compose).
 DEV_VERSION := $(shell git rev-parse --abbrev-ref HEAD):$(shell git describe --tags 2>/dev/null)-($(shell git config --get user.name):<$(shell git config --get user.email)>)
@@ -71,13 +74,14 @@ darwin-arm: ## Build the darwin/arm64 dev binary.
 
 ##@ Install
 
-install: ## Build a production zcli (stripped, optimized) and install it into $GOBIN.
-	$(PROD_BUILD) -o $(INSTALL_DIR)/zcli ./cmd/zcli
-	@echo "installed $(INSTALL_DIR)/zcli ($(PROD_VERSION))"
+install: ## Build a production zcli (stripped, optimized) and install it into ~/.local/bin (matches install.sh).
+	@mkdir -p $(PROD_INSTALL_DIR)
+	$(PROD_BUILD) -o $(PROD_INSTALL_DIR)/zcli ./cmd/zcli
+	@echo "installed $(PROD_INSTALL_DIR)/zcli ($(PROD_VERSION))"
 
 install-dev: ## Build a dev zcli-dev (devel tag, debug-friendly) and install it into $GOBIN.
-	$(DEV_BUILD) -o $(INSTALL_DIR)/zcli-dev ./cmd/zcli
-	@echo "installed $(INSTALL_DIR)/zcli-dev"
+	$(DEV_BUILD) -o $(DEV_INSTALL_DIR)/zcli-dev ./cmd/zcli
+	@echo "installed $(DEV_INSTALL_DIR)/zcli-dev"
 
 ##@ Release tooling
 
