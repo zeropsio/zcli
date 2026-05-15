@@ -42,6 +42,10 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				os.Exit(1)
 			}
 
+			if err := getVersion.RequireSelfUpdatable(); err != nil {
+				return err
+			}
+
 			if plan.Current == plan.Target && targetVersion == "" {
 				cmdData.Stdout.Printf("zcli is already on %s.\n", plan.Current)
 				return nil
@@ -63,11 +67,17 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			cmdData.Stdout.Printf("Downloading %s ...\n", plan.Target)
-			if err := getVersion.Upgrade(ctx, plan); err != nil {
-				return err
-			}
-			cmdData.Stdout.Printf("Updated to %s. Run `zcli version` to confirm.\n", plan.Target)
-			return nil
+			return uxHelpers.ProcessCheckWithSpinner(
+				ctx,
+				cmdData.UxBlocks,
+				[]uxHelpers.Process{{
+					F: func(ctx context.Context, _ *uxHelpers.Process) error {
+						return getVersion.Upgrade(ctx, plan)
+					},
+					RunningMessage:      fmt.Sprintf("Downloading and installing %s", plan.Target),
+					ErrorMessageMessage: fmt.Sprintf("Upgrade to %s failed", plan.Target),
+					SuccessMessage:      fmt.Sprintf("Updated to %s. Run `zcli version` to confirm.", plan.Target),
+				}},
+			)
 		})
 }
