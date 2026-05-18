@@ -15,7 +15,7 @@ func IsVersionCheckMismatch(context.Context) bool {
 	return false
 }
 
-func GetVersionCheckMismatch() (string, error) {
+func GetVersionCheckMismatch(context.Context) (string, error) {
 	return "", nil
 }
 

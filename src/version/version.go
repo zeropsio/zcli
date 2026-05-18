@@ -61,9 +61,9 @@ func IsVersionCheckMismatch(ctx context.Context) bool {
 	return GetCurrent() != latestVersion
 }
 
-func GetVersionCheckMismatch() (string, error) {
+func GetVersionCheckMismatch(ctx context.Context) (string, error) {
 	b := bytes.NewBuffer(nil)
-	if err := printMessageData(b); err != nil {
+	if err := printMessageData(ctx, b); err != nil {
 		return "", err
 	}
 	return b.String(), nil
