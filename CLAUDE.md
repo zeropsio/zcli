@@ -72,3 +72,20 @@ All terminal output and interactive prompts go through `uxBlock.Blocks` (constru
 ## Distribution
 
 Released via GitHub Actions (`.github/workflows/`) and republished to npm as `@zerops/zcli` (`tools/npm`). Install scripts: `install.sh` (Linux/macOS), `install.ps1` (Windows). Nix flake (`flake.nix`, `default.nix`) supports `nix develop`/`nix build`.
+
+## Comments
+
+Default: no comment. Add one only when the *why* is non-obvious (constraint, workaround, surprising invariant) or the *what* is genuinely hard to parse from the code (nested data shape, non-trivial algorithm). Lead *why* comments with the motivation, not a "what" preamble.
+
+Write comments as natural prose, wrapping at thought boundaries, never at column boundaries. Do NOT break lines at 80 or 100 columns mid-sentence. A comment line should read like a sentence you'd speak aloud: it ends where the thought ends, not where a column counter fires.
+
+Short related clauses that flow (a consequence, an addendum, a clarification) stay on the same line, even past a period, as long as they're part of the same thought. A new line means a new thought. Don't split one thought across lines AND don't pack unrelated thoughts onto one line. When enumerating parallel items in prose, join them with commas, not periods.
+
+Target line length is 160-175 chars. Lines may extend to 180 chars when cutting shorter would break mid-clause, but 180 is a hard ceiling, not a target. If a thought doesn't fit in 180 chars, split at a natural clause boundary and continue on a new `//` line.
+
+Don't use em-dashes (`—`) anywhere in comments, use a normal dash (`-`). Don't use semicolons (`;`) as thought separators. End the first thought with a period and start a new sentence. Semicolons for tight lists inside a single thought are fine.
+
+```go
+// Value caches the first successful fetch result. Errors are not cached, so the next Get retries.
+// Fetch is passed at Get time (not at construction), so callers can close over per-call context without storing it on the struct.
+```
