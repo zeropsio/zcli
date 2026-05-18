@@ -80,8 +80,9 @@ func normalizeFlagNames(_ *pflag.FlagSet, name string) pflag.NormalizedName {
 // with the resulting status code.
 func ExecuteRootCmd(rootCmd *Cmd) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-	os.Exit(RunRootCmd(ctx, rootCmd))
+	code := RunRootCmd(ctx, rootCmd)
+	stop()
+	os.Exit(code)
 }
 
 // RunRootCmd is the test-friendly entry point. It never calls os.Exit and
@@ -106,6 +107,7 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 
 	flagParams := flagParams.New(o.stderr)
 
+	//nolint:contextcheck // cobra threads ctx into the run-func via ExecuteContext below; pulling from cobraCmd.Context() inside createCmdRunFunc is the canonical pattern.
 	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage, o.stdout, o.stderr)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)

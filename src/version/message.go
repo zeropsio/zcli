@@ -14,30 +14,25 @@ import (
 //go:embed assets/message.txt
 var messageTemplate string
 
-func printMessageData(out io.Writer) error {
-	var d messageData
+func printMessageData(ctx context.Context, out io.Writer) error {
+	latest, _ := GetLatest(ctx)
+	latestURL, _ := GetLatestUrl(ctx)
+	d := messageData{
+		CurrentVersion: GetCurrent(),
+		LatestVersion:  latest,
+		LatestUrl:      latestURL,
+	}
 	return d.Output(out)
 }
 
 type messageData struct {
-}
-
-func (_ messageData) CurrentVersion() string {
-	return GetCurrent()
-}
-
-func (_ messageData) LatestVersion() string {
-	latest, _ := GetLatest(context.Background())
-	return latest
-}
-
-func (_ messageData) LatestUrl() string {
-	latest, _ := GetLatestUrl(context.Background())
-	return latest
+	CurrentVersion string
+	LatestVersion  string
+	LatestUrl      string
 }
 
 func (d messageData) Output(out io.Writer) error {
-	if d.LatestVersion() == "v0.0.0" {
+	if d.LatestVersion == "v0.0.0" {
 		return nil
 	}
 	t, err := template.New("").Parse(messageTemplate)
