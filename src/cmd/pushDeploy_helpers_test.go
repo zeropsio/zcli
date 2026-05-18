@@ -15,15 +15,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test-fixture identifiers shared by the push/deploy integration suites. These
-// are deliberately not real UUIDs — the SDK accepts string IDs and the test
-// server doesn't validate.
+// Test-fixture identifiers shared by the push/deploy integration suites.
+// Format mirrors zerops-go: 16 raw UUID bytes encoded as URL-safe base64
+// without padding (22 chars). Derived deterministically from UUIDv5(DNS,
+// "zcli-test-fixture-<role>") so the values are stable across runs.
 const (
-	pushServiceID    = "0000000000000000000000"
-	pushProjectID    = "1111111111111111111111"
-	pushClientID     = "2222222222222222222222"
-	pushAppVersionID = "3333333333333333333333"
-	pushDeployProcID = "4444444444444444444444"
+	pushServiceID    = "xjnulXbrWXKpyO3RgMlqLA"
+	pushProjectID    = "IYUfF1PBWgeiuh-ICH0lyQ"
+	pushClientID     = "Q9wWE4wtV8yRNGn58Ug4mw"
+	pushAppVersionID = "0vzEq7ETUceKlQdesTBLhQ"
+	pushDeployProcID = "G8-hibDHVGa-oSHFNIeXBg"
 )
 
 // pushStubs holds the counters/recorded payloads that push/deploy tests
