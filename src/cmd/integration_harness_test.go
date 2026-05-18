@@ -125,12 +125,13 @@ func (f *fixture) Run(ctx context.Context, args ...string) result {
 		ctx = context.Background()
 	}
 	var stdout, stderr bytes.Buffer
-	code := cmdBuilder.RunRootCmd(rootCmd(), cmdBuilder.RunOptions{
-		Ctx:    ctx,
-		Args:   args,
-		Stdout: &stdout,
-		Stderr: &stderr,
-	})
+	code := cmdBuilder.RunRootCmd(
+		ctx,
+		rootCmd(),
+		cmdBuilder.WithArgs(args),
+		cmdBuilder.WithStdout(&stdout),
+		cmdBuilder.WithStderr(&stderr),
+	)
 	return result{Stdout: stdout.String(), Stderr: stderr.String(), ExitCode: code}
 }
 

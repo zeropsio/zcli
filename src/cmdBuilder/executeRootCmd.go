@@ -29,20 +29,41 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 )
 
-// RunOptions controls how RunRootCmd executes. The zero value matches the
-// production defaults used by ExecuteRootCmd.
-type RunOptions struct {
-	// Ctx is the root context. If nil, a fresh context.Background() is used
-	// and OS signals are wired to cancel it.
-	//nolint:containedctx // intentional: callers (tests, ExecuteRootCmd) pass the root ctx by value
-	Ctx context.Context
-	// Args overrides os.Args[1:] when non-nil. Useful for tests.
-	Args []string
-	// Stdout receives command output. Defaults to os.Stdout when nil.
-	Stdout io.Writer
-	// Stderr receives error/log output (including uxBlock messages).
-	// Defaults to os.Stderr when nil.
-	Stderr io.Writer
+// runOptions controls how RunRootCmd executes. Build via the With... helpers.
+type runOptions struct {
+	args   []string
+	stdout io.Writer
+	stderr io.Writer
+}
+
+// RunOption configures a RunRootCmd invocation.
+type RunOption func(*runOptions)
+
+// WithArgs overrides os.Args[1:]. Useful for tests.
+func WithArgs(args []string) RunOption {
+	return func(o *runOptions) { o.args = args }
+}
+
+// WithStdout redirects command output. Defaults to os.Stdout.
+func WithStdout(w io.Writer) RunOption {
+	return func(o *runOptions) { o.stdout = w }
+}
+
+// WithStderr redirects error/log output (including uxBlock messages).
+// Defaults to os.Stderr.
+func WithStderr(w io.Writer) RunOption {
+	return func(o *runOptions) { o.stderr = w }
+}
+
+func newRunOptions(opts ...RunOption) runOptions {
+	o := runOptions{
+		stdout: os.Stdout,
+		stderr: os.Stderr,
+	}
+	for _, opt := range opts {
+		opt(&o)
+	}
+	return o
 }
 
 var matchFirstCap = regexp.MustCompile("([A-Z]+)")
@@ -58,35 +79,23 @@ func normalizeFlagNames(_ *pflag.FlagSet, name string) pflag.NormalizedName {
 // ExecuteRootCmd runs the CLI with production defaults and exits the process
 // with the resulting status code.
 func ExecuteRootCmd(rootCmd *Cmd) {
-	os.Exit(RunRootCmd(rootCmd, RunOptions{}))
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	os.Exit(RunRootCmd(ctx, rootCmd))
 }
 
 // RunRootCmd is the test-friendly entry point. It never calls os.Exit and
 // instead returns the exit code the process should use.
-func RunRootCmd(rootCmd *Cmd, opts RunOptions) int {
-	stdout := opts.Stdout
-	if stdout == nil {
-		stdout = os.Stdout
-	}
-	stderr := opts.Stderr
-	if stderr == nil {
-		stderr = os.Stderr
-	}
+func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
+	o := newRunOptions(opts...)
 
-	ctx := opts.Ctx
-	var cancel context.CancelFunc
-	if ctx == nil {
-		ctx, cancel = context.WithCancel(context.Background())
-		regSignals(cancel)
-	} else {
-		ctx, cancel = context.WithCancel(ctx)
-	}
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	ctx = support.Context(ctx)
 
 	isTerminal := terminal.IsTerminal()
 	terminalWidth, terminalHeight, _ := term.GetSize(0)
-	outputLogger, debugFileLogger := createLoggers(isTerminal, stderr)
+	outputLogger, debugFileLogger := createLoggers(isTerminal, o.stderr)
 
 	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
@@ -95,18 +104,18 @@ func RunRootCmd(rootCmd *Cmd, opts RunOptions) int {
 		return errorExitCode(err, uxBlocks)
 	}
 
-	flagParams := flagParams.New(stderr)
+	flagParams := flagParams.New(o.stderr)
 
-	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage, stdout, stderr)
+	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage, o.stdout, o.stderr)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
 	}
 
 	cobraCmd.SetGlobalNormalizationFunc(normalizeFlagNames)
-	cobraCmd.SetOut(stdout)
-	cobraCmd.SetErr(stderr)
-	if opts.Args != nil {
-		cobraCmd.SetArgs(opts.Args)
+	cobraCmd.SetOut(o.stdout)
+	cobraCmd.SetErr(o.stderr)
+	if o.args != nil {
+		cobraCmd.SetArgs(o.args)
 	}
 
 	if err := cobraCmd.ExecuteContext(ctx); err != nil {
@@ -165,17 +174,6 @@ func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.
 	})
 
 	return outputLogger, debugFileLogger
-}
-
-func regSignals(contextCancel func()) {
-	sigs := make(chan os.Signal, 1)
-
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigs
-		contextCancel()
-	}()
 }
 
 func createCliStorage() (*cliStorage.Handler, error) {
