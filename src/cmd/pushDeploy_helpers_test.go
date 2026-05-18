@@ -243,8 +243,12 @@ func writeZeropsYaml(t *testing.T, dir string, setups ...string) {
 // confirmed the command failed.
 func requireNonZeroExit(t *testing.T, res result) {
 	t.Helper()
-	require.NotEqualf(t, 0, res.ExitCode,
-		"expected non-zero exit\n--- stderr ---\n%s\n--- stdout ---\n%s", res.Stderr, res.Stdout)
+	require.NotEqualf(
+		t,
+		0,
+		res.ExitCode,
+		"expected non-zero exit\n--- stderr ---\n%s\n--- stdout ---\n%s", res.Stderr, res.Stdout,
+	)
 }
 
 // assertPushSuccess is the happy-path postcondition shared by push tests:

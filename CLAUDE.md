@@ -69,6 +69,29 @@ All terminal output and interactive prompts go through `uxBlock.Blocks` (constru
 3. Register it in `rootCmd()` in `src/cmd/root.go` (or as a child of an existing parent like `serviceCmd`, `projectCmd`, `vpnCmd`).
 4. Add any new user-facing strings to `src/i18n/en.go` and reference them via `i18n.T(...)`.
 
+## Code style
+
+### Multiline function calls
+
+When breaking a function call across lines, do not use the "half line" form (some arguments on the opening line, the rest continued below). Either keep everything on one line, or put `func(` alone on the opening line, every argument on its own line with a trailing comma, and `)` on its own closing line. Printf-style format strings may keep their format args on the same line as the format string — treat that group as a single argument block.
+
+```go
+// good — single line
+require.Equal(t, 0, res.ExitCode)
+
+// good — fully expanded, each arg on its own line, trailing commas
+require.NotEqualf(
+    t,
+    0,
+    res.ExitCode,
+    "expected non-zero exit\n--- stderr ---\n%s\n--- stdout ---\n%s", res.Stderr, res.Stdout,
+)
+
+// bad — half-line: first args ride on the opening line, rest spill below
+require.NotEqualf(t, 0, res.ExitCode,
+    "expected non-zero exit: %s", res.Stderr)
+```
+
 ## Distribution
 
 Released via GitHub Actions (`.github/workflows/`) and republished to npm as `@zerops/zcli` (`tools/npm`). Install scripts: `install.sh` (Linux/macOS), `install.ps1` (Windows). Nix flake (`flake.nix`, `default.nix`) supports `nix develop`/`nix build`.
