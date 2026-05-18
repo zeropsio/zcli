@@ -15,7 +15,8 @@ import (
 	"testing"
 )
 
-// BUG: when the service name matches a setup name in zerops.yaml AND the user
+// TestServicePushCommand_SetupFlagOverridesAutoMatch reproduces a confirmed
+// bug: when the service name matches a setup name in zerops.yaml AND the user
 // passes an explicit --setup, the auto-match silently wins and --setup is
 // ignored. Reproduced from a real pipeline running `--setup showcase-backend`
 // on a service named "backend" with both setups present.
@@ -50,7 +51,8 @@ func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
 	assertPushSuccess(t, res, s, "showcase-backend")
 }
 
-// CONFIRMED BUG: servicePush.go's log-streaming callback dereferences
+// TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE reproduces
+// a confirmed bug: servicePush.go's log-streaming callback dereferences
 // apiProcess.AppVersion.Id (push.go:235) and apiProcess.AppVersion.Build
 // (push.go:251) the first time a poll returns status=RUNNING. AppVersion is a
 // pointer in output.Process — if the API returns RUNNING before AppVersion is
@@ -70,8 +72,8 @@ func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
 // push.go:235; same for AppVersion.Build before :251. Once fixed, drop the
 // t.Skip and this test locks the fix in.
 //
-// Builds its own handler set rather than calling registerPushStubs because the
-// /process/{id} response must be call-count dependent and http.ServeMux
+// It builds its own handler set rather than calling registerPushStubs because
+// the /process/{id} response must be call-count dependent and http.ServeMux
 // doesn't allow re-registering a pattern.
 func TestServicePushCommand_RunningProcessWithNullAppVersion_BUGPROBE(t *testing.T) {
 	t.Skip("CONFIRMED BUG: push.go:235 nil-deref crashes the binary; remove t.Skip after fix")

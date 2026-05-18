@@ -93,8 +93,9 @@ func archiveContains(entries map[string]string, suffix string) bool {
 
 // --- error paths ----------------------------------------------------------
 
-// Working dir is not a git repo, --no-git not set → archive client refuses
-// with an explanatory error about git init.
+// TestServicePushCommand_GitNotInitializedErrors checks that a working dir
+// without a .git directory (and without --no-git) is refused by the archive
+// client with an explanatory error about git init.
 func TestServicePushCommand_GitNotInitializedErrors(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not on PATH")
@@ -116,8 +117,9 @@ func TestServicePushCommand_GitNotInitializedErrors(t *testing.T) {
 	assert.Contains(t, res.Stderr, "git init", "stderr should mention git init")
 }
 
-// Working dir has a .git dir but zero commits → archive client refuses with
-// an explanatory error about needing at least one commit.
+// TestServicePushCommand_GitZeroCommitsErrors checks that a working dir with
+// a .git directory but zero commits is refused by the archive client with an
+// explanatory "at least one commit" error.
 func TestServicePushCommand_GitZeroCommitsErrors(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not on PATH")
@@ -142,8 +144,9 @@ func TestServicePushCommand_GitZeroCommitsErrors(t *testing.T) {
 
 // --- happy paths ----------------------------------------------------------
 
-// Default workspace-state (=all) over a clean repo: committed files are in
-// the uploaded archive.
+// TestServicePushCommand_GitArchive_CommittedFilesUploaded checks that with
+// the default workspace-state (=all) over a clean repo, committed files end
+// up in the uploaded archive.
 func TestServicePushCommand_GitArchive_CommittedFilesUploaded(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not on PATH")
@@ -173,8 +176,9 @@ func TestServicePushCommand_GitArchive_CommittedFilesUploaded(t *testing.T) {
 	assert.True(t, archiveContains(entries, "zerops.yaml"), "archive should contain zerops.yaml; got: %v", keys(entries))
 }
 
-// --workspace-state=clean excludes uncommitted files even when they exist in
-// the working tree.
+// TestServicePushCommand_GitArchive_WorkspaceCleanIgnoresUncommitted checks
+// that --workspace-state=clean excludes uncommitted files even when they
+// exist in the working tree.
 func TestServicePushCommand_GitArchive_WorkspaceCleanIgnoresUncommitted(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not on PATH")
@@ -207,6 +211,7 @@ func TestServicePushCommand_GitArchive_WorkspaceCleanIgnoresUncommitted(t *testi
 	assert.False(t, archiveContains(entries, "uncommitted.txt"), "uncommitted file should not be in clean archive; got: %v", keys(entries))
 }
 
+// TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir checks that
 // --deploy-git-folder tars the .git directory into the archive alongside the
 // working-tree files.
 func TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir(t *testing.T) {
@@ -248,8 +253,10 @@ func TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir(t *testing.
 	assert.True(t, archiveContains(entries, "main.go"), "main.go should still be present")
 }
 
-// --workspace-state=staged includes files that are staged (added to index)
-// but not yet committed. Unstaged working-tree changes must be excluded.
+// TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged
+// checks that --workspace-state=staged includes files that are staged (added
+// to the index) but not yet committed, while excluding unstaged working-tree
+// changes.
 func TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not on PATH")
@@ -287,8 +294,9 @@ func TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged(t
 	assert.False(t, archiveContains(entries, "unstaged.txt"), "unstaged.txt must not be in staged archive; got: %v", keys(entries))
 }
 
-// --workspace-state=all (the default) captures everything: committed, staged,
-// and unstaged working-tree changes.
+// TestServicePushCommand_GitArchive_WorkspaceAllIncludesUncommitted checks
+// that --workspace-state=all (the default) captures everything: committed,
+// staged, and unstaged working-tree changes.
 func TestServicePushCommand_GitArchive_WorkspaceAllIncludesUncommitted(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not on PATH")

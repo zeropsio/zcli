@@ -16,8 +16,9 @@ import (
 
 // --- Happy paths ----------------------------------------------------------
 
-// Service name matches a setup in zerops.yaml — no --setup flag needed,
-// auto-match picks it.
+// TestServicePushCommand_SetupAutoMatchesServiceName checks that when the
+// service name matches a setup in zerops.yaml, auto-match picks it without
+// requiring a --setup flag.
 func TestServicePushCommand_SetupAutoMatchesServiceName(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -37,7 +38,8 @@ func TestServicePushCommand_SetupAutoMatchesServiceName(t *testing.T) {
 	assertPushSuccess(t, res, s, "demo")
 }
 
-// Service name doesn't match any setup; user picks one explicitly via --setup.
+// TestServicePushCommand_SetupSelectedByFlag verifies that when the service
+// name doesn't match any setup, the user can pick one explicitly via --setup.
 func TestServicePushCommand_SetupSelectedByFlag(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -58,7 +60,8 @@ func TestServicePushCommand_SetupSelectedByFlag(t *testing.T) {
 	assertPushSuccess(t, res, s, "api-prod")
 }
 
-// --version-name flag is forwarded to the POST /app-version request body.
+// TestServicePushCommand_VersionNameForwarded checks that the --version-name
+// flag is forwarded to the POST /app-version request body.
 func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -84,8 +87,9 @@ func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 
 // --- Error paths / variant coverage ---------------------------------------
 
-// Working directory without zerops.yaml or zerops.yml — yamlReader returns a
-// not-found error before any API call is made.
+// TestServicePushCommand_MissingZeropsYaml verifies that a working directory
+// without zerops.yaml or zerops.yml fails with a yamlReader not-found error
+// before any API call is made.
 func TestServicePushCommand_MissingZeropsYaml(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -107,7 +111,8 @@ func TestServicePushCommand_MissingZeropsYaml(t *testing.T) {
 	)
 }
 
-// Zero-byte zerops.yaml is treated as an explicit error, not "no setups".
+// TestServicePushCommand_EmptyZeropsYaml checks that a zero-byte zerops.yaml
+// is treated as an explicit error rather than as "no setups defined".
 func TestServicePushCommand_EmptyZeropsYaml(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -126,8 +131,9 @@ func TestServicePushCommand_EmptyZeropsYaml(t *testing.T) {
 	requireNonZeroExit(t, res)
 }
 
-// --workspace-state must be one of all/staged/clean. An arbitrary value fails
-// validation client-side before any archive work is done.
+// TestServicePushCommand_InvalidWorkspaceState verifies that an arbitrary
+// value for --workspace-state (which must be all/staged/clean) fails client-
+// side validation before any archive work is done.
 func TestServicePushCommand_InvalidWorkspaceState(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -147,9 +153,10 @@ func TestServicePushCommand_InvalidWorkspaceState(t *testing.T) {
 	assert.Contains(t, res.Stderr, "workspace-state", "stderr should explain the bad --workspace-state value")
 }
 
-// Non-TTY (test) run with no auto-match and no --setup flag must fail with the
-// "please select with --setup" guidance — never silently fall into an
-// interactive selector that can't run.
+// TestServicePushCommand_NoSetupMatchNoFlagFailsInNonTTY checks that a non-
+// TTY run with no auto-match and no --setup flag fails with a "please select
+// with --setup" message rather than silently falling into an interactive
+// selector that can't run.
 func TestServicePushCommand_NoSetupMatchNoFlagFailsInNonTTY(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -169,8 +176,9 @@ func TestServicePushCommand_NoSetupMatchNoFlagFailsInNonTTY(t *testing.T) {
 	assert.Contains(t, res.Stderr, "--setup", "stderr should ask for --setup")
 }
 
-// Process polling returns FAILED on the first poll — the spinner loop must
-// translate that into a non-zero exit with a user-facing error.
+// TestServicePushCommand_ProcessFails verifies that when process polling
+// returns FAILED on the first poll, the spinner loop translates that into a
+// non-zero exit with a user-facing error.
 func TestServicePushCommand_ProcessFails(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -190,9 +198,10 @@ func TestServicePushCommand_ProcessFails(t *testing.T) {
 	requireNonZeroExit(t, res)
 }
 
-// Current behavior documented: a --setup value not present in zerops.yaml is
-// forwarded verbatim to the API — there is no client-side check that the
-// chosen setup exists in the local yaml.
+// TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi documents current
+// behavior: a --setup value not present in zerops.yaml is forwarded verbatim
+// to the API, with no client-side check that the chosen setup exists in the
+// local yaml.
 func TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -214,9 +223,9 @@ func TestServicePushCommand_SetupNotFoundInYaml_ForwardedToApi(t *testing.T) {
 
 // --- Tier 2: polling, scope, archive-file-path ----------------------------
 
-// Process polling visits PENDING, then RUNNING, then FINISHED across three
-// consecutive polls. The CLI must keep looping until a terminal state is
-// reached.
+// TestServicePushCommand_PendingThenRunningThenFinished checks that process
+// polling keeps looping through PENDING, RUNNING, and FINISHED across three
+// consecutive polls until a terminal state is reached.
 func TestServicePushCommand_PendingThenRunningThenFinished(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -237,8 +246,9 @@ func TestServicePushCommand_PendingThenRunningThenFinished(t *testing.T) {
 	assert.GreaterOrEqual(t, s.processPollCount.Load(), int32(3), "should poll at least 3 times for PENDING→RUNNING→FINISHED")
 }
 
-// A 404 on the service-stack endpoint surfaces as a non-zero exit with a
-// user-facing error rather than a panic or generic dump.
+// TestServicePushCommand_InvalidServiceIdErrors checks that a 404 on the
+// service-stack endpoint surfaces as a non-zero exit with a user-facing error
+// rather than a panic or generic dump.
 func TestServicePushCommand_InvalidServiceIdErrors(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -270,8 +280,9 @@ func TestServicePushCommand_InvalidServiceIdErrors(t *testing.T) {
 	assert.Contains(t, strings.ToLower(res.Stderr), "service", "stderr should mention the service error")
 }
 
+// TestServicePushCommand_ArchiveFilePathTeesToFile checks that
 // --archive-file-path writes a copy of the uploaded package to disk via a
-// tee'd reader. The file should exist after the push and have non-zero size.
+// tee'd reader, producing a non-empty file after the push.
 func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -299,10 +310,10 @@ func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
 	assert.NotZero(t, info.Size(), "archive file should not be empty")
 }
 
-// --project-id flag combined with a non-UUID positional service arg drives
-// the by-name lookup path: scopeProject resolves the project via flag, then
-// scopeService falls through to GetServiceByIdOrName, which first tries the
-// arg as a UUID (gets ServiceStackNotFound) and then looks up by name.
+// TestServicePushCommand_ProjectFlagAndServiceByName exercises the by-name
+// lookup path: --project-id resolves the project via flag, then scopeService
+// falls through to GetServiceByIdOrName, which first tries the positional arg
+// as a UUID (gets ServiceStackNotFound) and then looks up by name.
 func TestServicePushCommand_ProjectFlagAndServiceByName(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
@@ -361,9 +372,9 @@ func TestServicePushCommand_ProjectFlagAndServiceByName(t *testing.T) {
 	assertPushSuccess(t, res, s, "demo")
 }
 
-// A saved project scope (set previously by `zcli scope project ...`) lets
-// push run without --project-id, resolving the service by name within the
-// scoped project.
+// TestServicePushCommand_ScopeFromSavedProjectId checks that a saved project
+// scope (set previously by `zcli scope project ...`) lets push run without
+// --project-id, resolving the service by name within the scoped project.
 func TestServicePushCommand_ScopeFromSavedProjectId(t *testing.T) {
 	f := newFixture(t)
 	f.SeedScopedLogin("test-token", pushProjectID)
@@ -412,8 +423,9 @@ func TestServicePushCommand_ScopeFromSavedProjectId(t *testing.T) {
 	assertPushSuccess(t, res, s, "demo")
 }
 
-// openPackageFile refuses to overwrite an existing --archive-file-path. The
-// push should fail before any upload happens.
+// TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors verifies that
+// openPackageFile refuses to overwrite an existing --archive-file-path, so
+// the push fails before any upload happens.
 func TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
