@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestLoginCommand_PersistsTokenAndRegion checks that `zcli login <token>
+// --region-url ...` resolves the region from the mocked region catalog,
+// fetches GetUserInfo, persists token + region to cliStorage, and prints a
+// success message naming the user.
 func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
 	f := newFixture(t)
 

@@ -10,9 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// service deploy variant of the happy path: same scaffolding as push but the
-// final request goes to /app-version/{id}/deploy instead of /build-and-deploy.
-// Shared helpers live in pushDeploy_helpers_test.go.
+// TestServiceDeployCommand_HappyPath exercises the deploy variant of the
+// push happy path: same scaffolding as push, but the final request goes to
+// /app-version/{id}/deploy instead of /build-and-deploy. Shared helpers live
+// in pushDeploy_helpers_test.go.
 func TestServiceDeployCommand_HappyPath(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")

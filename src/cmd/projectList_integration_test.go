@@ -9,6 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestProjectListCommand checks that `zcli project list` walks GetUserInfo →
+// org filtering (ACTIVE only) → PostProjectSearch and renders a table that
+// contains the project id, name, and org name.
 func TestProjectListCommand(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
