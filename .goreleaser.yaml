@@ -58,11 +58,6 @@ builds:
     ldflags:
       - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
 
-upx:
-  - enabled: true
-    ids: [linux-amd64, linux-386]
-    compress: best
-
 archives:
   - id: raw
     ids: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
