@@ -58,6 +58,31 @@ builds:
     ldflags:
       - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
 
+  # Deb-only builds: binary is named "zcli" so the package installs
+  # /usr/local/bin/zcli rather than the arch-suffixed name the archives
+  # and npm wrapper rely on.
+  - id: deb-amd64
+    main: ./cmd/zcli/main.go
+    binary: zcli
+    goos: [linux]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
+  - id: deb-386
+    main: ./cmd/zcli/main.go
+    binary: zcli
+    goos: [linux]
+    goarch: ["386"]
+    env:
+      - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }}
+
 archives:
   - id: raw
     ids: [linux-amd64, linux-386, darwin-amd64, darwin-arm64, windows-amd64]
@@ -83,7 +108,7 @@ archives:
 nfpms:
   - id: deb
     package_name: zcli
-    ids: [linux-amd64, linux-386]
+    ids: [deb-amd64, deb-386]
     maintainer: "Zerops <https://zerops.io>"
     description: "Zerops CLI"
     homepage: "https://github.com/zeropsio/zcli"
