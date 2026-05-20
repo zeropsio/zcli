@@ -87,7 +87,7 @@ func TestRequireSelfUpdatable(t *testing.T) {
 	savedChannel := channel
 	t.Cleanup(func() { channel = savedChannel })
 
-	for _, stamp := range []string{"npm", "brew", "nix"} {
+	for _, stamp := range []string{"npm", "brew", "nix", "deb"} {
 		channel = stamp
 		if err := RequireSelfUpdatable(); err == nil {
 			t.Errorf("channel %q: expected refusal, got nil", stamp)
@@ -104,7 +104,7 @@ func TestPlanUpgradeAlwaysSucceeds(t *testing.T) {
 	savedChannel := channel
 	t.Cleanup(func() { channel = savedChannel })
 
-	for _, stamp := range []string{"manual", "npm", "brew", "nix"} {
+	for _, stamp := range []string{"manual", "npm", "brew", "nix", "deb"} {
 		channel = stamp
 		plan, err := PlanUpgrade(t.Context(), UpgradeOptions{TargetVersion: "v1.0.0"})
 		if err != nil {
