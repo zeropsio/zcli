@@ -5,26 +5,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"runtime"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 	"golang.org/x/mod/semver"
 
+	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/printer"
 )
 
-const apiUrl = "https://api.app-prg1.zerops.io/api/rest/public/zcli/version"
+const defaultApiUrl = "https://api.app-prg1.zerops.io/api/rest/public/zcli/version"
+
+// apiURL returns the version API endpoint, honoring an env override so tests
+// (and mirrors) can point it elsewhere without rebuilding.
+func apiURL() string {
+	if u := os.Getenv(constants.VersionApiUrlEnvVar); u != "" {
+		return u
+	}
+	return defaultApiUrl
+}
 
 var version = "local"
-
-var (
-	fetchOnce      sync.Once
-	latestResponse *apiResponse
-	errFetch       error
-)
 
 func GetCurrent() string {
 	return version
@@ -125,36 +129,35 @@ func isUpdateAvailable(current, latest string) bool {
 	return semver.Compare(current, latest) < 0
 }
 
+// fetch returns the latest-release response, preferring the on-disk cache.
+// The cache also dedupes within a single invocation: the first call writes it
+// and any later call (e.g. GetLatestUrl after GetLatest) reads it back, so
+// there's no need for in-process memoization.
 func fetch(ctx context.Context) (*apiResponse, error) {
-	fetchOnce.Do(func() {
-		if entry, err := loadCacheEntry(); err == nil && entry != nil && entry.Fresh() {
-			latestResponse = entry.Response
-			return
+	if entry, err := loadCacheEntry(); err == nil && entry != nil && entry.Fresh() {
+		return entry.Response, nil
+	}
+	resp, err := fetchFromNetwork(ctx)
+	if err != nil {
+		// Stale cache beats no answer at all.
+		if entry, cacheErr := loadCacheEntry(); cacheErr == nil && entry != nil {
+			return entry.Response, nil
 		}
-		resp, err := fetchFromNetwork(ctx)
-		if err != nil {
-			// Stale cache beats no answer at all.
-			if entry, cacheErr := loadCacheEntry(); cacheErr == nil && entry != nil {
-				latestResponse = entry.Response
-				return
-			}
-			errFetch = err
-			return
-		}
-		latestResponse = resp
-		_ = writeCacheEntry(resp)
-	})
-	return latestResponse, errFetch
+		return nil, err
+	}
+	_ = writeCacheEntry(resp)
+	return resp, nil
 }
 
 func fetchFromNetwork(ctx context.Context) (*apiResponse, error) {
+	url := apiURL()
 	client := httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Second * 5})
-	resp, err := client.Get(ctx, apiUrl)
+	resp, err := client.Get(ctx, url)
 	if err != nil {
-		return nil, errors.Wrapf(err, "version api request to %s failed", apiUrl)
+		return nil, errors.Wrapf(err, "version api request to %s failed", url)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("version api %s returned status %d", apiUrl, resp.StatusCode)
+		return nil, errors.Errorf("version api %s returned status %d", url, resp.StatusCode)
 	}
 	out := &apiResponse{}
 	if err := json.Unmarshal(resp.Body, out); err != nil {
