@@ -7,7 +7,6 @@ import (
 	_ "crypto/sha256" // register SHA-256 for selfupdate.Apply
 	"encoding/hex"
 	"fmt"
-	"io"
 	"net/http"
 	"runtime"
 	"strings"
@@ -30,9 +29,7 @@ var releasesURL = "https://github.com/zeropsio/zcli/releases/download/%s/%s"
 
 // applyUpdate is the binary swap implementation. Tests override it with a
 // stub so the test binary isn't actually replaced.
-var applyUpdate = func(r io.Reader, opts selfupdate.Options) error {
-	return selfupdate.Apply(r, opts)
-}
+var applyUpdate = selfupdate.Apply
 
 type UpgradeOptions struct {
 	// TargetVersion is the release tag to install (e.g. "v0.9.0"). Empty

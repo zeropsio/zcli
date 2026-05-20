@@ -23,7 +23,7 @@ var version = "local"
 var (
 	fetchOnce      sync.Once
 	latestResponse *apiResponse
-	fetchErr       error
+	errFetch       error
 )
 
 func GetCurrent() string {
@@ -138,13 +138,13 @@ func fetch(ctx context.Context) (*apiResponse, error) {
 				latestResponse = entry.Response
 				return
 			}
-			fetchErr = err
+			errFetch = err
 			return
 		}
 		latestResponse = resp
 		_ = writeCacheEntry(resp)
 	})
-	return latestResponse, fetchErr
+	return latestResponse, errFetch
 }
 
 func fetchFromNetwork(ctx context.Context) (*apiResponse, error) {

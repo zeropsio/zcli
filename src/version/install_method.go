@@ -17,6 +17,8 @@ const (
 
 func (m InstallMethod) String() string {
 	switch m {
+	case InstallManual:
+		return "manual"
 	case InstallNix:
 		return "nix"
 	case InstallNpm:
@@ -32,6 +34,8 @@ func (m InstallMethod) String() string {
 // Always non-empty so warnings always tell the user what to do.
 func (m InstallMethod) Hint() string {
 	switch m {
+	case InstallManual:
+		return "Run: zcli upgrade"
 	case InstallNix:
 		return "Update via Nix: rebuild your profile or flake."
 	case InstallNpm:
