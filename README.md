@@ -144,7 +144,7 @@ Common targets (run `make help` for the full list):
 
 | Target | What it does |
 |---|---|
-| `make build-dev` | Build `./bin/zcli` with the `devel` tag, no optimizations (dlv-friendly). |
+| `make build-dev` | Build `./bin/zcli` with no optimizations (dlv-friendly). |
 | `make install` | Build a production `zcli` and install to `~/.local/bin` (same path as `install.sh`). |
 | `make install-dev` | Install a `zcli-dev` binary into `$GOBIN` (or `$GOPATH/bin`). |
 | `make test` | Run the full Go test suite. |

@@ -1,5 +1,3 @@
-//go:build devel
-
 package cmd
 
 // This file collects integration regression tests that pin previously
@@ -34,7 +32,6 @@ func TestServicePushCommand_SetupFlagOverridesAutoMatch(t *testing.T) {
 	s := registerPushStubs(t, f, "backend")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -166,7 +163,6 @@ func TestServicePushCommand_RunningProcessWithNullAppVersionNoCrash(t *testing.T
 	// the null AppVersion and the second poll's FINISHED status completes
 	// the push.
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,

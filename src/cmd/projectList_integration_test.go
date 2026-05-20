@@ -1,5 +1,3 @@
-//go:build devel
-
 package cmd
 
 import (
@@ -51,7 +49,7 @@ func TestProjectListCommand(t *testing.T) {
 		}},
 	})
 
-	res := f.Run(nil, "project", "list")
+	res := f.Run("project", "list")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	for _, want := range []string{"demo-project", "Acme Org", "00000000-0000-0000-0000-0000000000bb"} {

@@ -1,5 +1,3 @@
-//go:build devel
-
 package cmd
 
 import (
@@ -33,7 +31,7 @@ func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
 		"fullName": "Test User",
 	})
 
-	res := f.Run(nil, "login", "secret-token", "--region-url", f.Server.URL+"/regions")
+	res := f.Run("login", "secret-token", "--region-url", f.Server.URL+"/regions")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stderr, "Test User", "success message should name the user")

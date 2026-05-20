@@ -1,5 +1,3 @@
-//go:build devel
-
 package cmd
 
 import (
@@ -29,7 +27,6 @@ func TestServicePushCommand_SetupAutoMatchesServiceName(t *testing.T) {
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -51,7 +48,6 @@ func TestServicePushCommand_SetupSelectedByFlag(t *testing.T) {
 	s := registerPushStubs(t, f, "api") // service is "api", no exact match
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -74,7 +70,6 @@ func TestServicePushCommand_VersionNameForwarded(t *testing.T) {
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -101,7 +96,6 @@ func TestServicePushCommand_MissingZeropsYaml(t *testing.T) {
 	registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -127,7 +121,6 @@ func TestServicePushCommand_EmptyZeropsYaml(t *testing.T) {
 	registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -149,7 +142,6 @@ func TestServicePushCommand_InvalidWorkspaceState(t *testing.T) {
 	registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -173,7 +165,6 @@ func TestServicePushCommand_NoSetupMatchNoFlagFailsInNonTTY(t *testing.T) {
 	registerPushStubs(t, f, "api") // no setup named "api"
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -197,7 +188,6 @@ func TestServicePushCommand_ProcessFails(t *testing.T) {
 	s.processStatus.Store("FAILED")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -221,7 +211,6 @@ func TestServicePushCommand_SetupNotFoundInYamlRejectedLocally(t *testing.T) {
 	s := registerPushStubs(t, f, "other") // no auto-match
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -253,7 +242,6 @@ func TestServicePushCommand_PendingThenRunningThenFinished(t *testing.T) {
 	s.processStatusSeq.Store([]string{"PENDING", "RUNNING", "FINISHED"})
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -288,7 +276,6 @@ func TestServicePushCommand_InvalidServiceIdErrors(t *testing.T) {
 	})
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -315,7 +302,6 @@ func TestServicePushCommand_ArchiveFilePathTeesToFile(t *testing.T) {
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -382,7 +368,6 @@ func TestServicePushCommand_ProjectFlagAndServiceByName(t *testing.T) {
 	})
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"demo", // positional service-id-or-name
 		"--project-id", pushProjectID,
@@ -435,7 +420,6 @@ func TestServicePushCommand_ScopeFromSavedProjectId(t *testing.T) {
 	})
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"demo", // positional service name
 		"--working-dir", workDir,
@@ -460,7 +444,6 @@ func TestServicePushCommand_ArchiveFilePathAlreadyExistsErrors(t *testing.T) {
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,

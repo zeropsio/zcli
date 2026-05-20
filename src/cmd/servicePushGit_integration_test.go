@@ -1,5 +1,3 @@
-//go:build devel
-
 package cmd
 
 import (
@@ -24,7 +22,7 @@ import (
 // not pick up the developer's ~/.gitconfig.
 func runGit(t *testing.T, dir string, args ...string) {
 	t.Helper()
-	cmd := exec.Command("git", args...)
+	cmd := exec.CommandContext(t.Context(), "git", args...)
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(),
 		"GIT_TERMINAL_PROMPT=0",
@@ -45,10 +43,10 @@ func gitInit(t *testing.T, dir string) {
 }
 
 // gitAddCommit stages everything in dir and records a commit.
-func gitAddCommit(t *testing.T, dir, msg string) {
+func gitAddCommit(t *testing.T, dir string) {
 	t.Helper()
 	runGit(t, dir, "add", "-A")
-	runGit(t, dir, "commit", "-q", "-m", msg)
+	runGit(t, dir, "commit", "-q", "-m", "initial")
 }
 
 // archiveEntries unpacks a (gzipped) tar produced by the push pipeline into a
@@ -108,7 +106,6 @@ func TestServicePushCommand_GitNotInitializedErrors(t *testing.T) {
 	registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -134,7 +131,6 @@ func TestServicePushCommand_GitZeroCommitsErrors(t *testing.T) {
 	registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -159,12 +155,11 @@ func TestServicePushCommand_GitArchive_CommittedFilesUploaded(t *testing.T) {
 	writeZeropsYaml(t, workDir, "demo")
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
 	gitInit(t, workDir)
-	gitAddCommit(t, workDir, "initial")
+	gitAddCommit(t, workDir)
 
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -192,14 +187,13 @@ func TestServicePushCommand_GitArchive_WorkspaceCleanIgnoresUncommitted(t *testi
 	writeZeropsYaml(t, workDir, "demo")
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
 	gitInit(t, workDir)
-	gitAddCommit(t, workDir, "initial")
+	gitAddCommit(t, workDir)
 	// Add a file after the commit — it must NOT appear in the archive.
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "uncommitted.txt"), []byte("local-only"), 0o600))
 
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -228,12 +222,11 @@ func TestServicePushCommand_GitArchive_DeployGitFolderIncludesGitDir(t *testing.
 	writeZeropsYaml(t, workDir, "demo")
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
 	gitInit(t, workDir)
-	gitAddCommit(t, workDir, "initial")
+	gitAddCommit(t, workDir)
 
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -272,7 +265,7 @@ func TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged(t
 	writeZeropsYaml(t, workDir, "demo")
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
 	gitInit(t, workDir)
-	gitAddCommit(t, workDir, "initial")
+	gitAddCommit(t, workDir)
 
 	// Stage one new file (in the index but not committed) and leave another
 	// unstaged in the working tree.
@@ -283,7 +276,6 @@ func TestServicePushCommand_GitArchive_WorkspaceStagedKeepsStagedDropsUnstaged(t
 	s := registerPushStubs(t, f, "demo")
 
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,
@@ -313,7 +305,7 @@ func TestServicePushCommand_GitArchive_WorkspaceAllIncludesUncommitted(t *testin
 	writeZeropsYaml(t, workDir, "demo")
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "main.go"), []byte("package main\n"), 0o600))
 	gitInit(t, workDir)
-	gitAddCommit(t, workDir, "initial")
+	gitAddCommit(t, workDir)
 
 	require.NoError(t, os.WriteFile(filepath.Join(workDir, "staged.txt"), []byte("staged"), 0o600))
 	runGit(t, workDir, "add", "staged.txt")
@@ -323,7 +315,6 @@ func TestServicePushCommand_GitArchive_WorkspaceAllIncludesUncommitted(t *testin
 
 	// Omitting --workspace-state defaults to "all".
 	res := f.Run(
-		nil,
 		"service", "push",
 		"--service-id", pushServiceID,
 		"--working-dir", workDir,

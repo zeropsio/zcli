@@ -10,8 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `make test` — runs `go test -v ./cmd/... ./src/...`. Run a single test with `go test -v -run TestName ./src/<pkg>/...`.
 - `make lint` — runs the pinned `./bin/golangci-lint` for darwin/arm64, linux/amd64, and windows/amd64. Config: `.golangci.yaml`.
-- `make build-dev` — build a dev binary for the host into `./bin/zcli` (build tag `devel`, debug-friendly via `-gcflags='all=-l -N'`, version injected from git).
-- `make all` — cross-builds dev binaries for windows-amd, linux-amd, darwin-amd, darwin-arm. Single-target builds: `make linux-amd` etc. All build targets share the `DEV_BUILD` recipe in the Makefile (version metadata, devel tag, gcflags).
+- `make build-dev` — build a dev binary for the host into `./bin/zcli` (debug-friendly via `-gcflags='all=-l -N'`, version injected from git).
+- `make all` — cross-builds dev binaries for windows-amd, linux-amd, darwin-amd, darwin-arm. Single-target builds: `make linux-amd` etc. All build targets share the `DEV_BUILD` recipe in the Makefile (version metadata, gcflags).
 - `make install` — production install into `~/.local/bin/zcli` (same path as the public `install.sh` script). Stripped/optimized, version from `git describe`, same flag set as `.goreleaser.yaml`.
 - `make install-dev` — installs to `$GOBIN` (or `$GOPATH/bin`) as `zcli-dev` so it sits with other Go dev tools and coexists on PATH with a production `zcli`.
 - `make goreleaser-check` / `make goreleaser-snapshot` — validate `.goreleaser.yaml` and dry-run a release build to `./dist`.
