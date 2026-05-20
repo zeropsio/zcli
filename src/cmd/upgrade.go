@@ -3,9 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -29,7 +29,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			if err != nil {
 				if check {
 					cmdData.Stderr.Printf("error: %s\n", err)
-					os.Exit(2)
+					return errorsx.NewExitError(2)
 				}
 				return err
 			}
@@ -39,7 +39,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				if plan.Current == plan.Target {
 					return nil
 				}
-				os.Exit(1)
+				return errorsx.NewExitError(1)
 			}
 
 			if err := getVersion.RequireSelfUpdatable(); err != nil {

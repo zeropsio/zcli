@@ -132,6 +132,13 @@ func errorExitCode(err error, uxBlocks uxBlock.UxBlocks) int {
 	}
 	uxBlocks.LogDebug(fmt.Sprintf("error: %+v", err))
 
+	// A command that manages its own output and needs a specific exit status
+	// (e.g. `upgrade --check`) signals it with an ExitError; return the code
+	// as-is without printing anything further.
+	if exitErr := errorsx.AsExitError(err); exitErr != nil {
+		return exitErr.Code
+	}
+
 	if userErr := errorsx.AsUserError(err); userErr != nil {
 		uxBlocks.PrintErrorText(err.Error())
 		return 1
