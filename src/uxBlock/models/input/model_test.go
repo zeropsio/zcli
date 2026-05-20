@@ -46,7 +46,7 @@ func TestInput_EnterWithEmptyValue(t *testing.T) {
 	tm.WaitFinished(t, teatest.WithFinalTimeout(2*time.Second))
 	val, err := GetValueFunc(tm.FinalModel(t))
 	require.NoError(t, err)
-	assert.Equal(t, "", val)
+	assert.Empty(t, val)
 }
 
 // Esc aborts the input and propagates the cancellation error.
