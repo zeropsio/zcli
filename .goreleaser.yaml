@@ -117,6 +117,9 @@ nfpms:
     file_name_template: >-
       zcli_{{ .Tag }}_{{ if eq .Arch "386" }}i386{{ else }}{{ .Arch }}{{ end }}
 
+checksum:
+  name_template: "checksums.txt"
+
 release:
   mode: append
   prerelease: auto
