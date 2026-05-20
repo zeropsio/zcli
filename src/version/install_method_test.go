@@ -36,6 +36,7 @@ func TestParseChannel(t *testing.T) {
 		{"nix", InstallNix, true},
 		{"npm", InstallNpm, true},
 		{"brew", InstallBrew, true},
+		{"deb", InstallDeb, true},
 		{"manual", InstallManual, true},
 		{"", 0, false},
 		{"unknown", 0, false},
@@ -64,12 +65,12 @@ func TestDetectChannelStamp(t *testing.T) {
 }
 
 func TestInstallMethodPackageManager(t *testing.T) {
-	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew, InstallManual} {
+	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew, InstallDeb, InstallManual} {
 		if m.Hint() == "" {
 			t.Errorf("%v should have a non-empty hint", m)
 		}
 	}
-	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew} {
+	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew, InstallDeb} {
 		if !m.IsPackageManager() {
 			t.Errorf("%v should be a package manager", m)
 		}

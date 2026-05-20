@@ -13,6 +13,7 @@ const (
 	InstallNix
 	InstallNpm
 	InstallBrew
+	InstallDeb
 )
 
 func (m InstallMethod) String() string {
@@ -25,6 +26,8 @@ func (m InstallMethod) String() string {
 		return "npm"
 	case InstallBrew:
 		return "homebrew"
+	case InstallDeb:
+		return "deb"
 	default:
 		return "manual"
 	}
@@ -42,6 +45,8 @@ func (m InstallMethod) Hint() string {
 		return "Update via npm: npm install -g @zerops/zcli"
 	case InstallBrew:
 		return "Update via Homebrew: brew upgrade zcli"
+	case InstallDeb:
+		return "Update by installing the latest .deb from https://github.com/zeropsio/zcli/releases"
 	default:
 		return "Run: zcli upgrade"
 	}
@@ -51,10 +56,11 @@ func (m InstallMethod) IsPackageManager() bool {
 	return m != InstallManual
 }
 
-// channel is stamped by packagers via `-ldflags "-X .../version.channel=<name>"`.
-// Empty means "not stamped" — Detect() falls back to path-based heuristics.
-// Packagers who install to paths indistinguishable from a manual install
-// (notably AUR and winget MSI installers) should set this.
+// channel is stamped at build time via `-ldflags "-X .../version.channel=<name>"`.
+// Official builds set it for every distribution (manual/npm/deb in goreleaser,
+// brew/nix in their own packaging); Detect() only falls back to path-based
+// heuristics when it's empty (e.g. a plain `go build` or a packager that
+// forgot to stamp). Empty means "not stamped".
 var channel = ""
 
 // Detect returns the channel the running binary was installed through. The
@@ -87,6 +93,8 @@ func parseChannel(c string) (InstallMethod, bool) {
 		return InstallNpm, true
 	case "brew":
 		return InstallBrew, true
+	case "deb":
+		return InstallDeb, true
 	default:
 		return 0, false
 	}
