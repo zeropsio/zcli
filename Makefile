@@ -22,7 +22,7 @@ DEV_INSTALL_DIR  := $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 # Dev-build version metadata (matches what tools/build.sh used to compose).
 DEV_VERSION := $(shell git rev-parse --abbrev-ref HEAD):$(shell git describe --tags 2>/dev/null)-($(shell git config --get user.name):<$(shell git config --get user.email)>)
 # -gcflags disables inlining and optimizations so the binary is dlv-friendly.
-DEV_BUILD := go build -tags devel \
+DEV_BUILD := go build \
 	-gcflags='all=-l -N' \
 	-ldflags='-X "github.com/zeropsio/zcli/src/version.version=$(DEV_VERSION)"'
 
@@ -44,8 +44,8 @@ help: ## Show this help.
 test: ## Run the full Go test suite.
 	go test -v ./cmd/... ./src/...
 
-test-integration: ## Run the integration test suite (devel build tag).
-	go test -v -tags devel ./src/cmd/...
+test-integration: ## Run just the in-process integration tests (src/cmd).
+	go test -v ./src/cmd/...
 
 # Lint each target GOOS in turn so platform-specific build tags get covered.
 lint: $(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION) ## Run golangci-lint for darwin/arm64, linux/amd64, windows/amd64.
@@ -55,7 +55,7 @@ lint: $(BIN)/.golangci-lint-$(GOLANGCI_LINT_VERSION) ## Run golangci-lint for da
 
 ##@ Build
 
-build-dev: ## Build a dev binary for the host into ./bin/zcli (devel tag, no optimizations).
+build-dev: ## Build a dev binary for the host into ./bin/zcli (no optimizations, dlv-friendly).
 	$(DEV_BUILD) -o $(BIN)/zcli ./cmd/zcli
 
 all: windows-amd linux-amd darwin-amd darwin-arm ## Cross-build all dev targets.
@@ -79,7 +79,7 @@ install: ## Build a production zcli (stripped, optimized) and install it into ~/
 	$(PROD_BUILD) -o $(PROD_INSTALL_DIR)/zcli ./cmd/zcli
 	@echo "installed $(PROD_INSTALL_DIR)/zcli ($(PROD_VERSION))"
 
-install-dev: ## Build a dev zcli-dev (devel tag, debug-friendly) and install it into $GOBIN.
+install-dev: ## Build a dev zcli-dev (debug-friendly) and install it into $GOBIN.
 	$(DEV_BUILD) -o $(DEV_INSTALL_DIR)/zcli-dev ./cmd/zcli
 	@echo "installed $(DEV_INSTALL_DIR)/zcli-dev"
 

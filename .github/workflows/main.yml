@@ -39,7 +39,7 @@ jobs:
           go-version-file: "go.mod"
 
       - name: test-integration
-        run: go test -v -tags devel ./src/cmd/...
+        run: go test -v ./src/cmd/...
 
   lint:
     name: lint

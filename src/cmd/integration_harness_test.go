@@ -1,15 +1,12 @@
-//go:build devel
-
 // Shared scaffolding for the package's integration tests.
 //
-// All integration tests build under the `devel` build tag (so the
-// production-version-check HTTP call from src/version is stubbed to a no-op)
-// and run via `make test-integration`. They drive the CLI in-process through
-// cmdBuilder.RunRootCmd, point the REST client at an httptest.Server, and
-// isolate per-test state by setting ZEROPS_CLI_DATA_FILE_PATH,
-// ZEROPS_CLI_LOG_FILE_PATH, and ZEROPS_CLI_YAML_FILE_PATH to per-test temp
-// files. yamlReader's package-level cache is reset before and after each test.
-// See pushDeploy_helpers_test.go for push/deploy-specific helpers.
+// Integration tests drive the CLI in-process through cmdBuilder.RunRootCmd,
+// point the REST client at an httptest.Server, and isolate per-test state by
+// setting ZEROPS_CLI_DATA_FILE_PATH, ZEROPS_CLI_LOG_FILE_PATH, and
+// ZEROPS_CLI_YAML_FILE_PATH to per-test temp files. ZEROPS_VERSION_API_URL is
+// pointed at the test server so the background version check never reaches the
+// real API. yamlReader's package-level cache is reset before and after each
+// test. See pushDeploy_helpers_test.go for push/deploy-specific helpers.
 
 package cmd
 
@@ -63,6 +60,9 @@ func newFixture(t *testing.T) *fixture {
 	t.Setenv(constants.CliLogFilePathEnvVar, logPath)
 	t.Setenv(constants.CliZcliYamlFilePathEnvVar, yamlPath)
 	t.Setenv(constants.CliTokenEnvVar, "")
+	// Keep the background version check off the real network. Tests that
+	// exercise the version API re-point this at a registered handler.
+	t.Setenv(constants.VersionApiUrlEnvVar, server.URL+"/__version_check__")
 
 	return &fixture{
 		t:        t,
@@ -117,13 +117,16 @@ type result struct {
 	ExitCode int
 }
 
-// Run executes the CLI in-process with the given args. ctx defaults to
-// context.Background() when nil.
-func (f *fixture) Run(ctx context.Context, args ...string) result {
+// Run executes the CLI in-process with the given args, using the test's
+// context. Use RunCtx when a specific (e.g. canceled) context is needed.
+func (f *fixture) Run(args ...string) result {
 	f.t.Helper()
-	if ctx == nil {
-		ctx = context.Background()
-	}
+	return f.RunCtx(f.t.Context(), args...)
+}
+
+// RunCtx is Run with an explicit context.
+func (f *fixture) RunCtx(ctx context.Context, args ...string) result {
+	f.t.Helper()
 	var stdout, stderr bytes.Buffer
 	code := cmdBuilder.RunRootCmd(
 		ctx,

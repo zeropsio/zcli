@@ -95,6 +95,11 @@ linters:
       - linters: [staticcheck]
         path: src/cmdRunner/run.go
         text: "ST1005:"
+      # Integration tests marshal internal persisted structs (e.g.
+      # cliStorage.Data) to seed on-disk state. Those types intentionally rely
+      # on Go's default field-name JSON keys, so don't require explicit tags.
+      - linters: [musttag]
+        path: _test\.go$
 
 issues:
   max-same-issues: 0
