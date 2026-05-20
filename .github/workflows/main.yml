@@ -27,6 +27,20 @@ jobs:
       - name: test
         run: go test -v ./cmd/... ./src/...
 
+  integration:
+    name: integration
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: test-integration
+        run: go test -v -tags devel ./src/cmd/...
+
   lint:
     name: lint
     runs-on: ubuntu-22.04
