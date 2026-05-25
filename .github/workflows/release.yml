@@ -87,15 +87,43 @@ jobs:
             --version "$NPM_VERSION" \
             --out "$GITHUB_WORKSPACE/dist-npm"
 
-      # Platform packages must be published before the main package, otherwise its
-      # optionalDependencies can't be resolved on install.
+      # npm publishes aren't transactional, so we enforce the consumer-facing invariant
+      # instead: publish the main package only after all platform packages exist at this
+      # version, so its optionalDependencies can never resolve to a missing package.
+      # Platform publishes are idempotent (skip versions already on the registry) so a
+      # re-run after a partial failure completes cleanly without bumping the version.
       - name: Publish platform packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for dir in "$GITHUB_WORKSPACE"/dist-npm/*/; do
+            name="$(node -p "require('$dir/package.json').name")"
+            if npm view "$name@$NPM_VERSION" version >/dev/null 2>&1; then
+              echo "$name@$NPM_VERSION already published, skipping"
+              continue
+            fi
             npm publish "$dir" --access=public --tag "$NPM_TAG"
           done
+
+      - name: Verify all platform packages are published
+        run: |
+          for dir in "$GITHUB_WORKSPACE"/dist-npm/*/; do
+            name="$(node -p "require('$dir/package.json').name")"
+            ok=0
+            for i in $(seq 1 12); do
+              if npm view "$name@$NPM_VERSION" version >/dev/null 2>&1; then
+                ok=1
+                break
+              fi
+              echo "waiting for $name@$NPM_VERSION to be resolvable..."
+              sleep 5
+            done
+            if [ "$ok" -ne 1 ]; then
+              echo "::error::$name@$NPM_VERSION is not on the registry; refusing to publish the main package"
+              exit 1
+            fi
+          done
+          echo "all platform packages present at $NPM_VERSION"
 
       - name: Publish main package
         env:
