@@ -37,13 +37,16 @@ jobs:
 
   publish-npm:
     needs: goreleaser
-    if: github.event.action == 'released'
+    if: github.event.action == 'released' || github.event.action == 'prereleased'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
     env:
       VERSION: ${{ github.event.release.tag_name }}
+      # Full releases go to the default `latest` tag; pre-releases go to `next` so
+      # `npm i @zerops/zcli` is unaffected and they install via `@zerops/zcli@next`.
+      NPM_TAG: ${{ github.event.action == 'prereleased' && 'next' || 'latest' }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -84,7 +87,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for dir in "$GITHUB_WORKSPACE"/dist-npm/*/; do
-            npm publish "$dir" --access=public
+            npm publish "$dir" --access=public --tag "$NPM_TAG"
           done
 
       - name: Publish main package
@@ -94,14 +97,14 @@ jobs:
           cd tools/npm
           npm i -g replace-in-files-cli@2.2.0
           replace-in-files --string='v0.0.0-zerops' --replacement="$NPM_VERSION" package.json
-          npm publish --access=public --ignore-scripts
+          npm publish --access=public --ignore-scripts --tag "$NPM_TAG"
 
   # Install the just-published package across OS/arch + package managers and run the
   # binary, so a broken release (missing platform package, os/cpu mismatch, Bun
   # incompatibility, exec-bit loss) surfaces immediately instead of in user reports.
   smoke-test:
     needs: publish-npm
-    if: github.event.action == 'released'
+    if: github.event.action == 'released' || github.event.action == 'prereleased'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
