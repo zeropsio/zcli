@@ -40,20 +40,61 @@ jobs:
     if: github.event.action == 'released'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
-      - run: |
-          cd tools/npm
-          npm ci --ignore-scripts
-          npm i -g replace-in-files-cli@2.2.0
-          replace-in-files --string='v0.0.0-zerops' --replacement='${{ github.event.release.tag_name }}' package.json
-          npm publish --access=public
+
+      # The git tag carries a leading "v" (e.g. v1.2.3); npm package versions must be
+      # plain semver. Keep the tag for the GitHub download, strip the "v" for package.json.
+      - name: Resolve npm version
+        run: echo "NPM_VERSION=${VERSION#v}" >> "$GITHUB_ENV"
+
+      - name: Download release binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist-bin
+          gh release download "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir dist-bin \
+            --pattern 'zcli-linux-amd64' \
+            --pattern 'zcli-linux-i386' \
+            --pattern 'zcli-darwin-amd64' \
+            --pattern 'zcli-darwin-arm64' \
+            --pattern 'zcli-win-x64.exe'
+
+      - name: Build platform packages
+        run: |
+          node tools/npm/scripts/build-platform-packages.mjs \
+            --binaries "$GITHUB_WORKSPACE/dist-bin" \
+            --version "$NPM_VERSION" \
+            --out "$GITHUB_WORKSPACE/dist-npm"
+
+      # Platform packages must be published before the main package, otherwise its
+      # optionalDependencies can't be resolved on install.
+      - name: Publish platform packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for dir in "$GITHUB_WORKSPACE"/dist-npm/*/; do
+            npm publish "$dir" --access=public
+          done
+
+      - name: Publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd tools/npm
+          npm i -g replace-in-files-cli@2.2.0
+          replace-in-files --string='v0.0.0-zerops' --replacement="$NPM_VERSION" package.json
+          npm publish --access=public --ignore-scripts
 
   report:
     needs: goreleaser
