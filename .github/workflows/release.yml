@@ -59,19 +59,26 @@ jobs:
       - name: Resolve npm version
         run: echo "NPM_VERSION=${VERSION#v}" >> "$GITHUB_ENV"
 
-      - name: Download release binaries
+      # npm must ship the channel=npm binaries (so `zcli upgrade` defers to npm instead
+      # of self-updating), not the channel=manual raw binaries. Those live inside the
+      # *-npm.tar.gz archives as builds/zcli-<platform>; extract them into dist-bin under
+      # the asset names the build script expects (strip-components drops the builds/ dir).
+      - name: Download and extract npm-channel binaries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p dist-bin
+          mkdir -p dist-tars dist-bin
           gh release download "$VERSION" \
             --repo "$GITHUB_REPOSITORY" \
-            --dir dist-bin \
-            --pattern 'zcli-linux-amd64' \
-            --pattern 'zcli-linux-i386' \
-            --pattern 'zcli-darwin-amd64' \
-            --pattern 'zcli-darwin-arm64' \
-            --pattern 'zcli-win-x64.exe'
+            --dir dist-tars \
+            --pattern 'zcli-linux-amd64-npm.tar.gz' \
+            --pattern 'zcli-linux-i386-npm.tar.gz' \
+            --pattern 'zcli-darwin-amd64-npm.tar.gz' \
+            --pattern 'zcli-darwin-arm64-npm.tar.gz' \
+            --pattern 'zcli-win-x64.exe-npm.tar.gz'
+          for t in dist-tars/*.tar.gz; do
+            tar -xzf "$t" -C dist-bin --strip-components=1
+          done
 
       - name: Build platform packages
         run: |
