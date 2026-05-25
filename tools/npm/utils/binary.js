@@ -29,7 +29,7 @@ const run = () => {
 
 const install = () => {
   const binary = getBinary();
-  binary.install();
+  return binary.install();
 };
 
 const uninstall = () => {
@@ -37,8 +37,15 @@ const uninstall = () => {
   binary.uninstall();
 };
 
+const getBinaryPath = () => {
+  const { join } = require("path");
+  const platform_arch = getPlatform();
+  return join(__dirname, "bin", "bin", `zcli-${platform_arch}`);
+};
+
 module.exports = {
   install,
   run,
   uninstall,
+  getBinaryPath,
 };
