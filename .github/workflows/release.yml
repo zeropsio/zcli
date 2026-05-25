@@ -96,6 +96,75 @@ jobs:
           replace-in-files --string='v0.0.0-zerops' --replacement="$NPM_VERSION" package.json
           npm publish --access=public --ignore-scripts
 
+  # Install the just-published package across OS/arch + package managers and run the
+  # binary, so a broken release (missing platform package, os/cpu mismatch, Bun
+  # incompatibility, exec-bit loss) surfaces immediately instead of in user reports.
+  smoke-test:
+    needs: publish-npm
+    if: github.event.action == 'released'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest # linux x64
+            manager: npm
+          - os: ubuntu-latest
+            manager: bun
+          - os: macos-latest # darwin arm64
+            manager: npm
+          - os: macos-latest
+            manager: bun
+          - os: macos-13 # darwin amd64
+            manager: npm
+          - os: windows-latest # win x64
+            manager: npm
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+
+      - if: matrix.manager == 'bun'
+        uses: oven-sh/setup-bun@v2
+
+      - name: Wait for the published version to be resolvable
+        shell: bash
+        run: |
+          V="${VERSION#v}"
+          for i in $(seq 1 12); do
+            if npm view "@zerops/zcli@$V" version >/dev/null 2>&1; then
+              echo "found @zerops/zcli@$V"
+              exit 0
+            fi
+            echo "waiting for @zerops/zcli@$V to appear on the registry..."
+            sleep 10
+          done
+          echo "@zerops/zcli@$V did not become resolvable in time"
+          exit 1
+
+      - name: Install and run (npm)
+        if: matrix.manager == 'npm'
+        shell: bash
+        run: |
+          V="${VERSION#v}"
+          npm install -g "@zerops/zcli@$V"
+          zcli version
+
+      - name: Install and run (bun)
+        if: matrix.manager == 'bun'
+        shell: bash
+        run: |
+          V="${VERSION#v}"
+          dir="$(mktemp -d)"
+          cd "$dir"
+          echo '{"name":"zcli-smoke","version":"1.0.0"}' > package.json
+          bun add "@zerops/zcli@$V"
+          ./node_modules/.bin/zcli version
+
   report:
     needs: goreleaser
     if: github.event.action == 'released'
