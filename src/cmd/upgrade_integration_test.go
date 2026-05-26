@@ -57,18 +57,18 @@ func TestUpgradeCheckBehind(t *testing.T) {
 
 // A local PROD build stamps git-describe info as semver build metadata
 // (Makefile PROD_VERSION rewrites `-N-gHASH` to `+N.gHASH`). semver.Compare
-// ignores the `+...` suffix, so being 11 commits ahead of v1.0.67 should
-// report as up to date, not as "behind v1.0.67".
+// ignores the `+...` suffix, so being 11 commits ahead of v1.1.0 should
+// report as up to date, not as "behind v1.1.0".
 func TestUpgradeCheckAheadOfTagViaBuildMetadata(t *testing.T) {
 	f := newFixture(t)
-	f.stubVersion("v1.0.67+11.g03aedf4")
-	f.stubVersionAPI(http.StatusOK, "v1.0.67")
+	f.stubVersion("v1.1.0+11.g03aedf4")
+	f.stubVersionAPI(http.StatusOK, "v1.1.0")
 
 	res := f.Run("upgrade", "--check")
 
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q stdout=%q", res.Stderr, res.Stdout)
-	assert.Contains(t, res.Stdout, "Current: v1.0.67+11.g03aedf4")
-	assert.Contains(t, res.Stdout, "Latest:  v1.0.67")
+	assert.Contains(t, res.Stdout, "Current: v1.1.0+11.g03aedf4")
+	assert.Contains(t, res.Stdout, "Latest:  v1.1.0")
 }
 
 func TestUpgradeCheckExplicitVersion(t *testing.T) {
@@ -79,6 +79,21 @@ func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	require.Equalf(t, 1, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "Current: local")
 	assert.Contains(t, res.Stdout, "Latest:  v1.2.3")
+}
+
+// --check --version vX on a pre-v1.1.0 tag exits with code 3 (target known
+// but unreachable by `zcli upgrade`) and prints the install.sh hint to
+// stderr, so scripts can distinguish "use install.sh" from "actual upgrade
+// available" (exit 1).
+func TestUpgradeCheckTargetUnreachable(t *testing.T) {
+	f := newFixture(t)
+
+	res := f.Run("upgrade", "--check", "--version", "v1.0.67")
+
+	require.Equalf(t, 3, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stdout, "Latest:  v1.0.67")
+	assert.Contains(t, res.Stderr, "install.sh")
+	assert.Contains(t, res.Stderr, "v1.0.67")
 }
 
 // Releases before v1.1.0 didn't ship a checksums.txt, so the self-upgrader
