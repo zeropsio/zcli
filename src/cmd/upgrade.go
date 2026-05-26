@@ -57,6 +57,10 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			if err := plan.RequireSelfUpgradable(); err != nil {
+				return err
+			}
+
 			if !plan.NeedsUpgrade() && targetVersion == "" {
 				cmdData.Stdout.Printf("zcli is already on %s.\n", plan.Current())
 				return nil

@@ -81,6 +81,20 @@ func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	assert.Contains(t, res.Stdout, "Latest:  v1.2.3")
 }
 
+// Releases before v1.1.0 didn't ship a checksums.txt, so the self-upgrader
+// would 404 mid-way. Apply is gated by Plan.RequireSelfUpgradable; the
+// command must point users at install.sh for those older tags.
+func TestUpgradeRejectsPreRework(t *testing.T) {
+	f := newFixture(t)
+
+	res := f.Run("upgrade", "--yes", "--version", "v1.0.67")
+
+	require.NotEqualf(t, 0, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	combined := res.Stdout + res.Stderr
+	assert.Contains(t, combined, "v1.0.67")
+	assert.Contains(t, combined, "install.sh")
+}
+
 func TestUpgradeInvalidDownloadTimeout(t *testing.T) {
 	f := newFixture(t)
 	f.stubVersionAPI(http.StatusOK, "v2.0.0")

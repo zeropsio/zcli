@@ -26,6 +26,10 @@ const (
 	checksumsName          = "checksums.txt"
 	defaultDownloadTimeout = 2 * time.Minute
 	defaultReleasesURL     = "https://github.com/zeropsio/zcli/releases/download/%s/%s"
+	// firstSelfUpgradableTag is the earliest release whose assets include a
+	// checksums.txt. Older tags can't be fetched/verified by Apply, so the
+	// upgrade command refuses them and points users at install.sh instead.
+	firstSelfUpgradableTag = "v1.1.0"
 )
 
 // Upgrader bundles the per-binary state and dependencies the upgrade flow
@@ -94,6 +98,24 @@ func (p Plan) Target() string  { return p.target }
 // the helpful default. semver.Compare ignores build metadata, so a local
 // build stamped as `vX.Y.Z+N.gHASH` ties with the released `vX.Y.Z` and is
 // reported as up to date.
+// RequireSelfUpgradable returns an error when target predates the first
+// release that shipped checksums.txt (firstSelfUpgradableTag). Apply would
+// otherwise fail mid-way at the checksums fetch; this surfaces the right
+// remediation up front. Non-semver targets (shouldn't happen in practice
+// since target comes from a tag) pass through.
+func (p Plan) RequireSelfUpgradable() error {
+	if !semver.IsValid(p.target) {
+		return nil
+	}
+	if semver.Compare(p.target, firstSelfUpgradableTag) >= 0 {
+		return nil
+	}
+	return errors.Errorf(
+		"%s predates self-upgrade support (added in %s). Install older releases via install.sh:\n  curl -fsSL https://raw.githubusercontent.com/zeropsio/zcli/main/install.sh | sh -s -- %s",
+		p.target, firstSelfUpgradableTag, p.target,
+	)
+}
+
 func (p Plan) NeedsUpgrade() bool {
 	if !semver.IsValid(p.target) {
 		return false
