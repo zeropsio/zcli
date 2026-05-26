@@ -214,3 +214,28 @@ func TestUpgradeAlreadyOnLatest(t *testing.T) {
 	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "already on local")
 }
+
+// Regression guard for the "self-downgrade to an older self-upgradable tag"
+// path: when current > target but target is >= firstSelfUpgradableTag and the
+// user supplied --version, the cmd must proceed to Apply instead of
+// short-circuiting on `already on <current>`. The short-circuit lives in
+// upgrade.go at the `!plan.NeedsUpgrade() && targetVersion == ""` guard - if
+// the `&& targetVersion == ""` clause ever gets dropped, this test fails.
+//
+// Apply itself can't be allowed to succeed (it would replace the running test
+// binary), so the fixture's release endpoint serves an empty checksums.txt;
+// Apply gets past the gate, fetches it, fails to find the asset in the empty
+// body, and surfaces a download error. The assertion is on *which* error: it
+// must come from Apply, not from the "already on" short-circuit.
+func TestUpgradeSelfDowngradeToOlderSelfUpgradable(t *testing.T) {
+	f := newFixture(t)
+	f.stubVersion("v1.1.1")
+	f.stubReleaseTag("v1.1.0")
+
+	res := f.Run("upgrade", "--yes", "--version", "v1.1.0")
+
+	require.NotEqualf(t, 0, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	combined := res.Stdout + res.Stderr
+	assert.NotContains(t, combined, "already on", "must not short-circuit; downgrade path should reach Apply")
+	assert.Contains(t, combined, "v1.1.0", "error should reference the target tag")
+}
