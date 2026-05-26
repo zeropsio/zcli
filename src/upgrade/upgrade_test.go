@@ -70,18 +70,22 @@ fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210  checksums.txt
 
 func TestRequireSelfUpdatable(t *testing.T) {
 	for _, stamp := range []string{"npm", "brew", "nix", "deb"} {
-		assert.Errorf(t, (Upgrader{channel: stamp}).RequireSelfUpdatable(), "channel %q: expected refusal", stamp)
+		t.Run(stamp, func(t *testing.T) {
+			require.Error(t, (Upgrader{channel: stamp}).RequireSelfUpdatable(), "expected refusal")
+		})
 	}
-	assert.NoError(t, (Upgrader{channel: "manual"}).RequireSelfUpdatable(), "manual channel: expected no refusal")
+	t.Run("manual", func(t *testing.T) {
+		require.NoError(t, (Upgrader{channel: "manual"}).RequireSelfUpdatable(), "expected no refusal")
+	})
 }
 
 func TestPlanUpgradeAlwaysSucceeds(t *testing.T) {
 	for _, stamp := range []string{"manual", "npm", "brew", "nix", "deb"} {
-		plan, err := (Upgrader{channel: stamp}).PlanUpgrade(t.Context(), Options{TargetVersion: "v1.0.0"})
-		if !assert.NoErrorf(t, err, "channel %q: expected plan", stamp) {
-			continue
-		}
-		assert.Equalf(t, "v1.0.0", plan.target, "channel %q: target", stamp)
+		t.Run(stamp, func(t *testing.T) {
+			plan, err := (Upgrader{channel: stamp}).PlanUpgrade(t.Context(), Options{TargetVersion: "v1.0.0"})
+			require.NoError(t, err, "expected plan")
+			assert.Equal(t, "v1.0.0", plan.target)
+		})
 	}
 }
 
