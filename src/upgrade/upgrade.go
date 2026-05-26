@@ -6,6 +6,7 @@ import (
 	"crypto"
 	_ "crypto/sha256" // register SHA-256 for selfupdate.Apply
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,6 +27,7 @@ const (
 	checksumsName          = "checksums.txt"
 	defaultDownloadTimeout = 2 * time.Minute
 	defaultReleasesURL     = "https://github.com/zeropsio/zcli/releases/download/%s/%s"
+	defaultReleasesListURL = "https://api.github.com/repos/zeropsio/zcli/releases?per_page=100"
 	// firstSelfUpgradableTag is the earliest release whose assets include a
 	// checksums.txt. Older tags can't be fetched/verified by Apply, so the
 	// upgrade command refuses them and points users at install.sh instead.
@@ -42,6 +44,7 @@ type Upgrader struct {
 	channel         string
 	apply           func(io.Reader, selfupdate.Options) error
 	releasesURL     string
+	releasesListURL string
 	downloadTimeout time.Duration
 }
 
@@ -63,16 +66,61 @@ func NewUpgrader() Upgrader {
 	if u := os.Getenv(constants.ReleasesURLEnvVar); u != "" {
 		releasesURL = u
 	}
+	releasesListURL := defaultReleasesListURL
+	if u := os.Getenv(constants.ReleasesListURLEnvVar); u != "" {
+		releasesListURL = u
+	}
 	return Upgrader{
 		current:         current,
 		channel:         channel,
 		apply:           selfupdate.Apply,
 		releasesURL:     releasesURL,
+		releasesListURL: releasesListURL,
 		downloadTimeout: defaultDownloadTimeout,
 	}
 }
 
 func (u Upgrader) Current() string { return u.current }
+
+// Release describes one entry in the releases-list, surfaced by the
+// --pick-version selector. SelfUpgradable is precomputed against
+// firstSelfUpgradableTag so callers don't need to recompute it per row.
+type Release struct {
+	Tag            string
+	SelfUpgradable bool
+}
+
+// AvailableReleases pulls the release list from GitHub (or the configured
+// override). Drafts and non-semver tags are dropped; the order follows the
+// API's response (newest first as of writing).
+func (u Upgrader) AvailableReleases(ctx context.Context) ([]Release, error) {
+	client := httpClient.New(ctx, httpClient.Config{HttpTimeout: 10 * time.Second})
+	resp, err := client.Get(ctx, u.releasesListURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "fetch releases list")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("fetch releases list: status %d", resp.StatusCode)
+	}
+	var entries []struct {
+		TagName string `json:"tag_name"`
+		Draft   bool   `json:"draft"`
+	}
+	if err := json.Unmarshal(resp.Body, &entries); err != nil {
+		return nil, errors.Wrap(err, "decode releases list")
+	}
+	out := make([]Release, 0, len(entries))
+	for _, e := range entries {
+		if e.Draft || !semver.IsValid(e.TagName) {
+			continue
+		}
+		out = append(out, Release{
+			Tag:            e.TagName,
+			SelfUpgradable: semver.Compare(e.TagName, firstSelfUpgradableTag) >= 0,
+		})
+	}
+	return out, nil
+}
 
 // LatestTag returns the latest known release tag.
 //   - noCache=false reads the on-disk cache (populated by background
