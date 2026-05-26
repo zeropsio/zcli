@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/zeropsio/zcli/src/cliStorage"
@@ -114,6 +115,24 @@ func (f *fixture) stubReleaseTag(tag string) {
 	f.Mux.HandleFunc(fmt.Sprintf("/__releases__/%s/", tag), func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
+}
+
+// stubLatestCache seeds the on-disk version cache so
+// upgrade.Upgrader.CachedLatest() returns the given tag without contacting
+// the API. The cache file layout (cacheEntry / apiResponse) lives in the
+// upgrade package and isn't exported; reproducing the JSON shape here keeps
+// integration tests independent of that internal type. If that shape
+// changes, this helper needs to follow.
+func (f *fixture) stubLatestCache(tag string) {
+	f.t.Helper()
+	cachePath := filepath.Join(filepath.Dir(f.DataPath), constants.VersionCacheFileName)
+	entry := map[string]any{
+		"fetched_at": time.Now().Format(time.RFC3339Nano),
+		"response":   map[string]any{"tag_name": tag},
+	}
+	b, err := json.Marshal(entry)
+	require.NoError(f.t, err, "marshal version cache")
+	require.NoError(f.t, os.WriteFile(cachePath, b, 0o644), "write version cache")
 }
 
 // HandleJSON registers an exact-path handler returning the given status and

@@ -74,12 +74,28 @@ func TestUpgradeCheckAheadOfTagViaBuildMetadata(t *testing.T) {
 func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	f := newFixture(t)
 	f.stubReleaseTag("v1.2.3")
+	f.stubLatestCache("v9.9.9") // so --check prints a Latest line from cache too
 	// No version-API stub: --version is resolved without contacting the API.
 	res := f.Run("upgrade", "--check", "--version", "v1.2.3")
 
 	require.Equalf(t, 1, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "Current: local")
-	assert.Contains(t, res.Stdout, "Latest:  v1.2.3")
+	assert.Contains(t, res.Stdout, "Target:  v1.2.3")
+	assert.Contains(t, res.Stdout, "Latest:  v9.9.9")
+}
+
+// --check --version without a populated cache should still print
+// Current/Target but omit the Latest line.
+func TestUpgradeCheckExplicitVersionNoCache(t *testing.T) {
+	f := newFixture(t)
+	f.stubReleaseTag("v1.2.3")
+
+	res := f.Run("upgrade", "--check", "--version", "v1.2.3")
+
+	require.Equalf(t, 1, res.ExitCode, "stderr=%q", res.Stderr)
+	assert.Contains(t, res.Stdout, "Current: local")
+	assert.Contains(t, res.Stdout, "Target:  v1.2.3")
+	assert.NotContains(t, res.Stdout, "Latest:")
 }
 
 // PlanUpgrade HEADs the binary URL when --version is set; a 404 surfaces as
@@ -103,11 +119,13 @@ func TestUpgradeCheckInvalidTag(t *testing.T) {
 func TestUpgradeCheckTargetUnreachable(t *testing.T) {
 	f := newFixture(t)
 	f.stubReleaseTag("v1.0.67")
+	f.stubLatestCache("v1.1.0")
 
 	res := f.Run("upgrade", "--check", "--version", "v1.0.67")
 
 	require.Equalf(t, 3, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
-	assert.Contains(t, res.Stdout, "Latest:  v1.0.67")
+	assert.Contains(t, res.Stdout, "Target:  v1.0.67")
+	assert.Contains(t, res.Stdout, "Latest:  v1.1.0")
 	assert.Contains(t, res.Stderr, "install.sh")
 	assert.Contains(t, res.Stderr, "v1.0.67")
 }

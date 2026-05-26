@@ -74,6 +74,19 @@ func NewUpgrader() Upgrader {
 
 func (u Upgrader) Current() string { return u.current }
 
+// CachedLatest returns the latest known release tag from the disk cache,
+// or "" when the cache is missing or unreadable. Never makes a network
+// call; the cache is populated by RefreshCacheIfStale running in the
+// background on every invocation, so it's usually fresh after the first
+// run that contacted the version API.
+func (u Upgrader) CachedLatest() string {
+	resp := loadCached()
+	if resp == nil {
+		return ""
+	}
+	return resp.TagName
+}
+
 // WithDownloadTimeout returns a copy of u that uses d as the overall
 // timeout for both checksums and binary fetch in Apply.
 func (u Upgrader) WithDownloadTimeout(d time.Duration) Upgrader {
