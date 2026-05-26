@@ -26,6 +26,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 		BoolFlag("yes", false, "Skip the confirmation prompt.").
 		BoolFlag("no-cache", false, "Bypass the on-disk version cache and resolve `latest` directly from the release API.").
 		BoolFlag("pick-version", false, "Open an interactive picker listing every release. Pre-v1.1.0 entries are shown but disabled (use install.sh for those).").
+		BoolFlag("include-pre-release", false, "Include pre-release/rc tags in the --pick-version picker (default: stable releases only).").
 		StringFlag("version", "", "Install a specific release tag instead of the latest.").
 		StringFlag("download-timeout", "", "Overall timeout for the binary download (Go duration, e.g. '5m', '90s'). 0 disables the timeout. Default 2m.").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
@@ -33,6 +34,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			yes := cmdData.Params.GetBool("yes")
 			noCache := cmdData.Params.GetBool("no-cache")
 			pickVersion := cmdData.Params.GetBool("pick-version")
+			includePrerelease := cmdData.Params.GetBool("include-pre-release")
 			targetVersion := cmdData.Params.GetString("version")
 			downloadTimeoutRaw := cmdData.Params.GetString("download-timeout")
 
@@ -50,7 +52,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				upgrader = upgrader.WithDownloadTimeout(d)
 			}
 			if pickVersion {
-				picked, err := pickReleaseInteractive(ctx, upgrader)
+				picked, err := pickReleaseInteractive(ctx, upgrader, includePrerelease)
 				if err != nil {
 					return err
 				}
@@ -142,9 +144,11 @@ func upgradeCmd() *cmdBuilder.Cmd {
 // pickReleaseInteractive fetches the release list and runs a selector TUI
 // over it. Pre-v1.1.0 entries are shown but marked disabled so the user
 // can see the tag name (and copy it into install.sh) without accidentally
-// picking something `zcli upgrade` can't fulfil.
-func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader) (string, error) {
-	releases, err := upgrader.AvailableReleases(ctx)
+// picking something `zcli upgrade` can't fulfil. The page size is capped at
+// 15 rows so long histories paginate predictably instead of swallowing the
+// whole terminal.
+func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader, includePrerelease bool) (string, error) {
+	releases, err := upgrader.AvailableReleases(ctx, includePrerelease)
 	if err != nil {
 		return "", err
 	}
@@ -155,9 +159,12 @@ func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader) (str
 	header := table.NewRowFromStrings("Version", "Status")
 	body := table.NewBody()
 	for _, r := range releases {
-		status := "self-upgradable"
-		if !r.SelfUpgradable {
+		status := "stable"
+		switch {
+		case !r.SelfUpgradable:
 			status = "requires install.sh"
+		case r.Prerelease:
+			status = "pre-release"
 		}
 		row := table.NewRowFromStrings(r.Tag, status)
 		if !r.SelfUpgradable {
@@ -173,6 +180,7 @@ func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader) (str
 			selector.WithLabel("Pick a release to install"),
 			selector.WithHeader(header),
 			selector.WithSetEnableFiltering(true),
+			selector.WithMaxRowsPerPage(15),
 		),
 		selector.GetOneSelectedFunc,
 	)
