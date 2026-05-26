@@ -49,6 +49,8 @@ type Upgrader struct {
 // the ldflag-stamped `version` var, but an env override (VersionEnvVar) wins
 // when set - tests in other packages use that to inject without poking
 // package state, mirroring how VersionApiUrlEnvVar overrides the API URL.
+// releasesURL has the same kind of env override (ReleasesURLEnvVar) so the
+// cmd integration tests can point it at httptest.
 // The channel is read straight from the ldflag-stamped `channel` var; no
 // env override since the only callers that need to vary it are same-package
 // tests that construct an Upgrader literal directly.
@@ -57,11 +59,15 @@ func NewUpgrader() Upgrader {
 	if v := os.Getenv(constants.VersionEnvVar); v != "" {
 		current = v
 	}
+	releasesURL := defaultReleasesURL
+	if u := os.Getenv(constants.ReleasesURLEnvVar); u != "" {
+		releasesURL = u
+	}
 	return Upgrader{
 		current:         current,
 		channel:         channel,
 		apply:           selfupdate.Apply,
-		releasesURL:     defaultReleasesURL,
+		releasesURL:     releasesURL,
 		downloadTimeout: defaultDownloadTimeout,
 	}
 }
@@ -89,15 +95,6 @@ type Plan struct {
 func (p Plan) Current() string { return p.current }
 func (p Plan) Target() string  { return p.target }
 
-// NeedsUpgrade reports whether the upgrade command should proceed. Semantics
-// differ from isUpdateAvailable (which gates the passive "newer available"
-// warning): here the user explicitly asked to upgrade, so we only refuse when
-// we can prove current is at or past target. A non-semver current (e.g.
-// "local" dev build) against a real semver target still counts as needing the
-// upgrade, since we can't prove otherwise and offering the released binary is
-// the helpful default. semver.Compare ignores build metadata, so a local
-// build stamped as `vX.Y.Z+N.gHASH` ties with the released `vX.Y.Z` and is
-// reported as up to date.
 // RequireSelfUpgradable returns an error when target predates the first
 // release that shipped checksums.txt (firstSelfUpgradableTag). Apply would
 // otherwise fail mid-way at the checksums fetch; this surfaces the right
@@ -116,6 +113,15 @@ func (p Plan) RequireSelfUpgradable() error {
 	)
 }
 
+// NeedsUpgrade reports whether the upgrade command should proceed. Semantics
+// differ from isUpdateAvailable (which gates the passive "newer available"
+// warning): here the user explicitly asked to upgrade, so we only refuse when
+// we can prove current is at or past target. A non-semver current (e.g.
+// "local" dev build) against a real semver target still counts as needing the
+// upgrade, since we can't prove otherwise and offering the released binary is
+// the helpful default. semver.Compare ignores build metadata, so a local
+// build stamped as `vX.Y.Z+N.gHASH` ties with the released `vX.Y.Z` and is
+// reported as up to date.
 func (p Plan) NeedsUpgrade() bool {
 	if !semver.IsValid(p.target) {
 		return false
@@ -126,10 +132,11 @@ func (p Plan) NeedsUpgrade() bool {
 	return semver.Compare(p.current, p.target) < 0
 }
 
-// PlanUpgrade resolves the upgrade target. Always succeeds for valid input,
-// regardless of install method, so callers like `--check` can report status
-// for package-managed installs too. Use RequireSelfUpdatable to enforce the
-// channel restriction at the point where you actually intend to swap.
+// PlanUpgrade resolves the upgrade target. When the user pinned a version
+// (opts.TargetVersion != ""), it's verified against GitHub via a HEAD on
+// the platform binary URL so typos surface up front instead of mid-Apply.
+// Verification is skipped when u.releasesURL is empty (same-package tests
+// construct bare Upgrader literals and don't exercise this path).
 func (u Upgrader) PlanUpgrade(ctx context.Context, opts Options) (Plan, error) {
 	target := opts.TargetVersion
 	if target == "" {
@@ -138,8 +145,37 @@ func (u Upgrader) PlanUpgrade(ctx context.Context, opts Options) (Plan, error) {
 			return Plan{}, errors.Wrap(err, "resolve latest version")
 		}
 		target = resp.TagName
+	} else if u.releasesURL != "" {
+		if err := u.verifyTagExists(ctx, target); err != nil {
+			return Plan{}, err
+		}
 	}
 	return Plan{current: u.current, target: target}, nil
+}
+
+// verifyTagExists HEADs the platform binary URL for tag. A 404 means the
+// release doesn't exist; any other non-success status is surfaced as a
+// lookup error so the user can retry. Uses net/http directly because the
+// repo's httpClient wrapper has no HEAD and would otherwise pull the whole
+// ~30MB binary down just to check existence.
+func (u Upgrader) verifyTagExists(ctx context.Context, tag string) error {
+	url := u.assetUrl(tag, assetName())
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, url, nil)
+	if err != nil {
+		return errors.Wrapf(err, "verify release %s", tag)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return errors.Wrapf(err, "verify release %s", tag)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return errors.Errorf("release %s does not exist", tag)
+	}
+	if resp.StatusCode >= 400 {
+		return errors.Errorf("verify release %s: status %d", tag, resp.StatusCode)
+	}
+	return nil
 }
 
 // RequireSelfUpdatable returns an error when the running binary was installed

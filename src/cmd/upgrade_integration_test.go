@@ -73,6 +73,7 @@ func TestUpgradeCheckAheadOfTagViaBuildMetadata(t *testing.T) {
 
 func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	f := newFixture(t)
+	f.stubReleaseTag("v1.2.3")
 	// No version-API stub: --version is resolved without contacting the API.
 	res := f.Run("upgrade", "--check", "--version", "v1.2.3")
 
@@ -81,12 +82,27 @@ func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	assert.Contains(t, res.Stdout, "Latest:  v1.2.3")
 }
 
+// PlanUpgrade HEADs the binary URL when --version is set; a 404 surfaces as
+// "release does not exist" with exit 2 in --check mode.
+func TestUpgradeCheckInvalidTag(t *testing.T) {
+	f := newFixture(t)
+	// No stubReleaseTag for vBOGUS - fixture's default 404 stands in for
+	// GitHub returning 404 on a typo'd tag.
+
+	res := f.Run("upgrade", "--check", "--version", "vBOGUS")
+
+	require.Equalf(t, 2, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "vBOGUS")
+	assert.Contains(t, res.Stderr, "does not exist")
+}
+
 // --check --version vX on a pre-v1.1.0 tag exits with code 3 (target known
 // but unreachable by `zcli upgrade`) and prints the install.sh hint to
 // stderr, so scripts can distinguish "use install.sh" from "actual upgrade
 // available" (exit 1).
 func TestUpgradeCheckTargetUnreachable(t *testing.T) {
 	f := newFixture(t)
+	f.stubReleaseTag("v1.0.67")
 
 	res := f.Run("upgrade", "--check", "--version", "v1.0.67")
 
@@ -101,6 +117,7 @@ func TestUpgradeCheckTargetUnreachable(t *testing.T) {
 // command must point users at install.sh for those older tags.
 func TestUpgradeRejectsPreRework(t *testing.T) {
 	f := newFixture(t)
+	f.stubReleaseTag("v1.0.67")
 
 	res := f.Run("upgrade", "--yes", "--version", "v1.0.67")
 

@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -63,6 +64,10 @@ func newFixture(t *testing.T) *fixture {
 	// Keep the background version check off the real network. Tests that
 	// exercise the version API re-point this at a registered handler.
 	t.Setenv(constants.VersionApiUrlEnvVar, server.URL+"/__version_check__")
+	// Route release-asset lookups (used by tag verification on --version)
+	// at the test server. Tests opt in to specific tags via stubReleaseTag;
+	// unregistered tags hit the default 404 handler.
+	t.Setenv(constants.ReleasesURLEnvVar, server.URL+"/__releases__/%s/%s")
 
 	return &fixture{
 		t:        t,
@@ -99,6 +104,16 @@ func (f *fixture) SeedScopedLogin(token, projectID string) {
 	b, err := json.Marshal(data)
 	require.NoError(f.t, err, "marshal seed data")
 	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
+}
+
+// stubReleaseTag tells the fixture's release-asset endpoint to return 200
+// for any path under the given tag, so upgrade.PlanUpgrade's tag-existence
+// HEAD check succeeds. Unregistered tags fall through to the default mux
+// 404, which is what `release does not exist` lookups expect.
+func (f *fixture) stubReleaseTag(tag string) {
+	f.Mux.HandleFunc(fmt.Sprintf("/__releases__/%s/", tag), func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 }
 
 // HandleJSON registers an exact-path handler returning the given status and
