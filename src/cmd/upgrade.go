@@ -2,13 +2,17 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/upgrade"
+	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 )
@@ -21,14 +25,20 @@ func upgradeCmd() *cmdBuilder.Cmd {
 		BoolFlag("check", false, "Print current and latest version, then exit. 0 = up to date, 1 = behind, 2 = error, 3 = target requires install.sh.").
 		BoolFlag("yes", false, "Skip the confirmation prompt.").
 		BoolFlag("no-cache", false, "Bypass the on-disk version cache and resolve `latest` directly from the release API.").
+		BoolFlag("pick-version", false, "Open an interactive picker listing every release. Pre-v1.1.0 entries are shown but disabled (use install.sh for those).").
 		StringFlag("version", "", "Install a specific release tag instead of the latest.").
 		StringFlag("download-timeout", "", "Overall timeout for the binary download (Go duration, e.g. '5m', '90s'). 0 disables the timeout. Default 2m.").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			check := cmdData.Params.GetBool("check")
 			yes := cmdData.Params.GetBool("yes")
 			noCache := cmdData.Params.GetBool("no-cache")
+			pickVersion := cmdData.Params.GetBool("pick-version")
 			targetVersion := cmdData.Params.GetString("version")
 			downloadTimeoutRaw := cmdData.Params.GetString("download-timeout")
+
+			if pickVersion && targetVersion != "" {
+				return errors.New("--pick-version and --version are mutually exclusive")
+			}
 
 			upgrader := upgrade.NewUpgrader()
 			// --download-timeout uses StringFlag because cmdBuilder has no DurationFlag; parse manually and leave Upgrader's default in place when unset.
@@ -38,6 +48,13 @@ func upgradeCmd() *cmdBuilder.Cmd {
 					return fmt.Errorf("invalid --download-timeout %q: %w", downloadTimeoutRaw, err)
 				}
 				upgrader = upgrader.WithDownloadTimeout(d)
+			}
+			if pickVersion {
+				picked, err := pickReleaseInteractive(ctx, upgrader)
+				if err != nil {
+					return err
+				}
+				targetVersion = picked
 			}
 			plan, err := upgrader.PlanUpgrade(ctx, upgrade.Options{
 				TargetVersion: targetVersion,
@@ -120,4 +137,50 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				}},
 			)
 		})
+}
+
+// pickReleaseInteractive fetches the release list and runs a selector TUI
+// over it. Pre-v1.1.0 entries are shown but marked disabled so the user
+// can see the tag name (and copy it into install.sh) without accidentally
+// picking something `zcli upgrade` can't fulfil.
+func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader) (string, error) {
+	releases, err := upgrader.AvailableReleases(ctx)
+	if err != nil {
+		return "", err
+	}
+	if len(releases) == 0 {
+		return "", errors.New("no releases available")
+	}
+
+	header := table.NewRowFromStrings("Version", "Status")
+	body := table.NewBody()
+	for _, r := range releases {
+		status := "self-upgradable"
+		if !r.SelfUpgradable {
+			status = "requires install.sh"
+		}
+		row := table.NewRowFromStrings(r.Tag, status)
+		if !r.SelfUpgradable {
+			row.SetDisabled(true)
+		}
+		body.AddRow(row)
+	}
+
+	idx, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			body,
+			selector.WithLabel("Pick a release to install"),
+			selector.WithHeader(header),
+			selector.WithSetEnableFiltering(true),
+		),
+		selector.GetOneSelectedFunc,
+	)
+	if err != nil {
+		return "", err
+	}
+	if idx < 0 || idx >= len(releases) {
+		return "", errors.New("invalid release selection")
+	}
+	return releases[idx].Tag, nil
 }

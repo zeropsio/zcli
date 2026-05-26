@@ -175,6 +175,16 @@ func TestUpgradeRejectsPreRework(t *testing.T) {
 	assert.Contains(t, combined, "install.sh")
 }
 
+func TestUpgradePickVersionConflictsWithVersion(t *testing.T) {
+	f := newFixture(t)
+
+	res := f.Run("upgrade", "--pick-version", "--version", "v1.2.3")
+
+	require.NotEqualf(t, 0, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "--pick-version")
+	assert.Contains(t, res.Stderr, "--version")
+}
+
 func TestUpgradeInvalidDownloadTimeout(t *testing.T) {
 	f := newFixture(t)
 	f.stubVersionAPI(http.StatusOK, "v2.0.0")
