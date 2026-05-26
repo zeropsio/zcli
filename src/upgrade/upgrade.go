@@ -74,17 +74,26 @@ func NewUpgrader() Upgrader {
 
 func (u Upgrader) Current() string { return u.current }
 
-// CachedLatest returns the latest known release tag from the disk cache,
-// or "" when the cache is missing or unreadable. Never makes a network
-// call; the cache is populated by RefreshCacheIfStale running in the
-// background on every invocation, so it's usually fresh after the first
-// run that contacted the version API.
-func (u Upgrader) CachedLatest() string {
-	resp := loadCached()
-	if resp == nil {
-		return ""
+// LatestTag returns the latest known release tag.
+//   - noCache=false reads the on-disk cache (populated by background
+//     RefreshCacheIfStale) and returns "" when missing - never calls the
+//     network and never errors.
+//   - noCache=true hits the version API directly, writes the result to
+//     the cache, and returns it. Errors surface to the caller.
+func (u Upgrader) LatestTag(ctx context.Context, noCache bool) (string, error) {
+	if !noCache {
+		resp := loadCached()
+		if resp == nil {
+			return "", nil
+		}
+		return resp.TagName, nil
 	}
-	return resp.TagName
+	resp, err := fetchFromNetwork(ctx)
+	if err != nil {
+		return "", err
+	}
+	_ = writeCacheEntry(resp)
+	return resp.TagName, nil
 }
 
 // WithDownloadTimeout returns a copy of u that uses d as the overall
@@ -98,6 +107,9 @@ type Options struct {
 	// TargetVersion is the release tag to install (e.g. "v0.9.0"). Empty
 	// means the latest known release.
 	TargetVersion string
+	// NoCache forces PlanUpgrade to bypass the on-disk version cache when
+	// resolving "latest". Has no effect when TargetVersion is set.
+	NoCache bool
 }
 
 type Plan struct {
@@ -153,7 +165,7 @@ func (p Plan) NeedsUpgrade() bool {
 func (u Upgrader) PlanUpgrade(ctx context.Context, opts Options) (Plan, error) {
 	target := opts.TargetVersion
 	if target == "" {
-		resp, err := fetch(ctx)
+		resp, err := u.fetchLatest(ctx, opts.NoCache)
 		if err != nil {
 			return Plan{}, errors.Wrap(err, "resolve latest version")
 		}
@@ -164,6 +176,21 @@ func (u Upgrader) PlanUpgrade(ctx context.Context, opts Options) (Plan, error) {
 		}
 	}
 	return Plan{current: u.current, target: target}, nil
+}
+
+// fetchLatest resolves the latest release tag, honoring noCache: when set,
+// the on-disk cache is skipped (but updated on success); otherwise the
+// cache-first fetch path is used.
+func (u Upgrader) fetchLatest(ctx context.Context, noCache bool) (*apiResponse, error) {
+	if !noCache {
+		return fetch(ctx)
+	}
+	resp, err := fetchFromNetwork(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_ = writeCacheEntry(resp)
+	return resp, nil
 }
 
 // verifyTagExists HEADs the platform binary URL for tag. A 404 means the

@@ -84,6 +84,36 @@ func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	assert.Contains(t, res.Stdout, "Latest:  v9.9.9")
 }
 
+// --no-cache makes the "latest" lookup hit the API directly instead of
+// trusting a (potentially stale) on-disk cache.
+func TestUpgradeCheckNoCacheBypassesStaleCache(t *testing.T) {
+	f := newFixture(t)
+	f.stubLatestCache("v9.9.9")                    // stale - should be ignored
+	f.stubVersionAPI(http.StatusOK, "v2.0.0")      // API has the real latest
+
+	res := f.Run("upgrade", "--check", "--no-cache")
+
+	require.Equalf(t, 1, res.ExitCode, "stderr=%q", res.Stderr)
+	assert.Contains(t, res.Stdout, "Latest:  v2.0.0")
+	assert.NotContains(t, res.Stdout, "v9.9.9")
+}
+
+// --no-cache also applies to the Latest line printed alongside Target when
+// --version is set, so the user sees a fresh value instead of cache.
+func TestUpgradeCheckNoCacheWithExplicitVersion(t *testing.T) {
+	f := newFixture(t)
+	f.stubReleaseTag("v1.5.0")
+	f.stubLatestCache("v9.9.9")
+	f.stubVersionAPI(http.StatusOK, "v2.0.0")
+
+	res := f.Run("upgrade", "--check", "--version", "v1.5.0", "--no-cache")
+
+	require.Equalf(t, 1, res.ExitCode, "stderr=%q", res.Stderr)
+	assert.Contains(t, res.Stdout, "Target:  v1.5.0")
+	assert.Contains(t, res.Stdout, "Latest:  v2.0.0")
+	assert.NotContains(t, res.Stdout, "v9.9.9")
+}
+
 // --check --version without a populated cache should still print
 // Current/Target but omit the Latest line.
 func TestUpgradeCheckExplicitVersionNoCache(t *testing.T) {
