@@ -1,7 +1,6 @@
 package upgrade
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -12,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/minio/selfupdate"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAssetNameFor(t *testing.T) {
@@ -27,9 +28,7 @@ func TestAssetNameFor(t *testing.T) {
 		{"windows", "386", "zcli-win-x64.exe"}, // windows always maps to the same asset
 	}
 	for _, tc := range cases {
-		if got := assetNameFor(tc.goos, tc.goarch); got != tc.want {
-			t.Errorf("assetNameFor(%q, %q) = %q, want %q", tc.goos, tc.goarch, got, tc.want)
-		}
+		assert.Equalf(t, tc.want, assetNameFor(tc.goos, tc.goarch), "assetNameFor(%q, %q)", tc.goos, tc.goarch)
 	}
 }
 
@@ -40,71 +39,49 @@ fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210  checksums.txt
 `
 	t.Run("standard format", func(t *testing.T) {
 		got, err := parseChecksum(body, "zcli-linux-amd64")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		require.NoError(t, err)
 		want := []byte{0xab, 0xc1, 0x23, 0xde, 0xf4, 0x56, 0x78, 0x90}
-		if !bytes.Equal(got[:8], want) {
-			t.Errorf("got first 8 bytes %x, want %x", got[:8], want)
-		}
+		assert.Equal(t, want, got[:8], "first 8 bytes")
 	})
 
 	t.Run("starred name", func(t *testing.T) {
 		got, err := parseChecksum(body, "zcli-darwin-arm64")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-		if len(got) != 32 {
-			t.Errorf("sha256 should be 32 bytes, got %d", len(got))
-		}
+		require.NoError(t, err)
+		assert.Len(t, got, 32, "sha256 should be 32 bytes")
 	})
 
 	t.Run("missing asset", func(t *testing.T) {
 		_, err := parseChecksum(body, "zcli-darwin-amd64")
-		if err == nil {
-			t.Fatal("expected error for missing asset")
-		}
+		require.Error(t, err, "expected error for missing asset")
 	})
 
 	t.Run("malformed lines skipped", func(t *testing.T) {
 		bad := "garbage\n\nonefield\nabc123  zcli-linux-amd64\n"
 		_, err := parseChecksum(bad, "zcli-linux-amd64")
-		if err != nil {
-			t.Errorf("expected to find asset past bad lines: %v", err)
-		}
+		assert.NoError(t, err, "expected to find asset past bad lines")
 	})
 
 	t.Run("invalid hex", func(t *testing.T) {
 		bad := "zzznot-hex  zcli-linux-amd64\n"
 		_, err := parseChecksum(bad, "zcli-linux-amd64")
-		if err == nil {
-			t.Fatal("expected error for invalid hex")
-		}
+		require.Error(t, err, "expected error for invalid hex")
 	})
 }
 
 func TestRequireSelfUpdatable(t *testing.T) {
 	for _, stamp := range []string{"npm", "brew", "nix", "deb"} {
-		if err := (Upgrader{channel: stamp}).RequireSelfUpdatable(); err == nil {
-			t.Errorf("channel %q: expected refusal, got nil", stamp)
-		}
+		assert.Errorf(t, (Upgrader{channel: stamp}).RequireSelfUpdatable(), "channel %q: expected refusal", stamp)
 	}
-
-	if err := (Upgrader{channel: "manual"}).RequireSelfUpdatable(); err != nil {
-		t.Errorf("manual channel: expected no refusal, got %v", err)
-	}
+	assert.NoError(t, (Upgrader{channel: "manual"}).RequireSelfUpdatable(), "manual channel: expected no refusal")
 }
 
 func TestPlanUpgradeAlwaysSucceeds(t *testing.T) {
 	for _, stamp := range []string{"manual", "npm", "brew", "nix", "deb"} {
 		plan, err := (Upgrader{channel: stamp}).PlanUpgrade(t.Context(), Options{TargetVersion: "v1.0.0"})
-		if err != nil {
-			t.Errorf("channel %q: expected plan, got error %v", stamp, err)
+		if !assert.NoErrorf(t, err, "channel %q: expected plan", stamp) {
 			continue
 		}
-		if plan.target != "v1.0.0" {
-			t.Errorf("channel %q: target = %q, want v1.0.0", stamp, plan.target)
-		}
+		assert.Equalf(t, "v1.0.0", plan.target, "channel %q: target", stamp)
 	}
 }
 
@@ -112,7 +89,7 @@ func TestPlanUpgradeAlwaysSucceeds(t *testing.T) {
 // func captures the bytes instead of replacing the running test binary.
 type upgradeFixture struct {
 	server   *httptest.Server
-	upgrader  Upgrader
+	upgrader Upgrader
 	binary   []byte
 	checksum [32]byte
 	applied  []byte
@@ -165,15 +142,9 @@ func TestUpgradeHappyPath(t *testing.T) {
 	fix := newUpgradeFixture(t, nil)
 
 	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
-	if err := fix.upgrader.Apply(context.Background(), plan); err != nil {
-		t.Fatalf("Apply: %v", err)
-	}
-	if !bytes.Equal(fix.applied, fix.binary) {
-		t.Errorf("applied binary mismatch: got %q, want %q", fix.applied, fix.binary)
-	}
-	if !bytes.Equal(fix.applyOpt.Checksum, fix.checksum[:]) {
-		t.Errorf("checksum passed to selfupdate = %x, want %x", fix.applyOpt.Checksum, fix.checksum[:])
-	}
+	require.NoError(t, fix.upgrader.Apply(context.Background(), plan))
+	assert.Equal(t, fix.binary, fix.applied, "applied binary")
+	assert.Equal(t, fix.checksum[:], fix.applyOpt.Checksum, "checksum passed to selfupdate")
 }
 
 func TestUpgradeAssetNotListed(t *testing.T) {
@@ -190,12 +161,8 @@ func TestUpgradeAssetNotListed(t *testing.T) {
 
 	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
 	err := fix.upgrader.Apply(context.Background(), plan)
-	if err == nil {
-		t.Fatal("expected error when asset is missing from checksums.txt")
-	}
-	if !strings.Contains(err.Error(), "not listed") {
-		t.Errorf("error message %q should mention the missing asset", err)
-	}
+	require.Error(t, err, "expected error when asset is missing from checksums.txt")
+	assert.Contains(t, err.Error(), "not listed", "error should mention the missing asset")
 }
 
 func TestUpgradeChecksumsUnreachable(t *testing.T) {
@@ -205,12 +172,8 @@ func TestUpgradeChecksumsUnreachable(t *testing.T) {
 
 	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
 	err := fix.upgrader.Apply(context.Background(), plan)
-	if err == nil {
-		t.Fatal("expected error when checksums.txt fetch fails")
-	}
-	if !strings.Contains(err.Error(), "checksums.txt") {
-		t.Errorf("error %q should mention checksums.txt", err)
-	}
+	require.Error(t, err, "expected error when checksums.txt fetch fails")
+	assert.Contains(t, err.Error(), "checksums.txt")
 }
 
 func TestUpgradeBinaryNotFound(t *testing.T) {
@@ -226,12 +189,8 @@ func TestUpgradeBinaryNotFound(t *testing.T) {
 
 	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
 	err := fix.upgrader.Apply(context.Background(), plan)
-	if err == nil {
-		t.Fatal("expected error when binary fetch fails")
-	}
-	if !strings.Contains(err.Error(), "download binary") {
-		t.Errorf("error %q should mention binary download", err)
-	}
+	require.Error(t, err, "expected error when binary fetch fails")
+	assert.Contains(t, err.Error(), "download binary")
 }
 
 func TestUpgradeApplyError(t *testing.T) {
@@ -240,12 +199,8 @@ func TestUpgradeApplyError(t *testing.T) {
 
 	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
 	err := fix.upgrader.Apply(context.Background(), plan)
-	if err == nil {
-		t.Fatal("expected error when apply fails")
-	}
-	if !strings.Contains(err.Error(), "sudo zcli upgrade") {
-		t.Errorf("permission errors should suggest sudo, got %q", err)
-	}
+	require.Error(t, err, "expected error when apply fails")
+	assert.Contains(t, err.Error(), "sudo zcli upgrade", "permission errors should suggest sudo")
 }
 
 func TestAvailableReleases(t *testing.T) {
@@ -275,43 +230,23 @@ func TestAvailableReleases(t *testing.T) {
 
 	t.Run("default drops prereleases", func(t *testing.T) {
 		releases, err := u.AvailableReleases(context.Background(), false)
-		if err != nil {
-			t.Fatalf("AvailableReleases: %v", err)
-		}
-		want := []Release{
+		require.NoError(t, err)
+		assert.Equal(t, []Release{
 			{Tag: "v2.0.0", SelfUpgradable: true, Prerelease: false},
 			{Tag: "v1.1.0", SelfUpgradable: true, Prerelease: false},
 			{Tag: "v1.0.67", SelfUpgradable: false, Prerelease: false},
-		}
-		if len(releases) != len(want) {
-			t.Fatalf("got %d releases, want %d: %#v", len(releases), len(want), releases)
-		}
-		for i, w := range want {
-			if releases[i] != w {
-				t.Errorf("release[%d] = %#v, want %#v", i, releases[i], w)
-			}
-		}
+		}, releases)
 	})
 
 	t.Run("includePrerelease keeps -rc and flagged tags", func(t *testing.T) {
 		releases, err := u.AvailableReleases(context.Background(), true)
-		if err != nil {
-			t.Fatalf("AvailableReleases: %v", err)
-		}
-		want := []Release{
+		require.NoError(t, err)
+		assert.Equal(t, []Release{
 			{Tag: "v2.0.0", SelfUpgradable: true, Prerelease: false},
 			{Tag: "v1.5.0-rc.1", SelfUpgradable: true, Prerelease: true},
 			{Tag: "v1.4.0", SelfUpgradable: true, Prerelease: true},
 			{Tag: "v1.1.0", SelfUpgradable: true, Prerelease: false},
 			{Tag: "v1.0.67", SelfUpgradable: false, Prerelease: false},
-		}
-		if len(releases) != len(want) {
-			t.Fatalf("got %d releases, want %d: %#v", len(releases), len(want), releases)
-		}
-		for i, w := range want {
-			if releases[i] != w {
-				t.Errorf("release[%d] = %#v, want %#v", i, releases[i], w)
-			}
-		}
+		}, releases)
 	})
 }

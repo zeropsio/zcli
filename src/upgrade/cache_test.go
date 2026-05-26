@@ -4,6 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCacheEntryFresh(t *testing.T) {
@@ -21,9 +24,7 @@ func TestCacheEntryFresh(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			e := &cacheEntry{FetchedAt: time.Now().Add(-tc.age)}
-			if got := e.Fresh(); got != tc.want {
-				t.Fatalf("Fresh(age=%s) = %v, want %v", tc.age, got, tc.want)
-			}
+			assert.Equalf(t, tc.want, e.Fresh(), "Fresh(age=%s)", tc.age)
 		})
 	}
 }
@@ -38,26 +39,15 @@ func TestCacheRoundTrip(t *testing.T) {
 			{Name: "zcli-darwin-arm64", BrowserDownloadUrl: "https://example.com/zcli"},
 		},
 	}
-	if err := writeCacheEntry(resp); err != nil {
-		t.Fatalf("writeCacheEntry: %v", err)
-	}
+	require.NoError(t, writeCacheEntry(resp))
 
 	got, err := loadCacheEntry()
-	if err != nil {
-		t.Fatalf("loadCacheEntry: %v", err)
-	}
-	if got == nil {
-		t.Fatal("loadCacheEntry returned nil entry")
-	}
-	if got.Response.TagName != "v1.2.3" {
-		t.Errorf("TagName = %q, want v1.2.3", got.Response.TagName)
-	}
-	if len(got.Response.Assets) != 1 || got.Response.Assets[0].Name != "zcli-darwin-arm64" {
-		t.Errorf("Assets = %+v", got.Response.Assets)
-	}
-	if !got.Fresh() {
-		t.Error("freshly written cache should be Fresh()")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, got, "loadCacheEntry returned nil entry")
+	assert.Equal(t, "v1.2.3", got.Response.TagName)
+	require.Len(t, got.Response.Assets, 1)
+	assert.Equal(t, "zcli-darwin-arm64", got.Response.Assets[0].Name)
+	assert.True(t, got.Fresh(), "freshly written cache should be Fresh()")
 }
 
 func TestLoadCacheEntryMissing(t *testing.T) {
@@ -65,10 +55,6 @@ func TestLoadCacheEntryMissing(t *testing.T) {
 	t.Setenv("ZEROPS_CLI_DATA_FILE_PATH", filepath.Join(dir, "cli.data"))
 
 	got, err := loadCacheEntry()
-	if err != nil {
-		t.Fatalf("loadCacheEntry: %v", err)
-	}
-	if got != nil {
-		t.Errorf("expected nil entry when cache missing, got %+v", got)
-	}
+	require.NoError(t, err)
+	assert.Nil(t, got, "expected nil entry when cache missing")
 }
