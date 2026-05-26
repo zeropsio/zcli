@@ -20,7 +20,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=manual
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=manual
 
   - id: raw-linux-386
     main: ./cmd/zcli/main.go
@@ -31,7 +31,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=manual
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=manual
 
   - id: raw-darwin-amd64
     main: ./cmd/zcli/main.go
@@ -42,7 +42,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=manual
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=manual
 
   - id: raw-darwin-arm64
     main: ./cmd/zcli/main.go
@@ -53,7 +53,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=manual
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=manual
 
   - id: raw-windows-amd64
     main: ./cmd/zcli/main.go
@@ -64,7 +64,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=manual
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=manual
 
   # --- npm: published as @zerops/zcli, refuses self-update (channel=npm) ---
   - id: npm-linux-amd64
@@ -76,7 +76,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=npm
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=npm
 
   - id: npm-linux-386
     main: ./cmd/zcli/main.go
@@ -87,7 +87,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=npm
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=npm
 
   - id: npm-darwin-amd64
     main: ./cmd/zcli/main.go
@@ -98,7 +98,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=npm
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=npm
 
   - id: npm-darwin-arm64
     main: ./cmd/zcli/main.go
@@ -109,7 +109,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=npm
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=npm
 
   - id: npm-windows-amd64
     main: ./cmd/zcli/main.go
@@ -120,7 +120,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=npm
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=npm
 
   # --- deb: dpkg-installed to /usr/local/bin/zcli, refuses self-update.
   # binary is named "zcli" (not arch-suffixed) so the package installs a plain
@@ -135,7 +135,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=deb
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=deb
 
   - id: deb-386
     main: ./cmd/zcli/main.go
@@ -146,7 +146,7 @@ builds:
       - CGO_ENABLED=0
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/zeropsio/zcli/src/version.version={{ .Tag }} -X github.com/zeropsio/zcli/src/version.channel=deb
+      - -s -w -X github.com/zeropsio/zcli/src/upgrade.version={{ .Tag }} -X github.com/zeropsio/zcli/src/upgrade.channel=deb
 
 archives:
   - id: raw

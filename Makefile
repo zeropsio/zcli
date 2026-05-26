@@ -24,13 +24,23 @@ DEV_VERSION := $(shell git rev-parse --abbrev-ref HEAD):$(shell git describe --t
 # -gcflags disables inlining and optimizations so the binary is dlv-friendly.
 DEV_BUILD := go build \
 	-gcflags='all=-l -N' \
-	-ldflags='-X "github.com/zeropsio/zcli/src/version.version=$(DEV_VERSION)"'
+	-ldflags='-X "github.com/zeropsio/zcli/src/upgrade.version=$(DEV_VERSION)"'
 
 # Production build flags mirror what .goreleaser.yaml uses for release builds:
 # optimized, stripped, version from `git describe`, paths trimmed.
-PROD_VERSION := $(shell git describe --tags 2>/dev/null)
+# git describe stamps commits past a tag as `vX.Y.Z-N-gHASH`, which semver
+# parses as a *pre-release* (ranking below vX.Y.Z) and makes `zcli upgrade
+# --check` warn that the released tag is newer than a build ahead of it.
+# Rewriting `-N-gHASH` to `+N.gHASH` moves it into build metadata, which
+# semver.Compare ignores - so a local build past v1.0.67 ties with the
+# released v1.0.67 instead of comparing older.
+PROD_VERSION := $(shell git describe --tags 2>/dev/null | sed -E 's/^(v[0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)-(g[0-9a-f]+)$$/\1+\2.\3/')
+# Override on the command line for package-manager builds, e.g.
+# `make install CHANNEL=brew`. Default matches the `manual` artifact set
+# in .goreleaser.yaml (what install.sh produces).
+CHANNEL ?= manual
 PROD_BUILD := go build -trimpath \
-	-ldflags='-s -w -X github.com/zeropsio/zcli/src/version.version=$(PROD_VERSION)'
+	-ldflags='-s -w -X github.com/zeropsio/zcli/src/upgrade.version=$(PROD_VERSION) -X github.com/zeropsio/zcli/src/upgrade.channel=$(CHANNEL)'
 
 # Self-documenting help. Targets are listed in the order they appear here;
 # their description is the text after the '##' on the recipe line.

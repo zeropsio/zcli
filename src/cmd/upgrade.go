@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/errorsx"
+	"github.com/zeropsio/zcli/src/upgrade"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	getVersion "github.com/zeropsio/zcli/src/version"
 )
 
 func upgradeCmd() *cmdBuilder.Cmd {
@@ -20,12 +21,22 @@ func upgradeCmd() *cmdBuilder.Cmd {
 		BoolFlag("check", false, "Print current and latest version, then exit. 0 = up to date, 1 = behind, 2 = error.").
 		BoolFlag("yes", false, "Skip the confirmation prompt.").
 		StringFlag("version", "", "Install a specific release tag instead of the latest.").
+		StringFlag("download-timeout", "", "Overall timeout for the binary download (Go duration, e.g. '5m', '90s'). 0 disables the timeout. Default 2m.").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			check := cmdData.Params.GetBool("check")
 			yes := cmdData.Params.GetBool("yes")
 			targetVersion := cmdData.Params.GetString("version")
+			downloadTimeoutRaw := cmdData.Params.GetString("download-timeout")
 
-			plan, err := getVersion.PlanUpgrade(ctx, getVersion.UpgradeOptions{TargetVersion: targetVersion})
+			upgrader := upgrade.NewUpgrader()
+			if downloadTimeoutRaw != "" {
+				d, err := time.ParseDuration(downloadTimeoutRaw)
+				if err != nil {
+					return fmt.Errorf("invalid --download-timeout %q: %w", downloadTimeoutRaw, err)
+				}
+				upgrader = upgrader.WithDownloadTimeout(d)
+			}
+			plan, err := upgrader.PlanUpgrade(ctx, upgrade.Options{TargetVersion: targetVersion})
 			if err != nil {
 				if check {
 					cmdData.Stderr.Printf("error: %s\n", err)
@@ -35,24 +46,24 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			}
 
 			if check {
-				cmdData.Stdout.Printf("Current: %s\nLatest:  %s\n", plan.Current, plan.Target)
-				if plan.Current == plan.Target {
+				cmdData.Stdout.Printf("Current: %s\nLatest:  %s\n", plan.Current(), plan.Target())
+				if !plan.NeedsUpgrade() {
 					return nil
 				}
 				return errorsx.NewExitError(1)
 			}
 
-			if err := getVersion.RequireSelfUpdatable(); err != nil {
+			if err := upgrader.RequireSelfUpdatable(); err != nil {
 				return err
 			}
 
-			if plan.Current == plan.Target && targetVersion == "" {
-				cmdData.Stdout.Printf("zcli is already on %s.\n", plan.Current)
+			if !plan.NeedsUpgrade() && targetVersion == "" {
+				cmdData.Stdout.Printf("zcli is already on %s.\n", plan.Current())
 				return nil
 			}
 
 			if !yes {
-				question := fmt.Sprintf("Current: %s\nTarget:  %s\n\nUpdate?", plan.Current, plan.Target)
+				question := fmt.Sprintf("Current: %s\nTarget:  %s\n\nUpdate?", plan.Current(), plan.Target())
 				confirmed, err := uxHelpers.YesNoPrompt(
 					ctx,
 					question,
@@ -72,11 +83,11 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
 					F: func(ctx context.Context, _ *uxHelpers.Process) error {
-						return getVersion.Upgrade(ctx, plan)
+						return upgrader.Apply(ctx, plan)
 					},
-					RunningMessage:      fmt.Sprintf("Downloading and installing %s", plan.Target),
-					ErrorMessageMessage: fmt.Sprintf("Upgrade to %s failed", plan.Target),
-					SuccessMessage:      fmt.Sprintf("Updated to %s. Run `zcli version` to confirm.", plan.Target),
+					RunningMessage:      fmt.Sprintf("Downloading and installing %s", plan.Target()),
+					ErrorMessageMessage: fmt.Sprintf("Upgrade to %s failed", plan.Target()),
+					SuccessMessage:      fmt.Sprintf("Updated to %s. Run `zcli version` to confirm.", plan.Target()),
 				}},
 			)
 		})

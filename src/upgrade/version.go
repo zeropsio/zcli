@@ -1,4 +1,4 @@
-package version
+package upgrade
 
 import (
 	"context"
@@ -28,11 +28,9 @@ func apiURL() string {
 	return defaultApiUrl
 }
 
+// version is the ldflag-stamped current version. Read by NewUpgrader into
+// Upgrader.current; callers should reach for upgrader.Current() instead.
 var version = "local"
-
-func GetCurrent() string {
-	return version
-}
 
 func GetLatest(ctx context.Context) (string, error) {
 	resp, err := fetch(ctx)
@@ -56,8 +54,8 @@ func GetLatestUrl(ctx context.Context) (string, error) {
 	return "", errors.Errorf("no release asset for %s/%s", runtime.GOOS, runtime.GOARCH)
 }
 
-func PrintVersionCheck(ctx context.Context, out printer.Printer) {
-	if !semver.IsValid(GetCurrent()) {
+func (u Upgrader) PrintVersionCheck(ctx context.Context, out printer.Printer) {
+	if !semver.IsValid(u.current) {
 		return
 	}
 	latestVersion, err := GetLatest(ctx)
@@ -65,7 +63,7 @@ func PrintVersionCheck(ctx context.Context, out printer.Printer) {
 		out.Printf("zcli latest version check failed\n")
 		return
 	}
-	if !isUpdateAvailable(GetCurrent(), latestVersion) {
+	if !isUpdateAvailable(u.current, latestVersion) {
 		out.Printf("zcli version is up to date\n")
 		return
 	}
@@ -79,19 +77,18 @@ func PrintVersionCheck(ctx context.Context, out printer.Printer) {
 // is known, or "" if there is nothing to warn about. Reads only from the
 // on-disk cache — never blocks on the network. The cache is populated by
 // RefreshCacheIfStale running in the background.
-func MismatchWarning() string {
-	current := GetCurrent()
-	if !semver.IsValid(current) {
+func (u Upgrader) MismatchWarning() string {
+	if !semver.IsValid(u.current) {
 		return ""
 	}
 	resp := loadCached()
 	if resp == nil {
 		return ""
 	}
-	if !isUpdateAvailable(current, resp.TagName) {
+	if !isUpdateAvailable(u.current, resp.TagName) {
 		return ""
 	}
-	return fmt.Sprintf("zcli %s is available (you have %s). %s", resp.TagName, current, Detect().Hint())
+	return fmt.Sprintf("zcli %s is available (you have %s). %s", resp.TagName, u.current, u.Detect().Hint())
 }
 
 // RefreshCacheIfStale updates the on-disk cache when it's missing or older

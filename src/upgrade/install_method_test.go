@@ -1,4 +1,4 @@
-package version
+package upgrade
 
 import "testing"
 
@@ -51,15 +51,10 @@ func TestParseChannel(t *testing.T) {
 }
 
 func TestDetectChannelStamp(t *testing.T) {
-	saved := channel
-	t.Cleanup(func() { channel = saved })
-
-	channel = "nix"
-	if got := Detect(); got != InstallNix {
+	if got := (Upgrader{channel: "nix"}).Detect(); got != InstallNix {
 		t.Errorf("Detect() with channel=nix = %v, want InstallNix", got)
 	}
-	channel = "brew"
-	if got := Detect(); got != InstallBrew {
+	if got := (Upgrader{channel: "brew"}).Detect(); got != InstallBrew {
 		t.Errorf("Detect() with channel=brew = %v, want InstallBrew", got)
 	}
 }

@@ -1,4 +1,4 @@
-package version
+package upgrade
 
 import (
 	"bytes"
@@ -84,43 +84,35 @@ fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210  checksums.txt
 }
 
 func TestRequireSelfUpdatable(t *testing.T) {
-	savedChannel := channel
-	t.Cleanup(func() { channel = savedChannel })
-
 	for _, stamp := range []string{"npm", "brew", "nix", "deb"} {
-		channel = stamp
-		if err := RequireSelfUpdatable(); err == nil {
+		if err := (Upgrader{channel: stamp}).RequireSelfUpdatable(); err == nil {
 			t.Errorf("channel %q: expected refusal, got nil", stamp)
 		}
 	}
 
-	channel = "manual"
-	if err := RequireSelfUpdatable(); err != nil {
+	if err := (Upgrader{channel: "manual"}).RequireSelfUpdatable(); err != nil {
 		t.Errorf("manual channel: expected no refusal, got %v", err)
 	}
 }
 
 func TestPlanUpgradeAlwaysSucceeds(t *testing.T) {
-	savedChannel := channel
-	t.Cleanup(func() { channel = savedChannel })
-
 	for _, stamp := range []string{"manual", "npm", "brew", "nix", "deb"} {
-		channel = stamp
-		plan, err := PlanUpgrade(t.Context(), UpgradeOptions{TargetVersion: "v1.0.0"})
+		plan, err := (Upgrader{channel: stamp}).PlanUpgrade(t.Context(), Options{TargetVersion: "v1.0.0"})
 		if err != nil {
 			t.Errorf("channel %q: expected plan, got error %v", stamp, err)
 			continue
 		}
-		if plan.Target != "v1.0.0" {
-			t.Errorf("channel %q: target = %q, want v1.0.0", stamp, plan.Target)
+		if plan.target != "v1.0.0" {
+			t.Errorf("channel %q: target = %q, want v1.0.0", stamp, plan.target)
 		}
 	}
 }
 
-// upgradeFixture wires a fake release server and a recording applyUpdate
-// stub. The returned cleanup restores the package-level overrides.
+// upgradeFixture wires a fake release server and an Upgrader whose apply
+// func captures the bytes instead of replacing the running test binary.
 type upgradeFixture struct {
 	server   *httptest.Server
+	upgrader  Upgrader
 	binary   []byte
 	checksum [32]byte
 	applied  []byte
@@ -140,24 +132,21 @@ func newUpgradeFixture(t *testing.T, handler http.HandlerFunc) *upgradeFixture {
 	}
 	fix.server = httptest.NewServer(handler)
 
-	savedURL := releasesURL
-	savedApply := applyUpdate
-	releasesURL = fix.server.URL + "/%s/%s"
-	applyUpdate = func(r io.Reader, opts selfupdate.Options) error {
-		b, err := io.ReadAll(r)
-		if err != nil {
-			return err
-		}
-		fix.applied = b
-		fix.applyOpt = opts
-		return fix.applyErr
+	fix.upgrader = Upgrader{
+		releasesURL:     fix.server.URL + "/%s/%s",
+		downloadTimeout: defaultDownloadTimeout,
+		apply: func(r io.Reader, opts selfupdate.Options) error {
+			b, err := io.ReadAll(r)
+			if err != nil {
+				return err
+			}
+			fix.applied = b
+			fix.applyOpt = opts
+			return fix.applyErr
+		},
 	}
 
-	t.Cleanup(func() {
-		fix.server.Close()
-		releasesURL = savedURL
-		applyUpdate = savedApply
-	})
+	t.Cleanup(fix.server.Close)
 	return fix
 }
 
@@ -175,9 +164,9 @@ func (f *upgradeFixture) defaultHandler(w http.ResponseWriter, r *http.Request) 
 func TestUpgradeHappyPath(t *testing.T) {
 	fix := newUpgradeFixture(t, nil)
 
-	plan := &UpgradePlan{Current: "v0.9.0", Target: "v1.0.0"}
-	if err := Upgrade(context.Background(), plan); err != nil {
-		t.Fatalf("Upgrade: %v", err)
+	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
+	if err := fix.upgrader.Apply(context.Background(), plan); err != nil {
+		t.Fatalf("Apply: %v", err)
 	}
 	if !bytes.Equal(fix.applied, fix.binary) {
 		t.Errorf("applied binary mismatch: got %q, want %q", fix.applied, fix.binary)
@@ -199,8 +188,8 @@ func TestUpgradeAssetNotListed(t *testing.T) {
 		}
 	})
 
-	plan := &UpgradePlan{Current: "v0.9.0", Target: "v1.0.0"}
-	err := Upgrade(context.Background(), plan)
+	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
+	err := fix.upgrader.Apply(context.Background(), plan)
 	if err == nil {
 		t.Fatal("expected error when asset is missing from checksums.txt")
 	}
@@ -210,12 +199,12 @@ func TestUpgradeAssetNotListed(t *testing.T) {
 }
 
 func TestUpgradeChecksumsUnreachable(t *testing.T) {
-	newUpgradeFixture(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	fix := newUpgradeFixture(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "boom", http.StatusInternalServerError)
 	}))
 
-	plan := &UpgradePlan{Current: "v0.9.0", Target: "v1.0.0"}
-	err := Upgrade(context.Background(), plan)
+	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
+	err := fix.upgrader.Apply(context.Background(), plan)
 	if err == nil {
 		t.Fatal("expected error when checksums.txt fetch fails")
 	}
@@ -235,8 +224,8 @@ func TestUpgradeBinaryNotFound(t *testing.T) {
 		http.NotFound(w, r)
 	})
 
-	plan := &UpgradePlan{Current: "v0.9.0", Target: "v1.0.0"}
-	err := Upgrade(context.Background(), plan)
+	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
+	err := fix.upgrader.Apply(context.Background(), plan)
 	if err == nil {
 		t.Fatal("expected error when binary fetch fails")
 	}
@@ -249,8 +238,8 @@ func TestUpgradeApplyError(t *testing.T) {
 	fix := newUpgradeFixture(t, nil)
 	fix.applyErr = fmt.Errorf("permission denied: cannot replace binary")
 
-	plan := &UpgradePlan{Current: "v0.9.0", Target: "v1.0.0"}
-	err := Upgrade(context.Background(), plan)
+	plan := Plan{current: "v0.9.0", target: "v1.0.0"}
+	err := fix.upgrader.Apply(context.Background(), plan)
 	if err == nil {
 		t.Fatal("expected error when apply fails")
 	}

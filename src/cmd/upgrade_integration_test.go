@@ -11,6 +11,14 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 )
 
+// stubVersion overrides what upgrade.NewUpgrader() reports as the current
+// version. The test binary is built by `go test` (no ldflag stamp), and
+// NewUpgrader honors VersionEnvVar before falling back to the stamped value,
+// so t.Setenv is the whole hook - no test-only helper in the upgrade pkg.
+func (f *fixture) stubVersion(v string) {
+	f.t.Setenv(constants.VersionEnvVar, v)
+}
+
 // stubVersionAPI points ZEROPS_VERSION_API_URL at a handler on the fixture
 // server that returns the given status and, when tagName is non-empty, a
 // GitHub-release-style body. The current binary reports version "local" in
@@ -47,6 +55,22 @@ func TestUpgradeCheckBehind(t *testing.T) {
 	assert.Contains(t, res.Stdout, "Latest:  v2.0.0")
 }
 
+// A local PROD build stamps git-describe info as semver build metadata
+// (Makefile PROD_VERSION rewrites `-N-gHASH` to `+N.gHASH`). semver.Compare
+// ignores the `+...` suffix, so being 11 commits ahead of v1.0.67 should
+// report as up to date, not as "behind v1.0.67".
+func TestUpgradeCheckAheadOfTagViaBuildMetadata(t *testing.T) {
+	f := newFixture(t)
+	f.stubVersion("v1.0.67+11.g03aedf4")
+	f.stubVersionAPI(http.StatusOK, "v1.0.67")
+
+	res := f.Run("upgrade", "--check")
+
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q stdout=%q", res.Stderr, res.Stdout)
+	assert.Contains(t, res.Stdout, "Current: v1.0.67+11.g03aedf4")
+	assert.Contains(t, res.Stdout, "Latest:  v1.0.67")
+}
+
 func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	f := newFixture(t)
 	// No version-API stub: --version is resolved without contacting the API.
@@ -55,6 +79,16 @@ func TestUpgradeCheckExplicitVersion(t *testing.T) {
 	require.Equalf(t, 1, res.ExitCode, "stderr=%q", res.Stderr)
 	assert.Contains(t, res.Stdout, "Current: local")
 	assert.Contains(t, res.Stdout, "Latest:  v1.2.3")
+}
+
+func TestUpgradeInvalidDownloadTimeout(t *testing.T) {
+	f := newFixture(t)
+	f.stubVersionAPI(http.StatusOK, "v2.0.0")
+
+	res := f.Run("upgrade", "--yes", "--download-timeout", "not-a-duration")
+
+	require.NotEqualf(t, 0, res.ExitCode, "stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "--download-timeout")
 }
 
 func TestUpgradeCheckError(t *testing.T) {
