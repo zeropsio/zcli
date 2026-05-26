@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.0] - 2026-05-26
+
+### Added
+- `zcli upgrade` command to update the CLI binary to the latest or a specific version; supports `--check` (report without installing), `--version` (pin target), `--pick-version` (interactive TUI picker), `--include-pre-release` (include pre-releases in the picker), `--no-cache` (skip cached check), and `--download-timeout`
+- Background version-available warning shown on any command invocation when a newer version exists, with the result cached on disk to avoid per-invocation latency
+- npm package now ships prebuilt per-platform binaries as optional dependencies, reducing install size
+
+### Changed
+- `upgrade --check` exits non-zero when an update is available, enabling use in scripts
+
 ## [v1.0.64] - 2026-04-06
 
 ### Fixed
