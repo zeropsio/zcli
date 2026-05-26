@@ -20,11 +20,13 @@ func upgradeCmd() *cmdBuilder.Cmd {
 		HelpFlag("Help for the upgrade command.").
 		BoolFlag("check", false, "Print current and latest version, then exit. 0 = up to date, 1 = behind, 2 = error, 3 = target requires install.sh.").
 		BoolFlag("yes", false, "Skip the confirmation prompt.").
+		BoolFlag("no-cache", false, "Bypass the on-disk version cache and resolve `latest` directly from the release API.").
 		StringFlag("version", "", "Install a specific release tag instead of the latest.").
 		StringFlag("download-timeout", "", "Overall timeout for the binary download (Go duration, e.g. '5m', '90s'). 0 disables the timeout. Default 2m.").
 		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			check := cmdData.Params.GetBool("check")
 			yes := cmdData.Params.GetBool("yes")
+			noCache := cmdData.Params.GetBool("no-cache")
 			targetVersion := cmdData.Params.GetString("version")
 			downloadTimeoutRaw := cmdData.Params.GetString("download-timeout")
 
@@ -36,7 +38,10 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				}
 				upgrader = upgrader.WithDownloadTimeout(d)
 			}
-			plan, err := upgrader.PlanUpgrade(ctx, upgrade.Options{TargetVersion: targetVersion})
+			plan, err := upgrader.PlanUpgrade(ctx, upgrade.Options{
+				TargetVersion: targetVersion,
+				NoCache:       noCache,
+			})
 			if err != nil {
 				if check {
 					cmdData.Stderr.Printf("error: %s\n", err)
@@ -49,8 +54,9 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				cmdData.Stdout.Printf("Current: %s\n", plan.Current())
 				if targetVersion != "" {
 					cmdData.Stdout.Printf("Target:  %s\n", plan.Target())
-					if cached := upgrader.CachedLatest(); cached != "" {
-						cmdData.Stdout.Printf("Latest:  %s\n", cached)
+					latest, _ := upgrader.LatestTag(ctx, noCache)
+					if latest != "" {
+						cmdData.Stdout.Printf("Latest:  %s\n", latest)
 					}
 				} else {
 					cmdData.Stdout.Printf("Latest:  %s\n", plan.Target())
