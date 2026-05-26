@@ -46,7 +46,15 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			}
 
 			if check {
-				cmdData.Stdout.Printf("Current: %s\nLatest:  %s\n", plan.Current(), plan.Target())
+				cmdData.Stdout.Printf("Current: %s\n", plan.Current())
+				if targetVersion != "" {
+					cmdData.Stdout.Printf("Target:  %s\n", plan.Target())
+					if cached := upgrader.CachedLatest(); cached != "" {
+						cmdData.Stdout.Printf("Latest:  %s\n", cached)
+					}
+				} else {
+					cmdData.Stdout.Printf("Latest:  %s\n", plan.Target())
+				}
 				if err := plan.RequireSelfUpgradable(); err != nil {
 					cmdData.UxBlocks.PrintWarningText(err.Error())
 					return errorsx.NewExitError(3)
