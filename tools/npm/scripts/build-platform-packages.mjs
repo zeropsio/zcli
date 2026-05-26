@@ -11,12 +11,24 @@
 // Each generated package carries os/cpu fields so the package manager (npm, and Bun,
 // which honors them) installs only the one matching the host.
 
-import { mkdirSync, copyFileSync, writeFileSync, chmodSync, existsSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, copyFileSync, writeFileSync, readFileSync, chmodSync, existsSync, rmSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const { SCOPE, PLATFORMS } = require("../lib/platforms.js");
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const README_TEMPLATE = readFileSync(join(__dirname, "platform-package.README.md.tmpl"), "utf8");
+
+function renderReadme({ pkg, os, cpu }) {
+  return README_TEMPLATE
+    .replaceAll("{{SCOPE}}", SCOPE)
+    .replaceAll("{{PKG}}", pkg)
+    .replaceAll("{{OS}}", os)
+    .replaceAll("{{CPU}}", cpu);
+}
 
 function parseArgs(argv) {
   const args = {};
@@ -63,6 +75,7 @@ for (const p of PLATFORMS) {
     files: ["bin/"],
   };
   writeFileSync(join(pkgDir, "package.json"), JSON.stringify(pkgJson, null, 2) + "\n");
+  writeFileSync(join(pkgDir, "README.md"), renderReadme(p));
 
   console.log(`built ${SCOPE}/${p.pkg}@${version} (${p.os}/${p.cpu}) -> ${dest}`);
 }
