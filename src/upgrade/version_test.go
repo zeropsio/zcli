@@ -2,8 +2,10 @@ package upgrade
 
 import (
 	"path/filepath"
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIsUpdateAvailable(t *testing.T) {
@@ -28,9 +30,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := isUpdateAvailable(tc.current, tc.latest); got != tc.want {
-				t.Fatalf("isUpdateAvailable(%q, %q) = %v, want %v", tc.current, tc.latest, got, tc.want)
-			}
+			assert.Equalf(t, tc.want, isUpdateAvailable(tc.current, tc.latest), "isUpdateAvailable(%q, %q)", tc.current, tc.latest)
 		})
 	}
 }
@@ -39,22 +39,14 @@ func TestMismatchWarning(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("ZEROPS_CLI_DATA_FILE_PATH", filepath.Join(dir, "cli.data"))
 
-	if err := writeCacheEntry(&apiResponse{TagName: "v1.2.0"}); err != nil {
-		t.Fatalf("seed cache: %v", err)
-	}
+	require.NoError(t, writeCacheEntry(&apiResponse{TagName: "v1.2.0"}), "seed cache")
 
 	t.Run("non-semver current returns empty", func(t *testing.T) {
-		u := Upgrader{current: "local"}
-		if got := u.MismatchWarning(); got != "" {
-			t.Errorf("local: want empty, got %q", got)
-		}
+		assert.Empty(t, (Upgrader{current: "local"}).MismatchWarning(), "local current should produce no warning")
 	})
 
 	t.Run("equal versions return empty", func(t *testing.T) {
-		u := Upgrader{current: "v1.2.0"}
-		if got := u.MismatchWarning(); got != "" {
-			t.Errorf("equal: want empty, got %q", got)
-		}
+		assert.Empty(t, (Upgrader{current: "v1.2.0"}).MismatchWarning(), "equal versions should produce no warning")
 	})
 
 	t.Run("channel hint included", func(t *testing.T) {
@@ -68,14 +60,10 @@ func TestMismatchWarning(t *testing.T) {
 			{"manual", "zcli upgrade"},
 		}
 		for _, tc := range cases {
-			u := Upgrader{current: "v1.0.0", channel: tc.stamp}
-			got := u.MismatchWarning()
-			if !strings.Contains(got, "v1.2.0") || !strings.Contains(got, "v1.0.0") {
-				t.Errorf("channel %q: %q missing version info", tc.stamp, got)
-			}
-			if !strings.Contains(got, tc.want) {
-				t.Errorf("channel %q: %q missing hint %q", tc.stamp, got, tc.want)
-			}
+			got := (Upgrader{current: "v1.0.0", channel: tc.stamp}).MismatchWarning()
+			assert.Containsf(t, got, "v1.2.0", "channel %q: missing latest version", tc.stamp)
+			assert.Containsf(t, got, "v1.0.0", "channel %q: missing current version", tc.stamp)
+			assert.Containsf(t, got, tc.want, "channel %q: missing channel hint", tc.stamp)
 		}
 	})
 }

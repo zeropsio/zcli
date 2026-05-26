@@ -1,6 +1,10 @@
 package upgrade
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestDetectFromPath(t *testing.T) {
 	cases := []struct {
@@ -20,9 +24,7 @@ func TestDetectFromPath(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := detectFromPath(tc.path); got != tc.want {
-				t.Fatalf("detectFromPath(%q) = %v, want %v", tc.path, got, tc.want)
-			}
+			assert.Equalf(t, tc.want, detectFromPath(tc.path), "detectFromPath(%q)", tc.path)
 		})
 	}
 }
@@ -44,33 +46,22 @@ func TestParseChannel(t *testing.T) {
 	}
 	for _, tc := range cases {
 		got, ok := parseChannel(tc.in)
-		if ok != tc.wantOk || got != tc.want {
-			t.Errorf("parseChannel(%q) = (%v, %v), want (%v, %v)", tc.in, got, ok, tc.want, tc.wantOk)
-		}
+		assert.Equalf(t, tc.wantOk, ok, "parseChannel(%q) ok", tc.in)
+		assert.Equalf(t, tc.want, got, "parseChannel(%q) method", tc.in)
 	}
 }
 
 func TestDetectChannelStamp(t *testing.T) {
-	if got := (Upgrader{channel: "nix"}).Detect(); got != InstallNix {
-		t.Errorf("Detect() with channel=nix = %v, want InstallNix", got)
-	}
-	if got := (Upgrader{channel: "brew"}).Detect(); got != InstallBrew {
-		t.Errorf("Detect() with channel=brew = %v, want InstallBrew", got)
-	}
+	assert.Equal(t, InstallNix, (Upgrader{channel: "nix"}).Detect(), "channel=nix")
+	assert.Equal(t, InstallBrew, (Upgrader{channel: "brew"}).Detect(), "channel=brew")
 }
 
 func TestInstallMethodPackageManager(t *testing.T) {
 	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew, InstallDeb, InstallManual} {
-		if m.Hint() == "" {
-			t.Errorf("%v should have a non-empty hint", m)
-		}
+		assert.NotEmptyf(t, m.Hint(), "%v should have a non-empty hint", m)
 	}
 	for _, m := range []InstallMethod{InstallNix, InstallNpm, InstallBrew, InstallDeb} {
-		if !m.IsPackageManager() {
-			t.Errorf("%v should be a package manager", m)
-		}
+		assert.Truef(t, m.IsPackageManager(), "%v should be a package manager", m)
 	}
-	if InstallManual.IsPackageManager() {
-		t.Error("InstallManual should not be a package manager")
-	}
+	assert.False(t, InstallManual.IsPackageManager(), "InstallManual should not be a package manager")
 }
