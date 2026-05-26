@@ -198,6 +198,18 @@ and your %s.`,
 	CmdHelpVersion: "Help for the version command.",
 	CmdDescVersion: "Shows the current zCLI version",
 
+	// update
+	CmdHelpUpdate:         "Help for the update command.",
+	CmdDescUpdate:         "Check for updates and update zcli to the latest release.",
+	UpdateYesFlag:         "Skip the confirmation prompt.",
+	UpdateAlreadyUpToDate: "zcli is already up to date (%s).\n",
+	UpdateVersionInfo:     "Current: %s\nLatest:  %s\n",
+	UpdatePrompt:          "Update?",
+	UpdateAborted:         "Aborted.\n",
+	UpdateDownloading:     "Downloading and installing %s",
+	UpdateFailed:          "Update to %s failed",
+	UpdateSuccess:         "Updated to %s. Run `zcli version` to confirm.",
+
 	// support
 	CmdHelpSupport: "Help for the support command.",
 	CmdDescSupport: "How to contact Zerops support for assistance",

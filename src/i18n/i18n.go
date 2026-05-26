@@ -175,6 +175,18 @@ const (
 	CmdHelpVersion = "CmdHelpVersion"
 	CmdDescVersion = "CmdDescVersion"
 
+	// update
+	CmdHelpUpdate        = "CmdHelpUpdate"
+	CmdDescUpdate        = "CmdDescUpdate"
+	UpdateYesFlag        = "UpdateYesFlag"
+	UpdateAlreadyUpToDate = "UpdateAlreadyUpToDate"
+	UpdateVersionInfo    = "UpdateVersionInfo"
+	UpdatePrompt         = "UpdatePrompt"
+	UpdateAborted        = "UpdateAborted"
+	UpdateDownloading    = "UpdateDownloading"
+	UpdateFailed         = "UpdateFailed"
+	UpdateSuccess        = "UpdateSuccess"
+
 	// support
 	CmdHelpSupport = "CmdHelpSupport"
 	CmdDescSupport = "CmdDescSupport"

@@ -9,6 +9,7 @@ import (
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/printer"
+	"github.com/zeropsio/zcli/src/upgrade"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/errorCode"
@@ -26,6 +27,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(loginCmd()).
 		AddChildrenCmd(logoutCmd()).
 		AddChildrenCmd(versionCmd()).
+		AddChildrenCmd(updateCmd()).
 		AddChildrenCmd(upgradeCmd()).
 		AddChildrenCmd(scopeCmd()).
 		AddChildrenCmd(projectCmd()).
@@ -41,7 +43,11 @@ func rootCmd() *cmdBuilder.Cmd {
 				printer.EmptyLine,
 			)
 
-			// print the default command help
+			go upgrade.RefreshCacheIfStale(ctx)
+			if warning := upgrade.NewUpgrader().MismatchWarning(); warning != "" {
+				cmdData.Stdout.Println(warning)
+			}
+
 			cmdData.PrintHelp()
 
 			return nil
@@ -93,7 +99,11 @@ func rootCmd() *cmdBuilder.Cmd {
 				printer.EmptyLine,
 			)
 
-			// print the default command help
+			go upgrade.RefreshCacheIfStale(ctx)
+			if warning := upgrade.NewUpgrader().MismatchWarning(); warning != "" {
+				cmdData.Stdout.Println(warning)
+			}
+
 			cmdData.PrintHelp()
 
 			return nil
