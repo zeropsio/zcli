@@ -249,36 +249,69 @@ func TestUpgradeApplyError(t *testing.T) {
 }
 
 func TestAvailableReleases(t *testing.T) {
+	// One payload exercises every branch:
+	//   * v3.0.0 draft - always dropped
+	//   * latest-stable non-semver - always dropped
+	//   * v2.0.0 stable - kept
+	//   * v1.5.0-rc.1 prerelease via semver suffix - kept only with includePrerelease
+	//   * v1.4.0 with GitHub prerelease flag - kept only with includePrerelease
+	//   * v1.1.0 stable post-rework
+	//   * v1.0.67 stable pre-rework
+	payload := `[
+		{"tag_name":"v3.0.0","draft":true},
+		{"tag_name":"latest-stable","draft":false},
+		{"tag_name":"v2.0.0","draft":false},
+		{"tag_name":"v1.5.0-rc.1","draft":false},
+		{"tag_name":"v1.4.0","draft":false,"prerelease":true},
+		{"tag_name":"v1.1.0","draft":false},
+		{"tag_name":"v1.0.67","draft":false}
+	]`
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		// Mix in a draft (skipped), a non-semver tag (skipped), a pre-rework tag
-		// (kept, SelfUpgradable=false), and a post-rework tag (kept,
-		// SelfUpgradable=true) so one round-trip exercises every branch.
-		_, _ = fmt.Fprint(w, `[
-			{"tag_name":"v2.0.0","draft":false},
-			{"tag_name":"v1.1.0","draft":false},
-			{"tag_name":"v1.0.67","draft":false},
-			{"tag_name":"v3.0.0","draft":true},
-			{"tag_name":"latest-stable","draft":false}
-		]`)
+		_, _ = fmt.Fprint(w, payload)
 	}))
 	t.Cleanup(srv.Close)
 
 	u := Upgrader{releasesListURL: srv.URL}
-	releases, err := u.AvailableReleases(context.Background())
-	if err != nil {
-		t.Fatalf("AvailableReleases: %v", err)
-	}
-	if len(releases) != 3 {
-		t.Fatalf("expected 3 releases (draft + non-semver filtered), got %d: %#v", len(releases), releases)
-	}
-	want := []Release{
-		{Tag: "v2.0.0", SelfUpgradable: true},
-		{Tag: "v1.1.0", SelfUpgradable: true},
-		{Tag: "v1.0.67", SelfUpgradable: false},
-	}
-	for i, w := range want {
-		if releases[i] != w {
-			t.Errorf("release[%d] = %#v, want %#v", i, releases[i], w)
+
+	t.Run("default drops prereleases", func(t *testing.T) {
+		releases, err := u.AvailableReleases(context.Background(), false)
+		if err != nil {
+			t.Fatalf("AvailableReleases: %v", err)
 		}
-	}
+		want := []Release{
+			{Tag: "v2.0.0", SelfUpgradable: true, Prerelease: false},
+			{Tag: "v1.1.0", SelfUpgradable: true, Prerelease: false},
+			{Tag: "v1.0.67", SelfUpgradable: false, Prerelease: false},
+		}
+		if len(releases) != len(want) {
+			t.Fatalf("got %d releases, want %d: %#v", len(releases), len(want), releases)
+		}
+		for i, w := range want {
+			if releases[i] != w {
+				t.Errorf("release[%d] = %#v, want %#v", i, releases[i], w)
+			}
+		}
+	})
+
+	t.Run("includePrerelease keeps -rc and flagged tags", func(t *testing.T) {
+		releases, err := u.AvailableReleases(context.Background(), true)
+		if err != nil {
+			t.Fatalf("AvailableReleases: %v", err)
+		}
+		want := []Release{
+			{Tag: "v2.0.0", SelfUpgradable: true, Prerelease: false},
+			{Tag: "v1.5.0-rc.1", SelfUpgradable: true, Prerelease: true},
+			{Tag: "v1.4.0", SelfUpgradable: true, Prerelease: true},
+			{Tag: "v1.1.0", SelfUpgradable: true, Prerelease: false},
+			{Tag: "v1.0.67", SelfUpgradable: false, Prerelease: false},
+		}
+		if len(releases) != len(want) {
+			t.Fatalf("got %d releases, want %d: %#v", len(releases), len(want), releases)
+		}
+		for i, w := range want {
+			if releases[i] != w {
+				t.Errorf("release[%d] = %#v, want %#v", i, releases[i], w)
+			}
+		}
+	})
 }

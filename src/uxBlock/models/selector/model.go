@@ -70,6 +70,17 @@ func WithFilterFunc(filterFunc FilterFunc) Option {
 	}
 }
 
+// WithMaxRowsPerPage caps the rows shown per page. The default (0) means
+// "use the full terminal height"; setting it to e.g. 15 keeps the table
+// from sprawling when the underlying list is long.
+func WithMaxRowsPerPage(n int) Option {
+	return func(m *Model) {
+		if n > 0 {
+			m.maxRowsPerPage = n
+		}
+	}
+}
+
 type FilterFunc func(string, string) bool
 
 func filterNone(string, string) bool {
@@ -93,6 +104,8 @@ type Model struct {
 	label optional.Null[string]
 	multi bool
 	jump  int
+
+	maxRowsPerPage int
 
 	width  int
 	height int
@@ -317,6 +330,11 @@ func (m *Model) View() string {
 	// remove 1 more row for pagination
 	if totalRows > maxRows {
 		maxRows -= 1
+	}
+	// Honor a caller-imposed cap (WithMaxRowsPerPage) so long lists paginate
+	// at a predictable size instead of filling the whole terminal.
+	if m.maxRowsPerPage > 0 && maxRows > m.maxRowsPerPage {
+		maxRows = m.maxRowsPerPage
 	}
 	if maxRows <= 0 {
 		return "Your terminal window is too small to render the table."

@@ -83,17 +83,20 @@ func NewUpgrader() Upgrader {
 func (u Upgrader) Current() string { return u.current }
 
 // Release describes one entry in the releases-list, surfaced by the
-// --pick-version selector. SelfUpgradable is precomputed against
-// firstSelfUpgradableTag so callers don't need to recompute it per row.
+// --pick-version selector. SelfUpgradable and Prerelease are precomputed
+// so callers don't recompute per row.
 type Release struct {
 	Tag            string
 	SelfUpgradable bool
+	Prerelease     bool
 }
 
 // AvailableReleases pulls the release list from GitHub (or the configured
-// override). Drafts and non-semver tags are dropped; the order follows the
+// override). Drafts and non-semver tags are always dropped; prereleases
+// (either flagged by GitHub or carrying a semver prerelease component like
+// `-rc.1`) are dropped unless includePrerelease is set. Order follows the
 // API's response (newest first as of writing).
-func (u Upgrader) AvailableReleases(ctx context.Context) ([]Release, error) {
+func (u Upgrader) AvailableReleases(ctx context.Context, includePrerelease bool) ([]Release, error) {
 	client := httpClient.New(ctx, httpClient.Config{HttpTimeout: 10 * time.Second})
 	resp, err := client.Get(ctx, u.releasesListURL)
 	if err != nil {
@@ -103,8 +106,9 @@ func (u Upgrader) AvailableReleases(ctx context.Context) ([]Release, error) {
 		return nil, errors.Errorf("fetch releases list: status %d", resp.StatusCode)
 	}
 	var entries []struct {
-		TagName string `json:"tag_name"`
-		Draft   bool   `json:"draft"`
+		TagName    string `json:"tag_name"`
+		Draft      bool   `json:"draft"`
+		Prerelease bool   `json:"prerelease"`
 	}
 	if err := json.Unmarshal(resp.Body, &entries); err != nil {
 		return nil, errors.Wrap(err, "decode releases list")
@@ -114,9 +118,14 @@ func (u Upgrader) AvailableReleases(ctx context.Context) ([]Release, error) {
 		if e.Draft || !semver.IsValid(e.TagName) {
 			continue
 		}
+		pre := e.Prerelease || semver.Prerelease(e.TagName) != ""
+		if pre && !includePrerelease {
+			continue
+		}
 		out = append(out, Release{
 			Tag:            e.TagName,
 			SelfUpgradable: semver.Compare(e.TagName, firstSelfUpgradableTag) >= 0,
+			Prerelease:     pre,
 		})
 	}
 	return out, nil
