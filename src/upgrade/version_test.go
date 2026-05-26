@@ -1,4 +1,4 @@
-package version
+package upgrade
 
 import (
 	"path/filepath"
@@ -21,6 +21,10 @@ func TestIsUpdateAvailable(t *testing.T) {
 		{"empty current", "", "v1.0.0", false},
 		{"empty latest", "v1.0.0", "", false},
 		{"garbage latest", "v1.0.0", "not-a-version", false},
+		// git describe stamps commits past a tag as build metadata (see Makefile
+		// PROD_VERSION). semver ignores the `+...` suffix in comparisons, so a
+		// local build ahead of the released tag must not warn.
+		{"build metadata ties with tag", "v1.0.67+11.g03aedf4", "v1.0.67", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -32,10 +36,6 @@ func TestIsUpdateAvailable(t *testing.T) {
 }
 
 func TestMismatchWarning(t *testing.T) {
-	savedVersion := version
-	savedChannel := channel
-	t.Cleanup(func() { version = savedVersion; channel = savedChannel })
-
 	dir := t.TempDir()
 	t.Setenv("ZEROPS_CLI_DATA_FILE_PATH", filepath.Join(dir, "cli.data"))
 
@@ -44,21 +44,20 @@ func TestMismatchWarning(t *testing.T) {
 	}
 
 	t.Run("non-semver current returns empty", func(t *testing.T) {
-		version = "local"
-		if got := MismatchWarning(); got != "" {
+		u := Upgrader{current: "local"}
+		if got := u.MismatchWarning(); got != "" {
 			t.Errorf("local: want empty, got %q", got)
 		}
 	})
 
 	t.Run("equal versions return empty", func(t *testing.T) {
-		version = "v1.2.0"
-		if got := MismatchWarning(); got != "" {
+		u := Upgrader{current: "v1.2.0"}
+		if got := u.MismatchWarning(); got != "" {
 			t.Errorf("equal: want empty, got %q", got)
 		}
 	})
 
 	t.Run("channel hint included", func(t *testing.T) {
-		version = "v1.0.0"
 		cases := []struct {
 			stamp string
 			want  string
@@ -69,8 +68,8 @@ func TestMismatchWarning(t *testing.T) {
 			{"manual", "zcli upgrade"},
 		}
 		for _, tc := range cases {
-			channel = tc.stamp
-			got := MismatchWarning()
+			u := Upgrader{current: "v1.0.0", channel: tc.stamp}
+			got := u.MismatchWarning()
 			if !strings.Contains(got, "v1.2.0") || !strings.Contains(got, "v1.0.0") {
 				t.Errorf("channel %q: %q missing version info", tc.stamp, got)
 			}

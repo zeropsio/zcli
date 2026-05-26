@@ -1,4 +1,4 @@
-package version
+package upgrade
 
 import (
 	"os"
@@ -56,18 +56,19 @@ func (m InstallMethod) IsPackageManager() bool {
 	return m != InstallManual
 }
 
-// channel is stamped at build time via `-ldflags "-X .../version.channel=<name>"`.
+// channel is stamped at build time via `-ldflags "-X .../upgrade.channel=<name>"`.
 // Official builds set it for every distribution (manual/npm/deb in goreleaser,
-// brew/nix in their own packaging); Detect() only falls back to path-based
-// heuristics when it's empty (e.g. a plain `go build` or a packager that
-// forgot to stamp). Empty means "not stamped".
+// brew/nix in their own packaging); Upgrader.Detect only falls back to
+// path-based heuristics when it's empty (e.g. a plain `go build` or a
+// packager that forgot to stamp). Read by NewUpgrader into Upgrader.channel;
+// reach for an Upgrader rather than the raw var.
 var channel = ""
 
 // Detect returns the channel the running binary was installed through. The
 // build-time channel stamp takes precedence; otherwise we infer from the
 // binary path. Falls back to InstallManual when neither yields a result.
-func Detect() InstallMethod {
-	if m, ok := parseChannel(channel); ok {
+func (u Upgrader) Detect() InstallMethod {
+	if m, ok := parseChannel(u.channel); ok {
 		return m
 	}
 	exe, err := os.Executable()

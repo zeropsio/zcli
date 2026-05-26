@@ -29,6 +29,7 @@ const (
 	CliTerminalMode           = "ZEROPS_CLI_TERMINAL_MODE"
 	CliTokenEnvVar            = "ZEROPS_TOKEN"
 	VersionApiUrlEnvVar       = "ZEROPS_VERSION_API_URL"
+	VersionEnvVar             = "ZEROPS_CLI_VERSION"
 )
 
 type pathReceiver func(fileMode os.FileMode) (path string, err error)
