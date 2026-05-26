@@ -48,7 +48,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			if check {
 				cmdData.Stdout.Printf("Current: %s\nLatest:  %s\n", plan.Current(), plan.Target())
 				if err := plan.RequireSelfUpgradable(); err != nil {
-					cmdData.Stderr.Printf("%s\n", err)
+					cmdData.UxBlocks.PrintWarningText(err.Error())
 					return errorsx.NewExitError(3)
 				}
 				if !plan.NeedsUpgrade() {
