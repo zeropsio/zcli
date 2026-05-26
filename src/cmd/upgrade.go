@@ -31,6 +31,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			downloadTimeoutRaw := cmdData.Params.GetString("download-timeout")
 
 			upgrader := upgrade.NewUpgrader()
+			// --download-timeout uses StringFlag because cmdBuilder has no DurationFlag; parse manually and leave Upgrader's default in place when unset.
 			if downloadTimeoutRaw != "" {
 				d, err := time.ParseDuration(downloadTimeoutRaw)
 				if err != nil {
@@ -43,6 +44,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				NoCache:       noCache,
 			})
 			if err != nil {
+				// --check is a scripting interface, so its errors translate to a fixed exit code instead of bubbling up to the styled error printer.
 				if check {
 					cmdData.Stderr.Printf("error: %s\n", err)
 					return errorsx.NewExitError(2)
@@ -53,6 +55,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 			if check {
 				cmdData.Stdout.Printf("Current: %s\n", plan.Current())
 				if targetVersion != "" {
+					// PlanUpgrade only fetched the user-supplied target; look up the actual latest separately so the user sees all three lines.
 					cmdData.Stdout.Printf("Target:  %s\n", plan.Target())
 					latest, _ := upgrader.LatestTag(ctx, noCache)
 					if latest != "" {
@@ -71,6 +74,8 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				return errorsx.NewExitError(1)
 			}
 
+			// Channel gate before target gate: a package-managed install can't be helped by either, and pointing at the package manager is more actionable
+			// than pointing at install.sh.
 			if err := upgrader.RequireSelfUpdatable(); err != nil {
 				return err
 			}
@@ -79,6 +84,8 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
+			// Both conditions matter: without --version, NeedsUpgrade==false means "nothing to do". With --version the user pinned a specific tag (often a
+			// downgrade), so proceed even when NeedsUpgrade returns false.
 			if !plan.NeedsUpgrade() && targetVersion == "" {
 				cmdData.Stdout.Printf("zcli is already on %s.\n", plan.Current())
 				return nil
