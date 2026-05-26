@@ -10,7 +10,7 @@
     "actions-toolkit": "^6.0.1",
     "axios": "1.15.2",
     "rimraf": "3.0.2",
-    "tar": "^6.2.1",
+    "tar": "^7.5.11",
     "yargs": "17.7.2"
   },
   "devDependencies": {
