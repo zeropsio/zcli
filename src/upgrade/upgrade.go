@@ -177,6 +177,17 @@ type Plan struct {
 func (p Plan) Current() string { return p.current }
 func (p Plan) Target() string  { return p.target }
 
+// InstallScriptHint formats the install.sh fallback message for a tag that
+// predates firstSelfUpgradableTag. Exported so cmd code can render it as a
+// warning when the user picked such a tag via --pick-version, alongside
+// its automatic use in Plan.RequireSelfUpgradable below.
+func InstallScriptHint(tag string) string {
+	return fmt.Sprintf(
+		"%s predates self-upgrade support (added in %s). Install older releases via install.sh:\n  curl -fsSL https://raw.githubusercontent.com/zeropsio/zcli/main/install.sh | sh -s -- %s",
+		tag, firstSelfUpgradableTag, tag,
+	)
+}
+
 // RequireSelfUpgradable returns an error when target predates the first
 // release that shipped checksums.txt (firstSelfUpgradableTag). Apply would
 // otherwise fail mid-way at the checksums fetch; this surfaces the right
@@ -189,10 +200,7 @@ func (p Plan) RequireSelfUpgradable() error {
 	if semver.Compare(p.target, firstSelfUpgradableTag) >= 0 {
 		return nil
 	}
-	return errors.Errorf(
-		"%s predates self-upgrade support (added in %s). Install older releases via install.sh:\n  curl -fsSL https://raw.githubusercontent.com/zeropsio/zcli/main/install.sh | sh -s -- %s",
-		p.target, firstSelfUpgradableTag, p.target,
-	)
+	return errors.New(InstallScriptHint(p.target))
 }
 
 // NeedsUpgrade reports whether the upgrade command should proceed. Semantics
