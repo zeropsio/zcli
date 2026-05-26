@@ -56,7 +56,16 @@ func upgradeCmd() *cmdBuilder.Cmd {
 				if err != nil {
 					return err
 				}
-				targetVersion = picked
+				// Pre-v1.1.0 picks can't be applied by `zcli upgrade`; show the
+				// install.sh fallback as a warning and stop. The picker keeps these
+				// rows enabled (vs. disabled) so the user gets here intentionally
+				// and the tag is already in their hands when they want to paste it
+				// into install.sh.
+				if !picked.SelfUpgradable {
+					cmdData.UxBlocks.PrintWarningText(upgrade.InstallScriptHint(picked.Tag))
+					return nil
+				}
+				targetVersion = picked.Tag
 			}
 			plan, err := upgrader.PlanUpgrade(ctx, upgrade.Options{
 				TargetVersion: targetVersion,
@@ -142,18 +151,19 @@ func upgradeCmd() *cmdBuilder.Cmd {
 }
 
 // pickReleaseInteractive fetches the release list and runs a selector TUI
-// over it. Pre-v1.1.0 entries are shown but marked disabled so the user
-// can see the tag name (and copy it into install.sh) without accidentally
-// picking something `zcli upgrade` can't fulfil. The page size is capped at
-// 15 rows so long histories paginate predictably instead of swallowing the
-// whole terminal.
-func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader, includePrerelease bool) (string, error) {
+// over it. Every entry is selectable, including pre-v1.1.0 ones: those
+// rows still get a "requires install.sh" label so users see what they're
+// picking, and the caller handles the post-pick branch (print the
+// install.sh hint instead of going through Apply). Page size is capped at
+// 15 rows so long histories paginate predictably instead of swallowing
+// the whole terminal.
+func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader, includePrerelease bool) (upgrade.Release, error) {
 	releases, err := upgrader.AvailableReleases(ctx, includePrerelease)
 	if err != nil {
-		return "", err
+		return upgrade.Release{}, err
 	}
 	if len(releases) == 0 {
-		return "", errors.New("no releases available")
+		return upgrade.Release{}, errors.New("no releases available")
 	}
 
 	header := table.NewRowFromStrings("Version", "Status")
@@ -166,11 +176,7 @@ func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader, incl
 		case r.Prerelease:
 			status = "pre-release"
 		}
-		row := table.NewRowFromStrings(r.Tag, status)
-		if !r.SelfUpgradable {
-			row.SetDisabled(true)
-		}
-		body.AddRow(row)
+		body.AddRow(table.NewRowFromStrings(r.Tag, status))
 	}
 
 	idx, err := uxBlock.Run(
@@ -185,10 +191,10 @@ func pickReleaseInteractive(ctx context.Context, upgrader upgrade.Upgrader, incl
 		selector.GetOneSelectedFunc,
 	)
 	if err != nil {
-		return "", err
+		return upgrade.Release{}, err
 	}
 	if idx < 0 || idx >= len(releases) {
-		return "", errors.New("invalid release selection")
+		return upgrade.Release{}, errors.New("invalid release selection")
 	}
-	return releases[idx].Tag, nil
+	return releases[idx], nil
 }
