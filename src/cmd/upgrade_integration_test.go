@@ -88,8 +88,8 @@ func TestUpgradeCheckExplicitVersion(t *testing.T) {
 // trusting a (potentially stale) on-disk cache.
 func TestUpgradeCheckNoCacheBypassesStaleCache(t *testing.T) {
 	f := newFixture(t)
-	f.stubLatestCache("v9.9.9")                    // stale - should be ignored
-	f.stubVersionAPI(http.StatusOK, "v2.0.0")      // API has the real latest
+	f.stubLatestCache("v9.9.9")               // stale - should be ignored
+	f.stubVersionAPI(http.StatusOK, "v2.0.0") // API has the real latest
 
 	res := f.Run("upgrade", "--check", "--no-cache")
 
