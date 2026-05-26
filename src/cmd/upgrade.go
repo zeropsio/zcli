@@ -18,7 +18,7 @@ func upgradeCmd() *cmdBuilder.Cmd {
 		Use("upgrade").
 		Short("Upgrade zcli to the latest release.").
 		HelpFlag("Help for the upgrade command.").
-		BoolFlag("check", false, "Print current and latest version, then exit. 0 = up to date, 1 = behind, 2 = error.").
+		BoolFlag("check", false, "Print current and latest version, then exit. 0 = up to date, 1 = behind, 2 = error, 3 = target requires install.sh.").
 		BoolFlag("yes", false, "Skip the confirmation prompt.").
 		StringFlag("version", "", "Install a specific release tag instead of the latest.").
 		StringFlag("download-timeout", "", "Overall timeout for the binary download (Go duration, e.g. '5m', '90s'). 0 disables the timeout. Default 2m.").
@@ -47,6 +47,10 @@ func upgradeCmd() *cmdBuilder.Cmd {
 
 			if check {
 				cmdData.Stdout.Printf("Current: %s\nLatest:  %s\n", plan.Current(), plan.Target())
+				if err := plan.RequireSelfUpgradable(); err != nil {
+					cmdData.Stderr.Printf("%s\n", err)
+					return errorsx.NewExitError(3)
+				}
 				if !plan.NeedsUpgrade() {
 					return nil
 				}
