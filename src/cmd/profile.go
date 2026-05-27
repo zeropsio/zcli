@@ -149,31 +149,42 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 			}
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected name", name))
 
-			regionOverride, err := promptProfileRegion(ctx)
-			if err != nil {
-				return err
-			}
-			if regionOverride != nil {
-				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Region override", regionOverride.Name))
-			} else {
-				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region: inherited from global"))
-			}
+			isCopy := source == profileSourceExisting && sourceName != ""
 
-			scope, err := promptProfileScope(ctx)
-			if err != nil {
-				return err
-			}
-			if scope.project.Filled() {
-				id, _ := scope.project.Get()
-				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope project", id.Native()))
+			// When copying from an existing entry, the region / scope come along for free via
+			// AddRepoProfileCopy. Asking the user the same questions over the top would be
+			// confusing, so skip those prompts and rely on the source values.
+			var regionOverride *profile.Region
+			var scope profileScopeChoices
+			if !isCopy {
+				regionOverride, err = promptProfileRegion(ctx)
+				if err != nil {
+					return err
+				}
+				if regionOverride != nil {
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Region override", regionOverride.Name))
+				} else {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region: inherited from global"))
+				}
+
+				scope, err = promptProfileScope(ctx)
+				if err != nil {
+					return err
+				}
+				if scope.project.Filled() {
+					id, _ := scope.project.Get()
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope project", id.Native()))
+				} else {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope project: not set"))
+				}
+				if scope.service.Filled() {
+					id, _ := scope.service.Get()
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope service", id.Native()))
+				} else {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope service: not set"))
+				}
 			} else {
-				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope project: not set"))
-			}
-			if scope.service.Filled() {
-				id, _ := scope.service.Get()
-				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope service", id.Native()))
-			} else {
-				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope service: not set"))
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region / scope copied from \"" + sourceName + "\""))
 			}
 
 			token, err := promptProfileToken(ctx)
@@ -186,7 +197,29 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: not set (will use global at read time)"))
 			}
 
-			cmdData.UxBlocks.PrintInfoText("Final entry creation will be wired up in the follow-up step.")
+			var created profile.RepoProfile
+			if isCopy {
+				created, err = cmdData.Profile.AddRepoProfileCopy(name, sourceName)
+			} else {
+				created, err = cmdData.Profile.AddRepoProfileFull(profile.RepoProfile{
+					Name:           name,
+					Region:         regionOverride,
+					ScopeProjectId: scope.project,
+					ScopeServiceId: scope.service,
+				})
+			}
+			if err != nil {
+				return err
+			}
+
+			if token != "" {
+				if err := cmdData.Profile.SetRepoProfileToken(created.Name, token); err != nil {
+					return errors.Wrap(err, "store token for new profile")
+				}
+			}
+
+			cmdData.UxBlocks.PrintInfo(styles.SuccessLine("Created profile \"" + created.Name + "\"  (id " + created.Id + ")"))
+			cmdData.UxBlocks.PrintInfoText("Run `zcli profile use " + created.Name + "` to switch the active profile, or re-run with the dedicated `zcli profile create` next time you want another.")
 			return nil
 		})
 }

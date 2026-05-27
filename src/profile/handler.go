@@ -410,6 +410,47 @@ func (m *Manager) RemoveRepoProfile(name string) error {
 	return m.saveRepoFile()
 }
 
+// AddRepoProfileFull appends a freshly created entry whose non-sensitive fields are taken
+// from the template. The template's Id is ignored - a new UUID is generated so per-profile
+// secrets are always isolated. Errors when the name is empty, collides, or no repo profile
+// is initialised. Useful as the catch-all create path when callers have a fully built
+// RepoProfile value (e.g. an interactive builder collecting region / scope / ... up front).
+func (m *Manager) AddRepoProfileFull(template RepoProfile) (RepoProfile, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err := m.requireRepo(); err != nil {
+		return RepoProfile{}, err
+	}
+	if template.Name == "" {
+		return RepoProfile{}, errors.New("profile name must not be empty")
+	}
+	for _, p := range m.repoFile.Profiles {
+		if p.Name == template.Name {
+			return RepoProfile{}, errors.Errorf("profile %q already exists", template.Name)
+		}
+	}
+	template.Id = uuid.NewString()
+	m.repoFile.Profiles = append(m.repoFile.Profiles, template)
+	return template, m.saveRepoFile()
+}
+
+// SetRepoProfileToken stores a token in the secrets backend under the named profile's
+// RepoScope(id) prefix. Targets a specific profile by name, so it works for any entry in the
+// repo file - not just the currently active one. Errors when no repo profile is initialised
+// or the name doesn't match an existing entry.
+func (m *Manager) SetRepoProfileToken(name, token string) error {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if err := m.requireRepo(); err != nil {
+		return err
+	}
+	idx, err := lookupProfileIndex(m.repoFile, name)
+	if err != nil {
+		return err
+	}
+	return m.secrets.Set(secrets.Key(secrets.RepoScope(m.repoFile.Profiles[idx].Id), "token"), token)
+}
+
 // AddRepoProfileCopy is AddRepoProfile plus an initial copy of the non-sensitive override
 // fields from another existing entry. The new entry gets a fresh Id (so per-profile secrets
 // are isolated from the source) but inherits the source's Region override and persisted scope
