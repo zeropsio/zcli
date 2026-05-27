@@ -2,14 +2,19 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/profile"
+	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/input"
@@ -141,11 +146,75 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 			if err != nil {
 				return err
 			}
-
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected name", name))
-			cmdData.UxBlocks.PrintInfoText("Remaining details (region, scope, token) will be wired up in follow-up steps.")
+
+			regionOverride, err := promptProfileRegion(ctx)
+			if err != nil {
+				return err
+			}
+			if regionOverride != nil {
+				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Region override", regionOverride.Name))
+			} else {
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region: inherited from global"))
+			}
+
+			cmdData.UxBlocks.PrintInfoText("Remaining details (scope, token) will be wired up in follow-up steps.")
 			return nil
 		})
+}
+
+// promptProfileRegion is the third step of the builder. The user picks whether the new entry
+// inherits global at read time (no override) or pins a specific region listed by the regions
+// endpoint. Returns nil when no override should be set.
+func promptProfileRegion(ctx context.Context) (*profile.Region, error) {
+	choices := []string{"Inherit global region", "Pick a different region"}
+	descriptions := []string{
+		"Leave the new entry's region field empty. Manager.Region() falls through to the global profile at read time, so the new profile follows whatever the user has globally - including any later `zcli login` that flips global.",
+		"Pin a specific region as a repo-profile override. Reads from this profile use the chosen region regardless of what global is, which is useful when one repo is permanently against a non-default region.",
+	}
+	idx, err := uxBlock.Run(
+		prompt.NewRoot(ctx, "How should this profile resolve its region?", choices, prompt.WithChoiceDescriptions(descriptions)),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if idx == 0 {
+		return nil, nil
+	}
+
+	regionRetriever := region.New(httpClient.New(ctx, httpClient.Config{HttpTimeout: time.Minute * 5}))
+	regions, err := regionRetriever.RetrieveAllFromURL(ctx, constants.DefaultRegionUrl)
+	if err != nil {
+		return nil, errors.Wrap(err, "fetch available regions")
+	}
+	if len(regions) == 0 {
+		return nil, errors.New("regions endpoint returned no entries; can't pick an override")
+	}
+
+	header := table.NewRowFromStrings("name", "default")
+	body := table.NewBody()
+	for _, r := range regions {
+		body.AddStringsRow(r.Name, strconv.FormatBool(r.IsDefault))
+	}
+	selected, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			body,
+			selector.WithLabel("Select region for this profile"),
+			selector.WithHeader(header),
+			selector.WithEnableFiltering(),
+		),
+		selector.GetOneSelectedFunc,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if selected < 0 || selected >= len(regions) {
+		return nil, errors.New("invalid region selection")
+	}
+	pinned := profile.RegionFromItem(regions[selected])
+	return &pinned, nil
 }
 
 // promptProfileName asks for the new profile's name with the same input model the rest of
