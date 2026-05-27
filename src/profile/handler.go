@@ -37,6 +37,7 @@ package profile
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/google/uuid"
@@ -195,9 +196,26 @@ func (m *Manager) loadGlobal() error {
 	}
 
 	if sourceVersion < CurrentDataVersion {
+		if err := backupProfile(m.cfg.GlobalPath, raw, sourceVersion, m.cfg.GlobalMode); err != nil {
+			return errors.Wrap(err, "backup global profile before migration")
+		}
 		if err := m.saveGlobal(m.global); err != nil {
 			return errors.Wrap(err, "rewrite global profile in current schema after migration")
 		}
+	}
+	return nil
+}
+
+// backupProfile writes the original on-disk bytes to a sibling file named
+// <path>.v<sourceVersion>.bak before the migration overwrites the live file. Lets users
+// recover by `mv cli.data.v0.bak cli.data` if a future code change ever regresses on a
+// migration we already ran. Overwrites an existing same-named backup, on the theory that the
+// most-recent original wins; the live file is still preserved as a backup, just not older
+// generations.
+func backupProfile(livePath string, original []byte, sourceVersion int, fileMode os.FileMode) error {
+	backupPath := livePath + ".v" + strconv.Itoa(sourceVersion) + ".bak"
+	if err := os.WriteFile(backupPath, original, fileMode); err != nil {
+		return errors.WithStack(err)
 	}
 	return nil
 }

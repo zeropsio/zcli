@@ -172,6 +172,29 @@ func TestMigration_V1_RescuesScopeIntoRepoProfile(t *testing.T) {
 	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", repoOnDisk["scope_project_id"])
 }
 
+// TestMigration_WritesBackupBeforeRewriting asserts that running a migration leaves a
+// .v<source>.bak sibling holding the original on-disk bytes, so a botched migration is
+// recoverable by hand.
+func TestMigration_WritesBackupBeforeRewriting(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "profile.json")
+
+	v1 := []byte(`{"version":1,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"}}`)
+	require.NoError(t, os.WriteFile(path, v1, 0o600))
+
+	_, err := NewManager(Config{
+		GlobalPath: path,
+		GlobalMode: 0o600,
+		Cwd:        dir,
+		Secrets:    secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+
+	backup, err := os.ReadFile(path + ".v1.bak")
+	require.NoError(t, err, "migration must leave a versioned backup of the original")
+	require.Equal(t, v1, backup, "backup should hold the original bytes verbatim")
+}
+
 // TestRegion_RepoOverridesGlobal asserts a repo-level region wins over the global one.
 func TestRegion_RepoOverridesGlobal(t *testing.T) {
 	repo := t.TempDir()
