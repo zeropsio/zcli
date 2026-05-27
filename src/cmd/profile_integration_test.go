@@ -164,6 +164,23 @@ func TestProfileAddAndUse_PersistsActiveAndIsolatesIds(t *testing.T) {
 	require.Equal(t, "prod", onDisk["active_profile"], "use must persist active_profile")
 }
 
+// TestProfileAdd_UseFlag_SwitchesActiveInOneStep covers the `--use` shorthand: add + activate
+// in a single command, so the on-disk active_profile flips to the freshly created entry without
+// a follow-up `profile use`.
+func TestProfileAdd_UseFlag_SwitchesActiveInOneStep(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	addRes := f.Run("profile", "add", "prod", "--use")
+	require.Equalf(t, 0, addRes.ExitCode, "add --use stderr=%q", addRes.Stderr)
+
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Equal(t, "prod", onDisk["active_profile"], "--use must persist the new profile as active")
+}
+
 // TestProfileAdd_DuplicateNameRejected ensures the second add of the same name fails loudly
 // rather than silently shadowing the first entry (which would mean two profiles share an Id
 // or one becomes unreachable).

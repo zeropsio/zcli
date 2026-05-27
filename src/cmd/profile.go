@@ -76,6 +76,7 @@ func profileAddCmd() *cmdBuilder.Cmd {
 		Short("Add a new named profile to the current repo (with a fresh id).").
 		HelpFlag("Help for the 'profile add' command.").
 		Arg("name").
+		BoolFlag("use", false, "Switch the active repo profile to the newly created one in the same step.").
 		GuestRunFunc(func(_ context.Context, cmdData *cmdBuilder.GuestCmdData) error {
 			name := cmdData.Args["name"][0]
 			created, err := cmdData.Profile.AddRepoProfile(name)
@@ -83,7 +84,14 @@ func profileAddCmd() *cmdBuilder.Cmd {
 				return err
 			}
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Added profile", created.Name+"  (id "+created.Id+")"))
-			cmdData.UxBlocks.PrintInfo(styles.InfoLine("active profile unchanged; run `zcli profile use " + created.Name + "` to switch"))
+			if cmdData.Params.GetBool("use") {
+				if err := cmdData.Profile.UseRepoProfile(created.Name); err != nil {
+					return err
+				}
+				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Active profile", created.Name))
+				return nil
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoLine("active profile unchanged; run `zcli profile use " + created.Name + "` to switch (or re-run with --use)"))
 			return nil
 		})
 }
