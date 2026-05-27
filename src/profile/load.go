@@ -174,7 +174,7 @@ func (m *Manager) loadRepo() error {
 	// Load returns we're at the current child shape. Any per-entry promotion happens inside
 	// repoFileVN.Up via versionedjson.Migrate(repoProfileSchema, ...), captured in
 	// fileResult.Migrated - no second loop needed here.
-	rf := RepoFile(fileResult.Value)
+	rf := fileResult.Value
 	if err := validateRepoFile(rf, path); err != nil {
 		return err
 	}

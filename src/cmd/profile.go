@@ -159,9 +159,10 @@ func tokenLine(mgr *profile.Manager) string {
 		return "set  (from repo override)"
 	case profile.SourceGlobal:
 		return "set  (from global)"
-	default:
+	case profile.SourceNone:
 		return "(not set)"
 	}
+	return "(not set)"
 }
 
 func scopeLine(mgr *profile.Manager) string {
