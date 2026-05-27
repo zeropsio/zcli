@@ -355,6 +355,163 @@ func TestProfileFlag_UnknownNameErrors(t *testing.T) {
 	require.NotEqualf(t, 0, res.ExitCode, "unknown profile must error; stderr=%q", res.Stderr)
 }
 
+// TestProfileList_ShowsActiveMarker covers the positive output shape: one line per profile,
+// the active entry prefixed with "* " and the others with two spaces. Exercises both `list`
+// after init (single entry) and `list` after add (multiple entries).
+func TestProfileList_ShowsActiveMarker(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	single := f.Run("profile", "list")
+	require.Equalf(t, 0, single.ExitCode, "list stderr=%q", single.Stderr)
+	assert.Contains(t, single.Stdout, "* default", "freshly initialised default must be marked active")
+
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "add must succeed")
+	multi := f.Run("profile", "list")
+	require.Equalf(t, 0, multi.ExitCode, "list stderr=%q", multi.Stderr)
+	assert.Contains(t, multi.Stdout, "* default", "default must still be marked active")
+	assert.Contains(t, multi.Stdout, "  prod", "non-active entry must be prefixed with two spaces (no marker)")
+
+	require.Equalf(t, 0, f.Run("profile", "use", "prod").ExitCode, "use must succeed")
+	switched := f.Run("profile", "list")
+	require.Equalf(t, 0, switched.ExitCode, "list stderr=%q", switched.Stderr)
+	assert.Contains(t, switched.Stdout, "* prod", "active marker must follow `profile use`")
+	assert.Contains(t, switched.Stdout, "  default", "previously-active entry now loses the marker")
+}
+
+// TestProfileList_NoRepoErrors asserts list refuses to run without a repo profile, pointing
+// the user at `profile init` instead of returning an empty (and confusing) success.
+func TestProfileList_NoRepoErrors(t *testing.T) {
+	f := newFixture(t)
+	noRepo := t.TempDir()
+	t.Setenv("ZEROPS_CLI_CWD", noRepo)
+
+	res := f.Run("profile", "list")
+	require.NotEqualf(t, 0, res.ExitCode, "list outside a repo must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "profile init", "error must point at the bootstrap command")
+}
+
+// TestProfileInit_AlreadyInitialisedErrors covers the re-init guard: running `profile init` a
+// second time on the same repo errors loudly rather than overwriting the existing file (which
+// would regenerate Ids and orphan every per-profile secret).
+func TestProfileInit_AlreadyInitialisedErrors(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "first init must succeed")
+
+	res := f.Run("profile", "init")
+	require.NotEqualf(t, 0, res.ExitCode, "second init must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+}
+
+// TestProfileInit_OutsideRepoErrors asserts init refuses to run when cwd isn't inside a git
+// repository - we need a .git/ ancestor to anchor the .zcli/ directory.
+func TestProfileInit_OutsideRepoErrors(t *testing.T) {
+	f := newFixture(t)
+	noRepo := t.TempDir() // no .git/ here
+	t.Setenv("ZEROPS_CLI_CWD", noRepo)
+
+	res := f.Run("profile", "init")
+	require.NotEqualf(t, 0, res.ExitCode, "init outside a repo must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+}
+
+// TestProfileAdd_NoRepoErrors asserts `profile add` refuses to run without an initialised
+// repo - there's no parent file to append to yet.
+func TestProfileAdd_NoRepoErrors(t *testing.T) {
+	f := newFixture(t)
+	res := f.Run("profile", "add", "prod")
+	require.NotEqualf(t, 0, res.ExitCode, "add without init must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+}
+
+// TestProfileUse_UnknownNameErrors asserts switching to a name that doesn't exist in the
+// profiles[] list errors instead of silently no-op'ing.
+func TestProfileUse_UnknownNameErrors(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	res := f.Run("profile", "use", "nope")
+	require.NotEqualf(t, 0, res.ExitCode, "use of unknown profile must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "not found")
+}
+
+// TestProfileRemove_UnknownNameErrors mirrors the use-unknown guard for the remove path.
+func TestProfileRemove_UnknownNameErrors(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	res := f.Run("profile", "remove", "nope")
+	require.NotEqualf(t, 0, res.ExitCode, "remove of unknown profile must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "not found")
+}
+
+// TestProfileRename_UnknownOldErrors asserts that renaming from a name that doesn't exist
+// surfaces the standard "not found" error instead of silently no-op'ing.
+func TestProfileRename_UnknownOldErrors(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	res := f.Run("profile", "rename", "nope", "main")
+	require.NotEqualf(t, 0, res.ExitCode, "rename from unknown source must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "not found")
+}
+
+// TestProfileRename_SameNameIsNoop covers the no-op success path: renaming a profile to its
+// current name returns 0 and leaves the file unchanged. Locks the friendlier rerun behaviour
+// so callers (especially scripts) can invoke rename idempotently.
+func TestProfileRename_SameNameIsNoop(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	before, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+
+	res := f.Run("profile", "rename", "default", "default")
+	require.Equalf(t, 0, res.ExitCode, "same-name rename should succeed; stderr=%q", res.Stderr)
+
+	after, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	require.Equal(t, string(before), string(after), "same-name rename must leave the file byte-identical")
+}
+
+// TestProfileCreate_NoRepoErrors asserts the interactive builder refuses to run when there's
+// no repo profile to add to. Same guard as the other repo-only commands.
+func TestProfileCreate_NoRepoErrors(t *testing.T) {
+	f := newFixture(t)
+	res := f.Run("profile", "create")
+	require.NotEqualf(t, 0, res.ExitCode, "create without init must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "profile init")
+}
+
+// TestProfileCreate_NoTTYErrors asserts the interactive builder refuses to run outside a real
+// terminal - test runs pipe stdin/stdout, so IsTerminal() is false here. Locks the message
+// pointing users at `profile add` for the one-shot, non-interactive flow.
+func TestProfileCreate_NoTTYErrors(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	res := f.Run("profile", "create")
+	require.NotEqualf(t, 0, res.ExitCode, "create in non-TTY must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "profile add", "non-TTY error should suggest the one-shot flow")
+}
+
+// TestProfileRemove_AfterSwitch_CleansUpFormerlyActive covers the close-the-loop flow: switch
+// active away from a profile, then remove it. Asserts the removal succeeds (the safety guard
+// only triggers while the entry is active) and the file ends up with one entry pointing at the
+// new active.
+func TestProfileRemove_AfterSwitch_CleansUpFormerlyActive(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod", "--use").ExitCode, "add --use must succeed")
+	require.Equalf(t, 0, f.Run("profile", "remove", "default").ExitCode, "remove of previously-active must succeed once it's no longer active")
+
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Equal(t, "prod", onDisk["active_profile"])
+	profiles, ok := onDisk["profiles"].([]any)
+	require.True(t, ok)
+	require.Len(t, profiles, 1, "default must be gone after removal")
+}
+
 func splitLines(s string) []string {
 	var out []string
 	start := 0
