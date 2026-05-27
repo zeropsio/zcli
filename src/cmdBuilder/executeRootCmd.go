@@ -2,10 +2,12 @@ package cmdBuilder
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
@@ -21,7 +23,7 @@ import (
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/logger"
 	"github.com/zeropsio/zcli/src/profile"
-	"github.com/zeropsio/zcli/src/storage"
+	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -100,7 +102,7 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 
 	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
-	profile, err := createProfile()
+	profileManager, err := createProfile(uxBlocks)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
 	}
@@ -108,7 +110,7 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 	flagParams := flagParams.New(o.stderr)
 
 	//nolint:contextcheck // cobra threads ctx into the run-func via ExecuteContext below; pulling from cobraCmd.Context() inside createCmdRunFunc is the canonical pattern.
-	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, profile, o.stdout, o.stderr)
+	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, profileManager, o.stdout, o.stderr)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
 	}
@@ -185,15 +187,53 @@ func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.
 	return outputLogger, debugFileLogger
 }
 
-func createProfile() (*profile.Handler, error) {
+func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
 	filePath, fileMode, err := constants.CliDataFilePath()
 	if err != nil {
 		return nil, err
 	}
-	return profile.NewHandler(
-		storage.Config{
-			FilePath: filePath,
-			FileMode: fileMode,
-		},
-	)
+
+	secretsPath := os.Getenv(constants.CliSecretsFilePathEnvVar)
+	if secretsPath == "" {
+		secretsPath = filepath.Join(filepath.Dir(filePath), constants.CliSecretsFileName)
+	}
+
+	mode := secrets.Mode(os.Getenv(constants.SecretsBackendEnvVar))
+	if mode == "" {
+		mode = peekStoredSecretsMode(filePath)
+	}
+
+	secretsBackend, err := secrets.New(secrets.Config{
+		Mode:     mode,
+		Service:  "zerops-cli",
+		FilePath: secretsPath,
+		FileMode: 0o600,
+		Log:      func(msg string) { uxBlocks.PrintWarningText(msg) },
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return profile.NewManager(profile.Config{
+		ProfilePath: filePath,
+		ProfileMode: fileMode,
+		Secrets:     secretsBackend,
+	})
+}
+
+// peekStoredSecretsMode reads only the secrets_backend field from the profile JSON, without
+// triggering a full load or migration. Lets us resolve the user's preferred backend before
+// constructing the secrets layer that the full load needs.
+func peekStoredSecretsMode(profilePath string) secrets.Mode {
+	raw, err := os.ReadFile(profilePath)
+	if err != nil {
+		return secrets.ModeAuto
+	}
+	var probe struct {
+		SecretsBackend secrets.Mode `json:"secrets_backend,omitempty"`
+	}
+	if err := json.Unmarshal(raw, &probe); err != nil || probe.SecretsBackend == "" {
+		return secrets.ModeAuto
+	}
+	return probe.SecretsBackend
 }

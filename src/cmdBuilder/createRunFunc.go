@@ -20,11 +20,10 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 type GuestCmdData struct {
-	Profile  *profile.Handler
+	Profile  *profile.Manager
 	UxBlocks *uxBlock.Blocks
 	Args     map[string][]string
 	Params   flagParams.ParamsReader
@@ -43,15 +42,13 @@ type LoggedUserCmdData struct {
 	Service optional.Null[entity.Service]
 
 	ProjectSelector func(context.Context, *LoggedUserCmdData, ...uxHelpers.ProjectSelectorOption) (entity.Project, bool, error)
-
-	VpnKeys map[uuid.ProjectId]entity.VpnKey
 }
 
 func createCmdRunFunc(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
 	uxBlocks *uxBlock.Blocks,
-	profile *profile.Handler,
+	profileManager *profile.Manager,
 	stdout io.Writer,
 	stderr io.Writer,
 ) func(*cobra.Command, []string) error {
@@ -73,7 +70,7 @@ func createCmdRunFunc(
 		}
 
 		guestCmdData := &GuestCmdData{
-			Profile:  profile,
+			Profile:  profileManager,
 			UxBlocks: uxBlocks,
 			Args:     argsMap,
 			Params:   flagParams,
@@ -85,9 +82,12 @@ func createCmdRunFunc(
 			},
 		}
 
-		storedData := profile.Data()
+		storedData := profileManager.Data()
 
-		token := storedData.Token
+		token, _, err := profileManager.Token()
+		if err != nil {
+			return errors.Wrap(err, "read token from secrets backend")
+		}
 		// An empty value (e.g. `export ZEROPS_TOKEN=` in a shell, or a
 		// process inheriting an explicitly cleared env) must not overwrite
 		// the token persisted by `zcli login` — otherwise the user appears
@@ -109,10 +109,9 @@ func createCmdRunFunc(
 
 		cmdData := &LoggedUserCmdData{
 			GuestCmdData: guestCmdData,
-			VpnKeys:      storedData.ProjectVpnKeyRegistry,
 		}
 
-		host := storedData.RegionData.Address
+		host := storedData.Region.Address
 		if host == "" {
 			host = constants.DefaultRegion
 		}

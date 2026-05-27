@@ -3,20 +3,20 @@ package profile
 import (
 	"encoding/json"
 
-	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-// dataV1 is the current on-disk shape: snake_case json tags and an explicit "version" key.
-// When dataV2 lands, add an Up() method here that returns the v2 value, and shift the Data
-// type + CurrentDataVersion in handler.go to point at v2.
+// dataV1 is the current on-disk shape. Holds non-sensitive user state only - tokens and VPN
+// keys live in the secrets backend (see Manager.Token, Manager.VpnKey) and never appear in this
+// JSON. SecretsBackend records the user's preferred storage mode so subsequent CLI invocations
+// stay consistent without needing the env var to be set every time.
 type dataV1 struct {
-	Version               *int                             `json:"version,omitempty"`
-	Token                 string                           `json:"token"`
-	RegionData            region.Item                      `json:"region_data"`
-	ScopeProjectId        uuid.ProjectIdNull               `json:"scope_project_id"`
-	ProjectVpnKeyRegistry map[uuid.ProjectId]entity.VpnKey `json:"project_vpn_key_registry"`
+	Version        *int               `json:"version,omitempty"`
+	Region         region.Item        `json:"region"`
+	ScopeProjectId uuid.ProjectIdNull `json:"scope_project_id,omitempty"`
+	SecretsBackend secrets.Mode       `json:"secrets_backend,omitempty"`
 }
 
 func init() {

@@ -27,19 +27,21 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-// fixture wires an httptest.Server, an isolated profile path, and a
+// fixture wires an httptest.Server, an isolated profile + secrets path, and a
 // preconfigured RegionItem pointing at the test server. Use Run to drive the
 // CLI in-process and inspect stdout/stderr/exit code.
 type fixture struct {
-	t        *testing.T
-	Server   *httptest.Server
-	Mux      *http.ServeMux
-	DataPath string
-	Region   region.Item
+	t           *testing.T
+	Server      *httptest.Server
+	Mux         *http.ServeMux
+	DataPath    string
+	SecretsPath string
+	Region      region.Item
 }
 
 func newFixture(t *testing.T) *fixture {
@@ -56,12 +58,17 @@ func newFixture(t *testing.T) *fixture {
 
 	dir := t.TempDir()
 	dataPath := filepath.Join(dir, "cli.data")
+	secretsPath := filepath.Join(dir, "cli.secrets")
 	logPath := filepath.Join(dir, "zcli.log")
 	yamlPath := filepath.Join(dir, "zcli.yml")
 	t.Setenv(constants.CliDataFilePathEnvVar, dataPath)
 	t.Setenv(constants.CliLogFilePathEnvVar, logPath)
 	t.Setenv(constants.CliZcliYamlFilePathEnvVar, yamlPath)
 	t.Setenv(constants.CliTokenEnvVar, "")
+	// Force the plaintext secrets backend with a per-test file so tests never touch the host
+	// keyring (which would either fail in CI or, worse, pollute the developer's real keyring).
+	t.Setenv(constants.SecretsBackendEnvVar, string(secrets.ModePlaintext))
+	t.Setenv(constants.CliSecretsFilePathEnvVar, secretsPath)
 	// Keep the background version check off the real network. Tests that
 	// exercise the version API re-point this at a registered handler.
 	t.Setenv(constants.VersionApiUrlEnvVar, server.URL+"/__version_check__")
@@ -71,10 +78,11 @@ func newFixture(t *testing.T) *fixture {
 	t.Setenv(constants.ReleasesURLEnvVar, server.URL+"/__releases__/%s/%s")
 
 	return &fixture{
-		t:        t,
-		Server:   server,
-		Mux:      mux,
-		DataPath: dataPath,
+		t:           t,
+		Server:      server,
+		Mux:         mux,
+		DataPath:    dataPath,
+		SecretsPath: secretsPath,
 		Region: region.Item{
 			Name:      "prg1",
 			IsDefault: true,
@@ -83,28 +91,44 @@ func newFixture(t *testing.T) *fixture {
 	}
 }
 
-// SeedLogin writes a profile file with the given token and the fixture's
-// region item, simulating a previously completed `zcli login`.
+// SeedLogin writes a profile file with the fixture's region and stores the token in the
+// plaintext secrets file at the matching key, simulating a previously completed `zcli login`.
 func (f *fixture) SeedLogin(token string) {
 	f.t.Helper()
-	data := profile.Data{Token: token, RegionData: f.Region}
-	b, err := json.Marshal(data)
-	require.NoError(f.t, err, "marshal seed data")
-	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
+	f.writeProfile(profile.Data{Region: f.Region})
+	f.writeSecrets(map[string]string{
+		secrets.Key(secrets.GlobalScope, "token"): token,
+	})
 }
 
 // SeedScopedLogin is SeedLogin plus a persisted project scope, simulating a
 // previously completed `zcli scope project ...`.
 func (f *fixture) SeedScopedLogin(token, projectID string) {
 	f.t.Helper()
-	data := profile.Data{
-		Token:          token,
-		RegionData:     f.Region,
+	f.writeProfile(profile.Data{
+		Region:         f.Region,
 		ScopeProjectId: uuid.NewProjectIdNullFromString(projectID),
-	}
-	b, err := json.Marshal(data)
-	require.NoError(f.t, err, "marshal seed data")
-	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
+	})
+	f.writeSecrets(map[string]string{
+		secrets.Key(secrets.GlobalScope, "token"): token,
+	})
+}
+
+func (f *fixture) writeProfile(d profile.Data) {
+	// Stamp the current version so Manager.load treats this as already-current and skips the
+	// legacy v0 decode path (which would interpret a missing "version" key as "this is the old
+	// PascalCase shape" and silently produce empty fields).
+	v := profile.CurrentDataVersion
+	d.Version = &v
+	b, err := json.Marshal(d)
+	require.NoError(f.t, err, "marshal seed profile")
+	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed profile")
+}
+
+func (f *fixture) writeSecrets(m map[string]string) {
+	b, err := json.Marshal(m)
+	require.NoError(f.t, err, "marshal seed secrets")
+	require.NoError(f.t, os.WriteFile(f.SecretsPath, b, 0o600), "write seed secrets")
 }
 
 // stubReleaseTag tells the fixture's release-asset endpoint to return 200
@@ -172,8 +196,8 @@ func (f *fixture) RunCtx(ctx context.Context, args ...string) result {
 	return result{Stdout: stdout.String(), Stderr: stderr.String(), ExitCode: code}
 }
 
-// LoadStorage reads back the persisted profile data — useful for asserting
-// that a command updated state on disk.
+// LoadStorage reads back the persisted profile JSON — useful for asserting that a command
+// updated non-sensitive state on disk. Sensitive values are NOT here; use LoadSecrets for those.
 func (f *fixture) LoadStorage() profile.Data {
 	f.t.Helper()
 	b, err := os.ReadFile(f.DataPath)
@@ -181,4 +205,18 @@ func (f *fixture) LoadStorage() profile.Data {
 	var d profile.Data
 	require.NoError(f.t, json.Unmarshal(b, &d), "unmarshal storage")
 	return d
+}
+
+// LoadSecrets reads back the persisted secrets file (plaintext mode, set by newFixture).
+// Returns the raw key→value map so tests can assert on specific entries.
+func (f *fixture) LoadSecrets() map[string]string {
+	f.t.Helper()
+	b, err := os.ReadFile(f.SecretsPath)
+	if os.IsNotExist(err) {
+		return map[string]string{}
+	}
+	require.NoError(f.t, err, "read secrets")
+	out := map[string]string{}
+	require.NoError(f.t, json.Unmarshal(b, &out), "unmarshal secrets")
+	return out
 }

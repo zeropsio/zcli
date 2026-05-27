@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -27,36 +26,37 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks.PrintWarningTextf("vpn down: %s", vpnDownErr)
 			}
 
-			if vpnKey, ok := cmdData.Profile.Data().ProjectVpnKeyRegistry[project.Id]; ok {
-				wgKey, err := wgtypes.ParseKey(vpnKey.Key)
-				if err != nil {
-					return err
-				}
-
-				deleteResponse, err := cmdData.RestApiClient.DeleteProjectVpn(
-					ctx,
-					path.ProjectId{Id: project.Id},
-					body.PostProjectVpn{PublicKey: types.String(wgKey.PublicKey().String())},
-				)
-				if err != nil {
-					return err
-				}
-				if err := deleteResponse.Err(); err != nil {
-					return err
-				}
-
-				cmdData.UxBlocks.PrintSuccessTextf("Removed registered public key from project via API: %s", wgKey.PublicKey().String())
-
-				_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
-					delete(data.ProjectVpnKeyRegistry, project.Id)
-					cmdData.UxBlocks.PrintSuccessText("Deleted locally stored wg keys.")
-					return data
-				})
-				if err != nil {
-					return err
-				}
+			vpnKey, ok, err := cmdData.Profile.VpnKey(project.Id)
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return nil
 			}
 
+			wgKey, err := wgtypes.ParseKey(vpnKey.Key)
+			if err != nil {
+				return err
+			}
+
+			deleteResponse, err := cmdData.RestApiClient.DeleteProjectVpn(
+				ctx,
+				path.ProjectId{Id: project.Id},
+				body.PostProjectVpn{PublicKey: types.String(wgKey.PublicKey().String())},
+			)
+			if err != nil {
+				return err
+			}
+			if err := deleteResponse.Err(); err != nil {
+				return err
+			}
+
+			cmdData.UxBlocks.PrintSuccessTextf("Removed registered public key from project via API: %s", wgKey.PublicKey().String())
+
+			if err := cmdData.Profile.DeleteVpnKey(project.Id); err != nil {
+				return err
+			}
+			cmdData.UxBlocks.PrintSuccessText("Deleted locally stored wg keys.")
 			return nil
 		})
 }

@@ -10,13 +10,11 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func vpnConfigCmd() *cmdBuilder.Cmd {
@@ -101,17 +99,10 @@ func vpnConfigCmd() *cmdBuilder.Cmd {
 				uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 			}
 
-			if _, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
-				if data.ProjectVpnKeyRegistry == nil {
-					data.ProjectVpnKeyRegistry = make(map[uuid.ProjectId]entity.VpnKey)
-				}
-				data.ProjectVpnKeyRegistry[project.Id] = entity.VpnKey{
-					ProjectId: project.Id,
-					Key:       privateKey.String(),
-					CreatedAt: time.Now(),
-				}
-
-				return data
+			if err := cmdData.Profile.SetVpnKey(project.Id, entity.VpnKey{
+				ProjectId: project.Id,
+				Key:       privateKey.String(),
+				CreatedAt: time.Now(),
 			}); err != nil {
 				return err
 			}

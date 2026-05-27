@@ -15,7 +15,6 @@ import (
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
-	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -23,7 +22,6 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 const vpnCheckAddress = "logger.core.zerops"
@@ -127,19 +125,11 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 
-			_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
-				if data.ProjectVpnKeyRegistry == nil {
-					data.ProjectVpnKeyRegistry = make(map[uuid.ProjectId]entity.VpnKey)
-				}
-				data.ProjectVpnKeyRegistry[project.Id] = entity.VpnKey{
-					ProjectId: project.Id,
-					Key:       privateKey.String(),
-					CreatedAt: time.Now(),
-				}
-
-				return data
-			})
-			if err != nil {
+			if err := cmdData.Profile.SetVpnKey(project.Id, entity.VpnKey{
+				ProjectId: project.Id,
+				Key:       privateKey.String(),
+				CreatedAt: time.Now(),
+			}); err != nil {
 				return err
 			}
 
@@ -192,8 +182,12 @@ func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Key, error) {
 	projectId := project.Id
 
-	if vpnKey, exists := cmdData.VpnKeys[projectId]; exists {
-		wgKey, err := wgtypes.ParseKey(vpnKey.Key)
+	cached, exists, err := cmdData.Profile.VpnKey(projectId)
+	if err != nil {
+		return wgtypes.Key{}, err
+	}
+	if exists {
+		wgKey, err := wgtypes.ParseKey(cached.Key)
 		if err == nil {
 			return wgKey, nil
 		}
@@ -201,12 +195,12 @@ func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.Logged
 		cmdData.UxBlocks.PrintWarning(styles.WarningLine(i18n.T(i18n.VpnPrivateKeyCorrupted)))
 	}
 
-	vpnKey, err := wgtypes.GeneratePrivateKey()
+	generated, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
 		return wgtypes.Key{}, err
 	}
 
 	cmdData.UxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.VpnPrivateKeyCreated)))
 
-	return vpnKey, nil
+	return generated, nil
 }

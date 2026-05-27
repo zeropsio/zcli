@@ -22,11 +22,18 @@ func (s repoScope) prefix() string { return "repo/" + s.id }
 // stable Id field. The id is expected to be a ULID so it's filesystem and keyring friendly.
 func RepoScope(id string) Scope { return repoScope{id: id} }
 
+// Prefix returns the key prefix used by a Scope, suitable for Backend.List. Equivalent to
+// Key(scope) with no parts, but the intent (listing under a scope) reads more clearly.
+func Prefix(scope Scope) string {
+	return scope.prefix() + "/"
+}
+
 // Key composes a secret key from a Scope and one or more name parts. Parts are joined with "/".
 // Examples:
-//   Key(GlobalScope, "token")              -> "global/token"
-//   Key(GlobalScope, "vpn", "<projectId>") -> "global/vpn/<projectId>"
-//   Key(RepoScope(id), "token")            -> "repo/<id>/token"
+//
+//	Key(GlobalScope, "token")              -> "global/token"
+//	Key(GlobalScope, "vpn", "<projectId>") -> "global/vpn/<projectId>"
+//	Key(RepoScope(id), "token")            -> "repo/<id>/token"
 //
 // Centralising key construction here means renaming the layout is one place to change, not a
 // scan across every caller for string literals.

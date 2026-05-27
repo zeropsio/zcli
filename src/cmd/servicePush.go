@@ -221,7 +221,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				return nil
 			}
 
-			guiHost := cmdData.Profile.Data().RegionData.GuiAddress.OrDefault("app.zerops.io")
+			guiHost := cmdData.Profile.Data().Region.GuiAddress.OrDefault("app.zerops.io")
 
 			var buildPhase bool
 			var preparePhase bool

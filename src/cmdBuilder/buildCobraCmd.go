@@ -15,7 +15,7 @@ func buildCobraCmd(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
 	uxBlocks *uxBlock.Blocks,
-	profile *profile.Handler,
+	profile *profile.Manager,
 	stdout io.Writer,
 	stderr io.Writer,
 ) (*cobra.Command, error) {

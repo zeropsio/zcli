@@ -58,9 +58,9 @@ const (
 // Service is required for ModeKeyring or ModeAuto success.
 type Config struct {
 	Mode     Mode
-	Service  string      // keyring service name, e.g. "zerops-cli"
-	FilePath string      // plaintext fallback location
-	FileMode os.FileMode // permissions for FilePath, typically 0o600
+	Service  string       // keyring service name, e.g. "zerops-cli"
+	FilePath string       // plaintext fallback location
+	FileMode os.FileMode  // permissions for FilePath, typically 0o600
 	Log      func(string) // one-time warnings (fallback notice); nil = silent
 }
 

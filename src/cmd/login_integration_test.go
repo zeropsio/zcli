@@ -5,12 +5,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/zeropsio/zcli/src/secrets"
 )
 
-// TestLoginCommand_PersistsTokenAndRegion checks that `zcli login <token>
-// --region-url ...` resolves the region from the mocked region catalog,
-// fetches GetUserInfo, persists token + region to profile, and prints a
-// success message naming the user.
+// TestLoginCommand_PersistsTokenAndRegion checks that `zcli login <token> --region-url ...`
+// resolves the region from the mocked region catalog, fetches GetUserInfo, persists region to
+// the profile JSON, persists the token to the secrets backend (plaintext file in tests), and
+// prints a success message naming the user.
 func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
 	f := newFixture(t)
 
@@ -37,7 +39,9 @@ func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
 	assert.Contains(t, res.Stderr, "Test User", "success message should name the user")
 
 	stored := f.LoadStorage()
-	assert.Equal(t, "secret-token", stored.Token, "token not persisted")
-	assert.Equal(t, "prg1", stored.RegionData.Name, "region name not persisted")
-	assert.Equal(t, f.Server.URL, stored.RegionData.Address, "region address not persisted")
+	assert.Equal(t, "prg1", stored.Region.Name, "region name not persisted")
+	assert.Equal(t, f.Server.URL, stored.Region.Address, "region address not persisted")
+
+	secretsOnDisk := f.LoadSecrets()
+	assert.Equal(t, "secret-token", secretsOnDisk[secrets.Key(secrets.GlobalScope, "token")], "token not persisted to secrets backend")
 }
