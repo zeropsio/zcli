@@ -26,7 +26,7 @@ func (c *cacheEntry) Fresh() bool {
 // writable location is available. A missing path is non-fatal — callers
 // should fall back to the network.
 func cacheFilePath() string {
-	dataPath, _, err := constants.CliDataFilePath()
+	dataPath, _, err := constants.CliProfileFilePath()
 	if err != nil {
 		return ""
 	}

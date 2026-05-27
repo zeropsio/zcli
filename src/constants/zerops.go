@@ -18,8 +18,9 @@ const (
 	ZeropsLogFile             = "zerops.log"
 	WgConfigFile              = "zerops.conf"
 	WgInterfaceName           = "zerops"
-	CliDataFileName           = "cli.data"
-	CliSecretsFileName        = "cli.secrets"
+	CliDataFileNameOld        = "cli.data"
+	CliProfileFileName        = "profile.json"
+	CliSecretsFileName        = "secrets.json"
 	VersionCacheFileName      = "version.cache"
 	CliZcliYamlBaseFileName   = ".zcli"
 	CliZcliYamlFileName       = CliZcliYamlBaseFileName + ".yml"
@@ -40,8 +41,25 @@ const (
 
 type pathReceiver func(fileMode os.FileMode) (path string, err error)
 
-func CliDataFilePath() (string, os.FileMode, error) {
-	return checkReceivers(getDataFilePathsReceivers(), 0600, i18n.UnableToWriteCliData)
+// CliProfileFilePath returns the writable location for the new profile.json file. This is
+// the canonical destination for all writes - the legacy cli.data file is only ever read from,
+// never written to, after the migration.
+func CliProfileFilePath() (string, os.FileMode, error) {
+	return checkReceivers(getProfileFilePathReceivers(), 0600, i18n.UnableToWriteCliData)
+}
+
+// CliLegacyDataFilePath probes known historical locations for cli.data and returns the first
+// one that currently exists on disk. Returns ("", false, nil) when no legacy file is found -
+// not an error, just the steady-state on fresh installs and on machines that have already
+// completed the migration.
+func CliLegacyDataFilePath() (string, bool, error) {
+	for _, r := range getLegacyDataFilePathReceivers() {
+		path, err := r(0o600)
+		if err == nil {
+			return path, true, nil
+		}
+	}
+	return "", false, nil
 }
 
 func LogFilePath() (string, os.FileMode, error) {
@@ -93,6 +111,33 @@ func receiverFromOsFunc(osFunc func() (string, error), elem ...string) pathRecei
 		}
 
 		return checkPath(filepath.Join(append([]string{dir}, elem...)...), fileMode)
+	}
+}
+
+// existingReceiverFromOsFunc joins the OS dir func with the path elements and returns the
+// path only if it exists on disk. Companion to receiverFromOsFunc for legacy lookups.
+func existingReceiverFromOsFunc(osFunc func() (string, error), elem ...string) pathReceiver {
+	return func(_ os.FileMode) (string, error) {
+		dir, err := osFunc()
+		if err != nil {
+			return "", err
+		}
+		path := filepath.Join(append([]string{dir}, elem...)...)
+		if _, err := os.Stat(path); err != nil {
+			return "", err
+		}
+		return path, nil
+	}
+}
+
+// existingReceiverFromOsTemp is the existence-only variant of receiverFromOsTemp.
+func existingReceiverFromOsTemp(elem ...string) pathReceiver {
+	return func(_ os.FileMode) (string, error) {
+		path := filepath.Join(append([]string{os.TempDir()}, elem...)...)
+		if _, err := os.Stat(path); err != nil {
+			return "", err
+		}
+		return path, nil
 	}
 }
 

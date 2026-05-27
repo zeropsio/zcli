@@ -172,6 +172,60 @@ func TestMigration_V1_RescuesScopeIntoRepoProfile(t *testing.T) {
 	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", repoOnDisk["scope_project_id"])
 }
 
+// TestLegacyDataFile_MigratesToProfileJson covers the cli.data → profile.json file rename:
+// a legacy file at LegacyGlobalPath is loaded, its contents migrated into a fresh GlobalPath,
+// and the legacy file is left in place untouched as a natural backup.
+func TestLegacyDataFile_MigratesToProfileJson(t *testing.T) {
+	dir := t.TempDir()
+	legacyPath := filepath.Join(dir, "cli.data")
+	newPath := filepath.Join(dir, "profile.json")
+
+	v1 := []byte(`{"version":1,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"}}`)
+	require.NoError(t, os.WriteFile(legacyPath, v1, 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath:       newPath,
+		GlobalMode:       0o600,
+		LegacyGlobalPath: legacyPath,
+		Cwd:              dir,
+		Secrets:          secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "prg1", m.Data().Region.Name, "legacy region should be carried over")
+
+	// New file written, legacy left in place verbatim.
+	newBytes, err := os.ReadFile(newPath)
+	require.NoError(t, err)
+	require.Greater(t, len(newBytes), 0, "new profile.json should hold migrated state")
+
+	legacyAfter, err := os.ReadFile(legacyPath)
+	require.NoError(t, err)
+	require.Equal(t, v1, legacyAfter, "legacy cli.data must be preserved unchanged as a recovery backup")
+}
+
+// TestLegacyDataFile_IgnoredWhenNewFileExists asserts the new GlobalPath wins when both files
+// exist: the legacy file is irrelevant once the migration ran, so subsequent runs don't
+// re-import it.
+func TestLegacyDataFile_IgnoredWhenNewFileExists(t *testing.T) {
+	dir := t.TempDir()
+	legacyPath := filepath.Join(dir, "cli.data")
+	newPath := filepath.Join(dir, "profile.json")
+
+	// Legacy holds region "legacy"; new holds region "new". After load, new should win.
+	require.NoError(t, os.WriteFile(legacyPath, []byte(`{"version":1,"region":{"name":"legacy","isDefault":true,"address":""}}`), 0o600))
+	require.NoError(t, os.WriteFile(newPath, []byte(`{"version":2,"region":{"name":"new","isDefault":true,"address":""}}`), 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath:       newPath,
+		GlobalMode:       0o600,
+		LegacyGlobalPath: legacyPath,
+		Cwd:              dir,
+		Secrets:          secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "new", m.Data().Region.Name)
+}
+
 // TestMigration_WritesBackupBeforeRewriting asserts that running a migration leaves a
 // .v<source>.bak sibling holding the original on-disk bytes, so a botched migration is
 // recoverable by hand.

@@ -35,7 +35,7 @@ func envCmd() *cmdBuilder.Cmd {
 }
 
 func guestInfoPart(tableBody *table.Body) {
-	cliDataFilePath, _, err := constants.CliDataFilePath()
+	cliDataFilePath, _, err := constants.CliProfileFilePath()
 	if err != nil {
 		cliDataFilePath = err.Error()
 	}

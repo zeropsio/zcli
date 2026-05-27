@@ -10,13 +10,22 @@ import (
 var _ = ZeropsDir
 var _ = receiverFromPath
 
-func getDataFilePathsReceivers() []pathReceiver {
+func getProfileFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
 		receiverFromEnv(CliDataFilePathEnvVar),
-		receiverFromOsFunc(os.UserConfigDir, "Zerops", CliDataFileName),
-		receiverFromOsFunc(os.UserHomeDir, "Zerops", CliDataFileName),
-		receiverFromOsFunc(os.UserHomeDir, "zerops."+CliDataFileName),
-		receiverFromOsTemp("zerops." + CliDataFileName),
+		receiverFromOsFunc(os.UserConfigDir, "Zerops", CliProfileFileName),
+		receiverFromOsFunc(os.UserHomeDir, "Zerops", CliProfileFileName),
+		receiverFromOsFunc(os.UserHomeDir, "zerops."+CliProfileFileName),
+		receiverFromOsTemp("zerops." + CliProfileFileName),
+	}
+}
+
+func getLegacyDataFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		existingReceiverFromOsFunc(os.UserConfigDir, "Zerops", CliDataFileNameOld),
+		existingReceiverFromOsFunc(os.UserHomeDir, "Zerops", CliDataFileNameOld),
+		existingReceiverFromOsFunc(os.UserHomeDir, "zerops."+CliDataFileNameOld),
+		existingReceiverFromOsTemp("zerops." + CliDataFileNameOld),
 	}
 }
 

@@ -85,10 +85,17 @@ func register(version int, decode func([]byte) (any, error)) {
 
 // Config configures a Manager.
 type Config struct {
-	// GlobalPath is the JSON file holding non-sensitive global state. Required.
+	// GlobalPath is the JSON file holding non-sensitive global state, written to by every
+	// save. Required. Today's canonical name is profile.json; older zcli installs used
+	// cli.data and that file is migrated in via LegacyGlobalPath.
 	GlobalPath string
 	// GlobalMode is the file mode for GlobalPath, typically 0o600.
 	GlobalMode os.FileMode
+	// LegacyGlobalPath is the location of an older zcli's cli.data file, used only when
+	// GlobalPath does not yet exist. Reading falls back here once; writing always goes to
+	// GlobalPath. Empty means no legacy file to consider. The legacy file is left in place
+	// after migration so users can recover the original by hand if needed.
+	LegacyGlobalPath string
 	// Cwd is the starting directory for repo profile discovery. Defaults to os.Getwd().
 	Cwd string
 	// Secrets is the secrets backend. Required.
@@ -135,10 +142,14 @@ func NewManager(cfg Config) (*Manager, error) {
 }
 
 func (m *Manager) loadGlobal() error {
-	info, err := os.Stat(m.cfg.GlobalPath)
-	if os.IsNotExist(err) {
+	readPath, fromLegacy, err := m.pickGlobalReadPath()
+	if err != nil {
+		return err
+	}
+	if readPath == "" {
 		return nil
 	}
+	info, err := os.Stat(readPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -146,7 +157,7 @@ func (m *Manager) loadGlobal() error {
 		return nil
 	}
 
-	raw, err := os.ReadFile(m.cfg.GlobalPath)
+	raw, err := os.ReadFile(readPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -195,15 +206,47 @@ func (m *Manager) loadGlobal() error {
 		current = next
 	}
 
-	if sourceVersion < CurrentDataVersion {
-		if err := backupProfile(m.cfg.GlobalPath, raw, sourceVersion, m.cfg.GlobalMode); err != nil {
-			return errors.Wrap(err, "backup global profile before migration")
+	// Two reasons to rewrite: a data-format migration occurred (need to persist the new
+	// shape), or the file came from the legacy cli.data path (need to populate the new
+	// profile.json so subsequent runs find it directly). When the source was the legacy
+	// path the original cli.data is left in place to act as the user's backup; when the
+	// source was GlobalPath itself we write a .vN.bak alongside.
+	if sourceVersion < CurrentDataVersion || fromLegacy {
+		if !fromLegacy {
+			if err := backupProfile(m.cfg.GlobalPath, raw, sourceVersion, m.cfg.GlobalMode); err != nil {
+				return errors.Wrap(err, "backup global profile before migration")
+			}
 		}
 		if err := m.saveGlobal(m.global); err != nil {
 			return errors.Wrap(err, "rewrite global profile in current schema after migration")
 		}
+		if fromLegacy && m.cfg.Log != nil {
+			m.cfg.Log("migrated " + readPath + " to " + m.cfg.GlobalPath + "; the legacy file is preserved unchanged in case you need to roll back")
+		}
 	}
 	return nil
+}
+
+// pickGlobalReadPath chooses which file to load the global profile from. Prefers GlobalPath
+// when it exists; falls back to LegacyGlobalPath only when GlobalPath is absent. Returns
+// ("", false, nil) when there is no file on either path - that's a clean install, not an
+// error. The bool reports whether the picked path was the legacy one, which the caller uses
+// to decide between in-place backup and legacy-preservation.
+func (m *Manager) pickGlobalReadPath() (string, bool, error) {
+	if _, err := os.Stat(m.cfg.GlobalPath); err == nil {
+		return m.cfg.GlobalPath, false, nil
+	} else if !os.IsNotExist(err) {
+		return "", false, errors.WithStack(err)
+	}
+	if m.cfg.LegacyGlobalPath == "" {
+		return "", false, nil
+	}
+	if _, err := os.Stat(m.cfg.LegacyGlobalPath); err == nil {
+		return m.cfg.LegacyGlobalPath, true, nil
+	} else if !os.IsNotExist(err) {
+		return "", false, errors.WithStack(err)
+	}
+	return "", false, nil
 }
 
 // backupProfile writes the original on-disk bytes to a sibling file named

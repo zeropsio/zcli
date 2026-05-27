@@ -188,7 +188,12 @@ func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.
 }
 
 func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
-	filePath, fileMode, err := constants.CliDataFilePath()
+	filePath, fileMode, err := constants.CliProfileFilePath()
+	if err != nil {
+		return nil, err
+	}
+
+	legacyPath, _, err := constants.CliLegacyDataFilePath()
 	if err != nil {
 		return nil, err
 	}
@@ -215,11 +220,12 @@ func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
 	}
 
 	return profile.NewManager(profile.Config{
-		GlobalPath: filePath,
-		GlobalMode: fileMode,
-		Cwd:        os.Getenv(constants.CliCwdEnvVar), // empty = Manager falls back to os.Getwd()
-		Secrets:    secretsBackend,
-		Log:        func(msg string) { uxBlocks.PrintInfoText(msg) },
+		GlobalPath:       filePath,
+		GlobalMode:       fileMode,
+		LegacyGlobalPath: legacyPath,
+		Cwd:              os.Getenv(constants.CliCwdEnvVar), // empty = Manager falls back to os.Getwd()
+		Secrets:          secretsBackend,
+		Log:              func(msg string) { uxBlocks.PrintInfoText(msg) },
 	})
 }
 

@@ -7,13 +7,22 @@ import (
 	"path/filepath"
 )
 
-func getDataFilePathsReceivers() []pathReceiver {
+func getProfileFilePathReceivers() []pathReceiver {
 	return []pathReceiver{
 		receiverFromEnv(CliDataFilePathEnvVar),
-		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, CliDataFileName),
-		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, CliDataFileName),
-		receiverFromOsFunc(os.UserHomeDir, "zerops."+CliDataFileName),
-		receiverFromOsTemp("zerops." + CliDataFileName),
+		receiverFromOsFunc(os.UserConfigDir, ZeropsDir, CliProfileFileName),
+		receiverFromOsFunc(os.UserHomeDir, ZeropsDir, CliProfileFileName),
+		receiverFromOsFunc(os.UserHomeDir, "zerops."+CliProfileFileName),
+		receiverFromOsTemp("zerops." + CliProfileFileName),
+	}
+}
+
+func getLegacyDataFilePathReceivers() []pathReceiver {
+	return []pathReceiver{
+		existingReceiverFromOsFunc(os.UserConfigDir, ZeropsDir, CliDataFileNameOld),
+		existingReceiverFromOsFunc(os.UserHomeDir, ZeropsDir, CliDataFileNameOld),
+		existingReceiverFromOsFunc(os.UserHomeDir, "zerops."+CliDataFileNameOld),
+		existingReceiverFromOsTemp("zerops." + CliDataFileNameOld),
 	}
 }
 
