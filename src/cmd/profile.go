@@ -22,6 +22,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func profileCmd() *cmdBuilder.Cmd {
@@ -158,9 +159,123 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region: inherited from global"))
 			}
 
-			cmdData.UxBlocks.PrintInfoText("Remaining details (scope, token) will be wired up in follow-up steps.")
+			scope, err := promptProfileScope(ctx)
+			if err != nil {
+				return err
+			}
+			if scope.project.Filled() {
+				id, _ := scope.project.Get()
+				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope project", id.Native()))
+			} else {
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope project: not set"))
+			}
+			if scope.service.Filled() {
+				id, _ := scope.service.Get()
+				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope service", id.Native()))
+			} else {
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope service: not set"))
+			}
+
+			cmdData.UxBlocks.PrintInfoText("Remaining details (token) will be wired up in follow-up steps.")
 			return nil
 		})
+}
+
+// profileScopeChoices is the result of the scope prompt step. Both fields default to their
+// zero (un-filled) Null types when the user opts out, so the caller can persist them as-is
+// onto a RepoProfile without further checking.
+type profileScopeChoices struct {
+	project uuid.ProjectIdNull
+	service uuid.ServiceStackIdNull
+}
+
+// promptProfileScope is the fourth step of the builder: pre-fill the per-profile scope. Two
+// independent prompts, one for project and one for service, each gated by a Skip / Enter
+// button. We accept raw 22-char IDs at this stage because `profile create` is a GuestRunFunc
+// and we don't have a token to fetch project / service listings - users who want interactive
+// selection can run `zcli scope project` / `zcli scope service` afterwards.
+func promptProfileScope(ctx context.Context) (profileScopeChoices, error) {
+	var out profileScopeChoices
+
+	projectIdx, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Pre-fill scope project?",
+			[]string{"Skip", "Enter project ID"},
+			prompt.WithChoiceDescriptions([]string{
+				"Leave scope project unset on this profile. You can fill it in later with `zcli scope project` (interactive selector after login).",
+				"Pre-fill scope project with a known 22-char project id. Useful when the id is at hand and you want the new profile to be ready-to-go without launching the selector.",
+			}),
+		),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return out, err
+	}
+	if projectIdx == 1 {
+		id, err := promptScopeId(ctx, "project", 22)
+		if err != nil {
+			return out, err
+		}
+		out.project = uuid.NewProjectIdNullFromString(id)
+	}
+
+	serviceIdx, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Pre-fill scope service?",
+			[]string{"Skip", "Enter service ID"},
+			prompt.WithChoiceDescriptions([]string{
+				"Leave scope service unset on this profile. You can fill it in later with `zcli scope service` (interactive selector after login).",
+				"Pre-fill scope service with a known 22-char service id. Same intent as the project equivalent above.",
+			}),
+		),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return out, err
+	}
+	if serviceIdx == 1 {
+		id, err := promptScopeId(ctx, "service", 22)
+		if err != nil {
+			return out, err
+		}
+		out.service = uuid.NewServiceStackIdNullFromString(id)
+	}
+
+	return out, nil
+}
+
+// promptScopeId runs an input model for a raw id and re-prompts on empty / wrong-length
+// input. The expected length matches zerops' 22-char short-UUID convention; callers pass it
+// in so a future id-length change is one edit, not a scan for magic numbers.
+func promptScopeId(ctx context.Context, kind string, expectedLen int) (string, error) {
+	label := styles.NewStringBuilder()
+	label.WriteString("Type ")
+	label.WriteStyledString(styles.SelectStyle().Bold(true), kind)
+	label.WriteString(" id (22 chars)")
+
+	for {
+		raw, err := uxBlock.Run(
+			input.NewRoot(
+				ctx,
+				input.WithLabel(label.String()),
+				input.WithHelpPlaceholder(),
+				input.WithPlaceholderStyle(styles.HelpStyle()),
+				input.WithoutPrompt(),
+			),
+			input.GetValueFunc,
+		)
+		if err != nil {
+			return "", err
+		}
+		raw = strings.TrimSpace(raw)
+		if len(raw) != expectedLen {
+			// Stay inside the model. Empty input or a wrong-length paste both re-prompt.
+			continue
+		}
+		return raw, nil
+	}
 }
 
 // promptProfileRegion is the third step of the builder. The user picks whether the new entry
