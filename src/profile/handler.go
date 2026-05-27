@@ -410,6 +410,45 @@ func (m *Manager) RemoveRepoProfile(name string) error {
 	return m.saveRepoFile()
 }
 
+// AddRepoProfileCopy is AddRepoProfile plus an initial copy of the non-sensitive override
+// fields from another existing entry. The new entry gets a fresh Id (so per-profile secrets
+// are isolated from the source) but inherits the source's Region override and persisted scope
+// (project + service). Tokens / VPN keys are not copied - those live in the secrets backend
+// keyed by the entry's Id and stay isolated. Errors when sourceName doesn't exist, on the
+// same conditions as AddRepoProfile (empty name, collision, no repo).
+func (m *Manager) AddRepoProfileCopy(name, sourceName string) (RepoProfile, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err := m.requireRepo(); err != nil {
+		return RepoProfile{}, err
+	}
+	if name == "" {
+		return RepoProfile{}, errors.New("profile name must not be empty")
+	}
+	for _, p := range m.repoFile.Profiles {
+		if p.Name == name {
+			return RepoProfile{}, errors.Errorf("profile %q already exists", name)
+		}
+	}
+	srcIdx, err := lookupProfileIndex(m.repoFile, sourceName)
+	if err != nil {
+		return RepoProfile{}, err
+	}
+	src := m.repoFile.Profiles[srcIdx]
+	rp := RepoProfile{
+		Name:           name,
+		Id:             uuid.NewString(),
+		ScopeProjectId: src.ScopeProjectId,
+		ScopeServiceId: src.ScopeServiceId,
+	}
+	if src.Region != nil {
+		clone := *src.Region
+		rp.Region = &clone
+	}
+	m.repoFile.Profiles = append(m.repoFile.Profiles, rp)
+	return rp, m.saveRepoFile()
+}
+
 // RenameRepoProfile changes the user-visible Name of an existing entry. The entry's Id (and
 // therefore its per-profile secrets scope) is preserved, so tokens / VPN keys stored under the
 // repo scope are not touched. If the renamed entry was the active profile, ActiveProfile

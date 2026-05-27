@@ -9,6 +9,11 @@ import (
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/profile"
+	"github.com/zeropsio/zcli/src/terminal"
+	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
+	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
+	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 )
 
@@ -21,6 +26,7 @@ func profileCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(profileWhereCmd()).
 		AddChildrenCmd(profileListCmd()).
 		AddChildrenCmd(profileAddCmd()).
+		AddChildrenCmd(profileCreateCmd()).
 		AddChildrenCmd(profileRemoveCmd()).
 		AddChildrenCmd(profileRenameCmd()).
 		AddChildrenCmd(profileUseCmd())
@@ -96,6 +102,119 @@ func profileAddCmd() *cmdBuilder.Cmd {
 			cmdData.UxBlocks.PrintInfo(styles.InfoLine("active profile unchanged; run `zcli profile use " + created.Name + "` to switch (or re-run with --use)"))
 			return nil
 		})
+}
+
+// profileSource is the first-step choice in the interactive `profile create` builder. Picking
+// a source decides whether the new entry copies its non-sensitive overrides from somewhere or
+// starts clean. Tokens / VPN keys are never copied; secrets stay isolated per-profile by
+// design.
+type profileSource int
+
+const (
+	profileSourceScratch profileSource = iota
+	profileSourceGlobal
+	profileSourceExisting
+)
+
+func profileCreateCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("create").
+		Short("Interactively build a new named profile in the current repo.").
+		HelpFlag("Help for the 'profile create' command.").
+		GuestRunFunc(func(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			if !cmdData.Profile.HasRepo() {
+				return errors.New("`zcli profile create` only works inside a repo with a profile; run `zcli profile init` here first")
+			}
+			if !terminal.IsTerminal() {
+				return errors.New("`zcli profile create` is interactive; run it in a real terminal, or use `zcli profile add <name>` for the one-shot flow")
+			}
+
+			source, sourceName, err := promptProfileSource(ctx, cmdData)
+			if err != nil {
+				return err
+			}
+
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected source", profileSourceLabel(source, sourceName)))
+			cmdData.UxBlocks.PrintInfoText("Profile name and remaining details will be wired up in follow-up steps.")
+			return nil
+		})
+}
+
+// promptProfileSource walks the user through the source-selection step of the builder. Returns
+// the chosen source and, when "from existing" is selected, the source profile's name (empty
+// otherwise).
+func promptProfileSource(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) (profileSource, string, error) {
+	choices := []string{"From scratch", "From global", "From existing"}
+	descriptions := []string{
+		"Start clean. The new entry has no region override, no saved scope, and no stored token; all values fall through to the global profile at read time.",
+		"Same on-disk result as 'From scratch' today (no copy) - the new entry simply inherits global values when read. Use this when the global defaults are already what you want for this profile.",
+		"Copy non-sensitive overrides (region, scope project, scope service) from another repo profile in this file. Stored secrets (token, VPN keys) are never copied - each profile keeps its own.",
+	}
+	idx, err := uxBlock.Run(
+		prompt.NewRoot(ctx, "What should the new profile start from?", choices, prompt.WithChoiceDescriptions(descriptions)),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return 0, "", err
+	}
+
+	switch profileSource(idx) {
+	case profileSourceScratch:
+		return profileSourceScratch, "", nil
+	case profileSourceGlobal:
+		return profileSourceGlobal, "", nil
+	case profileSourceExisting:
+		name, err := promptExistingProfileName(ctx, cmdData)
+		if err != nil {
+			return 0, "", err
+		}
+		return profileSourceExisting, name, nil
+	}
+	return 0, "", errors.New("unexpected source selection")
+}
+
+// promptExistingProfileName shows a list of existing repo profiles and returns the picked one.
+// Errors when there are no other profiles to choose from (the current repo has only the entry
+// we'd be cloning from itself, which would be a no-op copy).
+func promptExistingProfileName(ctx context.Context, cmdData *cmdBuilder.GuestCmdData) (string, error) {
+	all := cmdData.Profile.RepoProfiles()
+	if len(all) == 0 {
+		return "", errors.New("no existing repo profiles to copy from")
+	}
+	rows := table.NewBody()
+	for _, p := range all {
+		rows.AddStringsRow(p.Name, p.Id)
+	}
+	header := table.NewRowFromStrings("Name", "Id")
+	choice, err := uxBlock.Run(
+		selector.NewRoot(
+			ctx,
+			rows,
+			selector.WithLabel("Pick a profile to copy from"),
+			selector.WithHeader(header),
+			selector.WithSetEnableFiltering(true),
+		),
+		selector.GetOneSelectedFunc,
+	)
+	if err != nil {
+		return "", err
+	}
+	if choice < 0 || choice >= len(all) {
+		return "", errors.New("invalid profile selection")
+	}
+	return all[choice].Name, nil
+}
+
+func profileSourceLabel(source profileSource, sourceName string) string {
+	switch source {
+	case profileSourceScratch:
+		return "scratch (empty, falls through to global)"
+	case profileSourceGlobal:
+		return "global (inherits at read time, no copy on disk)"
+	case profileSourceExisting:
+		return "existing profile \"" + sourceName + "\""
+	}
+	return "unknown"
 }
 
 func profileRemoveCmd() *cmdBuilder.Cmd {
