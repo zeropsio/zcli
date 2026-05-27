@@ -12,6 +12,8 @@ import (
 	"strings"
 	"syscall"
 
+	bubblesSpinner "github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/zeropsio/zcli/src/uxBlock/models"
@@ -27,6 +29,7 @@ import (
 	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zerops-go/apiError"
 )
@@ -102,7 +105,7 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 
 	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
-	profileManager, err := createProfile(uxBlocks)
+	profileManager, err := createProfile(ctx, uxBlocks, isTerminal)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
 	}
@@ -192,7 +195,7 @@ func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.
 	return outputLogger, debugFileLogger
 }
 
-func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
+func createProfile(ctx context.Context, uxBlocks *uxBlock.Blocks, isTerminal bool) (*profile.Manager, error) {
 	filePath, fileMode, err := constants.CliProfileFilePath()
 	if err != nil {
 		return nil, err
@@ -208,9 +211,25 @@ func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
 		secretsPath = filepath.Join(filepath.Dir(filePath), constants.CliSecretsFileName)
 	}
 
-	mode := secrets.Mode(os.Getenv(constants.SecretsBackendEnvVar))
+	envMode := secrets.Mode(os.Getenv(constants.SecretsBackendEnvVar))
+	storedMode := peekStoredSecretsMode(filePath)
+
+	mode := envMode
 	if mode == "" {
-		mode = peekStoredSecretsMode(filePath)
+		mode = storedMode
+	}
+
+	// Prompt on first run when nothing pins the backend and the user has a real choice. CI and
+	// other non-TTY environments stay on the silent ModeAuto fallback so pipelines without a
+	// keyring keep working without intervention.
+	var persistChoice bool
+	if envMode == "" && (storedMode == "" || storedMode == secrets.ModeAuto) && isTerminal && secrets.HasOSKeyring() {
+		chosen, err := promptSecretsBackend(ctx, uxBlocks)
+		if err != nil {
+			return nil, err
+		}
+		mode = chosen
+		persistChoice = true
 	}
 
 	secretsBackend, err := secrets.New(secrets.Config{
@@ -224,7 +243,7 @@ func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
 		return nil, err
 	}
 
-	return profile.NewManager(profile.Config{
+	manager, err := profile.NewManager(profile.Config{
 		GlobalPath:       filePath,
 		GlobalMode:       fileMode,
 		LegacyGlobalPath: legacyPath,
@@ -232,6 +251,112 @@ func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
 		Secrets:          secretsBackend,
 		Log:              func(msg string) { uxBlocks.PrintInfoText(msg) },
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	if persistChoice {
+		if _, err := manager.UpdateGlobal(func(d profile.Data) profile.Data {
+			d.SecretsBackend = mode
+			return d
+		}); err != nil {
+			return nil, errors.Wrap(err, "persist secrets backend preference")
+		}
+		if mode == secrets.ModeKeyring {
+			// Stop here so the user reads the setup result instead of cobra's help / the
+			// command's own output stacking on top. Re-running picks up the new backend
+			// without going through any of this again.
+			uxBlocks.PrintInfoText("Secrets storage configured: " + secretsBackend.Description() + ". Re-run your command to continue.")
+			return nil, errorsx.NewExitError(0)
+		}
+	}
+
+	return manager, nil
+}
+
+// promptSecretsBackend asks the user where sensitive values should live. Shown only on the
+// first interactive run; the choice is persisted so subsequent runs skip the prompt.
+func promptSecretsBackend(ctx context.Context, uxBlocks *uxBlock.Blocks) (secrets.Mode, error) {
+	uxBlocks.PrintInfoText("zcli stores your auth token and VPN keys between runs. Choose where to keep them.")
+	choices := []string{"OS keyring (recommended)", "Plaintext file"}
+	descriptions := []string{
+		"OS keyring: secrets are encrypted by your operating system (macOS Keychain, GNOME Keyring/KWallet, Windows Credential Manager) and unlocked with your login session. The OS may prompt for access the first time. Best on a normal desktop; needs a graphical session on Linux.",
+		"Plaintext file: secrets are written to a chmod 0600 JSON file under the zcli config dir. No encryption at rest, but works without a desktop session and survives reboots silently. Use this for CI agents, headless servers, or if you prefer the file is easy to copy/inspect.",
+	}
+	idx, err := uxBlock.Run(
+		prompt.NewRoot(ctx, "Where should zcli store secrets?", choices, prompt.WithChoiceDescriptions(descriptions)),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return "", err
+	}
+	if idx == 0 {
+		uxBlocks.PrintInfoText("OS keyring selected.")
+		uxBlocks.PrintInfoText("On the first secret zcli writes, your desktop's keyring service may ask you to create a new keyring and set a password for it. That password is owned by your operating system, not by zcli - zcli never sees it.")
+		uxBlocks.PrintInfoText("The password is generally unrecoverable: losing it means the keyring's contents can't be decrypted and you may have to delete and recreate the keyring (and log in to zcli again). Pick something you'll remember, or that your password manager will.")
+		if err := waitForEnter(ctx, "Press Enter to continue..."); err != nil {
+			return "", err
+		}
+		return secrets.ModeKeyring, nil
+	}
+	return secrets.ModePlaintext, nil
+}
+
+// waitForEnterModel is a tiny Bubble Tea model that spins until the user presses Enter.
+// Ctrl+C / Esc are reported as cancellation; tea.WithContext makes ctx cancellation (SIGINT
+// or SIGTERM via the root signal handler) terminate the program too.
+type waitForEnterModel struct {
+	message string
+	spinner bubblesSpinner.Model
+	quit    bool
+	err     error
+}
+
+func (m *waitForEnterModel) Init() tea.Cmd { return m.spinner.Tick }
+
+func (m *waitForEnterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.quit {
+		return m, tea.Quit
+	}
+	if keyMsg, ok := msg.(tea.KeyMsg); ok {
+		switch keyMsg.Type { //nolint:exhaustive // only Enter / cancellation keys are meaningful here; everything else feeds the spinner.
+		case tea.KeyEnter:
+			m.quit = true
+			return m, tea.Quit
+		case tea.KeyCtrlC, tea.KeyEsc:
+			m.err = models.ErrCtrlC
+			m.quit = true
+			return m, tea.Quit
+		}
+	}
+	var cmd tea.Cmd
+	m.spinner, cmd = m.spinner.Update(msg)
+	return m, cmd
+}
+
+func (m *waitForEnterModel) View() string {
+	if m.quit {
+		return ""
+	}
+	return m.spinner.View() + " " + m.message
+}
+
+func waitForEnter(ctx context.Context, message string) error {
+	model := &waitForEnterModel{
+		message: message,
+		spinner: bubblesSpinner.New(bubblesSpinner.WithSpinner(bubblesSpinner.MiniDot)),
+	}
+	final, err := tea.NewProgram(model, tea.WithContext(ctx), tea.WithoutSignalHandler()).Run()
+	if ctx.Err() != nil {
+		return models.ErrCtrlC
+	}
+	if err != nil {
+		return errors.Wrap(err, "wait for confirmation before keyring creation")
+	}
+	if fm, ok := final.(*waitForEnterModel); ok && fm.err != nil {
+		return fm.err
+	}
+	return nil
 }
 
 // peekStoredSecretsMode reads only the secrets_backend field from the profile JSON, without
