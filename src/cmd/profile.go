@@ -219,9 +219,43 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 			}
 
 			cmdData.UxBlocks.PrintInfo(styles.SuccessLine("Created profile \"" + created.Name + "\"  (id " + created.Id + ")"))
-			cmdData.UxBlocks.PrintInfoText("Run `zcli profile use " + created.Name + "` to switch the active profile, or re-run with the dedicated `zcli profile create` next time you want another.")
+
+			useNew, err := promptProfileUseNew(ctx, created.Name)
+			if err != nil {
+				return err
+			}
+			if useNew {
+				if err := cmdData.Profile.UseRepoProfile(created.Name); err != nil {
+					return err
+				}
+				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Active profile", created.Name))
+			} else {
+				cmdData.UxBlocks.PrintInfoText("Active profile unchanged. Run `zcli profile use " + created.Name + "` to switch later.")
+			}
 			return nil
 		})
+}
+
+// promptProfileUseNew is the last step of the builder: ask whether to flip the active pointer
+// to the newly created entry. Yes runs through Manager.UseRepoProfile; No leaves the previous
+// active profile in place and tells the user how to switch later.
+func promptProfileUseNew(ctx context.Context, name string) (bool, error) {
+	idx, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Switch active to \""+name+"\" now?",
+			[]string{"Yes, switch", "No, keep current"},
+			prompt.WithChoiceDescriptions([]string{
+				"Flip the repo file's active_profile pointer to the entry we just created so subsequent commands run under it immediately. Equivalent to running `zcli profile use " + name + "` right after this.",
+				"Leave the active pointer where it was. The new profile sits in the repo file but isn't selected; switch later with `zcli profile use " + name + "` when you're ready.",
+			}),
+		),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return false, err
+	}
+	return idx == 0, nil
 }
 
 // promptProfileToken is the fifth step of the builder: pre-fill the per-profile auth token.
