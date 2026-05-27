@@ -40,20 +40,38 @@ func WithQuestionPromptStyle(style lipgloss.Style) Option {
 	}
 }
 
+// WithChoiceDescriptions attaches a per-choice description. When set, the prompt renders the
+// description matching the currently focused button below the dialog so the user can read what
+// each option means before committing. Indices line up with the choices slice; missing or empty
+// entries render as no description.
+func WithChoiceDescriptions(descriptions []string) Option {
+	return func(m *Model) {
+		m.descriptions = descriptions
+	}
+}
+
 var defaultQuestionPromptStyle = lipgloss.NewStyle().
 	Width(50).
 	Align(lipgloss.Center)
 
+var defaultDescriptionStyle = lipgloss.NewStyle().
+	Width(60).
+	Align(lipgloss.Left).
+	MarginTop(1).
+	MarginLeft(2)
+
 type Model struct {
-	keyMap  KeyMap
-	message string
-	choices []string
-	cursor  int
+	keyMap       KeyMap
+	message      string
+	choices      []string
+	descriptions []string
+	cursor       int
 
 	activeDialogButtonStyle lipgloss.Style
 	dialogButtonStyle       lipgloss.Style
 	dialogBoxStyle          lipgloss.Style
 	questionPromptStyle     lipgloss.Style
+	descriptionStyle        lipgloss.Style
 }
 
 func New(message string, choices []string, opts ...Option) *Model {
@@ -67,6 +85,7 @@ func New(message string, choices []string, opts ...Option) *Model {
 			dialogButtonStyle:       styles.DialogButton(),
 			dialogBoxStyle:          styles.DialogBox(),
 			questionPromptStyle:     defaultQuestionPromptStyle,
+			descriptionStyle:        defaultDescriptionStyle,
 		},
 		opts...,
 	)
@@ -118,5 +137,8 @@ func (m *Model) View() string {
 		m.dialogBoxStyle.Render(ui),
 	)
 
+	if m.cursor < len(m.descriptions) && m.descriptions[m.cursor] != "" {
+		return lipgloss.JoinVertical(lipgloss.Left, dialog, m.descriptionStyle.Render(m.descriptions[m.cursor]))
+	}
 	return dialog
 }
