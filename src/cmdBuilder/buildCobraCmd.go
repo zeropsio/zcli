@@ -21,6 +21,7 @@ func buildCobraCmd(
 ) (*cobra.Command, error) {
 	cobraCmd := &cobra.Command{
 		Short:         cmd.short,
+		Aliases:       cmd.aliases,
 		SilenceUsage:  cmd.silenceUsage,
 		SilenceErrors: cmd.silenceError,
 	}

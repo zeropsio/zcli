@@ -19,6 +19,7 @@ type ScopeLevel interface {
 
 type Cmd struct {
 	use               string
+	aliases           []string
 	short             string
 	long              string
 	helpTemplate      string
@@ -62,6 +63,14 @@ func (c *Cmd) AddChildrenCmd(childrenCmd *Cmd) *Cmd {
 
 func (c *Cmd) Use(use string) *Cmd {
 	c.use = use
+	return c
+}
+
+// Aliases attaches alternative names cobra accepts for this command. Useful for short / long
+// pairs (e.g. "remove" with alias "delete") so users can reach the same action via the verb
+// that feels natural to them.
+func (c *Cmd) Aliases(aliases ...string) *Cmd {
+	c.aliases = append(c.aliases, aliases...)
 	return c
 }
 

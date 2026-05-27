@@ -374,6 +374,42 @@ func (m *Manager) AddRepoProfile(name string) (RepoProfile, error) {
 	return rp, m.saveRepoFile()
 }
 
+// RemoveRepoProfile drops the named entry from the repo file and deletes every secret in its
+// per-profile scope (token, VPN keys, ...). Refuses to remove the currently active profile so
+// a stray `remove` can't leave the repo in a no-active-profile state - callers must switch
+// elsewhere with `zcli profile use` first. Errors when no repo profile is initialised or the
+// name doesn't match an existing entry.
+func (m *Manager) RemoveRepoProfile(name string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err := m.requireRepo(); err != nil {
+		return err
+	}
+	if m.repoFile.ActiveProfile == name {
+		return errors.Errorf("profile %q is currently active; switch with `zcli profile use <other>` first", name)
+	}
+	idx, err := lookupProfileIndex(m.repoFile, name)
+	if err != nil {
+		return err
+	}
+	removed := m.repoFile.Profiles[idx]
+	m.repoFile.Profiles = append(m.repoFile.Profiles[:idx], m.repoFile.Profiles[idx+1:]...)
+	// Active index may shift if the removed entry sat before it.
+	if idx < m.active {
+		m.active--
+	}
+	keys, err := m.secrets.List(secrets.Prefix(secrets.RepoScope(removed.Id)))
+	if err != nil {
+		return errors.Wrapf(err, "list secrets for profile %q (id %s)", name, removed.Id)
+	}
+	for _, k := range keys {
+		if err := m.secrets.Delete(k); err != nil {
+			return errors.Wrapf(err, "delete secret %s for profile %q", k, name)
+		}
+	}
+	return m.saveRepoFile()
+}
+
 // UseRepoProfile changes the persisted active profile to name and writes the file. Errors
 // when name doesn't match an existing entry or no repo profile is initialised. This is the
 // state-changing variant; for a single-invocation override use SwitchActiveProfile.

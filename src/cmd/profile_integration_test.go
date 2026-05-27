@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zeropsio/zcli/src/profile"
+	"github.com/zeropsio/zcli/src/secrets"
 )
 
 // TestProfileInit_CreatesRepoProfileAndGitignore verifies that `zcli profile init` writes a
@@ -179,6 +180,84 @@ func TestProfileAdd_UseFlag_SwitchesActiveInOneStep(t *testing.T) {
 	var onDisk map[string]any
 	require.NoError(t, json.Unmarshal(raw, &onDisk))
 	require.Equal(t, "prod", onDisk["active_profile"], "--use must persist the new profile as active")
+}
+
+// TestProfileRemove_DropsInactiveProfileAndDeletesItsSecrets covers the happy path: a profile
+// that isn't active can be removed, its per-profile secrets get wiped alongside the entry, and
+// the remaining profiles are left intact with the same active pointer.
+func TestProfileRemove_DropsInactiveProfileAndDeletesItsSecrets(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "add must succeed")
+
+	// Seed a secret under the prod profile's repo scope so we can verify it's wiped.
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	profiles, ok := onDisk["profiles"].([]any)
+	require.True(t, ok)
+	prodEntry, ok := profiles[1].(map[string]any)
+	require.True(t, ok)
+	prodID, ok := prodEntry["id"].(string)
+	require.True(t, ok)
+
+	f.writeSecrets(map[string]string{
+		secrets.Key(secrets.RepoScope(prodID), "token"): "prod-token",
+	})
+
+	rmRes := f.Run("profile", "remove", "prod")
+	require.Equalf(t, 0, rmRes.ExitCode, "remove stderr=%q", rmRes.Stderr)
+
+	raw, err = os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Equal(t, "default", onDisk["active_profile"], "active stays on default")
+	remaining, ok := onDisk["profiles"].([]any)
+	require.True(t, ok)
+	require.Len(t, remaining, 1, "prod must be gone from the profiles list")
+
+	stored := f.LoadSecrets()
+	require.NotContains(t, stored, secrets.Key(secrets.RepoScope(prodID), "token"), "prod's per-profile secrets must be wiped")
+}
+
+// TestProfileRemove_RefusesActiveProfile asserts the safety guard: removing the currently
+// active profile is rejected (otherwise the repo would end up with no active entry).
+func TestProfileRemove_RefusesActiveProfile(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "add must succeed")
+
+	rmRes := f.Run("profile", "remove", "default")
+	require.NotEqualf(t, 0, rmRes.ExitCode, "removing the active profile must fail; stdout=%q stderr=%q", rmRes.Stdout, rmRes.Stderr)
+	assert.Contains(t, rmRes.Stderr, "currently active", "error message should explain why removal was refused")
+
+	// On-disk state must be untouched.
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	profiles, ok := onDisk["profiles"].([]any)
+	require.True(t, ok)
+	require.Len(t, profiles, 2, "both entries must still be on disk")
+}
+
+// TestProfileDelete_AliasMatchesRemove covers the `delete` alias - same behaviour as `remove`.
+func TestProfileDelete_AliasMatchesRemove(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "add must succeed")
+
+	delRes := f.Run("profile", "delete", "prod")
+	require.Equalf(t, 0, delRes.ExitCode, "delete stderr=%q", delRes.Stderr)
+
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	profiles, ok := onDisk["profiles"].([]any)
+	require.True(t, ok)
+	require.Len(t, profiles, 1, "prod must be gone after delete alias")
 }
 
 // TestProfileAdd_DuplicateNameRejected ensures the second add of the same name fails loudly

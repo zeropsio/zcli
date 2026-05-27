@@ -21,6 +21,7 @@ func profileCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(profileWhereCmd()).
 		AddChildrenCmd(profileListCmd()).
 		AddChildrenCmd(profileAddCmd()).
+		AddChildrenCmd(profileRemoveCmd()).
 		AddChildrenCmd(profileUseCmd())
 }
 
@@ -92,6 +93,23 @@ func profileAddCmd() *cmdBuilder.Cmd {
 				return nil
 			}
 			cmdData.UxBlocks.PrintInfo(styles.InfoLine("active profile unchanged; run `zcli profile use " + created.Name + "` to switch (or re-run with --use)"))
+			return nil
+		})
+}
+
+func profileRemoveCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("remove").
+		Aliases("delete").
+		Short("Remove an inactive named profile from the current repo (and wipe its per-profile secrets).").
+		HelpFlag("Help for the 'profile remove' command.").
+		Arg("name").
+		GuestRunFunc(func(_ context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			name := cmdData.Args["name"][0]
+			if err := cmdData.Profile.RemoveRepoProfile(name); err != nil {
+				return err
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Removed profile", name))
 			return nil
 		})
 }
