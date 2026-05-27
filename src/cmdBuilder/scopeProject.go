@@ -9,7 +9,6 @@ import (
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
-	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/input"
@@ -72,10 +71,8 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	// project scope is set
-	if cmdData.Profile.Data().ScopeProjectId.Filled() {
-		projectId, _ := cmdData.Profile.Data().ScopeProjectId.Get()
-
+	// project scope is set (repo profile only)
+	if projectId, ok := cmdData.Profile.ScopeProject(); ok {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
 			if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
@@ -226,13 +223,8 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 }
 
 func ProjectScopeReset(cmdData *LoggedUserCmdData) error {
-	_, err := cmdData.Profile.Update(func(data profile.Data) profile.Data {
-		data.ScopeProjectId = uuid.ProjectIdNull{}
-		return data
-	})
-	if err != nil {
-		return err
+	if !cmdData.Profile.HasRepo() {
+		return nil
 	}
-
-	return nil
+	return cmdData.Profile.SetScopeProject(uuid.ProjectIdNull{})
 }

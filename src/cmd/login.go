@@ -58,7 +58,7 @@ func loginCmd() *cmdBuilder.Cmd {
 			if err := cmdData.Profile.SetToken(cmdData.Args["token"][0]); err != nil {
 				return err
 			}
-			_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
+			_, err = cmdData.Profile.UpdateGlobal(func(data profile.Data) profile.Data {
 				data.Region = reg
 				return data
 			})

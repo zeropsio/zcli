@@ -28,13 +28,14 @@ func TestLoadV0File_DrainsTokenAndVpnKeys(t *testing.T) {
 
 	store := secrets.NewMemory()
 	m, err := NewManager(Config{
-		ProfilePath: path,
-		ProfileMode: 0o600,
-		Secrets:     store,
+		GlobalPath: path,
+		GlobalMode: 0o600,
+		Cwd:        dir,
+		Secrets:    store,
 	})
 	require.NoError(t, err)
 
-	// Non-sensitive state: Region survived, version stamped.
+	// Non-sensitive state: Region survived, version bumped to current (v2 - no ScopeProjectId).
 	d := m.Data()
 	require.NotNil(t, d.Version)
 	require.Equal(t, CurrentDataVersion, *d.Version)
@@ -51,7 +52,7 @@ func TestLoadV0File_DrainsTokenAndVpnKeys(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, keys, 2, "expected token + one vpn key in secrets after drain")
 
-	// On-disk file is now in v1 shape: snake_case, version=1, no plaintext secrets.
+	// On-disk file is now in current shape: snake_case, version=CurrentDataVersion, no plaintext secrets, no scope.
 	raw, err := os.ReadFile(path)
 	require.NoError(t, err)
 	var onDisk map[string]any
@@ -61,6 +62,7 @@ func TestLoadV0File_DrainsTokenAndVpnKeys(t *testing.T) {
 	require.NotContains(t, onDisk, "token", "token must never appear in profile JSON")
 	require.NotContains(t, onDisk, "ProjectVpnKeyRegistry", "legacy plaintext vpn keys must be gone from disk")
 	require.NotContains(t, onDisk, "project_vpn_key_registry", "vpn keys must never appear in profile JSON")
+	require.NotContains(t, onDisk, "scope_project_id", "scope_project_id moved to repo profile in v2")
 	require.Equal(t, "prg1", onDisk["region"].(map[string]any)["name"])
 }
 
@@ -72,9 +74,10 @@ func TestManager_SetTokenAndClear(t *testing.T) {
 
 	store := secrets.NewMemory()
 	m, err := NewManager(Config{
-		ProfilePath: path,
-		ProfileMode: 0o600,
-		Secrets:     store,
+		GlobalPath: path,
+		GlobalMode: 0o600,
+		Cwd:        dir,
+		Secrets:    store,
 	})
 	require.NoError(t, err)
 
@@ -94,4 +97,103 @@ func TestManager_SetTokenAndClear(t *testing.T) {
 	keys, err := store.List(secrets.Prefix(secrets.GlobalScope))
 	require.NoError(t, err)
 	require.Empty(t, keys, "all global secrets should be removed by Clear")
+}
+
+// TestDiscoverRepoProfileDir_FindsProfile creates a fake repo with .zcli/profile.json and asserts
+// discovery from a nested subdirectory walks up to it.
+func TestDiscoverRepoProfileDir_FindsProfile(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, RepoProfileDir), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, RepoProfileDir, RepoProfileFile), []byte("{}"), 0o600))
+
+	nested := filepath.Join(repo, "a", "b", "c")
+	require.NoError(t, os.MkdirAll(nested, 0o755))
+
+	got, err := DiscoverRepoProfileDir(nested)
+	require.NoError(t, err)
+	require.Equal(t, repo, got)
+}
+
+// TestDiscoverRepoProfileDir_StopsAtGitBoundary asserts walks stop at the first .git/ ancestor
+// when there's no .zcli/profile.json in the repo (we don't leak across repo boundaries).
+func TestDiscoverRepoProfileDir_StopsAtGitBoundary(t *testing.T) {
+	parent := t.TempDir()
+	// Outer dir has a profile, inner dir is a separate git repo with no profile.
+	require.NoError(t, os.MkdirAll(filepath.Join(parent, RepoProfileDir), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(parent, RepoProfileDir, RepoProfileFile), []byte("{}"), 0o600))
+
+	innerRepo := filepath.Join(parent, "inner")
+	require.NoError(t, os.MkdirAll(filepath.Join(innerRepo, ".git"), 0o755))
+
+	got, err := DiscoverRepoProfileDir(innerRepo)
+	require.NoError(t, err)
+	require.Equal(t, "", got, "inner repo has no profile and the .git/ boundary blocks the outer one")
+}
+
+// TestMigration_V1_RescuesScopeIntoRepoProfile asserts the v1 → v2 migration writes a new repo
+// profile carrying the legacy global scope when cwd is inside a git repo without one.
+func TestMigration_V1_RescuesScopeIntoRepoProfile(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+
+	globalDir := t.TempDir()
+	globalPath := filepath.Join(globalDir, "profile.json")
+	v1 := []byte(`{"version":1,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"},"scope_project_id":"AAAAAAAAAAAAAAAAAAAAAA"}`)
+	require.NoError(t, os.WriteFile(globalPath, v1, 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath: globalPath,
+		GlobalMode: 0o600,
+		Cwd:        repo,
+		Secrets:    secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+
+	require.True(t, m.HasRepo(), "rescue should have created a repo profile")
+	id, ok := m.ScopeProject()
+	require.True(t, ok)
+	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", id.Native())
+
+	// Global file got rewritten in v2 shape with no scope_project_id.
+	raw, err := os.ReadFile(globalPath)
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.NotContains(t, onDisk, "scope_project_id")
+	require.EqualValues(t, CurrentDataVersion, onDisk["version"])
+
+	// Repo profile actually exists at the expected path with the rescued scope.
+	repoFile, err := os.ReadFile(RepoProfilePath(repo))
+	require.NoError(t, err)
+	var repoOnDisk map[string]any
+	require.NoError(t, json.Unmarshal(repoFile, &repoOnDisk))
+	require.NotEmpty(t, repoOnDisk["id"], "repo profile must have a generated id")
+	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", repoOnDisk["scope_project_id"])
+}
+
+// TestRegion_RepoOverridesGlobal asserts a repo-level region wins over the global one.
+func TestRegion_RepoOverridesGlobal(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, RepoProfileDir), 0o755))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(repo, RepoProfileDir, RepoProfileFile),
+		[]byte(`{"version":1,"id":"repo-id","region":{"name":"override","isDefault":false,"address":"api.override.zerops.io"}}`),
+		0o600,
+	))
+
+	globalDir := t.TempDir()
+	globalPath := filepath.Join(globalDir, "profile.json")
+	require.NoError(t, os.WriteFile(globalPath, []byte(`{"version":2,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"}}`), 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath: globalPath,
+		GlobalMode: 0o600,
+		Cwd:        repo,
+		Secrets:    secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "override", m.Region().Name)
+	require.Equal(t, "prg1", m.Data().Region.Name, "global Data() still shows the global region; effective Region() merges")
 }

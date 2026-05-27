@@ -3,12 +3,13 @@ package cmd
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/errorCode"
@@ -22,8 +23,11 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.CmdHelpScopeProject)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			projectId, projectSet := cmdData.Profile.Data().ScopeProjectId.Get()
-			if projectSet {
+			if !cmdData.Profile.HasRepo() {
+				return errors.New("`zcli scope project` only works inside a repo with a profile; run `zcli profile init` here first")
+			}
+
+			if projectId, projectSet := cmdData.Profile.ScopeProject(); projectSet {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
 					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
@@ -57,11 +61,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
-				data.ScopeProjectId = project.Id.ProjectIdNull()
-				return data
-			})
-			if err != nil {
+			if err := cmdData.Profile.SetScopeProject(project.Id.ProjectIdNull()); err != nil {
 				return err
 			}
 

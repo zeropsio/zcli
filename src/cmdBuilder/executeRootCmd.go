@@ -215,9 +215,11 @@ func createProfile(uxBlocks *uxBlock.Blocks) (*profile.Manager, error) {
 	}
 
 	return profile.NewManager(profile.Config{
-		ProfilePath: filePath,
-		ProfileMode: fileMode,
-		Secrets:     secretsBackend,
+		GlobalPath: filePath,
+		GlobalMode: fileMode,
+		Cwd:        os.Getenv(constants.CliCwdEnvVar), // empty = Manager falls back to os.Getwd()
+		Secrets:    secretsBackend,
+		Log:        func(msg string) { uxBlocks.PrintInfoText(msg) },
 	})
 }
 

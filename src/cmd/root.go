@@ -59,9 +59,7 @@ func rootCmd() *cmdBuilder.Cmd {
 			}
 
 			// TODO: krls - check whole block
-			if cmdData.Profile.Data().ScopeProjectId.Filled() {
-				// project scope is set
-				projectId, _ := cmdData.Profile.Data().ScopeProjectId.Get()
+			if projectId, ok := cmdData.Profile.ScopeProject(); ok {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
 					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {

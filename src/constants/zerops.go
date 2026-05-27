@@ -25,6 +25,7 @@ const (
 	CliZcliYamlFileName       = CliZcliYamlBaseFileName + ".yml"
 	CliDataFilePathEnvVar     = "ZEROPS_CLI_DATA_FILE_PATH"
 	CliSecretsFilePathEnvVar  = "ZEROPS_CLI_SECRETS_FILE_PATH"
+	CliCwdEnvVar              = "ZEROPS_CLI_CWD"
 	SecretsBackendEnvVar      = "ZEROPS_SECRETS_BACKEND"
 	CliLogFilePathEnvVar      = "ZEROPS_CLI_LOG_FILE_PATH"
 	CliWgConfigPathEnvVar     = "ZEROPS_WG_CONFIG_FILE_PATH"

@@ -3,15 +3,16 @@ package profile
 import (
 	"encoding/json"
 
+	"github.com/pkg/errors"
+
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-// dataV1 is the current on-disk shape. Holds non-sensitive user state only - tokens and VPN
-// keys live in the secrets backend (see Manager.Token, Manager.VpnKey) and never appear in this
-// JSON. SecretsBackend records the user's preferred storage mode so subsequent CLI invocations
-// stay consistent without needing the env var to be set every time.
+// dataV1 is the pre-multi-profile global shape. ScopeProjectId lived here directly because the
+// CLI only had one layer of persisted state. v2 drops the field (scope is per-repo now); Up()
+// either rescues the existing scope into a repo profile or drops it with a hint.
 type dataV1 struct {
 	Version        *int               `json:"version,omitempty"`
 	Region         region.Item        `json:"region"`
@@ -24,4 +25,25 @@ func init() {
 		var d dataV1
 		return d, json.Unmarshal(b, &d)
 	})
+}
+
+// Up turns a v1 value into a v2 value. ScopeProjectId is removed from global storage; if a
+// scope was set, the migration tries to rescue it into a per-repo profile when cwd is inside
+// a git repo without an existing repo profile. When rescue isn't possible the scope is
+// dropped with a one-time hint so the user can re-set it explicitly.
+func (d dataV1) Up(ctx migrationCtx) (any, error) {
+	if d.ScopeProjectId.Filled() {
+		rescued, err := ctx.rescueScope(d.ScopeProjectId)
+		if err != nil {
+			return nil, errors.Wrap(err, "v1 → v2: rescue scoped project into repo profile")
+		}
+		if !rescued && ctx.log != nil {
+			id, _ := d.ScopeProjectId.Get()
+			ctx.log("previously-scoped project " + id.Native() + " was cleared from global state; re-set it inside a repo with `zcli scope project <id>`")
+		}
+	}
+	return dataV2{
+		Region:         d.Region,
+		SecretsBackend: d.SecretsBackend,
+	}, nil
 }

@@ -32,15 +32,16 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-// fixture wires an httptest.Server, an isolated profile + secrets path, and a
-// preconfigured RegionItem pointing at the test server. Use Run to drive the
-// CLI in-process and inspect stdout/stderr/exit code.
+// fixture wires an httptest.Server, an isolated profile + secrets path, a fake repo dir, and
+// a preconfigured RegionItem pointing at the test server. Use Run to drive the CLI in-process
+// and inspect stdout/stderr/exit code.
 type fixture struct {
 	t           *testing.T
 	Server      *httptest.Server
 	Mux         *http.ServeMux
 	DataPath    string
 	SecretsPath string
+	RepoDir     string
 	Region      region.Item
 }
 
@@ -61,10 +62,16 @@ func newFixture(t *testing.T) *fixture {
 	secretsPath := filepath.Join(dir, "cli.secrets")
 	logPath := filepath.Join(dir, "zcli.log")
 	yamlPath := filepath.Join(dir, "zcli.yml")
+	// Stand up a fake repo (just a .git directory is enough for DiscoverRepoRoot) so tests
+	// that want a repo profile have somewhere to anchor it. Tests that only need global state
+	// just ignore RepoDir.
+	repoDir := filepath.Join(dir, "repo")
+	require.NoError(t, os.MkdirAll(filepath.Join(repoDir, ".git"), 0o755))
 	t.Setenv(constants.CliDataFilePathEnvVar, dataPath)
 	t.Setenv(constants.CliLogFilePathEnvVar, logPath)
 	t.Setenv(constants.CliZcliYamlFilePathEnvVar, yamlPath)
 	t.Setenv(constants.CliTokenEnvVar, "")
+	t.Setenv(constants.CliCwdEnvVar, repoDir)
 	// Force the plaintext secrets backend with a per-test file so tests never touch the host
 	// keyring (which would either fail in CI or, worse, pollute the developer's real keyring).
 	t.Setenv(constants.SecretsBackendEnvVar, string(secrets.ModePlaintext))
@@ -83,6 +90,7 @@ func newFixture(t *testing.T) *fixture {
 		Mux:         mux,
 		DataPath:    dataPath,
 		SecretsPath: secretsPath,
+		RepoDir:     repoDir,
 		Region: region.Item{
 			Name:      "prg1",
 			IsDefault: true,
@@ -101,16 +109,17 @@ func (f *fixture) SeedLogin(token string) {
 	})
 }
 
-// SeedScopedLogin is SeedLogin plus a persisted project scope, simulating a
-// previously completed `zcli scope project ...`.
+// SeedScopedLogin is SeedLogin plus a persisted project scope in the fixture's repo profile,
+// simulating a previously completed `zcli scope project ...` inside that repo.
 func (f *fixture) SeedScopedLogin(token, projectID string) {
 	f.t.Helper()
-	f.writeProfile(profile.Data{
-		Region:         f.Region,
-		ScopeProjectId: uuid.NewProjectIdNullFromString(projectID),
-	})
+	f.writeProfile(profile.Data{Region: f.Region})
 	f.writeSecrets(map[string]string{
 		secrets.Key(secrets.GlobalScope, "token"): token,
+	})
+	f.writeRepoProfile(profile.RepoData{
+		Id:             "test-repo-id",
+		ScopeProjectId: uuid.NewProjectIdNullFromString(projectID),
 	})
 }
 
@@ -129,6 +138,16 @@ func (f *fixture) writeSecrets(m map[string]string) {
 	b, err := json.Marshal(m)
 	require.NoError(f.t, err, "marshal seed secrets")
 	require.NoError(f.t, os.WriteFile(f.SecretsPath, b, 0o600), "write seed secrets")
+}
+
+func (f *fixture) writeRepoProfile(d profile.RepoData) {
+	v := profile.CurrentRepoVersion
+	d.Version = &v
+	path := profile.RepoProfilePath(f.RepoDir)
+	require.NoError(f.t, os.MkdirAll(filepath.Dir(path), 0o755))
+	b, err := json.Marshal(d)
+	require.NoError(f.t, err, "marshal seed repo profile")
+	require.NoError(f.t, os.WriteFile(path, b, 0o600), "write seed repo profile")
 }
 
 // stubReleaseTag tells the fixture's release-asset endpoint to return 200
