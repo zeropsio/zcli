@@ -28,6 +28,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(versionCmd()).
 		AddChildrenCmd(upgradeCmd()).
 		AddChildrenCmd(scopeCmd()).
+		AddChildrenCmd(profileCmd()).
 		AddChildrenCmd(projectCmd()).
 		AddChildrenCmd(serviceCmd()).
 		AddChildrenCmd(vpnCmd()).
