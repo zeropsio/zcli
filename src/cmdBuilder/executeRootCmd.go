@@ -118,6 +118,11 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 	cobraCmd.SetGlobalNormalizationFunc(normalizeFlagNames)
 	cobraCmd.SetOut(o.stdout)
 	cobraCmd.SetErr(o.stderr)
+
+	// --profile picks a repo profile entry to act as if it were the active one for this
+	// invocation. The persistent flag is declared on the root so it inherits everywhere; the
+	// actual switch happens inside createCmdRunFunc once cobra has parsed the value.
+	cobraCmd.PersistentFlags().String(RootProfileFlagName, "", "Override active repo profile for this invocation (must exist in .zcli/profile.json)")
 	if o.args != nil {
 		cobraCmd.SetArgs(o.args)
 	}

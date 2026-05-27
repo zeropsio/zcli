@@ -22,6 +22,10 @@ import (
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
+// RootProfileFlagName is the persistent root flag that overrides the active repo profile for
+// a single invocation. Declared on root in executeRootCmd; read here once cobra has parsed.
+const RootProfileFlagName = "profile"
+
 type GuestCmdData struct {
 	Profile  *profile.Manager
 	UxBlocks *uxBlock.Blocks
@@ -63,6 +67,14 @@ func createCmdRunFunc(
 		}
 
 		flagParams.Bind(cobraCmd)
+
+		if f := cobraCmd.Root().PersistentFlags().Lookup(RootProfileFlagName); f != nil {
+			if name := f.Value.String(); name != "" {
+				if err := profileManager.SwitchActiveProfile(name); err != nil {
+					return err
+				}
+			}
+		}
 
 		argsMap, err := convertArgs(cmd, args)
 		if err != nil {

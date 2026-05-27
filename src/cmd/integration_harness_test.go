@@ -117,7 +117,8 @@ func (f *fixture) SeedScopedLogin(token, projectID string) {
 	f.writeSecrets(map[string]string{
 		secrets.Key(secrets.GlobalScope, "token"): token,
 	})
-	f.writeRepoProfile(profile.RepoData{
+	f.writeRepoProfile(profile.RepoProfile{
+		Name:           profile.DefaultRepoProfileName,
 		Id:             "test-repo-id",
 		ScopeProjectId: uuid.NewProjectIdNullFromString(projectID),
 	})
@@ -127,8 +128,7 @@ func (f *fixture) writeProfile(d profile.Data) {
 	// Stamp the current version so Manager.load treats this as already-current and skips the
 	// legacy v0 decode path (which would interpret a missing "version" key as "this is the old
 	// PascalCase shape" and silently produce empty fields).
-	v := profile.CurrentDataVersion
-	d.Version = &v
+	d.StampVersion(profile.CurrentDataVersion)
 	b, err := json.Marshal(d)
 	require.NoError(f.t, err, "marshal seed profile")
 	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed profile")
@@ -140,12 +140,22 @@ func (f *fixture) writeSecrets(m map[string]string) {
 	require.NoError(f.t, os.WriteFile(f.SecretsPath, b, 0o600), "write seed secrets")
 }
 
-func (f *fixture) writeRepoProfile(d profile.RepoData) {
+// writeRepoProfile seeds a v2 repo file containing exactly one profile (named "default") that
+// matches the passed entry. Tests that exercise multi-profile state should write the file
+// directly rather than going through this helper.
+func (f *fixture) writeRepoProfile(d profile.RepoProfile) {
+	if d.Name == "" {
+		d.Name = profile.DefaultRepoProfileName
+	}
 	v := profile.CurrentRepoVersion
-	d.Version = &v
+	file := map[string]any{
+		"version":        v,
+		"active_profile": d.Name,
+		"profiles":       []profile.RepoProfile{d},
+	}
 	path := profile.RepoProfilePath(f.RepoDir)
 	require.NoError(f.t, os.MkdirAll(filepath.Dir(path), 0o755))
-	b, err := json.Marshal(d)
+	b, err := json.Marshal(file)
 	require.NoError(f.t, err, "marshal seed repo profile")
 	require.NoError(f.t, os.WriteFile(path, b, 0o600), "write seed repo profile")
 }

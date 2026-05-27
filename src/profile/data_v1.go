@@ -1,12 +1,11 @@
 package profile
 
 import (
-	"encoding/json"
-
 	"github.com/pkg/errors"
 
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
+	"github.com/zeropsio/zcli/src/versionedjson"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -14,18 +13,19 @@ import (
 // CLI only had one layer of persisted state. v2 drops the field (scope is per-repo now); Up()
 // either rescues the existing scope into a repo profile or drops it with a hint.
 type dataV1 struct {
-	Version        *int               `json:"version,omitempty"`
+	versionedjson.Probe
 	Region         region.Item        `json:"region"`
 	ScopeProjectId uuid.ProjectIdNull `json:"scope_project_id,omitempty"`
 	SecretsBackend secrets.Mode       `json:"secrets_backend,omitempty"`
 }
 
 func init() {
-	register(1, func(b []byte) (any, error) {
-		var d dataV1
-		return d, json.Unmarshal(b, &d)
-	})
+	globalSchema.Register(1, versionedjson.DecoderFor[dataV1]())
 }
+
+// Chain implements versionedjson.Chain[dataChain] so a dataV1 value can be passed to
+// versionedjson.Migrate(globalSchema, ...) - the marker family is declared in data.go.
+func (dataV1) Chain() dataChain { return dataChain{} }
 
 // Up turns a v1 value into a v2 value. ScopeProjectId is removed from global storage; if a
 // scope was set, the migration tries to rescue it into a per-repo profile when cwd is inside

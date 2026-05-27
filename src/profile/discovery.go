@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+
+	"github.com/zeropsio/zcli/src/constants"
 )
 
 const (
@@ -12,7 +14,7 @@ const (
 	RepoProfileDir = ".zcli"
 
 	// RepoProfileFile is the per-repo profile JSON filename.
-	RepoProfileFile = "profile.json"
+	RepoProfileFile = constants.CliProfileFileName
 )
 
 // DiscoverRepoProfileDir walks up from startDir looking for the first ancestor that either

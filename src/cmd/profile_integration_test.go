@@ -27,8 +27,13 @@ func TestProfileInit_CreatesRepoProfileAndGitignore(t *testing.T) {
 
 	var onDisk map[string]any
 	require.NoError(t, json.Unmarshal(raw, &onDisk))
-	require.NotEmpty(t, onDisk["id"], "init must stamp a stable id")
 	require.EqualValues(t, profile.CurrentRepoVersion, onDisk["version"])
+	require.Equal(t, profile.DefaultRepoProfileName, onDisk["active_profile"])
+	profiles := onDisk["profiles"].([]any)
+	require.Len(t, profiles, 1, "init must seed exactly one profile")
+	entry := profiles[0].(map[string]any)
+	require.Equal(t, profile.DefaultRepoProfileName, entry["name"])
+	require.NotEmpty(t, entry["id"], "init must stamp a stable id on the default profile")
 
 	gitignore, err := os.ReadFile(filepath.Join(f.RepoDir, ".gitignore"))
 	require.NoError(t, err, ".gitignore should exist after init")
@@ -115,6 +120,81 @@ func TestProfileWhere_NoRepoProfile(t *testing.T) {
 	assert.Contains(t, res.Stdout, "(none", "absence of repo profile should be explicit")
 	assert.Contains(t, res.Stdout, "(not set)", "scope project should report not set without a repo")
 	assert.Contains(t, res.Stdout, "from global", "token from global")
+}
+
+// TestProfileAddAndUse_PersistsActiveAndIsolatesIds covers the multi-profile happy path:
+// add a second profile, switch to it via `profile use`, observe that active_profile flips
+// on disk and the new profile carries its own id (so per-profile secrets are isolated).
+func TestProfileAddAndUse_PersistsActiveAndIsolatesIds(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	addRes := f.Run("profile", "add", "prod")
+	require.Equalf(t, 0, addRes.ExitCode, "add stderr=%q", addRes.Stderr)
+
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	// `add` must not change the active profile.
+	require.Equal(t, "default", onDisk["active_profile"], "add must not change active")
+	profiles := onDisk["profiles"].([]any)
+	require.Len(t, profiles, 2)
+	defaultID := profiles[0].(map[string]any)["id"].(string)
+	prodID := profiles[1].(map[string]any)["id"].(string)
+	require.NotEmpty(t, defaultID)
+	require.NotEmpty(t, prodID)
+	require.NotEqual(t, defaultID, prodID, "each profile needs its own id for independent secret scoping")
+
+	useRes := f.Run("profile", "use", "prod")
+	require.Equalf(t, 0, useRes.ExitCode, "use stderr=%q", useRes.Stderr)
+
+	raw, err = os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Equal(t, "prod", onDisk["active_profile"], "use must persist active_profile")
+}
+
+// TestProfileAdd_DuplicateNameRejected ensures the second add of the same name fails loudly
+// rather than silently shadowing the first entry (which would mean two profiles share an Id
+// or one becomes unreachable).
+func TestProfileAdd_DuplicateNameRejected(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "first add must succeed")
+
+	res := f.Run("profile", "add", "prod")
+	require.NotEqualf(t, 0, res.ExitCode, "duplicate add must error; stderr=%q", res.Stderr)
+}
+
+// TestProfileFlag_OverridesActiveForOneInvocation drives `--profile prod` through the where
+// command and asserts the report reflects the prod profile as active, without the persisted
+// active_profile flipping on disk.
+func TestProfileFlag_OverridesActiveForOneInvocation(t *testing.T) {
+	f := newFixture(t)
+	f.SeedLogin("global-token")
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "add prod must succeed")
+
+	res := f.Run("--profile", "prod", "profile", "where")
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
+	require.Contains(t, res.Stdout, "prod", "active profile in report should be prod under --profile prod")
+
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Equal(t, "default", onDisk["active_profile"], "--profile must not persist the override")
+}
+
+// TestProfileFlag_UnknownNameErrors asserts an unknown --profile name fails the invocation
+// instead of silently falling back to default.
+func TestProfileFlag_UnknownNameErrors(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	res := f.Run("--profile", "nope", "profile", "where")
+	require.NotEqualf(t, 0, res.ExitCode, "unknown profile must error; stderr=%q", res.Stderr)
 }
 
 func splitLines(s string) []string {

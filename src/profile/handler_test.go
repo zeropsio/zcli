@@ -39,7 +39,7 @@ func TestLoadV0File_DrainsTokenAndVpnKeys(t *testing.T) {
 	// Non-sensitive state: Region survived, version bumped to current (v2 - no ScopeProjectId).
 	d := m.Data()
 	require.NotNil(t, d.Version)
-	require.Equal(t, CurrentDataVersion, *d.Version)
+	require.EqualValues(t, CurrentDataVersion, *d.Version)
 	require.Equal(t, "prg1", d.Region.Name)
 
 	// Token drained into secrets backend.
@@ -164,13 +164,19 @@ func TestMigration_V1_RescuesScopeIntoRepoProfile(t *testing.T) {
 	require.NotContains(t, onDisk, "scope_project_id")
 	require.EqualValues(t, CurrentDataVersion, onDisk["version"])
 
-	// Repo profile actually exists at the expected path with the rescued scope.
+	// Repo profile actually exists at the expected path with the rescued scope. v2 file shape:
+	// id + scope_project_id live inside profiles[0], with active_profile pointing at "default".
 	repoFile, err := os.ReadFile(RepoProfilePath(repo))
 	require.NoError(t, err)
 	var repoOnDisk map[string]any
 	require.NoError(t, json.Unmarshal(repoFile, &repoOnDisk))
-	require.NotEmpty(t, repoOnDisk["id"], "repo profile must have a generated id")
-	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", repoOnDisk["scope_project_id"])
+	require.Equal(t, "default", repoOnDisk["active_profile"])
+	profiles := repoOnDisk["profiles"].([]any)
+	require.Len(t, profiles, 1)
+	entry := profiles[0].(map[string]any)
+	require.Equal(t, "default", entry["name"])
+	require.NotEmpty(t, entry["id"], "default profile must have a generated id")
+	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", entry["scope_project_id"])
 }
 
 // TestLegacyDataFile_MigratesToProfileJson covers the cli.data → profile.json file rename:
@@ -327,6 +333,71 @@ func TestMigration_WritesBackupBeforeRewriting(t *testing.T) {
 	require.Equal(t, v1, backup, "backup should hold the original bytes verbatim")
 }
 
+// TestRepoLoad_StampsEntryVersionOnDisk asserts every persisted profile entry carries its own
+// Version field stamped to CurrentRepoProfileVersion after a save. With the cascade rule in
+// effect, loadRepo no longer migrates entries per-iteration (the file wrapper version pins
+// them to the current child shape), so in-memory entries keep whatever Version the JSON
+// carried; the on-disk stamp is enforced by stampRepoFile when the file is rewritten.
+func TestRepoLoad_StampsEntryVersionOnDisk(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, RepoProfileDir), 0o755))
+	// Seed a file whose entry has NO version field (legacy hand-edit or pre-stamp save).
+	seed := []byte(`{"version":1,"active_profile":"default","profiles":[{"name":"default","id":"x"}]}`)
+	require.NoError(t, os.WriteFile(filepath.Join(repo, RepoProfileDir, RepoProfileFile), seed, 0o600))
+
+	globalDir := t.TempDir()
+	globalPath := filepath.Join(globalDir, "profile.json")
+	require.NoError(t, os.WriteFile(globalPath, []byte(`{"version":2}`), 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath: globalPath,
+		GlobalMode: 0o600,
+		Cwd:        repo,
+		Secrets:    secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+
+	// Mutating the file (any save) routes through stampRepoFile, which stamps each entry's
+	// embedded Probe to CurrentRepoProfileVersion on the way out.
+	require.NoError(t, m.UseRepoProfile("default"))
+	raw, err := os.ReadFile(RepoProfilePath(repo))
+	require.NoError(t, err)
+	var onDisk struct {
+		Profiles []map[string]any `json:"profiles"`
+	}
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Len(t, onDisk.Profiles, 1)
+	require.EqualValues(t, CurrentRepoProfileVersion, onDisk.Profiles[0]["version"])
+}
+
+// TestAddRepoProfile_GeneratesFreshId asserts a newly added profile gets its own UUID, distinct
+// from the existing default entry's id (so per-profile token secrets stay isolated).
+func TestAddRepoProfile_GeneratesFreshId(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+
+	globalDir := t.TempDir()
+	globalPath := filepath.Join(globalDir, "profile.json")
+	require.NoError(t, os.WriteFile(globalPath, []byte(`{"version":2}`), 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath: globalPath,
+		GlobalMode: 0o600,
+		Cwd:        repo,
+		Secrets:    secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+	_, err = m.InitRepo()
+	require.NoError(t, err)
+
+	defaultEntry, _ := m.RepoProfile()
+	prod, err := m.AddRepoProfile("prod")
+	require.NoError(t, err)
+	require.NotEqual(t, defaultEntry.Id, prod.Id, "each profile needs its own id")
+	require.Len(t, m.RepoProfiles(), 2)
+}
+
 // TestRegion_RepoOverridesGlobal asserts a repo-level region wins over the global one.
 func TestRegion_RepoOverridesGlobal(t *testing.T) {
 	repo := t.TempDir()
@@ -334,7 +405,7 @@ func TestRegion_RepoOverridesGlobal(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(repo, RepoProfileDir), 0o755))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(repo, RepoProfileDir, RepoProfileFile),
-		[]byte(`{"version":1,"id":"repo-id","region":{"name":"override","isDefault":false,"address":"api.override.zerops.io"}}`),
+		[]byte(`{"version":1,"active_profile":"default","profiles":[{"name":"default","id":"repo-id","region":{"name":"override","isDefault":false,"address":"api.override.zerops.io"}}]}`),
 		0o600,
 	))
 

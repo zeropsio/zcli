@@ -18,7 +18,10 @@ func profileCmd() *cmdBuilder.Cmd {
 		Short("Manage per-repository CLI profiles.").
 		HelpFlag("Help for the 'profile' command.").
 		AddChildrenCmd(profileInitCmd()).
-		AddChildrenCmd(profileWhereCmd())
+		AddChildrenCmd(profileWhereCmd()).
+		AddChildrenCmd(profileListCmd()).
+		AddChildrenCmd(profileAddCmd()).
+		AddChildrenCmd(profileUseCmd())
 }
 
 func profileInitCmd() *cmdBuilder.Cmd {
@@ -45,6 +48,62 @@ func profileInitCmd() *cmdBuilder.Cmd {
 		})
 }
 
+func profileListCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("list").
+		Short("List repo profiles, marking the active one with *.").
+		HelpFlag("Help for the 'profile list' command.").
+		GuestRunFunc(func(_ context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			profiles := cmdData.Profile.RepoProfiles()
+			if len(profiles) == 0 {
+				return errors.New("no repo profile in this directory tree; run `zcli profile init` here first")
+			}
+			active := cmdData.Profile.ActiveRepoProfileName()
+			for _, p := range profiles {
+				marker := "  "
+				if p.Name == active {
+					marker = "* "
+				}
+				cmdData.Stdout.Println(marker + p.Name)
+			}
+			return nil
+		})
+}
+
+func profileAddCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("add").
+		Short("Add a new named profile to the current repo (with a fresh id).").
+		HelpFlag("Help for the 'profile add' command.").
+		Arg("name").
+		GuestRunFunc(func(_ context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			name := cmdData.Args["name"][0]
+			created, err := cmdData.Profile.AddRepoProfile(name)
+			if err != nil {
+				return err
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Added profile", created.Name+"  (id "+created.Id+")"))
+			cmdData.UxBlocks.PrintInfo(styles.InfoLine("active profile unchanged; run `zcli profile use " + created.Name + "` to switch"))
+			return nil
+		})
+}
+
+func profileUseCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("use").
+		Short("Switch the active repo profile (persisted in .zcli/profile.json).").
+		HelpFlag("Help for the 'profile use' command.").
+		Arg("name").
+		GuestRunFunc(func(_ context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			name := cmdData.Args["name"][0]
+			if err := cmdData.Profile.UseRepoProfile(name); err != nil {
+				return err
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Active profile", name))
+			return nil
+		})
+}
+
 func profileWhereCmd() *cmdBuilder.Cmd {
 	return cmdBuilder.NewCmd().
 		Use("where").
@@ -63,7 +122,8 @@ func printProfileWhere(cmdData *cmdBuilder.GuestCmdData) error {
 	out.Println(formatRow("  global profile", mgr.GlobalPath()))
 	if repoDir := mgr.RepoDir(); repoDir != "" {
 		repoProfile, _ := mgr.RepoProfile()
-		out.Println(formatRow("  repo profile", profile.RepoProfilePath(repoDir)+"  (id "+repoProfile.Id+")"))
+		out.Println(formatRow("  repo profile", profile.RepoProfilePath(repoDir)))
+		out.Println(formatRow("  active profile", repoProfile.Name+"  (id "+repoProfile.Id+")"))
 	} else {
 		out.Println(formatRow("  repo profile", "(none — run `zcli profile init` inside a repo to create one)"))
 	}

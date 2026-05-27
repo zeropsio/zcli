@@ -8,6 +8,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
+	"github.com/zeropsio/zcli/src/versionedjson"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -23,11 +24,12 @@ type dataV0 struct {
 }
 
 func init() {
-	register(0, func(b []byte) (any, error) {
-		var d dataV0
-		return d, json.Unmarshal(b, &d)
-	})
+	globalSchema.Register(0, versionedjson.DecoderFor[dataV0]())
 }
+
+// Chain implements versionedjson.Chain[dataChain] so a dataV0 value can be passed to
+// versionedjson.Migrate(globalSchema, ...) - the marker family is declared in data.go.
+func (dataV0) Chain() dataChain { return dataChain{} }
 
 // Up turns a v0 value into a v1 value, draining sensitive fields into the migration context's
 // secrets backend along the way. The returned dataV1 is purged of Token and VPN keys; reading
