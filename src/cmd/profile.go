@@ -5,12 +5,14 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/input"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
@@ -133,11 +135,58 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 			if err != nil {
 				return err
 			}
-
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected source", profileSourceLabel(source, sourceName)))
-			cmdData.UxBlocks.PrintInfoText("Profile name and remaining details will be wired up in follow-up steps.")
+
+			name, err := promptProfileName(ctx, cmdData.Profile.RepoProfiles())
+			if err != nil {
+				return err
+			}
+
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected name", name))
+			cmdData.UxBlocks.PrintInfoText("Remaining details (region, scope, token) will be wired up in follow-up steps.")
 			return nil
 		})
+}
+
+// promptProfileName asks for the new profile's name with the same input model the rest of
+// the CLI uses for create flows. Re-prompts on empty input and on a collision with any entry
+// already in the repo file - both states are recoverable, so we stay inside the model instead
+// of bailing the whole command.
+func promptProfileName(ctx context.Context, existing []profile.RepoProfile) (string, error) {
+	taken := make(map[string]struct{}, len(existing))
+	for _, p := range existing {
+		taken[p.Name] = struct{}{}
+	}
+
+	label := styles.NewStringBuilder()
+	label.WriteString("Type ")
+	label.WriteStyledString(styles.SelectStyle().Bold(true), "profile")
+	label.WriteString(" name")
+
+	for {
+		name, err := uxBlock.Run(
+			input.NewRoot(
+				ctx,
+				input.WithLabel(label.String()),
+				input.WithHelpPlaceholder(),
+				input.WithPlaceholderStyle(styles.HelpStyle()),
+				input.WithoutPrompt(),
+			),
+			input.GetValueFunc,
+		)
+		if err != nil {
+			return "", err
+		}
+		name = strings.TrimSpace(name)
+		if name == "" {
+			// Stay in the loop. Print a hint so the user sees why the prompt repeated.
+			continue
+		}
+		if _, dup := taken[name]; dup {
+			return "", errors.New("profile " + strconv.Quote(name) + " already exists in this repo; pick a different name")
+		}
+		return name, nil
+	}
 }
 
 // promptProfileSource walks the user through the source-selection step of the builder. Returns
