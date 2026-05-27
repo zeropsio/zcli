@@ -16,11 +16,11 @@ import (
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/logger"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/storage"
 	"github.com/zeropsio/zcli/src/support"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -100,7 +100,7 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 
 	uxBlocks := uxBlock.NewBlocks(outputLogger, debugFileLogger, isTerminal, terminalWidth, terminalHeight, cancel)
 
-	cliStorage, err := createCliStorage()
+	profile, err := createProfile()
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
 	}
@@ -108,7 +108,7 @@ func RunRootCmd(ctx context.Context, rootCmd *Cmd, opts ...RunOption) int {
 	flagParams := flagParams.New(o.stderr)
 
 	//nolint:contextcheck // cobra threads ctx into the run-func via ExecuteContext below; pulling from cobraCmd.Context() inside createCmdRunFunc is the canonical pattern.
-	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, cliStorage, o.stdout, o.stderr)
+	cobraCmd, err := buildCobraCmd(rootCmd, flagParams, uxBlocks, profile, o.stdout, o.stderr)
 	if err != nil {
 		return errorExitCode(err, uxBlocks)
 	}
@@ -185,16 +185,15 @@ func createLoggers(isTerminal bool, stderr io.Writer) (*logger.Handler, *logger.
 	return outputLogger, debugFileLogger
 }
 
-func createCliStorage() (*cliStorage.Handler, error) {
+func createProfile() (*profile.Handler, error) {
 	filePath, fileMode, err := constants.CliDataFilePath()
 	if err != nil {
 		return nil, err
 	}
-	s, err := storage.New[cliStorage.Data](
+	return profile.NewHandler(
 		storage.Config{
 			FilePath: filePath,
 			FileMode: fileMode,
 		},
 	)
-	return &cliStorage.Handler{Handler: s}, err
 }

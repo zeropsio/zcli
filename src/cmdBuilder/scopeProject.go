@@ -3,13 +3,13 @@ package cmdBuilder
 import (
 	"context"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/input"
@@ -73,8 +73,8 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 	}
 
 	// project scope is set
-	if cmdData.CliStorage.Data().ScopeProjectId.Filled() {
-		projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
+	if cmdData.Profile.Data().ScopeProjectId.Filled() {
+		projectId, _ := cmdData.Profile.Data().ScopeProjectId.Get()
 
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
@@ -226,7 +226,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 }
 
 func ProjectScopeReset(cmdData *LoggedUserCmdData) error {
-	_, err := cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+	_, err := cmdData.Profile.Update(func(data profile.Data) profile.Data {
 		data.ScopeProjectId = uuid.ProjectIdNull{}
 		return data
 	})

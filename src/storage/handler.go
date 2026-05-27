@@ -17,12 +17,9 @@ type Config struct {
 }
 
 type Handler[T any] struct {
-	//nolint:structcheck // Why: `is unused` error is false positive
 	config Config
-	//nolint:structcheck // Why: `is unused` error is false positive
-	data T
-	//nolint:structcheck // Why: `is unused` error is false positive
-	lock sync.RWMutex
+	data   T
+	lock   sync.RWMutex
 }
 
 func New[T any](config Config) (*Handler[T], error) {

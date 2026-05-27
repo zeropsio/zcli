@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -55,7 +55,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+			_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
 				data.Token = cmdData.Args["token"][0]
 				data.RegionData = reg
 				return data

@@ -3,12 +3,12 @@ package cmd
 import (
 	"context"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/errorCode"
@@ -22,7 +22,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 		Arg(cmdBuilder.ProjectArgName, cmdBuilder.OptionalArg()).
 		HelpFlag(i18n.T(i18n.CmdHelpScopeProject)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			projectId, projectSet := cmdData.CliStorage.Data().ScopeProjectId.Get()
+			projectId, projectSet := cmdData.Profile.Data().ScopeProjectId.Get()
 			if projectSet {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
@@ -57,7 +57,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+			_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
 				data.ScopeProjectId = project.Id.ProjectIdNull()
 				return data
 			})

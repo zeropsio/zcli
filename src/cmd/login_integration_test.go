@@ -9,7 +9,7 @@ import (
 
 // TestLoginCommand_PersistsTokenAndRegion checks that `zcli login <token>
 // --region-url ...` resolves the region from the mocked region catalog,
-// fetches GetUserInfo, persists token + region to cliStorage, and prints a
+// fetches GetUserInfo, persists token + region to profile, and prints a
 // success message naming the user.
 func TestLoginCommand_PersistsTokenAndRegion(t *testing.T) {
 	f := newFixture(t)

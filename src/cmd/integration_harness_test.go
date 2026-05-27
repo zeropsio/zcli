@@ -23,15 +23,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/yamlReader"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-// fixture wires an httptest.Server, an isolated cliStorage path, and a
+// fixture wires an httptest.Server, an isolated profile path, and a
 // preconfigured RegionItem pointing at the test server. Use Run to drive the
 // CLI in-process and inspect stdout/stderr/exit code.
 type fixture struct {
@@ -83,11 +83,11 @@ func newFixture(t *testing.T) *fixture {
 	}
 }
 
-// SeedLogin writes a cliStorage file with the given token and the fixture's
+// SeedLogin writes a profile file with the given token and the fixture's
 // region item, simulating a previously completed `zcli login`.
 func (f *fixture) SeedLogin(token string) {
 	f.t.Helper()
-	data := cliStorage.Data{Token: token, RegionData: f.Region}
+	data := profile.Data{Token: token, RegionData: f.Region}
 	b, err := json.Marshal(data)
 	require.NoError(f.t, err, "marshal seed data")
 	require.NoError(f.t, os.WriteFile(f.DataPath, b, 0o600), "write seed data")
@@ -97,7 +97,7 @@ func (f *fixture) SeedLogin(token string) {
 // previously completed `zcli scope project ...`.
 func (f *fixture) SeedScopedLogin(token, projectID string) {
 	f.t.Helper()
-	data := cliStorage.Data{
+	data := profile.Data{
 		Token:          token,
 		RegionData:     f.Region,
 		ScopeProjectId: uuid.NewProjectIdNullFromString(projectID),
@@ -172,13 +172,13 @@ func (f *fixture) RunCtx(ctx context.Context, args ...string) result {
 	return result{Stdout: stdout.String(), Stderr: stderr.String(), ExitCode: code}
 }
 
-// LoadStorage reads back the persisted cliStorage data — useful for asserting
+// LoadStorage reads back the persisted profile data — useful for asserting
 // that a command updated state on disk.
-func (f *fixture) LoadStorage() cliStorage.Data {
+func (f *fixture) LoadStorage() profile.Data {
 	f.t.Helper()
 	b, err := os.ReadFile(f.DataPath)
 	require.NoError(f.t, err, "read storage")
-	var d cliStorage.Data
+	var d profile.Data
 	require.NoError(f.t, json.Unmarshal(b, &d), "unmarshal storage")
 	return d
 }

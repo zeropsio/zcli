@@ -5,12 +5,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/dto/input/body"
@@ -101,7 +101,7 @@ func vpnConfigCmd() *cmdBuilder.Cmd {
 				uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 			}
 
-			if _, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+			if _, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
 				if data.ProjectVpnKeyRegistry == nil {
 					data.ProjectVpnKeyRegistry = make(map[uuid.ProjectId]entity.VpnKey)
 				}

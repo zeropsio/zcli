@@ -9,13 +9,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/upgrade"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -24,12 +24,12 @@ import (
 )
 
 type GuestCmdData struct {
-	CliStorage *cliStorage.Handler
-	UxBlocks   *uxBlock.Blocks
-	Args       map[string][]string
-	Params     flagParams.ParamsReader
-	Stdout     printer.Printer
-	Stderr     printer.Printer
+	Profile  *profile.Handler
+	UxBlocks *uxBlock.Blocks
+	Args     map[string][]string
+	Params   flagParams.ParamsReader
+	Stdout   printer.Printer
+	Stderr   printer.Printer
 
 	PrintHelp func()
 }
@@ -51,7 +51,7 @@ func createCmdRunFunc(
 	cmd *Cmd,
 	flagParams *flagParams.Handler,
 	uxBlocks *uxBlock.Blocks,
-	cliStorage *cliStorage.Handler,
+	profile *profile.Handler,
 	stdout io.Writer,
 	stderr io.Writer,
 ) func(*cobra.Command, []string) error {
@@ -73,19 +73,19 @@ func createCmdRunFunc(
 		}
 
 		guestCmdData := &GuestCmdData{
-			CliStorage: cliStorage,
-			UxBlocks:   uxBlocks,
-			Args:       argsMap,
-			Params:     flagParams,
-			Stdout:     printer.NewPrinter(stdout),
-			Stderr:     printer.NewPrinter(stderr),
+			Profile:  profile,
+			UxBlocks: uxBlocks,
+			Args:     argsMap,
+			Params:   flagParams,
+			Stdout:   printer.NewPrinter(stdout),
+			Stderr:   printer.NewPrinter(stderr),
 
 			PrintHelp: func() {
 				cobraCmd.HelpFunc()(cobraCmd, []string{})
 			},
 		}
 
-		storedData := cliStorage.Data()
+		storedData := profile.Data()
 
 		token := storedData.Token
 		// An empty value (e.g. `export ZEROPS_TOKEN=` in a shell, or a

@@ -22,7 +22,7 @@ func logoutCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			_, err = cmdData.CliStorage.Clear()
+			_, err = cmdData.Profile.Clear()
 			if err != nil {
 				return err
 			}

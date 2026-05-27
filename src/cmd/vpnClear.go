@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
@@ -27,7 +27,7 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks.PrintWarningTextf("vpn down: %s", vpnDownErr)
 			}
 
-			if vpnKey, ok := cmdData.CliStorage.Data().ProjectVpnKeyRegistry[project.Id]; ok {
+			if vpnKey, ok := cmdData.Profile.Data().ProjectVpnKeyRegistry[project.Id]; ok {
 				wgKey, err := wgtypes.ParseKey(vpnKey.Key)
 				if err != nil {
 					return err
@@ -47,7 +47,7 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 
 				cmdData.UxBlocks.PrintSuccessTextf("Removed registered public key from project via API: %s", wgKey.PublicKey().String())
 
-				_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+				_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
 					delete(data.ProjectVpnKeyRegistry, project.Id)
 					cmdData.UxBlocks.PrintSuccessText("Deleted locally stored wg keys.")
 					return data

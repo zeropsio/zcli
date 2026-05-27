@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 
-	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/cmdRunner"
 	"github.com/zeropsio/zcli/src/constants"
@@ -16,6 +15,7 @@ import (
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -127,7 +127,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 
-			_, err = cmdData.CliStorage.Update(func(data cliStorage.Data) cliStorage.Data {
+			_, err = cmdData.Profile.Update(func(data profile.Data) profile.Data {
 				if data.ProjectVpnKeyRegistry == nil {
 					data.ProjectVpnKeyRegistry = make(map[uuid.ProjectId]entity.VpnKey)
 				}
