@@ -26,24 +26,38 @@ Commands are not declared directly against Cobra. Instead, `src/cmdBuilder` wrap
 
 Two run-function flavors are central to how commands behave:
 
-- `GuestRunFunc(func(ctx, *GuestCmdData) error)` — runs when there is no auth token. Has access to `CliStorage`, `UxBlocks`, parsed `Args`/`Params`, `Stdout`/`Stderr` printers.
-- `LoggedUserRunFunc(func(ctx, *LoggedUserCmdData) error)` — runs when a token is present (from `cliStorage` or the `CliTokenEnvVar` env var). Embeds `*GuestCmdData` and adds `RestApiClient` (a `zeropsRestApiClient.Handler` pointed at the configured region/host), plus optional resolved `Project`/`Service` entities and a `ProjectSelector`.
+- `GuestRunFunc(func(ctx, *GuestCmdData) error)` — runs when there is no auth token. Has access to `Profile` (a `*profile.Manager`), `UxBlocks`, parsed `Args`/`Params`, `Stdout`/`Stderr` printers.
+- `LoggedUserRunFunc(func(ctx, *LoggedUserCmdData) error)` — runs when a token is present (from the secrets backend via `Profile.Token()` or the `CliTokenEnvVar` env var). Embeds `*GuestCmdData` and adds `RestApiClient` (a `zeropsRestApiClient.Handler` pointed at the effective region/host), plus optional resolved `Project`/`Service` entities and a `ProjectSelector`.
 
 If only `GuestRunFunc` is defined, it runs for logged-in users too. If only `LoggedUserRunFunc` is defined and no token is set, the command exits with `UnauthenticatedUser`. Implementation: `src/cmdBuilder/createRunFunc.go`.
 
 ### Scope levels (`src/cmdBuilder/scopeProject.go`, `scopeService.go`)
 
-Commands that operate on a project or service set `.ScopeLevel(cmdBuilder.ScopeProject(...))` or `.ScopeLevel(cmdBuilder.ScopeService(...))`. The scope level adds the relevant flags/args and, before the run function executes, resolves the target by ID/name into `LoggedUserCmdData.Project` / `.Service` — possibly creating a new project/service interactively when `WithCreateNewProject()` / `WithCreateNewService()` are passed (see `serviceDeploy.go` for an example). Persisted "scope" (saved project) is read from `CliStorage.Data().ScopeProjectId`.
+Commands that operate on a project or service set `.ScopeLevel(cmdBuilder.ScopeProject(...))` or `.ScopeLevel(cmdBuilder.ScopeService(...))`. The scope level adds the relevant flags/args and, before the run function executes, resolves the target by ID/name into `LoggedUserCmdData.Project` / `.Service` — possibly creating a new project/service interactively when `WithCreateNewProject()` / `WithCreateNewService()` are passed (see `serviceDeploy.go` for an example). Persisted "scope" (saved project) lives in the per-repo profile and is read via `Profile.ScopeProject()`; outside a repo profile it returns `(_, false)` and the resolver falls through to the next source (flag, then interactive selector).
 
 ### Flag normalization
 
 `ExecuteRootCmd` sets a Cobra normalization function that converts camelCase flag names to kebab-case (`src/cmdBuilder/executeRootCmd.go`). Flags can be defined as camelCase in code and used as kebab-case on the CLI.
 
-### Persistent state and config
+### Persistent state (`src/profile`, `src/secrets`, `src/storage`)
 
-- `cliStorage` (`src/cliStorage`) wraps `storage.New[Data]` (`src/storage`) — a JSON-backed file used to persist the login token, region selection, saved project scope, and VPN key registry. Path comes from `constants.CliDataFilePath()`.
-- `constants` exposes platform-specific paths, env var names (e.g. `CliTokenEnvVar`), and the default region (used when no region is configured).
+Persisted state is split across two packages with very different concerns:
+
+- `src/profile` (`profile.Manager`) holds non-sensitive user state and exposes one coherent API across two layers. The **global** layer is `profile.json` at the user's CLI config dir (region, scoped project for legacy reads, preferred secrets backend mode); the **repo** layer (optional) is `<repo>/.zcli/profile.json` and carries per-repo overrides plus a stable `Id` used to scope per-repo secrets. Effective state is the field-level merge: repo wins per field. Reads go through `Manager.Region()` / `Manager.ScopeProject()` / `Manager.Token()`; writes use `UpdateGlobal` / `UpdateRepo` / `SetScopeProject` / `SetToken(...WithRepo())`.
+- `src/secrets` is an opaque key-value store for sensitive values (auth tokens, VPN private keys). Three backends behind one interface: `keyringBackend` (99designs/keyring wrapping OS keychains), `fileBackend` (plaintext JSON at mode 0600, for CI / headless / explicit opt-out), `memoryBackend` (tests). Mode selected via `ZEROPS_SECRETS_BACKEND` env var, then the profile's stored `SecretsBackend` field, then `ModeAuto` (prefer keyring, fall back to file with a one-time warning). Keys are built via `secrets.Key(secrets.GlobalScope, ...)` or `secrets.Key(secrets.RepoScope(id), ...)` — never construct key strings by hand.
+- `src/storage` is the small generic JSON-file primitive (`storage.New[T]`) the secrets `fileBackend` borrows from. The profile Manager does its own IO via `writeJSONAtomic` because it needs the layered + dual-path semantics.
+
+On-disk file resolution: `constants.CliProfileFilePath()` returns the canonical `profile.json` location (writable); `constants.CliLegacyDataFilePath()` probes legacy `cli.data` locations and returns the first existing one (or `("", false, nil)` on a clean install). `Manager.loadGlobal` reads `profile.json` if it exists, else falls back to `cli.data`, always writes `profile.json`, and leaves `cli.data` in place as a recovery backup. A `.v<N>.bak` snapshot of the live file is taken before any data-format migration writes over it.
+
+Data-format migrations live one struct per file (`data_v0.go`, `data_v1.go`, `data_v2.go`) with self-registered decoders via `init()` and per-step `Up(ctx) (any, error)` methods. The `dataCurrent` alias points at the latest; bumping a version is editing one line plus appending the new struct. `migrationCtx` carries the secrets backend, cwd, a `rescueScope` callback, and a log sink so migrations can drain plaintext fields into secrets, move state across layers, or emit one-time notices. The v0 → v1 step drained `Token` and `ProjectVpnKeyRegistry` into the secrets backend; v1 → v2 dropped `ScopeProjectId` from global and rescued it into a repo profile when cwd is inside a git repo without one.
+
+- `constants` exposes platform-specific paths, env var names (`CliTokenEnvVar`, `SecretsBackendEnvVar`, `CliSecretsFilePathEnvVar`, `CliCwdEnvVar`, `CliDataFilePathEnvVar`), and the default region.
 - Log file path comes from `constants.LogFilePath()`; loggers (`src/logger`) split human output from a debug file logger that captures `LogDebug`/error traces.
+
+### Profile commands (`src/cmd/profile.go`)
+
+- `zcli profile init` bootstraps a repo profile at `<repo>/.zcli/profile.json` (anchored at the nearest `.git/` ancestor) and appends `.zcli/` to the repo's `.gitignore`. Errors when run outside a git repo or when a repo profile already exists.
+- `zcli profile where` prints which layer each effective value comes from (global vs repo override) plus the storage locations and the secrets backend's self-description. Pure local introspection, no API calls.
 
 ### UX layer (`src/uxBlock`, `src/uxHelpers`, `src/printer`, `src/terminal`)
 
@@ -51,7 +65,7 @@ All terminal output and interactive prompts go through `uxBlock.Blocks` (constru
 
 ### API client and entities
 
-- `src/zeropsRestApiClient` constructs an authorized client around `github.com/zeropsio/zerops-go`. The host comes from the user's saved `RegionData.Address` or `constants.DefaultRegion`, prefixed with `https://`.
+- `src/zeropsRestApiClient` constructs an authorized client around `github.com/zeropsio/zerops-go`. The host comes from `Profile.Region().Address` (which respects repo overrides) or `constants.DefaultRegion`, prefixed with `https://`.
 - `src/entity` defines domain types (`Project`, `Service`, `AppVersion`, `Container`, `Process`, `Location`, `Org`, `VpnKey`). `src/entity/repository` contains query helpers (`GetProjectById`, etc.) layered on the REST client.
 - Errors from the API are unwrapped in `executeRootCmd.printError`: user-facing `errorsx.UserError`, structured `apiError.Error` (printed with YAML-formatted metadata), and Ctrl-C cancellations are each handled distinctly.
 
@@ -65,6 +79,10 @@ All terminal output and interactive prompts go through `uxBlock.Blocks` (constru
 - `src/flagParams` — typed param reader (`Params.GetBool/GetString/...`) bound from Cobra flags inside the run func.
 - `src/optional` — `Null[T]` type used by `LoggedUserCmdData.Project`/`Service`.
 - `src/gn` — small generic helpers (`TransformSlice`, etc.).
+
+### Integration tests (`src/cmd/integration_harness_test.go`)
+
+`newFixture(t)` stands up an `httptest.Server`, per-test temp paths for the profile / secrets / log / yaml files, and a fake `.git/` repo directory; sets the corresponding env vars (`ZEROPS_CLI_DATA_FILE_PATH`, `ZEROPS_CLI_SECRETS_FILE_PATH`, `ZEROPS_CLI_CWD`, `ZEROPS_SECRETS_BACKEND=plaintext`, ...) so the CLI's `createProfile` resolves everything to the temp dir and never touches the host keyring. `SeedLogin(token)` writes the global profile + a plaintext secrets file with the token; `SeedScopedLogin(token, projectID)` additionally writes a repo profile carrying the scope. Drive the CLI in-process via `fixture.Run(args...)`; inspect on-disk state via `LoadStorage()` (profile JSON) and `LoadSecrets()` (plaintext secrets map). The harness's `version` field on `profile.Data` is always stamped to `profile.CurrentDataVersion` so the migration code path doesn't fire on freshly-seeded fixtures.
 
 ## Adding a new command
 
