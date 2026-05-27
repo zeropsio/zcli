@@ -64,7 +64,9 @@ func TestLoadV0File_DrainsTokenAndVpnKeys(t *testing.T) {
 	require.NotContains(t, onDisk, "ProjectVpnKeyRegistry", "legacy plaintext vpn keys must be gone from disk")
 	require.NotContains(t, onDisk, "project_vpn_key_registry", "vpn keys must never appear in profile JSON")
 	require.NotContains(t, onDisk, "scope_project_id", "scope_project_id moved to repo profile in v2")
-	require.Equal(t, "prg1", onDisk["region"].(map[string]any)["name"])
+	region, ok := onDisk["region"].(map[string]any)
+	require.True(t, ok, "region must be an object on disk")
+	require.Equal(t, "prg1", region["name"])
 }
 
 // TestManager_SetTokenAndClear covers the round-trip through the secrets backend plus the
@@ -129,7 +131,7 @@ func TestDiscoverRepoProfileDir_StopsAtGitBoundary(t *testing.T) {
 
 	got, err := DiscoverRepoProfileDir(innerRepo)
 	require.NoError(t, err)
-	require.Equal(t, "", got, "inner repo has no profile and the .git/ boundary blocks the outer one")
+	require.Empty(t, got, "inner repo has no profile and the .git/ boundary blocks the outer one")
 }
 
 // TestMigration_V1_RescuesScopeIntoRepoProfile asserts the v1 → v2 migration writes a new repo
@@ -171,9 +173,11 @@ func TestMigration_V1_RescuesScopeIntoRepoProfile(t *testing.T) {
 	var repoOnDisk map[string]any
 	require.NoError(t, json.Unmarshal(repoFile, &repoOnDisk))
 	require.Equal(t, "default", repoOnDisk["active_profile"])
-	profiles := repoOnDisk["profiles"].([]any)
+	profiles, ok := repoOnDisk["profiles"].([]any)
+	require.True(t, ok, "profiles must be an array on disk")
 	require.Len(t, profiles, 1)
-	entry := profiles[0].(map[string]any)
+	entry, ok := profiles[0].(map[string]any)
+	require.True(t, ok, "first profile must be an object on disk")
 	require.Equal(t, "default", entry["name"])
 	require.NotEmpty(t, entry["id"], "default profile must have a generated id")
 	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", entry["scope_project_id"])
@@ -203,7 +207,7 @@ func TestLegacyDataFile_MigratesToProfileJson(t *testing.T) {
 	// New file written, legacy left in place verbatim.
 	newBytes, err := os.ReadFile(newPath)
 	require.NoError(t, err)
-	require.Greater(t, len(newBytes), 0, "new profile.json should hold migrated state")
+	require.NotEmpty(t, newBytes, "new profile.json should hold migrated state")
 
 	legacyAfter, err := os.ReadFile(legacyPath)
 	require.NoError(t, err)
