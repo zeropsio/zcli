@@ -176,9 +176,65 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope service: not set"))
 			}
 
-			cmdData.UxBlocks.PrintInfoText("Remaining details (token) will be wired up in follow-up steps.")
+			token, err := promptProfileToken(ctx)
+			if err != nil {
+				return err
+			}
+			if token != "" {
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: provided (masked)"))
+			} else {
+				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: not set (will use global at read time)"))
+			}
+
+			cmdData.UxBlocks.PrintInfoText("Final entry creation will be wired up in the follow-up step.")
 			return nil
 		})
+}
+
+// promptProfileToken is the fifth step of the builder: pre-fill the per-profile auth token.
+// Two-button prompt with masked input on Enter so the token never appears on screen, even
+// briefly. Empty input on the masked prompt counts as "skip" so a fat-fingered Enter doesn't
+// stash an empty string in the secrets backend.
+func promptProfileToken(ctx context.Context) (string, error) {
+	idx, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Pre-fill auth token for this profile?",
+			[]string{"Skip", "Paste token"},
+			prompt.WithChoiceDescriptions([]string{
+				"Leave the per-profile token unset. Manager.Token() falls through to the global token at read time, so the new profile reuses whatever the user is globally logged in with.",
+				"Paste an auth token now. Stored under the new profile's RepoScope(id) in the secrets backend so the rest of zcli will use it whenever this profile is active. Input is masked.",
+			}),
+		),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return "", err
+	}
+	if idx == 0 {
+		return "", nil
+	}
+
+	label := styles.NewStringBuilder()
+	label.WriteString("Paste ")
+	label.WriteStyledString(styles.SelectStyle().Bold(true), "auth token")
+	label.WriteString(" (masked)")
+
+	raw, err := uxBlock.Run(
+		input.NewRoot(
+			ctx,
+			input.WithLabel(label.String()),
+			input.WithoutPrompt(),
+			input.WithEchoMasked(),
+		),
+		input.GetValueFunc,
+	)
+	if err != nil {
+		return "", err
+	}
+	// Empty input is treated as "I changed my mind" - we don't stash an empty string in the
+	// secrets backend, the user can re-run create or use `zcli login` later.
+	return strings.TrimSpace(raw), nil
 }
 
 // profileScopeChoices is the result of the scope prompt step. Both fields default to their

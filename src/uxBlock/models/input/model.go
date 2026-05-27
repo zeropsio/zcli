@@ -68,6 +68,16 @@ func WithPrompt(prompt string) Option {
 	}
 }
 
+// WithEchoMasked switches the input to password mode: typed characters render as the textinput
+// default mask ('*') instead of the literal glyph. Use for secret values like API tokens so
+// shoulder-surfers and screen recordings don't catch the raw value. The model's Value() still
+// returns the unmasked string.
+func WithEchoMasked() Option {
+	return func(m *Model) {
+		m.input.EchoMode = textinput.EchoPassword
+	}
+}
+
 //nolint:predeclared
 func WithMinMaxWidth(min, max int) Option {
 	return func(m *Model) {
