@@ -14,8 +14,10 @@ func scopeResetCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescScopeReset)).
 		HelpFlag(i18n.T(i18n.CmdHelpScopeReset)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
-			err := cmdBuilder.ProjectScopeReset(cmdData)
-			if err != nil {
+			if err := cmdBuilder.ProjectScopeReset(cmdData); err != nil {
+				return err
+			}
+			if err := cmdBuilder.ServiceScopeReset(cmdData); err != nil {
 				return err
 			}
 

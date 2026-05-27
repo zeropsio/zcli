@@ -134,6 +134,7 @@ func printProfileWhere(cmdData *cmdBuilder.GuestCmdData) error {
 	out.Println(formatRow("  region", regionLine(mgr)))
 	out.Println(formatRow("  token", tokenLine(mgr)))
 	out.Println(formatRow("  scope project", scopeLine(mgr)))
+	out.Println(formatRow("  scope service", scopeServiceLine(mgr)))
 	return nil
 }
 
@@ -167,6 +168,14 @@ func tokenLine(mgr *profile.Manager) string {
 
 func scopeLine(mgr *profile.Manager) string {
 	id, ok := mgr.ScopeProject()
+	if !ok {
+		return "(not set)"
+	}
+	return id.Native() + "  (from repo)"
+}
+
+func scopeServiceLine(mgr *profile.Manager) string {
+	id, ok := mgr.ScopeService()
 	if !ok {
 		return "(not set)"
 	}

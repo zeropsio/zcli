@@ -63,6 +63,23 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 	var service entity.Service
 	var err error
 
+	// service scope is set (repo profile only) - resolve before flag/arg lookups so an explicit
+	// override still wins
+	if serviceId, ok := cmdData.Profile.ScopeService(); ok {
+		service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, serviceId)
+		if err != nil {
+			if errorsx.Is(err, errorsx.ErrorCode(errorCode.ServiceStackNotFound)) {
+				if resetErr := ServiceScopeReset(cmdData); resetErr != nil {
+					return resetErr
+				}
+			} else {
+				return err
+			}
+		} else {
+			cmdData.Service = optional.New(service)
+		}
+	}
+
 	// service id is passed as a flag
 	if serviceId := cmdData.Params.GetString(serviceFlagName); serviceId != "" {
 		service, err = repository.GetServiceById(

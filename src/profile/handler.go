@@ -286,6 +286,32 @@ func (m *Manager) SetScopeProject(id zuuid.ProjectIdNull) error {
 	return m.saveRepoFile()
 }
 
+// ScopeService returns the scoped service id from the active repo profile (if any). Like
+// ScopeProject, scope is per-repo - there is no global fallback. Returns (zero, false) outside
+// a repo profile or when no scope is set on the active entry.
+func (m *Manager) ScopeService() (zuuid.ServiceStackId, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	p, ok := m.activeProfile()
+	if !ok || !p.ScopeServiceId.Filled() {
+		return "", false
+	}
+	id, _ := p.ScopeServiceId.Get()
+	return id, true
+}
+
+// SetScopeService persists a scoped service to the active repo profile. Errors when no repo
+// profile is initialised - same rule as SetScopeProject.
+func (m *Manager) SetScopeService(id zuuid.ServiceStackIdNull) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err := m.requireRepo(); err != nil {
+		return err
+	}
+	m.activeProfilePtr().ScopeServiceId = id
+	return m.saveRepoFile()
+}
+
 // InitRepo creates a fresh repo profile rooted at the nearest .git ancestor of cwd, seeded
 // with a single profile named DefaultRepoProfileName. Errors when cwd is not inside a git repo
 // or a repo profile already exists. Returns the directory the profile file was created in.

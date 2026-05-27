@@ -15,10 +15,11 @@ import (
 // "version" JSON field and StampVersion hook.
 type repoProfileV1 struct {
 	versionedjson.Probe
-	Name           string             `json:"name"`
-	Id             string             `json:"id"`
-	ScopeProjectId uuid.ProjectIdNull `json:"scope_project_id,omitempty"`
-	Region         *regionV1          `json:"region,omitempty"`
+	Name           string                  `json:"name"`
+	Id             string                  `json:"id"`
+	ScopeProjectId uuid.ProjectIdNull      `json:"scope_project_id,omitempty"`
+	ScopeServiceId uuid.ServiceStackIdNull `json:"scope_service_id,omitempty"`
+	Region         *regionV1               `json:"region,omitempty"`
 }
 
 func init() {

@@ -11,5 +11,6 @@ func scopeCmd() *cmdBuilder.Cmd {
 		Short(i18n.T(i18n.CmdDescScope)).
 		HelpFlag(i18n.T(i18n.CmdHelpScope)).
 		AddChildrenCmd(scopeProjectCmd()).
+		AddChildrenCmd(scopeServiceCmd()).
 		AddChildrenCmd(scopeResetCmd())
 }

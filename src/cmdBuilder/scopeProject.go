@@ -228,3 +228,13 @@ func ProjectScopeReset(cmdData *LoggedUserCmdData) error {
 	}
 	return cmdData.Profile.SetScopeProject(uuid.ProjectIdNull{})
 }
+
+// ServiceScopeReset clears the persisted service scope on the active repo profile. No-op when
+// no repo profile is in place (matches ProjectScopeReset's behaviour - reset commands stay
+// safe to invoke even outside a repo).
+func ServiceScopeReset(cmdData *LoggedUserCmdData) error {
+	if !cmdData.Profile.HasRepo() {
+		return nil
+	}
+	return cmdData.Profile.SetScopeService(uuid.ServiceStackIdNull{})
+}
