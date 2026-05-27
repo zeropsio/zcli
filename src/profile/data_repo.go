@@ -14,10 +14,9 @@ const CurrentRepoVersion = 1
 // init`, and the suggested name for the first entry users keep around.
 const DefaultRepoProfileName = "default"
 
-// RepoFile is the in-memory + write-side shape of the repo profile file. Type definition
-// rather than alias so it can grow its own methods independently from the load-time shape;
-// the field layout matches repoFileCurrent (including the embedded versionedjson.Probe), so
-// RepoFile inherits the auto-stamp hook via the embedding.
+// RepoFile is the in-memory + write-side shape of the repo profile file. Type alias to
+// repoFileV1 (the current target) so bumping the version is a single-line flip; the
+// embedded versionedjson.Probe carries the auto-stamp hook through.
 type RepoFile = repoFileV1
 
 // repoFileSchema dispatches loads on the file wrapper version (active_profile + profiles[]).

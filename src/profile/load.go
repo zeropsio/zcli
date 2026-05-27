@@ -168,10 +168,10 @@ func (m *Manager) loadRepo() error {
 		return errors.Wrapf(err, "load repo profile %s", path)
 	}
 
-	// fileResult.Value.Profiles is already []repoProfileCurrent: each repoFileVN statically
-	// holds []repoProfileVN, and the cascade rule (see "Cascading" in handler.go's package
-	// doc) means bumping the entry version requires bumping the file wrapper, so by the time
-	// Load returns we're at the current child shape. Any per-entry promotion happens inside
+	// fileResult.Value.Profiles is already []RepoProfile: each repoFileVN statically holds
+	// []repoProfileVN, and the cascade rule (see "Cascading" in handler.go's package doc)
+	// means bumping the entry version requires bumping the file wrapper, so by the time Load
+	// returns we're at the current child shape. Any per-entry promotion happens inside
 	// repoFileVN.Up via versionedjson.Migrate(repoProfileSchema, ...), captured in
 	// fileResult.Migrated - no second loop needed here.
 	rf := fileResult.Value

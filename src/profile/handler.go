@@ -62,7 +62,7 @@
 //
 // The repo-file chain embeds the repo-profile chain statically: repoFileV1.Profiles is
 // []repoProfileV1, repoFileVN.Profiles is []repoProfileVN. Whenever you add repoProfileV(N+1)
-// you MUST also add repoFileV(N+1) and flip repoFileCurrent + RepoFile to it, otherwise the
+// you MUST also add repoFileV(N+1) and flip the RepoFile alias to it, otherwise the
 // in-memory and on-disk Profiles slice element type still pins to the older child shape and
 // fresh writes can't even carry the new fields. The new repoFileV(N+1).Up needs to walk each
 // entry through versionedjson.Migrate(repoProfileSchema, ...) to convert old-shape entries

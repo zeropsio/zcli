@@ -7,8 +7,12 @@
 //
 // Each document type owns one Schema instance, typically a package-level var:
 //
-//	var globalSchema = versionedjson.New[dataCurrent, migrationCtx](CurrentDataVersion).
+//	var globalSchema = versionedjson.New[Data, migrationCtx](CurrentDataVersion).
 //	    WithMissingVersion(0)
+//
+// The first type parameter is the schema's current target type - parameterise it on the
+// exported alias (Data here) rather than introducing a separate "Current" name; the package's
+// own conventions don't use a <type>Current alias layer.
 //
 // Every version's file registers its decoder in init():
 //
