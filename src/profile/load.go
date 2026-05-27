@@ -69,7 +69,7 @@ func (m *Manager) loadGlobal() error {
 			return errors.Wrap(err, "rewrite global profile in current schema after migration")
 		}
 		if fromLegacy && m.cfg.Log != nil {
-			m.cfg.Log("migrated " + readPath + " to " + m.cfg.GlobalPath + "; the legacy file is preserved unchanged in case you need to roll back")
+			m.cfg.Log("Migrated " + readPath + " to " + m.cfg.GlobalPath + "; the legacy file is preserved unchanged in case you need to roll back")
 		}
 	}
 	return nil
@@ -134,7 +134,7 @@ func (m *Manager) rescueScope(scope zuuid.ProjectIdNull) (bool, error) {
 	m.repoFile = rf
 	m.active = 0
 	if m.cfg.Log != nil {
-		m.cfg.Log("scoped project moved into " + path + " (run `git ignore .zcli/` or add .zcli/ to .gitignore to keep secrets out of source control)")
+		m.cfg.Log("Scoped project moved into " + path + " (run `git ignore .zcli/` or add .zcli/ to .gitignore to keep secrets out of source control)")
 	}
 	return true, nil
 }

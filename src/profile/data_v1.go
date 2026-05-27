@@ -39,7 +39,7 @@ func (d dataV1) Up(ctx migrationCtx) (any, error) {
 		}
 		if !rescued && ctx.log != nil {
 			id, _ := d.ScopeProjectId.Get()
-			ctx.log("previously-scoped project " + id.Native() + " was cleared from global state; re-set it inside a repo with `zcli scope project <id>`")
+			ctx.log("Previously-scoped project " + id.Native() + " was cleared from global state; re-set it inside a repo with `zcli scope project <id>`")
 		}
 	}
 	return dataV2{
