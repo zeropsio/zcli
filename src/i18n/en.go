@@ -263,6 +263,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	VerboseFlag:           "If set, additional data will be logged to the zcli debug log file.",
 	ZeropsYamlSetup:       "Choose setup to be used from zerops.yml.",
 	DisableLogs:           "Disable log output.",
+	OutputFormatFlag:      "Output format. Supported: table, json, csv.",
 
 	// archiveClient
 	ArchClientWorkingDirectory:  "working directory: %s",

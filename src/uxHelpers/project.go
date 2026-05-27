@@ -11,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
+	"github.com/zeropsio/zcli/src/output"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
@@ -96,6 +97,7 @@ func PrintProjectList(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 	out io.Writer,
+	format output.Format,
 ) error {
 	projects, err := repository.GetAllProjects(ctx, restApiClient)
 	if err != nil {
@@ -104,10 +106,36 @@ func PrintProjectList(
 
 	header, body := createProjectTableRows(projects, false)
 
-	t := table.Render(body, table.WithHeader(header))
+	headers := extractHeaders(header)
+	rows := extractRows(body)
 
-	_, err = fmt.Fprintln(out, t)
+	result, err := output.PrintData(headers, rows, format)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintln(out, result)
 	return err
+}
+
+func extractHeaders(header *table.Row) []string {
+	var h []string
+	for _, c := range header.Cells() {
+		h = append(h, c.String())
+	}
+	return h
+}
+
+func extractRows(body *table.Body) [][]string {
+	var rows [][]string
+	for _, r := range body.Rows() {
+		var row []string
+		for _, c := range r.Cells() {
+			row = append(row, c.String())
+		}
+		rows = append(rows, row)
+	}
+	return rows
 }
 
 func createProjectTableRows(projects []entity.Project, createNewProject bool) (*table.Row, *table.Body) {

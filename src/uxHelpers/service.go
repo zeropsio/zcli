@@ -11,6 +11,7 @@ import (
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/optional"
+	"github.com/zeropsio/zcli/src/output"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
@@ -75,6 +76,7 @@ func PrintServiceList(
 	restApiClient *zeropsRestApiClient.Handler,
 	out io.Writer,
 	project entity.Project,
+	format output.Format,
 ) error {
 	services, err := repository.GetNonSystemServicesByProject(ctx, restApiClient, project)
 	if err != nil {
@@ -83,9 +85,15 @@ func PrintServiceList(
 
 	header, body := createServiceTableRows(services, false)
 
-	t := table.Render(body, table.WithHeader(header))
+	headers := extractHeaders(header)
+	rows := extractRows(body)
 
-	_, err = fmt.Fprintln(out, t)
+	result, err := output.PrintData(headers, rows, format)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintln(out, result)
 	return err
 }
 

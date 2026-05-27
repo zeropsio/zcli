@@ -237,6 +237,7 @@ const (
 	VerboseFlag           = "VerboseFlag"
 	ZeropsYamlSetup       = "ZeropsYamlSetup"
 	DisableLogs           = "DisableLogs"
+	OutputFormatFlag      = "OutputFormatFlag"
 
 	// archiveClient
 	ArchClientWorkingDirectory  = "ArchClientWorkingDirectory"
