@@ -15,6 +15,7 @@ import (
 	"github.com/zeropsio/zcli/src/file"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/nettools"
+	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -125,7 +126,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 
-			if err := cmdData.Profile.SetVpnKey(project.Id, entity.VpnKey{
+			if err := cmdData.Profile.SetVpnKey(project.Id, profile.VpnKey{
 				ProjectId: project.Id,
 				Key:       privateKey.String(),
 				CreatedAt: time.Now(),

@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zcli/src/versionedjson"
@@ -20,7 +19,7 @@ type dataV0 struct {
 	Token                 string
 	RegionData            region.Item
 	ScopeProjectId        uuid.ProjectIdNull
-	ProjectVpnKeyRegistry map[uuid.ProjectId]entity.VpnKey
+	ProjectVpnKeyRegistry map[uuid.ProjectId]vpnKeyV0
 }
 
 func init() {
@@ -41,7 +40,9 @@ func (d dataV0) Up(ctx migrationCtx) (any, error) {
 		}
 	}
 	for projectId, key := range d.ProjectVpnKeyRegistry {
-		payload, err := json.Marshal(key)
+		upgraded := vpnKeyV1{Key: key.Key, ProjectId: key.ProjectId, CreatedAt: key.CreatedAt}
+		upgraded.StampVersion(CurrentVpnKeyVersion)
+		payload, err := json.Marshal(upgraded)
 		if err != nil {
 			return nil, errors.Wrapf(err, "v0 → v1: marshal vpn key for project %s", projectId.Native())
 		}

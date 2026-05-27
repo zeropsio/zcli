@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/secrets"
 	zuuid "github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -89,21 +88,26 @@ func (m *Manager) Clear() (Data, error) {
 }
 
 // VpnKey returns the cached VPN key for a project. VPN keys are global only - a project's key
-// is the same regardless of which repo asks for it.
-func (m *Manager) VpnKey(projectId zuuid.ProjectId) (entity.VpnKey, bool, error) {
+// is the same regardless of which repo asks for it. Values written by older zcli versions
+// (no "version" key, default Go field names) decode through vpnKeyV0 and Up into the current
+// shape before being returned.
+func (m *Manager) VpnKey(projectId zuuid.ProjectId) (VpnKey, bool, error) {
 	raw, ok, err := m.secrets.Get(vpnKeyPath(projectId))
 	if err != nil || !ok {
-		return entity.VpnKey{}, ok, err
+		return VpnKey{}, ok, err
 	}
-	var k entity.VpnKey
-	if err := json.Unmarshal([]byte(raw), &k); err != nil {
-		return entity.VpnKey{}, false, errors.Wrapf(err, "decode cached vpn key for project %s", projectId.Native())
+	result, err := vpnKeySchema.Load([]byte(raw), migrationCtx{})
+	if err != nil {
+		return VpnKey{}, false, errors.Wrapf(err, "decode cached vpn key for project %s", projectId.Native())
 	}
-	return k, true, nil
+	return result.Value, true, nil
 }
 
-// SetVpnKey writes (or overwrites) the cached VPN key for a project.
-func (m *Manager) SetVpnKey(projectId zuuid.ProjectId, key entity.VpnKey) error {
+// SetVpnKey writes (or overwrites) the cached VPN key for a project. Always written in the
+// current on-disk shape with a fresh version stamp; legacy values keep their old shape until
+// they're next replaced.
+func (m *Manager) SetVpnKey(projectId zuuid.ProjectId, key VpnKey) error {
+	key.StampVersion(CurrentVpnKeyVersion)
 	payload, err := json.Marshal(key)
 	if err != nil {
 		return errors.WithStack(err)
