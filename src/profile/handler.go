@@ -228,13 +228,18 @@ func (m *Manager) loadGlobal() error {
 }
 
 // pickGlobalReadPath chooses which file to load the global profile from. Prefers GlobalPath
-// when it exists; falls back to LegacyGlobalPath only when GlobalPath is absent. Returns
-// ("", false, nil) when there is no file on either path - that's a clean install, not an
-// error. The bool reports whether the picked path was the legacy one, which the caller uses
-// to decide between in-place backup and legacy-preservation.
+// when it has real content; treats an empty GlobalPath as "no file" so the writability-probe
+// side effect from constants.checkPath (which leaves an empty profile.json behind) doesn't
+// shadow a legitimate legacy cli.data with the user's actual state. Falls back to
+// LegacyGlobalPath when GlobalPath is absent or empty. Returns ("", false, nil) when neither
+// path has usable content - that's a clean install, not an error. The bool reports whether
+// the picked path was the legacy one, which the caller uses to decide between in-place
+// backup and legacy-preservation.
 func (m *Manager) pickGlobalReadPath() (string, bool, error) {
-	if _, err := os.Stat(m.cfg.GlobalPath); err == nil {
-		return m.cfg.GlobalPath, false, nil
+	if info, err := os.Stat(m.cfg.GlobalPath); err == nil {
+		if info.Size() > 0 {
+			return m.cfg.GlobalPath, false, nil
+		}
 	} else if !os.IsNotExist(err) {
 		return "", false, errors.WithStack(err)
 	}

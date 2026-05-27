@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/secrets"
 )
 
@@ -201,6 +202,83 @@ func TestLegacyDataFile_MigratesToProfileJson(t *testing.T) {
 	legacyAfter, err := os.ReadFile(legacyPath)
 	require.NoError(t, err)
 	require.Equal(t, v1, legacyAfter, "legacy cli.data must be preserved unchanged as a recovery backup")
+}
+
+// TestLegacyDataFile_LoadedWhenNewProfileJsonIsEmptyProbe reproduces a production bug: in real
+// usage constants.CliProfileFilePath calls checkPath with O_CREATE as a writability probe,
+// which leaves an empty profile.json at the new location BEFORE Manager ever runs. pickGlobalReadPath
+// then sees that empty file, picks it, and loadGlobal bails out on size 0 - the legacy cli.data
+// with the user's real data is never read. The user's profile appears silently empty after the upgrade.
+//
+// Expected behaviour: an empty file at the new path must be treated as "no real state yet" and
+// the legacy path must be tried as the fallback.
+func TestLegacyDataFile_LoadedWhenNewProfileJsonIsEmptyProbe(t *testing.T) {
+	dir := t.TempDir()
+	legacyPath := filepath.Join(dir, "cli.data")
+	newPath := filepath.Join(dir, "profile.json")
+
+	// Simulate the side effect of constants.CliProfileFilePath: an empty file already exists
+	// at the new path from a prior writability probe.
+	require.NoError(t, os.WriteFile(newPath, []byte{}, 0o600))
+
+	v1 := []byte(`{"version":1,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"}}`)
+	require.NoError(t, os.WriteFile(legacyPath, v1, 0o600))
+
+	m, err := NewManager(Config{
+		GlobalPath:       newPath,
+		GlobalMode:       0o600,
+		LegacyGlobalPath: legacyPath,
+		Cwd:              dir,
+		Secrets:          secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "prg1", m.Data().Region.Name, "legacy data must be loaded when profile.json exists but is empty (probe side effect)")
+}
+
+// TestConstants_CliProfileFilePath_DoesNotShadowLegacy is the end-to-end variant. It calls the
+// production constants functions and then constructs Manager exactly as cmdBuilder.createProfile
+// does, with no env var set so the real OS-config-dir candidates run. The temp HOME isolates
+// the test from the developer's actual config.
+//
+// Reproduces the full bug chain: CliProfileFilePath probes and creates an empty profile.json
+// at $HOME/.config/zerops/profile.json, then Manager loadGlobal silently ignores the seeded
+// legacy cli.data sitting next to it.
+func TestConstants_CliProfileFilePath_DoesNotShadowLegacy(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	t.Setenv(constants.CliDataFilePathEnvVar, "") // make sure env override is off so OS dir is used
+
+	// Use the real os.UserConfigDir so the test seeds at the same location the receivers
+	// look up (darwin's "Library/Application Support" vs linux's ".config" - both resolve
+	// against the redirected HOME).
+	osConfigDir, err := os.UserConfigDir()
+	require.NoError(t, err)
+	configDir := filepath.Join(osConfigDir, constants.ZeropsDir)
+	require.NoError(t, os.MkdirAll(configDir, 0o755))
+
+	// Seed a real legacy cli.data with v1 content the user would have from prior zcli.
+	legacyPath := filepath.Join(configDir, constants.CliDataFileNameOld)
+	v1 := []byte(`{"version":1,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"}}`)
+	require.NoError(t, os.WriteFile(legacyPath, v1, 0o600))
+
+	// Now run the production resolution dance.
+	newPath, mode, err := constants.CliProfileFilePath()
+	require.NoError(t, err)
+	foundLegacy, ok, err := constants.CliLegacyDataFilePath()
+	require.NoError(t, err)
+	require.True(t, ok, "legacy lookup should find the seeded cli.data")
+	require.Equal(t, legacyPath, foundLegacy)
+
+	m, err := NewManager(Config{
+		GlobalPath:       newPath,
+		GlobalMode:       mode,
+		LegacyGlobalPath: foundLegacy,
+		Cwd:              home,
+		Secrets:          secrets.NewMemory(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "prg1", m.Data().Region.Name, "user's region from cli.data must survive the upgrade even though CliProfileFilePath created an empty profile.json")
 }
 
 // TestLegacyDataFile_IgnoredWhenNewFileExists asserts the new GlobalPath wins when both files
