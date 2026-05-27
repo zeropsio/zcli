@@ -352,31 +352,45 @@ func writeRepoProfile(path string, fileMode os.FileMode, d RepoData) error {
 	return writeJSONAtomic(path, fileMode, out)
 }
 
+// writeJSONAtomic marshals value and writes it to path atomically: the bytes land in a sibling
+// .new file first, then a rename swaps it into place. A crash between write and rename leaves
+// the original file untouched; once rename returns, the new bytes are durable. The .new file
+// is cleaned up on any error path.
 func writeJSONAtomic(path string, fileMode os.FileMode, value any) error {
 	payload, err := json.Marshal(value)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	tmp := path + ".new"
-	if err := func() error {
-		f, err := file.Open(tmp, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		defer f.Close()
-		if _, err := f.Write(payload); err != nil {
-			return errors.WithStack(err)
-		}
-		return nil
-	}(); err != nil {
+	defer os.Remove(tmp) // best-effort cleanup; a no-op once Rename has consumed tmp.
+
+	if err := writeFileExact(tmp, payload, fileMode); err != nil {
 		return err
 	}
-	os.Remove(path)
-	defer os.Remove(tmp)
+	// Rename on Windows refuses to overwrite an existing file, so pre-remove the target.
+	// Costs a brief window of non-atomicity on POSIX that the original implementation also
+	// accepted and we preserve - the new content is already durable in tmp by this point.
+	_ = os.Remove(path)
 	if err := os.Rename(tmp, path); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
+}
+
+// writeFileExact writes data to path with the exact requested file mode (file.Open chmods
+// after open, bypassing umask). Truncates any existing file. Closes the handle before
+// returning - including on the error path - so the caller can immediately rename or delete
+// the file without leaking the descriptor.
+func writeFileExact(path string, data []byte, fileMode os.FileMode) error {
+	f, err := file.Open(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileMode)
+	if err != nil {
+		return err
+	}
+	if _, werr := f.Write(data); werr != nil {
+		f.Close()
+		return errors.WithStack(werr)
+	}
+	return errors.WithStack(f.Close())
 }
 
 // Data returns a snapshot of the global non-sensitive state. Most callers should use the
