@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
@@ -92,35 +93,24 @@ func GetNonSystemServicesByProject(
 	restApiClient *zeropsRestApiClient.Handler,
 	project entity.Project,
 ) ([]entity.Service, error) {
-	esFilter := body.EsFilter{
-		Search: []body.EsSearchItem{
-			{
-				Name:     "projectId",
-				Operator: "eq",
-				Value:    project.Id.TypedString(),
-			},
-			{
-				Name:     "clientId",
-				Operator: "eq",
-				Value:    project.OrgId.TypedString(),
-			},
-		},
-	}
-
-	servicesResponse, err := restApiClient.PostServiceStackSearch(ctx, esFilter)
+	response, err := restApiClient.GetProjectServiceStack(
+		ctx,
+		path.ProjectId{Id: project.Id},
+		query.ListProjectServiceStacks{},
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	servicesOutput, err := servicesResponse.Output()
+	serviceList, err := response.Output()
 	if err != nil {
 		return nil, err
 	}
 
-	services := make([]entity.Service, 0, len(servicesOutput.Items))
-	for _, service := range servicesOutput.Items {
+	services := make([]entity.Service, 0, len(serviceList.List))
+	for _, service := range serviceList.List {
 		if !service.IsSystem {
-			services = append(services, serviceFromEsSearch(service))
+			services = append(services, serviceFromApiOutput(service))
 		}
 	}
 
@@ -133,15 +123,15 @@ func PostGenericService(
 	post entity.PostService,
 ) (entity.Process, entity.Service, error) {
 	postBody := body.PostStandardServiceStack{
-		Name:             post.Name,
-		Mode:             &post.Mode,
+			Name:             post.Name,
+			Mode:             post.Mode.StringNull(),
 		UserDataEnvFile:  post.EnvFile,
 		StartWithoutCode: types.NewBoolNull(post.StartWithoutCode.Native()),
 		EnvIsolation:     post.EnvIsolation,
 		SshIsolation:     post.SshIsolation,
 		Location:         post.Location,
 	}
-	response, err := restApiClient.PostProjectServiceStack(
+	response, err := restApiClient.PostProjectServiceStackOld(
 		ctx,
 		path.ServiceStackServiceStackTypeVersionId{
 			Id:                        post.ProjectId,
@@ -160,19 +150,6 @@ func PostGenericService(
 
 	return processFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
 }
-func serviceFromEsSearch(esServiceStack output.EsServiceStack) entity.Service {
-	return entity.Service{
-		Id:                          esServiceStack.Id,
-		ProjectId:                   esServiceStack.ProjectId,
-		OrgId:                       esServiceStack.ClientId,
-		Name:                        esServiceStack.Name,
-		Status:                      esServiceStack.Status,
-		ServiceTypeId:               esServiceStack.ServiceStackTypeId,
-		ServiceTypeCategory:         esServiceStack.ServiceStackTypeInfo.ServiceStackTypeCategory,
-		ServiceStackTypeVersionName: esServiceStack.ServiceStackTypeInfo.ServiceStackTypeVersionName,
-	}
-}
-
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
 	return entity.Service{
 		Id:                          service.Id,

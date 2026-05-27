@@ -20,10 +20,9 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/apiError"
+		"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/stringId"
 )
 
@@ -37,7 +36,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("name", "", "Service name").
-		StringFlag("mode", enumDefaultForFlag(enum.ServiceStackModeEnumNonHa), "Service mode "+enumValuesForFlag(enum.ServiceStackModeEnumAllPublic())).
+		StringFlag("mode", "NON_HA", "Service mode [HA, NON_HA]").
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ServiceFields)).
 		StringFlag("env-file", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml). Max file size is "+units.ByteCountIEC(maxEnvFileSize)).
 		StringFlag("env-isolation", "service", "Env isolation rule [service, none] for more info see docs https://docs.zerops.io/features/env-variables#isolation-modes").
@@ -57,8 +56,8 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 
 			mode := cmdData.Params.GetString("mode")
 			mode = strings.ToUpper(mode)
-			if !enum.ServiceStackModeEnum(mode).Is(enum.ServiceStackModeEnumAllPublic()...) {
-				return errors.Errorf("Invalid --mode, expected one of %s, got %s", enum.ServiceStackModeEnumAllPublic(), mode)
+			if mode != "HA" && mode != "NON_HA" {
+				return errors.Errorf("Invalid --mode, expected one of [HA, NON_HA], got %s", mode)
 			}
 
 			envFile, err := readServiceEnvFile(cmdData)
@@ -102,7 +101,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			postService := entity.PostService{
 				ProjectId:        project.Id,
 				Name:             types.NewString(name),
-				Mode:             enum.ServiceStackModeEnum(mode),
+				Mode:             types.NewString(mode),
 				EnvFile:          envFile,
 				StartWithoutCode: types.NewBool(startWithoutCode),
 				SshIsolation:     types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),

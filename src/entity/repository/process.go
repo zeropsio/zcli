@@ -6,7 +6,8 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/dto/input/body"
+	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -19,48 +20,23 @@ func GetProcessByActionNameAndProjectId(
 	projectId uuid.ProjectId,
 	actionName types.String,
 ) ([]entity.Process, error) {
-	search, err := restApiClient.PostProcessSearch(ctx, body.EsFilter{
-		Search: body.EsFilterSearch{
-			{
-				Name:     "clientId",
-				Operator: "eq",
-				Value:    orgId.TypedString(),
-			},
-			{
-				Name:     "projectId",
-				Operator: "eq",
-				Value:    projectId.TypedString(),
-			},
-			{
-				Name:     "actionName",
-				Operator: "eq",
-				Value:    actionName,
-			},
+	response, err := restApiClient.GetProjectProcess(
+		ctx,
+		path.ProjectId{Id: projectId},
+		query.ListProjectProcesses{
+			ActionNameContains: actionName.StringNull(),
 		},
-	})
+	)
 	if err != nil {
 		return nil, err
 	}
-	response, err := search.Output()
+	processList, err := response.Output()
 	if err != nil {
 		return nil, err
 	}
-	return gn.TransformSlice(response.Items, processFromEsSearch), nil
+	return gn.TransformSlice(processList.List, processFromApiOutput), nil
 }
 
-func processFromEsSearch(esProcess output.EsProcess) entity.Process {
-	return entity.Process{
-		Id:         esProcess.Id,
-		OrgId:      esProcess.ClientId,
-		ProjectId:  esProcess.ProjectId,
-		ServiceId:  esProcess.ServiceStackId,
-		ActionName: esProcess.ActionName,
-		Status:     esProcess.Status,
-		Sequence:   esProcess.Sequence,
-	}
-}
-
-//nolint:unused
 func processFromApiOutput(process output.Process) entity.Process {
 	return entity.Process{
 		Id:         process.Id,

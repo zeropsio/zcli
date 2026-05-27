@@ -4,9 +4,11 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -40,32 +42,29 @@ func GetAllProjects(
 		return nil, err
 	}
 
+	activeOrgs := gn.FilterSlice(orgs, func(o entity.Org) bool {
+		return o.Status.IsActive()
+	})
+
 	var projects []entity.Project
-	for _, org := range orgs {
-		if !org.Status.IsActive() {
-			continue
-		}
-		esFilter := body.EsFilter{
-			Search: []body.EsSearchItem{
-				{
-					Name:     "clientId",
-					Operator: "eq",
-					Value:    org.Id.TypedString(),
-				},
-			},
-		}
-
-		response, err := restApiClient.PostProjectSearch(ctx, esFilter)
+	for _, org := range activeOrgs {
+		response, err := restApiClient.GetClientProject(
+			ctx,
+			path.ClientId{Id: org.Id},
+			query.ListClientProjects{},
+		)
 		if err != nil {
 			return nil, err
 		}
-		projectsResponse, err := response.Output()
+		projectList, err := response.Output()
 		if err != nil {
 			return nil, err
 		}
 
-		for _, project := range projectsResponse.Items {
-			projects = append(projects, projectFromEsSearch(org, project))
+		for _, p := range projectList.List {
+			proj := projectFromApiOutput(p)
+			proj.OrgName = org.Name
+			projects = append(projects, proj)
 		}
 	}
 
@@ -97,20 +96,6 @@ func PostProject(
 		return entity.Project{}, err
 	}
 	return projectFromApiOutput(project), nil
-}
-
-func projectFromEsSearch(org entity.Org, esProject output.EsProject) entity.Project {
-	description, _ := esProject.Description.Get()
-
-	return entity.Project{
-		Id:          esProject.Id,
-		Name:        esProject.Name,
-		Mode:        esProject.Mode,
-		OrgId:       org.Id,
-		OrgName:     org.Name,
-		Description: description,
-		Status:      esProject.Status,
-	}
 }
 
 func projectFromApiOutput(project output.Project) entity.Project {

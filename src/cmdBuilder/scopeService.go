@@ -18,7 +18,6 @@ import (
 	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -199,7 +198,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 		entity.PostService{
 			ProjectId: project.Id,
 			Name:      types.NewString(name),
-			Mode:      enum.ServiceStackModeEnumNonHa,
+			Mode:      types.NewString("NON_HA"),
 			// Location:  location.Id.LocationIdNull(),
 		},
 	)

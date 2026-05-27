@@ -8,11 +8,13 @@ import (
 )
 
 // TestProjectListCommand checks that `zcli project list` walks GetUserInfo →
-// org filtering (ACTIVE only) → PostProjectSearch and renders a table that
+// org filtering (ACTIVE only) → GetClientProject and renders a table that
 // contains the project id, name, and org name.
 func TestProjectListCommand(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
+
+	orgId := "00000000-0000-0000-0000-0000000000aa"
 
 	// GetAllOrgs reads UserAuthorize.clientUserList. Only ACTIVE clients are
 	// queried for projects.
@@ -21,24 +23,21 @@ func TestProjectListCommand(t *testing.T) {
 		"fullName": "Test User",
 		"clientUserList": []map[string]any{{
 			"id":       "00000000-0000-0000-0000-000000000001",
-			"clientId": "00000000-0000-0000-0000-0000000000aa",
+			"clientId": orgId,
 			"userId":   "00000000-0000-0000-0000-000000000002",
 			"status":   "ACTIVE",
 			"roleCode": "ADMIN",
 			"client": map[string]any{
-				"id":          "00000000-0000-0000-0000-0000000000aa",
+				"id":          orgId,
 				"accountName": "Acme Org",
 			},
 		}},
 	})
 
-	f.HandleJSON("/api/rest/public/project/search", 200, map[string]any{
-		"limit":     50,
-		"offset":    0,
-		"totalHits": 1,
-		"items": []map[string]any{{
+	f.HandleJSON("/api/rest/public/client/"+orgId+"/project", 200, map[string]any{
+		"list": []map[string]any{{
 			"id":          "00000000-0000-0000-0000-0000000000bb",
-			"clientId":    "00000000-0000-0000-0000-0000000000aa",
+			"clientId":    orgId,
 			"name":        "demo-project",
 			"mode":        "LIGHT",
 			"status":      "ACTIVE",
@@ -47,6 +46,7 @@ func TestProjectListCommand(t *testing.T) {
 			"tagList":     []string{},
 			"description": nil,
 		}},
+		"totalCount": 1,
 	})
 
 	res := f.Run("project", "list")

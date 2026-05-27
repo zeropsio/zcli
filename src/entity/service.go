@@ -23,7 +23,7 @@ var ServiceFields = entityTemplateFields[Service]()
 type PostService struct {
 	ProjectId        uuid.ProjectId
 	Name             types.String
-	Mode             enum.ServiceStackModeEnum
+	Mode             types.String
 	EnvFile          types.TextNull
 	StartWithoutCode types.Bool
 	SshIsolation     types.StringNull
