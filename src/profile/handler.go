@@ -335,6 +335,25 @@ func (m *Manager) HasRepo() bool {
 	return m.repoPath != ""
 }
 
+// RepoProfile returns the loaded repo profile and a bool reporting whether one was discovered.
+// Used by introspection surfaces (e.g. `zcli profile where`); for normal field access prefer
+// the merged getters like Region / ScopeProject so callers don't have to handle the layering.
+func (m *Manager) RepoProfile() (RepoData, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if m.repoPath == "" {
+		return RepoData{}, false
+	}
+	return m.repo, true
+}
+
+// GlobalPath returns the on-disk path of the global profile file. Used by introspection.
+func (m *Manager) GlobalPath() string { return m.cfg.GlobalPath }
+
+// SecretsDescription returns a human-readable label for the secrets backend in use. Used by
+// introspection surfaces; the actual Backend isn't exposed to keep the API surface small.
+func (m *Manager) SecretsDescription() string { return m.secrets.Description() }
+
 // RepoDir returns the directory containing the active repo profile, or "" when no repo
 // profile was discovered.
 func (m *Manager) RepoDir() string {
@@ -446,9 +465,29 @@ func (m *Manager) Clear() (Data, error) {
 	return prior, nil
 }
 
+// ValueSource indicates which profile layer produced an effective value.
+type ValueSource string
+
+const (
+	// SourceNone: value is not set in any layer.
+	SourceNone ValueSource = ""
+	// SourceGlobal: value comes from the global profile / global-scope secrets.
+	SourceGlobal ValueSource = "global"
+	// SourceRepo: value comes from the repo profile / repo-scope secrets (overrides global).
+	SourceRepo ValueSource = "repo"
+)
+
 // Token returns the effective token. Repo-scoped token (when set) wins over the global one.
 // Returns ("", false, nil) when neither layer has a token.
 func (m *Manager) Token() (string, bool, error) {
+	v, src, err := m.TokenWithSource()
+	return v, src != SourceNone, err
+}
+
+// TokenWithSource returns the effective token along with which layer produced it. Used by
+// introspection surfaces that want to attribute the value (`zcli profile where`); regular
+// callers should use Token, which discards the source.
+func (m *Manager) TokenWithSource() (string, ValueSource, error) {
 	m.mu.RLock()
 	repoId := ""
 	if m.repoPath != "" {
@@ -457,11 +496,22 @@ func (m *Manager) Token() (string, bool, error) {
 	m.mu.RUnlock()
 
 	if repoId != "" {
-		if v, ok, err := m.secrets.Get(secrets.Key(secrets.RepoScope(repoId), "token")); err != nil || ok {
-			return v, ok, err
+		v, ok, err := m.secrets.Get(secrets.Key(secrets.RepoScope(repoId), "token"))
+		if err != nil {
+			return "", SourceNone, err
+		}
+		if ok {
+			return v, SourceRepo, nil
 		}
 	}
-	return m.secrets.Get(secrets.Key(secrets.GlobalScope, "token"))
+	v, ok, err := m.secrets.Get(secrets.Key(secrets.GlobalScope, "token"))
+	if err != nil {
+		return "", SourceNone, err
+	}
+	if ok {
+		return v, SourceGlobal, nil
+	}
+	return "", SourceNone, nil
 }
 
 // SetToken writes the auth token. Defaults to the global scope; pass the WithRepo option to

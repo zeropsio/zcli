@@ -36,6 +36,11 @@ type Backend interface {
 	// List returns all stored keys whose name has the given prefix. Used by cleanup paths
 	// (e.g. "drop all vpn keys for projects no longer in any profile"). Order is unspecified.
 	List(prefix string) ([]string, error)
+
+	// Description returns a human-readable label for where this backend stores values, used by
+	// debug surfaces like `zcli profile where`. Implementations should be concrete enough for
+	// a user to know where to look (e.g. "OS keyring" or a file path).
+	Description() string
 }
 
 // Mode selects how the factory builds a Backend. Modes are resolved in this order at construction
@@ -65,10 +70,10 @@ type Config struct {
 }
 
 var (
-	// ErrKeyringUnavailable: ModeKeyring asked for but no OS keychain found on this host.
+	// ErrKeyringUnavailable ModeKeyring asked for but no OS keychain found on this host.
 	// Returned only by New, not by Get/Set/Delete on a valid backend.
 	ErrKeyringUnavailable = errors.New("secrets: keyring backend not available on this system")
-	// ErrLocked: the keyring is present but locked (e.g. macOS Login keychain not unlocked).
+	// ErrLocked the keyring is present but locked (e.g. macOS Login keychain not unlocked).
 	// Callers can prompt the user to unlock and retry.
 	ErrLocked = errors.New("secrets: keyring is locked")
 )

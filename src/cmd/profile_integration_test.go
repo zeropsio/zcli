@@ -77,6 +77,46 @@ func TestProfileInit_IdempotentForGitignore(t *testing.T) {
 	assert.Equal(t, 1, occurrences, ".zcli/ must appear exactly once even across multiple init attempts")
 }
 
+// TestProfileWhere_AttributesValuesToLayers prints `zcli profile where` for a fixture with a
+// global region + global token + repo-scoped project, and asserts the layer attribution in
+// the output. Covers the happy path through the merged getters used by the report.
+func TestProfileWhere_AttributesValuesToLayers(t *testing.T) {
+	f := newFixture(t)
+	f.SeedScopedLogin("test-token", "AAAAAAAAAAAAAAAAAAAAAA")
+
+	res := f.Run("profile", "where")
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
+
+	assert.Contains(t, res.Stdout, "Storage", "report should include the storage section")
+	assert.Contains(t, res.Stdout, "global profile", "global profile path row")
+	assert.Contains(t, res.Stdout, "repo profile", "repo profile row")
+	assert.Contains(t, res.Stdout, "secrets", "secrets backend row")
+
+	assert.Contains(t, res.Stdout, "Effective values", "report should include the effective values section")
+	assert.Contains(t, res.Stdout, "prg1", "region value")
+	assert.Contains(t, res.Stdout, "from global", "region attributed to global since no repo override")
+	assert.Contains(t, res.Stdout, "set", "token presence")
+	assert.Contains(t, res.Stdout, "AAAAAAAAAAAAAAAAAAAAAA", "scope project id")
+	assert.Contains(t, res.Stdout, "from repo", "scope attributed to repo")
+}
+
+// TestProfileWhere_NoRepoProfile asserts the report renders sensibly when no repo profile is
+// discovered: storage row shows "(none ...)" and scope shows "(not set)".
+func TestProfileWhere_NoRepoProfile(t *testing.T) {
+	f := newFixture(t)
+	// Point cwd somewhere with no .git/ at or above so discovery returns nothing.
+	noRepo := t.TempDir()
+	t.Setenv("ZEROPS_CLI_CWD", noRepo)
+	f.SeedLogin("test-token")
+
+	res := f.Run("profile", "where")
+	require.Equalf(t, 0, res.ExitCode, "stderr=%q", res.Stderr)
+
+	assert.Contains(t, res.Stdout, "(none", "absence of repo profile should be explicit")
+	assert.Contains(t, res.Stdout, "(not set)", "scope project should report not set without a repo")
+	assert.Contains(t, res.Stdout, "from global", "token from global")
+}
+
 func splitLines(s string) []string {
 	var out []string
 	start := 0

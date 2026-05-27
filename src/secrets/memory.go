@@ -37,6 +37,8 @@ func (b *memoryBackend) Delete(key string) error {
 	return nil
 }
 
+func (b *memoryBackend) Description() string { return "in-memory (tests)" }
+
 func (b *memoryBackend) List(prefix string) ([]string, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()

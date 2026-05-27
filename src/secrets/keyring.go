@@ -58,6 +58,8 @@ func (b *keyringBackend) Delete(key string) error {
 	return translateKeyringErr(err)
 }
 
+func (b *keyringBackend) Description() string { return "OS keyring" }
+
 func (b *keyringBackend) List(prefix string) ([]string, error) {
 	all, err := b.ring.Keys()
 	if err != nil {

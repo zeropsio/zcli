@@ -105,6 +105,8 @@ func (b *fileBackend) Delete(key string) error {
 	return b.save()
 }
 
+func (b *fileBackend) Description() string { return "plaintext file at " + b.path }
+
 func (b *fileBackend) List(prefix string) ([]string, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
