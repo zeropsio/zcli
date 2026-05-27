@@ -3,7 +3,6 @@ package profile
 import (
 	"github.com/pkg/errors"
 
-	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zcli/src/versionedjson"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -14,7 +13,7 @@ import (
 // either rescues the existing scope into a repo profile or drops it with a hint.
 type dataV1 struct {
 	versionedjson.Probe
-	Region         region.Item        `json:"region"`
+	Region         regionV1           `json:"region"`
 	ScopeProjectId uuid.ProjectIdNull `json:"scope_project_id,omitempty"`
 	SecretsBackend secrets.Mode       `json:"secrets_backend,omitempty"`
 }

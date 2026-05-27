@@ -5,7 +5,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zcli/src/versionedjson"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -17,7 +16,7 @@ import (
 // decoder and immediately upgraded via Up().
 type dataV0 struct {
 	Token                 string
-	RegionData            region.Item
+	RegionData            regionV0
 	ScopeProjectId        uuid.ProjectIdNull
 	ProjectVpnKeyRegistry map[uuid.ProjectId]vpnKeyV0
 }
@@ -51,7 +50,12 @@ func (d dataV0) Up(ctx migrationCtx) (any, error) {
 		}
 	}
 	return dataV1{
-		Region:         d.RegionData,
+		Region: regionV1{
+			Name:       d.RegionData.Name,
+			IsDefault:  d.RegionData.IsDefault,
+			Address:    d.RegionData.Address,
+			GuiAddress: d.RegionData.GuiAddress,
+		},
 		ScopeProjectId: d.ScopeProjectId,
 	}, nil
 }

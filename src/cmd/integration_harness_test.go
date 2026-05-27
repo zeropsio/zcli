@@ -103,7 +103,7 @@ func newFixture(t *testing.T) *fixture {
 // plaintext secrets file at the matching key, simulating a previously completed `zcli login`.
 func (f *fixture) SeedLogin(token string) {
 	f.t.Helper()
-	f.writeProfile(profile.Data{Region: f.Region})
+	f.writeProfile(profile.Data{Region: profile.RegionFromItem(f.Region)})
 	f.writeSecrets(map[string]string{
 		secrets.Key(secrets.GlobalScope, "token"): token,
 	})
@@ -113,7 +113,7 @@ func (f *fixture) SeedLogin(token string) {
 // simulating a previously completed `zcli scope project ...` inside that repo.
 func (f *fixture) SeedScopedLogin(token, projectID string) {
 	f.t.Helper()
-	f.writeProfile(profile.Data{Region: f.Region})
+	f.writeProfile(profile.Data{Region: profile.RegionFromItem(f.Region)})
 	f.writeSecrets(map[string]string{
 		secrets.Key(secrets.GlobalScope, "token"): token,
 	})

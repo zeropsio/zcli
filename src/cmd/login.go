@@ -59,7 +59,7 @@ func loginCmd() *cmdBuilder.Cmd {
 				return err
 			}
 			_, err = cmdData.Profile.UpdateGlobal(func(data profile.Data) profile.Data {
-				data.Region = reg
+				data.Region = profile.RegionFromItem(reg)
 				return data
 			})
 			if err != nil {

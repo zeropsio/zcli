@@ -82,7 +82,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
-	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
 	zuuid "github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -251,7 +250,7 @@ func (m *Manager) RepoDir() string {
 }
 
 // Region returns the effective region: active repo profile's override when present, else global.
-func (m *Manager) Region() region.Item {
+func (m *Manager) Region() Region {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	if p, ok := m.activeProfile(); ok && p.Region != nil {

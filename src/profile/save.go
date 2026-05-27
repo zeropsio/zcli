@@ -4,6 +4,7 @@ import "os"
 
 func (m *Manager) saveGlobal(d Data) error {
 	d.StampVersion(CurrentDataVersion)
+	d.Region.StampVersion(CurrentRegionVersion)
 	return writeJSONAtomic(m.cfg.GlobalPath, m.cfg.GlobalMode, d)
 }
 
@@ -29,13 +30,17 @@ func writeRepoFile(path string, fileMode os.FileMode, rf RepoFile) error {
 }
 
 // stampRepoFile returns a copy of rf with the file-wrapper version and every entry's own
-// version set to the current targets, both routed through VersionStamper. Single chokepoint
-// so on-disk shape stays consistent no matter which call site writes.
+// version (plus the entry's optional embedded Region) set to the current targets, all routed
+// through VersionStamper. Single chokepoint so on-disk shape stays consistent no matter which
+// call site writes.
 func stampRepoFile(rf RepoFile) RepoFile {
 	rf.StampVersion(CurrentRepoVersion)
 	out := make([]RepoProfile, len(rf.Profiles))
 	for i, p := range rf.Profiles {
 		p.StampVersion(CurrentRepoProfileVersion)
+		if p.Region != nil {
+			p.Region.StampVersion(CurrentRegionVersion)
+		}
 		out[i] = p
 	}
 	rf.Profiles = out

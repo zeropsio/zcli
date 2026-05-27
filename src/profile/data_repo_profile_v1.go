@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/versionedjson"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -19,7 +18,7 @@ type repoProfileV1 struct {
 	Name           string             `json:"name"`
 	Id             string             `json:"id"`
 	ScopeProjectId uuid.ProjectIdNull `json:"scope_project_id,omitempty"`
-	Region         *region.Item       `json:"region,omitempty"`
+	Region         *regionV1          `json:"region,omitempty"`
 }
 
 func init() {

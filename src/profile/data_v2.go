@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/secrets"
 	"github.com/zeropsio/zcli/src/versionedjson"
 )
@@ -15,7 +14,7 @@ import (
 // auto-stamp hook that Schema.Load calls after migration.
 type dataV2 struct {
 	versionedjson.Probe
-	Region         region.Item  `json:"region"`
+	Region         regionV1     `json:"region"`
 	SecretsBackend secrets.Mode `json:"secrets_backend,omitempty"`
 }
 
