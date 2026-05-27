@@ -410,6 +410,40 @@ func (m *Manager) RemoveRepoProfile(name string) error {
 	return m.saveRepoFile()
 }
 
+// RenameRepoProfile changes the user-visible Name of an existing entry. The entry's Id (and
+// therefore its per-profile secrets scope) is preserved, so tokens / VPN keys stored under the
+// repo scope are not touched. If the renamed entry was the active profile, ActiveProfile
+// flips along with it so the file's active pointer stays in sync. Errors when no repo profile
+// is initialised, oldName doesn't exist, newName is empty, or newName collides with another
+// entry. Renaming to the same name is a no-op success.
+func (m *Manager) RenameRepoProfile(oldName, newName string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err := m.requireRepo(); err != nil {
+		return err
+	}
+	if newName == "" {
+		return errors.New("profile name must not be empty")
+	}
+	if oldName == newName {
+		return nil
+	}
+	idx, err := lookupProfileIndex(m.repoFile, oldName)
+	if err != nil {
+		return err
+	}
+	for i, p := range m.repoFile.Profiles {
+		if i != idx && p.Name == newName {
+			return errors.Errorf("profile %q already exists", newName)
+		}
+	}
+	m.repoFile.Profiles[idx].Name = newName
+	if m.repoFile.ActiveProfile == oldName {
+		m.repoFile.ActiveProfile = newName
+	}
+	return m.saveRepoFile()
+}
+
 // UseRepoProfile changes the persisted active profile to name and writes the file. Errors
 // when name doesn't match an existing entry or no repo profile is initialised. This is the
 // state-changing variant; for a single-invocation override use SwitchActiveProfile.

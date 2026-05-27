@@ -22,6 +22,7 @@ func profileCmd() *cmdBuilder.Cmd {
 		AddChildrenCmd(profileListCmd()).
 		AddChildrenCmd(profileAddCmd()).
 		AddChildrenCmd(profileRemoveCmd()).
+		AddChildrenCmd(profileRenameCmd()).
 		AddChildrenCmd(profileUseCmd())
 }
 
@@ -110,6 +111,24 @@ func profileRemoveCmd() *cmdBuilder.Cmd {
 				return err
 			}
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Removed profile", name))
+			return nil
+		})
+}
+
+func profileRenameCmd() *cmdBuilder.Cmd {
+	return cmdBuilder.NewCmd().
+		Use("rename").
+		Short("Rename an existing profile in the current repo (id and stored secrets are preserved).").
+		HelpFlag("Help for the 'profile rename' command.").
+		Arg("old-name").
+		Arg("new-name").
+		GuestRunFunc(func(_ context.Context, cmdData *cmdBuilder.GuestCmdData) error {
+			oldName := cmdData.Args["old-name"][0]
+			newName := cmdData.Args["new-name"][0]
+			if err := cmdData.Profile.RenameRepoProfile(oldName, newName); err != nil {
+				return err
+			}
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Renamed profile", oldName+" → "+newName))
 			return nil
 		})
 }

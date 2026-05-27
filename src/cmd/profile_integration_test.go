@@ -260,6 +260,59 @@ func TestProfileDelete_AliasMatchesRemove(t *testing.T) {
 	require.Len(t, profiles, 1, "prod must be gone after delete alias")
 }
 
+// TestProfileRename_PreservesIdAndUpdatesActive renames the active profile and asserts the
+// entry's stable Id stays untouched (so per-profile secrets remain reachable) and the file's
+// active_profile pointer flips to the new name.
+func TestProfileRename_PreservesIdAndUpdatesActive(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var before map[string]any
+	require.NoError(t, json.Unmarshal(raw, &before))
+	beforeProfiles, ok := before["profiles"].([]any)
+	require.True(t, ok)
+	beforeEntry, ok := beforeProfiles[0].(map[string]any)
+	require.True(t, ok)
+	originalID, ok := beforeEntry["id"].(string)
+	require.True(t, ok)
+
+	renameRes := f.Run("profile", "rename", "default", "main")
+	require.Equalf(t, 0, renameRes.ExitCode, "rename stderr=%q", renameRes.Stderr)
+
+	raw, err = os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var after map[string]any
+	require.NoError(t, json.Unmarshal(raw, &after))
+	require.Equal(t, "main", after["active_profile"], "active_profile must follow the rename")
+	afterProfiles, ok := after["profiles"].([]any)
+	require.True(t, ok)
+	require.Len(t, afterProfiles, 1)
+	afterEntry, ok := afterProfiles[0].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "main", afterEntry["name"])
+	require.Equal(t, originalID, afterEntry["id"], "id must be preserved so per-profile secrets stay reachable")
+}
+
+// TestProfileRename_RejectsCollision asserts the rename refuses to clobber an existing name.
+func TestProfileRename_RejectsCollision(t *testing.T) {
+	f := newFixture(t)
+	require.Equalf(t, 0, f.Run("profile", "init").ExitCode, "init must succeed")
+	require.Equalf(t, 0, f.Run("profile", "add", "prod").ExitCode, "add must succeed")
+
+	res := f.Run("profile", "rename", "default", "prod")
+	require.NotEqualf(t, 0, res.ExitCode, "rename to existing name must fail; stdout=%q stderr=%q", res.Stdout, res.Stderr)
+	assert.Contains(t, res.Stderr, "already exists")
+
+	// State on disk must be unchanged.
+	raw, err := os.ReadFile(profile.RepoProfilePath(f.RepoDir))
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.Equal(t, "default", onDisk["active_profile"])
+}
+
 // TestProfileAdd_DuplicateNameRejected ensures the second add of the same name fails loudly
 // rather than silently shadowing the first entry (which would mean two profiles share an Id
 // or one becomes unreachable).
