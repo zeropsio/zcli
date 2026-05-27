@@ -22,6 +22,8 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/uxHelpers"
+	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -156,6 +158,7 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 			// confusing, so skip those prompts and rely on the source values.
 			var regionOverride *profile.Region
 			var scope profileScopeChoices
+			var token string
 			if !isCopy {
 				regionOverride, err = promptProfileRegion(ctx)
 				if err != nil {
@@ -167,7 +170,20 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region: inherited from global"))
 				}
 
-				scope, err = promptProfileScope(ctx)
+				// Token step moves ahead of scope so the scope step can use the just-pasted
+				// token (or the global one) to drive interactive project / service selectors
+				// against the API.
+				token, err = promptProfileToken(ctx)
+				if err != nil {
+					return err
+				}
+				if token != "" {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: provided (masked)"))
+				} else {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: not set (will use global at read time)"))
+				}
+
+				scope, err = promptProfileScope(ctx, scopeApiClient(cmdData, regionOverride, token))
 				if err != nil {
 					return err
 				}
@@ -185,16 +201,15 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				}
 			} else {
 				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Region / scope copied from \"" + sourceName + "\""))
-			}
-
-			token, err := promptProfileToken(ctx)
-			if err != nil {
-				return err
-			}
-			if token != "" {
-				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: provided (masked)"))
-			} else {
-				cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: not set (will use global at read time)"))
+				token, err = promptProfileToken(ctx)
+				if err != nil {
+					return err
+				}
+				if token != "" {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: provided (masked)"))
+				} else {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Token: not set (will use global at read time)"))
+				}
 			}
 
 			var created profile.RepoProfile
@@ -312,22 +327,51 @@ type profileScopeChoices struct {
 	service uuid.ServiceStackIdNull
 }
 
-// promptProfileScope is the fourth step of the builder: pre-fill the per-profile scope. Two
-// independent prompts, one for project and one for service, each gated by a Skip / Enter
-// button. We accept raw 22-char IDs at this stage because `profile create` is a GuestRunFunc
-// and we don't have a token to fetch project / service listings - users who want interactive
-// selection can run `zcli scope project` / `zcli scope service` afterwards.
-func promptProfileScope(ctx context.Context) (profileScopeChoices, error) {
+// scopeApiClient builds the REST client used to drive the scope step's project / service
+// selectors. Prefers the just-pasted per-profile token (so the user can scope against the
+// account they're about to install for the new profile) and falls back to the global token
+// when nothing was pasted. Region is the prompt's region override when set, else global.
+// Returns nil when no usable token / address combination exists - the scope step then
+// gracefully skips instead of prompting for raw ids.
+func scopeApiClient(cmdData *cmdBuilder.GuestCmdData, regionOverride *profile.Region, token string) *zeropsRestApiClient.Handler {
+	effective := token
+	if effective == "" {
+		if globalToken, ok, err := cmdData.Profile.Token(); err == nil && ok {
+			effective = globalToken
+		}
+	}
+	if effective == "" {
+		return nil
+	}
+	regionItem := cmdData.Profile.Region()
+	if regionOverride != nil {
+		regionItem = *regionOverride
+	}
+	if regionItem.Address == "" {
+		return nil
+	}
+	return zeropsRestApiClient.NewAuthorizedClient(effective, regionItem.Address)
+}
+
+// promptProfileScope is the scope step of the builder. With an API client in hand (built
+// from the prompt-collected or global token) the user gets the same project / service
+// selectors `zcli scope project` / `zcli scope service` use. Without a client the step is
+// skipped with a hint pointing at the post-login interactive flow - there is no raw-id
+// fallback because the builder's whole premise is "pick from a list".
+func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler) (profileScopeChoices, error) {
 	var out profileScopeChoices
+	if client == nil {
+		return out, nil
+	}
 
 	projectIdx, err := uxBlock.Run(
 		prompt.NewRoot(
 			ctx,
 			"Pre-fill scope project?",
-			[]string{"Skip", "Enter project ID"},
+			[]string{"Skip", "Pick from list"},
 			prompt.WithChoiceDescriptions([]string{
-				"Leave scope project unset on this profile. You can fill it in later with `zcli scope project` (interactive selector after login).",
-				"Pre-fill scope project with a known 22-char project id. Useful when the id is at hand and you want the new profile to be ready-to-go without launching the selector.",
+				"Leave scope project unset on this profile. You can fill it in later with `zcli scope project` (same interactive selector).",
+				"Open the project selector and pre-fill scope project on this profile with the picked entry. Filter-enabled - start typing to narrow the list.",
 			}),
 		),
 		prompt.GetChoiceCursor,
@@ -335,22 +379,28 @@ func promptProfileScope(ctx context.Context) (profileScopeChoices, error) {
 	if err != nil {
 		return out, err
 	}
-	if projectIdx == 1 {
-		id, err := promptScopeId(ctx, "project", 22)
-		if err != nil {
-			return out, err
-		}
-		out.project = uuid.NewProjectIdNullFromString(id)
+	if projectIdx != 1 {
+		return out, nil
 	}
+
+	selectedProject, err := uxHelpers.PrintProjectSelector(ctx, client)
+	if err != nil {
+		return out, err
+	}
+	if !selectedProject.Filled() {
+		return out, nil
+	}
+	pickedProject := selectedProject.Some()
+	out.project = pickedProject.Id.ProjectIdNull()
 
 	serviceIdx, err := uxBlock.Run(
 		prompt.NewRoot(
 			ctx,
 			"Pre-fill scope service?",
-			[]string{"Skip", "Enter service ID"},
+			[]string{"Skip", "Pick from list"},
 			prompt.WithChoiceDescriptions([]string{
-				"Leave scope service unset on this profile. You can fill it in later with `zcli scope service` (interactive selector after login).",
-				"Pre-fill scope service with a known 22-char service id. Same intent as the project equivalent above.",
+				"Leave scope service unset. Same fallback path: `zcli scope service` after login picks one interactively against the project you just selected.",
+				"Open the service selector for \"" + pickedProject.Name.String() + "\" and pre-fill scope service on this profile with the picked entry.",
 			}),
 		),
 		prompt.GetChoiceCursor,
@@ -358,47 +408,19 @@ func promptProfileScope(ctx context.Context) (profileScopeChoices, error) {
 	if err != nil {
 		return out, err
 	}
-	if serviceIdx == 1 {
-		id, err := promptScopeId(ctx, "service", 22)
-		if err != nil {
-			return out, err
-		}
-		out.service = uuid.NewServiceStackIdNullFromString(id)
+	if serviceIdx != 1 {
+		return out, nil
 	}
 
+	selectedService, err := uxHelpers.PrintServiceSelector(ctx, client, pickedProject)
+	if err != nil {
+		return out, err
+	}
+	if !selectedService.Filled() {
+		return out, nil
+	}
+	out.service = selectedService.Some().Id.ServiceStackIdNull()
 	return out, nil
-}
-
-// promptScopeId runs an input model for a raw id and re-prompts on empty / wrong-length
-// input. The expected length matches zerops' 22-char short-UUID convention; callers pass it
-// in so a future id-length change is one edit, not a scan for magic numbers.
-func promptScopeId(ctx context.Context, kind string, expectedLen int) (string, error) {
-	label := styles.NewStringBuilder()
-	label.WriteString("Type ")
-	label.WriteStyledString(styles.SelectStyle().Bold(true), kind)
-	label.WriteString(" id (22 chars)")
-
-	for {
-		raw, err := uxBlock.Run(
-			input.NewRoot(
-				ctx,
-				input.WithLabel(label.String()),
-				input.WithHelpPlaceholder(),
-				input.WithPlaceholderStyle(styles.HelpStyle()),
-				input.WithoutPrompt(),
-			),
-			input.GetValueFunc,
-		)
-		if err != nil {
-			return "", err
-		}
-		raw = strings.TrimSpace(raw)
-		if len(raw) != expectedLen {
-			// Stay inside the model. Empty input or a wrong-length paste both re-prompt.
-			continue
-		}
-		return raw, nil
-	}
 }
 
 // promptProfileRegion is the third step of the builder. The user picks whether the new entry
