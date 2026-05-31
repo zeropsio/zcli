@@ -7,11 +7,9 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func projectDeleteCmd() *cmdBuilder.Cmd {
@@ -57,28 +55,16 @@ func projectDeleteCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			deleteProjectResponse, err := cmdData.RestApiClient.DeleteProject(
-				ctx,
-				path.ProjectId{
-					Id: uuid.ProjectId(project.Id),
-				},
-			)
+			process, err := repository.DeleteProject(ctx, cmdData.RestApiClient, project.Id)
 			if err != nil {
 				return err
 			}
-
-			responseOutput, err := deleteProjectResponse.Output()
-			if err != nil {
-				return err
-			}
-
-			processId := responseOutput.Id
 
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(processId), cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ProjectDeleting),
 					ErrorMessageMessage: i18n.T(i18n.ProjectDeleteFailed),
 					SuccessMessage:      i18n.T(i18n.ProjectDeleted),

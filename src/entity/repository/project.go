@@ -111,6 +111,22 @@ func PostProject(
 	return projectFromApiOutput(project), nil
 }
 
+func DeleteProject(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	projectId entity.ProjectId,
+) (entity.Process, error) {
+	response, err := restApiClient.DeleteProject(ctx, path.ProjectId{Id: uuid.ProjectId(projectId)})
+	if err != nil {
+		return entity.Process{}, err
+	}
+	processOutput, err := response.Output()
+	if err != nil {
+		return entity.Process{}, err
+	}
+	return processFromApiOutput(processOutput), nil
+}
+
 func projectFromApiOutputWithOrg(org entity.Org, project output.Project) entity.Project {
 	out := projectFromApiOutput(project)
 	out.OrgName = org.Name

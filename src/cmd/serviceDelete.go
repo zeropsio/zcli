@@ -4,13 +4,11 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func serviceDeleteCmd() *cmdBuilder.Cmd {
@@ -56,28 +54,16 @@ func serviceDeleteCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			deleteServiceResponse, err := cmdData.RestApiClient.DeleteServiceStack(
-				ctx,
-				path.ServiceStackId{
-					Id: uuid.ServiceStackId(service.Id),
-				},
-			)
+			process, err := repository.DeleteService(ctx, cmdData.RestApiClient, service.Id)
 			if err != nil {
 				return err
 			}
-
-			responseOutput, err := deleteServiceResponse.Output()
-			if err != nil {
-				return err
-			}
-
-			processId := responseOutput.Id
 
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(processId), cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ServiceDeleting),
 					ErrorMessageMessage: i18n.T(i18n.ServiceDeleteFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceDeleted),

@@ -162,6 +162,70 @@ func PostGenericService(
 	return processFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
 }
 
+func StartService(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	serviceId entity.ServiceId,
+) (entity.Process, error) {
+	response, err := restApiClient.PutServiceStackStart(ctx, path.ServiceStackId{Id: uuid.ServiceStackId(serviceId)})
+	if err != nil {
+		return entity.Process{}, err
+	}
+	processOutput, err := response.Output()
+	if err != nil {
+		return entity.Process{}, err
+	}
+	return processFromApiOutput(processOutput), nil
+}
+
+func StopService(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	serviceId entity.ServiceId,
+) (entity.Process, error) {
+	response, err := restApiClient.PutServiceStackStop(ctx, path.ServiceStackId{Id: uuid.ServiceStackId(serviceId)})
+	if err != nil {
+		return entity.Process{}, err
+	}
+	processOutput, err := response.Output()
+	if err != nil {
+		return entity.Process{}, err
+	}
+	return processFromApiOutput(processOutput), nil
+}
+
+func DeleteService(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	serviceId entity.ServiceId,
+) (entity.Process, error) {
+	response, err := restApiClient.DeleteServiceStack(ctx, path.ServiceStackId{Id: uuid.ServiceStackId(serviceId)})
+	if err != nil {
+		return entity.Process{}, err
+	}
+	processOutput, err := response.Output()
+	if err != nil {
+		return entity.Process{}, err
+	}
+	return processFromApiOutput(processOutput), nil
+}
+
+func EnableServiceSubdomainAccess(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	serviceId entity.ServiceId,
+) (entity.Process, error) {
+	response, err := restApiClient.PutServiceStackEnableSubdomainAccess(ctx, path.ServiceStackId{Id: uuid.ServiceStackId(serviceId)})
+	if err != nil {
+		return entity.Process{}, err
+	}
+	processOutput, err := response.Output()
+	if err != nil {
+		return entity.Process{}, err
+	}
+	return processFromApiOutput(processOutput), nil
+}
+
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
 	return entity.Service{
 		Id:                          entity.ServiceId(service.Id),

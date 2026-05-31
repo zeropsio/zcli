@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types/uuid"
 
 	"github.com/zeropsio/zcli/src/i18n"
 )
@@ -25,28 +23,16 @@ func serviceStopCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			stopServiceResponse, err := cmdData.RestApiClient.PutServiceStackStop(
-				ctx,
-				path.ServiceStackId{
-					Id: uuid.ServiceStackId(service.Id),
-				},
-			)
+			process, err := repository.StopService(ctx, cmdData.RestApiClient, service.Id)
 			if err != nil {
 				return err
 			}
-
-			responseOutput, err := stopServiceResponse.Output()
-			if err != nil {
-				return err
-			}
-
-			processId := responseOutput.Id
 
 			err = uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(processId), cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ServiceStopping),
 					ErrorMessageMessage: i18n.T(i18n.ServiceStopFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceStopped),
