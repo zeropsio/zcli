@@ -13,6 +13,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func projectEnvCmd() *cmdBuilder.Cmd {
@@ -52,7 +53,7 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 
 			response, err := cmdData.RestApiClient.GetProjectEnvFile(
 				ctx,
-				path.ProjectId{Id: project.Id},
+				path.ProjectId{Id: uuid.ProjectId(project.Id)},
 				query.GetProjectEnvFile{
 					Name:                 serviceName,
 					OverrideEnvIsolation: overrideEnvIsolation,

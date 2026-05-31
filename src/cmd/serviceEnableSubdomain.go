@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/types/uuid"
 
 	"github.com/zeropsio/zcli/src/i18n"
 )
@@ -26,7 +28,7 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 			enableSubdomainResponse, err := cmdData.RestApiClient.PutServiceStackEnableSubdomainAccess(
 				ctx,
 				path.ServiceStackId{
-					Id: service.Id,
+					Id: uuid.ServiceStackId(service.Id),
 				},
 			)
 			if err != nil {
@@ -44,7 +46,7 @@ func serviceEnableSubdomainCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(processId), cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ServiceEnablingSubdomain),
 					ErrorMessageMessage: i18n.T(i18n.ServiceEnableSubdomainFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceEnabledSubdomain),

@@ -52,10 +52,10 @@ func PrintProjectSelector(
 	if cfg.preselectedId != "" {
 		var preselectedName []entity.Project
 		for _, project := range projects {
-			if project.Id.Native() == cfg.preselectedId {
+			if project.Id.String() == cfg.preselectedId {
 				preselectedName = append(preselectedName, project)
 			}
-			if project.Name.Native() == cfg.preselectedId {
+			if project.Name == cfg.preselectedId {
 				preselectedName = append(preselectedName, project)
 			}
 		}
@@ -116,10 +116,10 @@ func createProjectTableRows(projects []entity.Project, createNewProject bool) (*
 	tableBody := table.NewBody()
 	for _, project := range projects {
 		tableBody.AddStringsRow(
-			string(project.Id),
-			project.Name.String(),
-			project.OrgName.Native(),
-			project.OrgId.Native(),
+			project.Id.String(),
+			project.Name,
+			project.OrgName,
+			project.OrgId.String(),
 			project.Status.String(),
 			project.Mode.String(),
 		)

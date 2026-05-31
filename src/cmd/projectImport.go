@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
@@ -71,7 +72,7 @@ func projectImportCmd() *cmdBuilder.Cmd {
 			for _, service := range responseOutput.ServiceStacks {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
-						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
+						F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(process.Id), cmdData.RestApiClient, cmdData.UxBlocks),
 						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
 						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
 						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
@@ -106,7 +107,7 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 	}
 
 	if len(orgs) == 1 {
-		return orgs[0].Id, nil
+		return uuid.ClientId(orgs[0].Id), nil
 	}
 
 	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.RestApiClient)
@@ -114,5 +115,5 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 		return "", err
 	}
 
-	return selectedOrg.Id, nil
+	return uuid.ClientId(selectedOrg.Id), nil
 }

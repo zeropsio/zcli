@@ -1,17 +1,13 @@
 package entity
 
-import (
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/uuid"
-)
+import "github.com/zeropsio/zcli/src/optional"
 
 type Process struct {
-	Id         uuid.ProcessId
-	OrgId      uuid.ClientId
-	ProjectId  uuid.ProjectId
-	ServiceId  uuid.ServiceStackIdNull
-	ActionName types.String
-	Status     enum.ProcessStatusEnum
-	Sequence   types.Int
+	Id         ProcessId
+	OrgId      OrgId
+	ProjectId  ProjectId
+	ServiceId  optional.Null[ServiceId]
+	ActionName string
+	Status     ProcessStatus
+	Sequence   int
 }

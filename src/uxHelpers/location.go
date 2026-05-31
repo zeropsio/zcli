@@ -57,8 +57,8 @@ func createLocationTableRows(locations []entity.Location) (*table.Row, *table.Bo
 	body := table.NewBody()
 	for _, loc := range locations {
 		body.AddRow(table.NewRowFromStrings(
-			loc.Id.Native(),
-			loc.Name.String(),
+			loc.Id.String(),
+			loc.Name,
 		))
 	}
 	return header, body

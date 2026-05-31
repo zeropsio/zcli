@@ -10,10 +10,8 @@ import (
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
-// These pin the API-output -> entity field mapping before the domain-type swap.
-// After the swap the boundary lives here, so the same fixtures must still yield
-// the same underlying values (assertions move from zerops-go types to the new
-// zcli domain types, but the data carried across must not change).
+// These pin the API-output -> domain-entity field mapping at the conversion
+// boundary: the same zerops-go fixtures must yield the expected zcli domain values.
 
 func TestProjectFromApiOutput(t *testing.T) {
 	got := projectFromApiOutput(output.Project{
@@ -26,12 +24,12 @@ func TestProjectFromApiOutput(t *testing.T) {
 	})
 
 	want := entity.Project{
-		Id:          uuid.ProjectId("proj-1"),
-		Name:        types.String("proj-name"),
-		Mode:        enum.ProjectModeEnum("HA"),
-		OrgId:       uuid.ClientId("org-1"),
-		Description: types.Text("a description"),
-		Status:      enum.ProjectStatusEnum("ACTIVE"),
+		Id:          entity.ProjectId("proj-1"),
+		Name:        "proj-name",
+		Mode:        entity.ProjectMode("HA"),
+		OrgId:       entity.OrgId("org-1"),
+		Description: "a description",
+		Status:      entity.ProjectStatus("ACTIVE"),
 	}
 	if got != want {
 		t.Errorf("projectFromApiOutput = %+v, want %+v", got, want)
@@ -48,8 +46,8 @@ func TestProjectFromApiOutputEmptyDescription(t *testing.T) {
 	}
 }
 
-func TestOrgFromEsSearch(t *testing.T) {
-	got := orgFromEsSearch(output.ClientUserExtraWithClientLight{
+func TestOrgFromClientUser(t *testing.T) {
+	got := orgFromClientUser(output.ClientUserExtraWithClientLight{
 		ClientId: uuid.ClientId("org-1"),
 		Status:   enum.ClientUserStatusEnum("ACTIVE"),
 		RoleCode: enum.ClientUserRoleCodeEnum("ADMIN"),
@@ -59,18 +57,21 @@ func TestOrgFromEsSearch(t *testing.T) {
 	})
 
 	want := entity.Org{
-		Id:     uuid.ClientId("org-1"),
-		Name:   types.String("acme"),
-		Status: enum.ClientUserStatusEnum("ACTIVE"),
-		Role:   enum.ClientUserRoleCodeEnum("ADMIN"),
+		Id:     entity.OrgId("org-1"),
+		Name:   "acme",
+		Status: entity.OrgStatus("ACTIVE"),
+		Role:   entity.OrgRole("ADMIN"),
 	}
 	if got != want {
-		t.Errorf("orgFromEsSearch = %+v, want %+v", got, want)
+		t.Errorf("orgFromClientUser = %+v, want %+v", got, want)
+	}
+	if !got.Status.IsActive() {
+		t.Error("ACTIVE org status should report IsActive")
 	}
 }
 
-func TestProcessFromEsSearch(t *testing.T) {
-	got := processFromEsSearch(output.EsProcess{
+func TestProcessFromApiOutput(t *testing.T) {
+	got := processFromApiOutput(output.Process{
 		Id:             uuid.ProcessId("proc-1"),
 		ClientId:       uuid.ClientId("org-1"),
 		ProjectId:      uuid.ProjectId("proj-1"),
@@ -80,15 +81,15 @@ func TestProcessFromEsSearch(t *testing.T) {
 		Sequence:       types.Int(3),
 	})
 
-	if got.Id != uuid.ProcessId("proc-1") ||
-		got.OrgId != uuid.ClientId("org-1") ||
-		got.ProjectId != uuid.ProjectId("proj-1") ||
-		got.ActionName != types.String("stack.start") ||
-		got.Status != enum.ProcessStatusEnumRunning ||
-		got.Sequence != types.Int(3) {
-		t.Errorf("processFromEsSearch mismatch: %+v", got)
+	if got.Id != entity.ProcessId("proc-1") ||
+		got.OrgId != entity.OrgId("org-1") ||
+		got.ProjectId != entity.ProjectId("proj-1") ||
+		got.ActionName != "stack.start" ||
+		got.Status != entity.ProcessStatus("RUNNING") ||
+		got.Sequence != 3 {
+		t.Errorf("processFromApiOutput mismatch: %+v", got)
 	}
-	if svc, ok := got.ServiceId.Get(); !ok || svc != uuid.ServiceStackId("svc-1") {
-		t.Errorf("processFromEsSearch ServiceId = %v (ok=%v), want svc-1", svc, ok)
+	if svc, ok := got.ServiceId.Get(); !ok || svc != entity.ServiceId("svc-1") {
+		t.Errorf("processFromApiOutput ServiceId = %v (ok=%v), want svc-1", svc, ok)
 	}
 }

@@ -4,17 +4,12 @@ import (
 	"strings"
 	"testing"
 	"text/template"
-
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/stringId"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 // Pins what `--out` templates render for the fields commands actually expose, so
-// swapping entity field types from zerops-go wrappers to native/typed-zcli types
-// can't change the strings users see. Field names must stay identical too -
-// renaming any of these would break existing user templates.
+// the domain-type swap (zerops-go wrappers -> native/typed-zcli types) can't change
+// the strings users see. Field names must stay identical too - renaming any of
+// these would break existing user templates.
 func render(t *testing.T, tmpl string, data any) string {
 	t.Helper()
 	parsed, err := template.New("out").Parse(tmpl)
@@ -30,13 +25,13 @@ func render(t *testing.T, tmpl string, data any) string {
 
 func TestServiceTemplateRender(t *testing.T) {
 	svc := Service{
-		Id:                          uuid.ServiceStackId("svc-123"),
-		ProjectId:                   uuid.ProjectId("proj-456"),
-		OrgId:                       uuid.ClientId("org-789"),
-		Name:                        types.String("api"),
-		Status:                      enum.ServiceStackStatusEnum("ACTIVE"),
-		ServiceTypeId:               stringId.ServiceStackTypeId("nodejs@20"),
-		ServiceStackTypeVersionName: types.String("20"),
+		Id:                          ServiceId("svc-123"),
+		ProjectId:                   ProjectId("proj-456"),
+		OrgId:                       OrgId("org-789"),
+		Name:                        "api",
+		Status:                      ServiceStatus("ACTIVE"),
+		ServiceTypeId:               ServiceTypeId("nodejs@20"),
+		ServiceStackTypeVersionName: "20",
 	}
 
 	got := render(t, "{{.Id}}|{{.ProjectId}}|{{.OrgId}}|{{.Name}}|{{.Status}}|{{.ServiceTypeId}}|{{.ServiceStackTypeVersionName}}", svc)
@@ -48,13 +43,13 @@ func TestServiceTemplateRender(t *testing.T) {
 
 func TestProjectTemplateRender(t *testing.T) {
 	proj := Project{
-		Id:          uuid.ProjectId("proj-456"),
-		Name:        types.String("my-project"),
-		Mode:        enum.ProjectModeEnum("HA"),
-		OrgId:       uuid.ClientId("org-789"),
-		OrgName:     types.String("my-org"),
-		Description: types.Text("desc"),
-		Status:      enum.ProjectStatusEnum("ACTIVE"),
+		Id:          ProjectId("proj-456"),
+		Name:        "my-project",
+		Mode:        ProjectMode("HA"),
+		OrgId:       OrgId("org-789"),
+		OrgName:     "my-org",
+		Description: "desc",
+		Status:      ProjectStatus("ACTIVE"),
 	}
 
 	got := render(t, "{{.Id}}|{{.Name}}|{{.Mode}}|{{.OrgId}}|{{.OrgName}}|{{.Description}}|{{.Status}}", proj)

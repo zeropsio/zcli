@@ -74,9 +74,9 @@ func createOrgTableRows(orgs []entity.Org) (*table.Row, *table.Body) {
 	body := table.NewBody()
 	for _, org := range orgs {
 		row := table.NewRowFromStrings(
-			string(org.Id),
-			org.Name.String(),
-			org.Role.Native(),
+			org.Id.String(),
+			org.Name,
+			org.Role.String(),
 			org.Status.String(),
 		)
 		if !org.Status.IsActive() {

@@ -7,7 +7,6 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/serviceLogs"
-	"github.com/zeropsio/zerops-go/types/enum"
 
 	"github.com/zeropsio/zcli/src/i18n"
 )
@@ -53,7 +52,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 
 				app := appVersions[0]
 				status := app.Status
-				if status == enum.AppVersionStatusEnumUploading || app.Build == nil {
+				if status.IsUploading() || app.Build == nil {
 					return errors.New(i18n.T(i18n.LogBuildStatusUploading))
 				}
 

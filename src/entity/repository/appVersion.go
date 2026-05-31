@@ -4,11 +4,13 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func GetLatestAppVersionByService(
@@ -16,7 +18,7 @@ func GetLatestAppVersionByService(
 	restApiClient *zeropsRestApiClient.Handler,
 	service entity.Service,
 ) ([]entity.AppVersion, error) {
-	response, err := restApiClient.GetServiceStackAppVersion(ctx, path.ServiceStackId{Id: service.Id}, query.ListServiceStackAppVersions{
+	response, err := restApiClient.GetServiceStackAppVersion(ctx, path.ServiceStackId{Id: uuid.ServiceStackId(service.Id)}, query.ListServiceStackAppVersions{
 		Limit:    types.NewIntNull(1),
 		HasBuild: types.NewBoolNull(true),
 		Sort:     types.NewStringArrayNull(types.StringArray{"-sequence"}),
@@ -39,15 +41,30 @@ func GetLatestAppVersionByService(
 
 func appVersionFromApiOutput(appVersion output.GetAppVersion) entity.AppVersion {
 	return entity.AppVersion{
-		Id:         appVersion.Id,
-		OrgId:      appVersion.ClientId,
-		ProjectId:  appVersion.ProjectId,
-		ServiceId:  appVersion.ServiceStackId,
-		Source:     appVersion.Source,
-		Sequence:   appVersion.Sequence,
-		Status:     appVersion.Status,
-		Created:    appVersion.Created,
-		LastUpdate: appVersion.LastUpdate,
-		Build:      appVersion.Build,
+		Id:         entity.AppVersionId(appVersion.Id),
+		OrgId:      entity.OrgId(appVersion.ClientId),
+		ProjectId:  entity.ProjectId(appVersion.ProjectId),
+		ServiceId:  entity.ServiceId(appVersion.ServiceStackId),
+		Source:     entity.AppVersionSource(appVersion.Source),
+		Sequence:   int(appVersion.Sequence),
+		Status:     entity.AppVersionStatus(appVersion.Status),
+		Created:    appVersion.Created.Native(),
+		LastUpdate: appVersion.LastUpdate.Native(),
+		Build:      appVersionBuildFromApiOutput(appVersion.Build),
+	}
+}
+
+func appVersionBuildFromApiOutput(build *output.AppVersionBuild) *entity.AppVersionBuild {
+	if build == nil {
+		return nil
+	}
+	serviceStackId := optional.Empty[entity.ServiceId]()
+	if sid, ok := build.ServiceStackId.Get(); ok {
+		serviceStackId = optional.New(entity.ServiceId(sid))
+	}
+	name, _ := build.ServiceStackName.Get()
+	return &entity.AppVersionBuild{
+		ServiceStackId:   serviceStackId,
+		ServiceStackName: name.Native(),
 	}
 }

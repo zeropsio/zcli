@@ -1,31 +1,26 @@
 package entity
 
-import (
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/stringId"
-	"github.com/zeropsio/zerops-go/types/uuid"
-)
+import "github.com/zeropsio/zcli/src/optional"
 
 type Service struct {
-	Id                          uuid.ServiceStackId
-	ProjectId                   uuid.ProjectId
-	OrgId                       uuid.ClientId
-	Name                        types.String
-	Status                      enum.ServiceStackStatusEnum
-	ServiceTypeId               stringId.ServiceStackTypeId
-	ServiceTypeCategory         enum.ServiceStackTypeCategoryEnum
-	ServiceStackTypeVersionName types.String
+	Id                          ServiceId
+	ProjectId                   ProjectId
+	OrgId                       OrgId
+	Name                        string
+	Status                      ServiceStatus
+	ServiceTypeId               ServiceTypeId
+	ServiceTypeCategory         ServiceTypeCategory
+	ServiceStackTypeVersionName string
 }
 
 var ServiceFields = entityTemplateFields[Service]()
 
 type PostService struct {
-	ProjectId        uuid.ProjectId
-	Name             types.String
-	EnvFile          types.TextNull
-	StartWithoutCode types.Bool
-	SshIsolation     types.StringNull
-	EnvIsolation     types.StringNull
-	Location         stringId.LocationIdNull
+	ProjectId        ProjectId
+	Name             string
+	EnvFile          optional.Null[string]
+	StartWithoutCode bool
+	SshIsolation     string
+	EnvIsolation     string
+	Location         optional.Null[LocationId]
 }

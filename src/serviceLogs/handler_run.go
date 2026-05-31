@@ -2,6 +2,8 @@ package serviceLogs
 
 import (
 	"context"
+
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func (h *Handler) Run(ctx context.Context, config RunConfig) error {
@@ -11,7 +13,13 @@ func (h *Handler) Run(ctx context.Context, config RunConfig) error {
 	}
 
 	// TODO - janhajek check empty containerID
-	if err = h.printLogs(ctx, inputs, config.Project.Id, config.ServiceId, config.Container.Id); err != nil {
+	if err = h.printLogs(
+		ctx,
+		inputs,
+		uuid.ProjectId(config.Project.Id),
+		uuid.ServiceStackId(config.ServiceId),
+		uuid.ContainerId(config.Container.Id),
+	); err != nil {
 		return err
 	}
 

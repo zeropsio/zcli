@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -82,7 +83,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					return err
 				}
 			default:
-				if match, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String())); hasMatch {
+				if match, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name)); hasMatch {
 					setup = match
 				} else if !terminal.IsTerminal() {
 					return errors.New("Cannot find corresponding setup in zerops.yaml, please select with --setup")
@@ -217,7 +218,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(deployProcess.Id), cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.DeployRunning),
 					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
 					SuccessMessage:      i18n.T(i18n.DeployFinished),

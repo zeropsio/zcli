@@ -10,6 +10,8 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/enum"
+	"github.com/zeropsio/zerops-go/types/stringId"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -19,9 +21,9 @@ const listPageLimit = 100
 func GetProjectById(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	projectId uuid.ProjectId,
+	projectId entity.ProjectId,
 ) (entity.Project, error) {
-	projectResponse, err := restApiClient.GetProject(ctx, path.ProjectId{Id: projectId})
+	projectResponse, err := restApiClient.GetProject(ctx, path.ProjectId{Id: uuid.ProjectId(projectId)})
 	if err != nil {
 		return entity.Project{}, err
 	}
@@ -50,7 +52,7 @@ func GetAllProjects(
 			continue
 		}
 		for offset := 0; ; {
-			response, err := restApiClient.GetClientProject(ctx, path.ClientId{Id: org.Id}, query.ListClientProjects{
+			response, err := restApiClient.GetClientProject(ctx, path.ClientId{Id: uuid.ClientId(org.Id)}, query.ListClientProjects{
 				Limit:  types.NewIntNull(listPageLimit),
 				Offset: types.NewIntNull(offset),
 			})
@@ -81,18 +83,24 @@ func PostProject(
 	restApiClient *zeropsRestApiClient.Handler,
 	post entity.PostProject,
 ) (entity.Project, error) {
+	mode := enum.ProjectModeEnum(post.Mode)
+	tagList := types.StringArray(post.Tags)
+	if tagList == nil {
+		tagList = make(types.StringArray, 0)
+	}
+	location := stringId.LocationIdNull{}
+	if loc, ok := post.Location.Get(); ok {
+		location = stringId.NewLocationIdNullFromString(loc.String())
+	}
 	postBody := body.PostProject{
-		Name:         post.Name,
-		Mode:         &post.Mode,
-		TagList:      post.Tags,
-		SshIsolation: post.SshIsolation,
-		EnvIsolation: post.EnvIsolation,
-		Location:     post.Location,
+		Name:         types.NewString(post.Name),
+		Mode:         &mode,
+		TagList:      tagList,
+		SshIsolation: types.NewStringNull(post.SshIsolation),
+		EnvIsolation: types.NewStringNull(post.EnvIsolation),
+		Location:     location,
 	}
-	if postBody.TagList == nil {
-		postBody.TagList = make(types.StringArray, 0)
-	}
-	response, err := restApiClient.PostClientProject(ctx, path.ClientId{Id: post.OrgId}, postBody)
+	response, err := restApiClient.PostClientProject(ctx, path.ClientId{Id: uuid.ClientId(post.OrgId)}, postBody)
 	if err != nil {
 		return entity.Project{}, err
 	}
@@ -113,11 +121,11 @@ func projectFromApiOutput(project output.Project) entity.Project {
 	description, _ := project.Description.Get()
 
 	return entity.Project{
-		Id:          project.Id,
-		Name:        project.Name,
-		Mode:        project.Mode,
-		OrgId:       project.ClientId,
-		Description: description,
-		Status:      project.Status,
+		Id:          entity.ProjectId(project.Id),
+		Name:        project.Name.Native(),
+		Mode:        entity.ProjectMode(project.Mode),
+		OrgId:       entity.OrgId(project.ClientId),
+		Description: description.Native(),
+		Status:      entity.ProjectStatus(project.Status),
 	}
 }

@@ -15,8 +15,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 type ServiceOption gn.Option[serviceScope]
@@ -83,7 +81,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 		service, err = repository.GetServiceById(
 			ctx,
 			cmdData.RestApiClient,
-			uuid.ServiceStackId(serviceId),
+			entity.ServiceId(serviceId),
 		)
 		if err != nil {
 			return errorsx.Convert(
@@ -103,7 +101,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 
 	// try to find by serviceId
 	if serviceIdOrName, exists := cmdData.Args[ServiceArgName]; exists && !cmdData.Service.Filled() && len(serviceIdOrName[0]) == 22 {
-		serviceId := uuid.ServiceStackId(serviceIdOrName[0])
+		serviceId := entity.ServiceId(serviceIdOrName[0])
 		service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, serviceId)
 		if err != nil {
 			return err
@@ -149,7 +147,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 		cmdData.Service = optional.New(service)
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedService), service.Name.String()))
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedService), service.Name))
 
 	if !cmdData.Project.Filled() {
 		if err := s.parent.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
@@ -212,13 +210,13 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 		cmdData.RestApiClient,
 		entity.PostService{
 			ProjectId: project.Id,
-			Name:      types.NewString(name),
+			Name:      name,
 			// Location:  location.Id.LocationIdNull(),
 		},
 	)
 	if err != nil {
 		if errorsx.HasErrorCode(err, errorsx.CodeServiceStackNameUnavailable) {
-			service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, types.NewString(name))
+			service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, name)
 			if err != nil {
 				return entity.Service{}, err
 			}

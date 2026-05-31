@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
@@ -95,7 +96,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 					return err
 				}
 			default:
-				if match, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name.String())); hasMatch {
+				if match, hasMatch := gn.FindFirst(setups, gn.ExactMatch(service.Name)); hasMatch {
 					setup = match
 				} else if !terminal.IsTerminal() {
 					return errors.New("Cannot find corresponding setup in zerops.yaml, please select with --setup")
@@ -231,7 +232,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{
 					{
-						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks,
+						F: uxHelpers.CheckZeropsProcess(entity.ProcessId(deployProcess.Id), cmdData.RestApiClient, cmdData.UxBlocks,
 							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
 								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
 									if cmdData.Params.GetBool("disable-logs") {
@@ -277,7 +278,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
 												Project:        project,
-												ServiceId:      buildServiceId,
+												ServiceId:      entity.ServiceId(buildServiceId),
 												Limit:          100,
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",
@@ -305,7 +306,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
 												Project:        project,
-												ServiceId:      prepareServiceId,
+												ServiceId:      entity.ServiceId(prepareServiceId),
 												Limit:          100,
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",

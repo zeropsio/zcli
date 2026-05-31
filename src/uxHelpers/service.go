@@ -94,7 +94,7 @@ func createServiceTableRows(projects []entity.Service, createNewService bool) (*
 
 	body := table.NewBody()
 	for _, project := range projects {
-		body.AddStringsRow(string(project.Id), project.Name.String(), project.Status.String())
+		body.AddStringsRow(project.Id.String(), project.Name, project.Status.String())
 	}
 	if createNewService {
 		body.AddCellsRow(

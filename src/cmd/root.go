@@ -71,7 +71,7 @@ func rootCmd() *cmdBuilder.Cmd {
 						cmdData.Stderr.PrintLines(i18n.T(i18n.ScopedProject), err.Error())
 					}
 				} else {
-					cmdData.Stdout.PrintLines(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name.String(), project.Id.Native()))
+					cmdData.Stdout.PrintLines(i18n.T(i18n.ScopedProject), fmt.Sprintf("%s [%s]", project.Name, project.Id.String()))
 				}
 			}
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 type Config struct {
@@ -27,7 +26,7 @@ var DefaultLevels = Levels{
 
 type RunConfig struct {
 	Project        entity.Project
-	ServiceId      uuid.ServiceStackId
+	ServiceId      entity.ServiceId
 	Container      entity.Container
 	Limit          int
 	MinSeverity    string

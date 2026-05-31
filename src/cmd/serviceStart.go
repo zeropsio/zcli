@@ -4,9 +4,11 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func serviceStartCmd() *cmdBuilder.Cmd {
@@ -25,7 +27,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 			startServiceResponse, err := cmdData.RestApiClient.PutServiceStackStart(
 				ctx,
 				path.ServiceStackId{
-					Id: service.Id,
+					Id: uuid.ServiceStackId(service.Id),
 				},
 			)
 			if err != nil {
@@ -43,7 +45,7 @@ func serviceStartCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(processId, cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(processId), cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.ServiceStarting),
 					ErrorMessageMessage: i18n.T(i18n.ServiceStartFailed),
 					SuccessMessage:      i18n.T(i18n.ServiceStarted),

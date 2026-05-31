@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -122,7 +123,7 @@ func classifyProcessStatus(status enum.ProcessStatusEnum) processOutcome {
 }
 
 func CheckZeropsProcess(
-	processId uuid.ProcessId,
+	processId entity.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
 	uxBlocks *uxBlock.Blocks,
 	options ...gn.Option[checkZeropsProcessSetup],
@@ -149,7 +150,7 @@ func CheckZeropsProcess(
 			case <-ctx.Done():
 				return nil
 			case <-ticker.C:
-				getProcessResponse, err := restApiClient.GetProcess(ctx, path.ProcessId{Id: processId})
+				getProcessResponse, err := restApiClient.GetProcess(ctx, path.ProcessId{Id: uuid.ProcessId(processId)})
 				if err != nil {
 					if err := handleTransientErr(err); err != nil {
 						return err

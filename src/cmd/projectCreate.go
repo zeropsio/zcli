@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -9,15 +10,12 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/input"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/stringId"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func formatAllowedTemplateFields(fields []string) string {
@@ -32,7 +30,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("org-id", "", "Organization ID to create project for").
 		StringSliceFlag("tags", nil, "Project tags. Comma separated list or repeated flag.").
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ProjectFields)).
-		StringFlag("mode", enumDefaultForFlag(enum.ProjectModeEnumLight), "Project mode"+enumValuesForFlag(enum.ProjectModeEnumAllPublic())).
+		StringFlag("mode", enumDefaultForFlag(entity.ProjectModeLight), "Project mode"+enumValuesForFlag(entity.AllPublicProjectModes())).
 		StringFlag("env-isolation", "service", "Env isolation rule [service, none] for more info see docs https://docs.zerops.io/features/env-variables#isolation-modes").
 		StringFlag("ssh-isolation", "vpn", "SSH isolation rules, for more info see docs https://docs.zerops.io/references/ssh#ssh-access-control").
 		StringFlag("location", "", "Project primary/fallback location (e.g. eu-central).").
@@ -40,10 +38,9 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			var err error
 
-			mode := cmdData.Params.GetString("mode")
-			mode = strings.ToUpper(mode)
-			if !enum.ProjectModeEnum(mode).Is(enum.ProjectModeEnumAllPublic()...) {
-				return errors.Errorf("Invalid --mode, expected one of %s, got %s", enum.ProjectModeEnumAllPublic(), mode)
+			mode := entity.ProjectMode(strings.ToUpper(cmdData.Params.GetString("mode")))
+			if !slices.Contains(entity.AllPublicProjectModes(), mode) {
+				return errors.Errorf("Invalid --mode, expected one of %v, got %s", entity.AllPublicProjectModes(), mode)
 			}
 
 			outFormat := cmdData.Params.GetString("out")
@@ -62,7 +59,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				org, err = repository.GetOrgById(
 					ctx,
 					cmdData.RestApiClient,
-					uuid.ClientId(orgId),
+					entity.OrgId(orgId),
 				)
 				if err != nil {
 					return err
@@ -80,7 +77,7 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", org.Name.String()))
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", org.Name))
 
 			label := styles.NewStringBuilder()
 			label.WriteString("Type ")
@@ -112,21 +109,21 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 
 			postProject := entity.PostProject{
 				OrgId:        org.Id,
-				Name:         types.NewString(name),
+				Name:         name,
 				Tags:         cmdData.Params.GetStringSlice("tags"),
-				Mode:         enum.ProjectModeEnum(mode),
-				SshIsolation: types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
-				EnvIsolation: types.NewStringNull(cmdData.Params.GetString("env-isolation")),
+				Mode:         mode,
+				SshIsolation: cmdData.Params.GetString("ssh-isolation"),
+				EnvIsolation: cmdData.Params.GetString("env-isolation"),
 			}
 			if loc := cmdData.Params.GetString("location"); loc != "" {
-				postProject.Location = stringId.NewLocationIdNullFromString(loc)
+				postProject.Location = optional.New(entity.LocationId(loc))
 			} else if terminal.IsTerminal() {
 				location, err := uxHelpers.PrintLocationSelector(ctx, cmdData.RestApiClient)
 				if err != nil {
 					return err
 				}
-				postProject.Location = location.Id.LocationIdNull()
-				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+				postProject.Location = optional.New(location.Id)
+				cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name))
 			}
 
 			project, err := repository.PostProject(ctx, cmdData.RestApiClient, postProject)

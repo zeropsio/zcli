@@ -48,7 +48,7 @@ func projectScopeCmd() *cmdBuilder.Cmd {
 				question.WriteStyledString(
 					styles.SelectStyle().
 						Bold(true),
-					project.Name.String(),
+					project.Name,
 				)
 			}
 
@@ -84,8 +84,8 @@ func projectScopeCmd() *cmdBuilder.Cmd {
 							if clearProject {
 								continue
 							}
-							fmt.Fprintf(tmpFile, "# set by zcli project scope %s\n", project.Name.Native())
-							fmt.Fprintf(tmpFile, "projectId: %s\n", project.Id.Native())
+							fmt.Fprintf(tmpFile, "# set by zcli project scope %s\n", project.Name)
+							fmt.Fprintf(tmpFile, "projectId: %s\n", project.Id.String())
 							written = true
 							continue
 						}
@@ -104,8 +104,8 @@ func projectScopeCmd() *cmdBuilder.Cmd {
 					return nil
 				}
 				if !clearProject {
-					fmt.Fprintf(tmpFile, "# set by zcli project scope %s\n", project.Name.Native())
-					fmt.Fprintf(tmpFile, "projectId: %s\n", project.Id.Native())
+					fmt.Fprintf(tmpFile, "# set by zcli project scope %s\n", project.Name)
+					fmt.Fprintf(tmpFile, "projectId: %s\n", project.Id.String())
 				}
 
 				return nil

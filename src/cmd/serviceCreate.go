@@ -14,6 +14,7 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/units"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -21,8 +22,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/stringId"
 )
 
 const maxEnvFileSize = units.MiB
@@ -93,14 +92,14 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 
 			postService := entity.PostService{
 				ProjectId:        project.Id,
-				Name:             types.NewString(name),
+				Name:             name,
 				EnvFile:          envFile,
-				StartWithoutCode: types.NewBool(startWithoutCode),
-				SshIsolation:     types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),
-				EnvIsolation:     types.NewStringNull(cmdData.Params.GetString("env-isolation")),
+				StartWithoutCode: startWithoutCode,
+				SshIsolation:     cmdData.Params.GetString("ssh-isolation"),
+				EnvIsolation:     cmdData.Params.GetString("env-isolation"),
 			}
 			if loc := cmdData.Params.GetString("location"); loc != "" {
-				postService.Location = stringId.NewLocationIdNullFromString(loc)
+				postService.Location = optional.New(entity.LocationId(loc))
 			}
 			// Service-level location picker is intentionally disabled for now —
 			// the --location flag stays available (hidden) for internal testing.
@@ -110,7 +109,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			// 		return err
 			// 	}
 			// 	postService.Location = location.Id.LocationIdNull()
-			// 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+			// 	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name))
 			// }
 
 			process, service, err := repository.PostGenericService(
@@ -121,7 +120,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			if err != nil {
 				noop := cmdData.Params.GetBool("noop")
 				if errorsx.HasErrorCode(err, errorsx.CodeServiceStackNameUnavailable) && noop {
-					service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, types.NewString(name))
+					service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, name)
 					if err != nil {
 						return err
 					}
@@ -166,8 +165,8 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 		})
 }
 
-func readServiceEnvFile(cmdData *cmdBuilder.LoggedUserCmdData) (types.TextNull, error) {
-	var envFile types.TextNull
+func readServiceEnvFile(cmdData *cmdBuilder.LoggedUserCmdData) (optional.Null[string], error) {
+	var envFile optional.Null[string]
 	envFilePath := cmdData.Params.GetString("env-file")
 	if envFilePath != "" {
 		workingDir := cmdData.Params.GetString("working-dir")
@@ -189,16 +188,16 @@ func readServiceEnvFile(cmdData *cmdBuilder.LoggedUserCmdData) (types.TextNull, 
 		if err != nil {
 			return envFile, errors.WithStack(err)
 		}
-		envFile = types.NewTextNull(string(content))
+		envFile = optional.New(string(content))
 	}
 
 	envSlice := cmdData.Params.GetStringSlice("env")
 	if len(envSlice) > 0 {
 		envs := strings.Join(envSlice, "\n")
 		if f, filled := envFile.Get(); filled {
-			envFile = types.NewTextNull(f.Native() + "\n" + envs)
+			envFile = optional.New(f + "\n" + envs)
 		} else {
-			envFile = types.NewTextNull(envs)
+			envFile = optional.New(envs)
 		}
 	}
 

@@ -24,8 +24,8 @@ func GetAllLocations(
 	locations := make([]entity.Location, 0, len(resOutput.LocationList))
 	for _, loc := range resOutput.LocationList {
 		locations = append(locations, entity.Location{
-			Id:   loc.Id,
-			Name: loc.Name,
+			Id:   entity.LocationId(loc.Id),
+			Name: loc.Name.Native(),
 		})
 	}
 

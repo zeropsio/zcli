@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
@@ -11,6 +12,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 const serviceImportArgName = "import-yaml-path"
@@ -48,7 +50,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 
 			importServiceResponse, err := cmdData.RestApiClient.PostProjectServiceStackImport(
 				ctx,
-				path.ProjectId{Id: project.Id},
+				path.ProjectId{Id: uuid.ProjectId(project.Id)},
 				body.ServiceStackImport{
 					Yaml: types.Text(yamlContent),
 				},
@@ -66,7 +68,7 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 			for _, service := range responseOutput.ServiceStacks {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
-						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
+						F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(process.Id), cmdData.RestApiClient, cmdData.UxBlocks),
 						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
 						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
 						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),

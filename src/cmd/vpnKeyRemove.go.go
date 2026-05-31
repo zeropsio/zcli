@@ -9,6 +9,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
@@ -28,7 +29,7 @@ func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
 				getResponse, err := cmdData.RestApiClient.GetProjectVpn(
 					ctx,
 					path.ProjectIdBase64PublicKey{
-						Id:              project.Id,
+						Id:              uuid.ProjectId(project.Id),
 						Base64PublicKey: types.String(base64.URLEncoding.EncodeToString([]byte(publicKey))),
 					},
 					query.GetProjectVpn{},
@@ -43,7 +44,7 @@ func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
 
 				deleteResponse, err := cmdData.RestApiClient.DeleteProjectVpn(
 					ctx,
-					path.ProjectId{Id: project.Id},
+					path.ProjectId{Id: uuid.ProjectId(project.Id)},
 					body.PostProjectVpn{PublicKey: types.String(publicKey)},
 				)
 				if err != nil {

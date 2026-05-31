@@ -12,22 +12,23 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/stringId"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func GetServiceByIdOrName(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	projectId uuid.ProjectId,
+	projectId entity.ProjectId,
 	serviceIdOrName string,
 ) (entity.Service, error) {
-	service, err := GetServiceById(ctx, restApiClient, uuid.ServiceStackId(serviceIdOrName))
+	service, err := GetServiceById(ctx, restApiClient, entity.ServiceId(serviceIdOrName))
 	if err != nil {
 		if errorsx.Is(err, errorsx.Or(
 			errorsx.ErrorCode(errorsx.CodeInvalidUserInput),
 			errorsx.ErrorCode(errorsx.CodeServiceStackNotFound),
 		)) {
-			service, err = GetServiceByName(ctx, restApiClient, projectId, types.String(serviceIdOrName))
+			service, err = GetServiceByName(ctx, restApiClient, projectId, serviceIdOrName)
 			if err != nil {
 				return entity.Service{}, errorsx.Convert(
 					err,
@@ -47,9 +48,9 @@ func GetServiceByIdOrName(
 func GetServiceById(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	serviceId uuid.ServiceStackId,
+	serviceId entity.ServiceId,
 ) (entity.Service, error) {
-	serviceResponse, err := restApiClient.GetServiceStack(ctx, path.ServiceStackId{Id: serviceId})
+	serviceResponse, err := restApiClient.GetServiceStack(ctx, path.ServiceStackId{Id: uuid.ServiceStackId(serviceId)})
 	if err != nil {
 		return entity.Service{}, err
 	}
@@ -66,12 +67,12 @@ func GetServiceById(
 func GetServiceByName(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	projectId uuid.ProjectId,
-	serviceName types.String,
+	projectId entity.ProjectId,
+	serviceName string,
 ) (entity.Service, error) {
 	serviceResponse, err := restApiClient.GetServiceStackByName(ctx, path.GetServiceStackByName{
-		ProjectId: projectId,
-		Name:      serviceName,
+		ProjectId: uuid.ProjectId(projectId),
+		Name:      types.NewString(serviceName),
 	})
 	if err != nil {
 		return entity.Service{}, err
@@ -93,7 +94,7 @@ func GetNonSystemServicesByProject(
 ) ([]entity.Service, error) {
 	var services []entity.Service
 	for offset := 0; ; {
-		servicesResponse, err := restApiClient.GetProjectServiceStack(ctx, path.ProjectId{Id: project.Id}, query.ListProjectServiceStacks{
+		servicesResponse, err := restApiClient.GetProjectServiceStack(ctx, path.ProjectId{Id: uuid.ProjectId(project.Id)}, query.ListProjectServiceStacks{
 			Limit:    types.NewIntNull(listPageLimit),
 			Offset:   types.NewIntNull(offset),
 			IsSystem: types.NewBoolNull(false),
@@ -125,18 +126,26 @@ func PostGenericService(
 	restApiClient *zeropsRestApiClient.Handler,
 	post entity.PostService,
 ) (entity.Process, entity.Service, error) {
+	envFile := types.TextNull{}
+	if v, ok := post.EnvFile.Get(); ok {
+		envFile = types.NewTextNull(v)
+	}
+	location := stringId.LocationIdNull{}
+	if loc, ok := post.Location.Get(); ok {
+		location = stringId.NewLocationIdNullFromString(loc.String())
+	}
 	postBody := body.PostStandardServiceStack{
-		Name:             post.Name,
-		UserDataEnvFile:  post.EnvFile,
-		StartWithoutCode: types.NewBoolNull(post.StartWithoutCode.Native()),
-		EnvIsolation:     post.EnvIsolation,
-		SshIsolation:     post.SshIsolation,
-		Location:         post.Location,
+		Name:             types.NewString(post.Name),
+		UserDataEnvFile:  envFile,
+		StartWithoutCode: types.NewBoolNull(post.StartWithoutCode),
+		EnvIsolation:     types.NewStringNull(post.EnvIsolation),
+		SshIsolation:     types.NewStringNull(post.SshIsolation),
+		Location:         location,
 	}
 	response, err := restApiClient.PostProjectServiceStackOld(
 		ctx,
 		path.ServiceStackServiceStackTypeVersionId{
-			Id:                        post.ProjectId,
+			Id:                        uuid.ProjectId(post.ProjectId),
 			ServiceStackTypeVersionId: "runtime",
 		},
 		postBody,
@@ -152,28 +161,29 @@ func PostGenericService(
 
 	return processFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
 }
+
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
 	return entity.Service{
-		Id:                          service.Id,
-		ProjectId:                   service.ProjectId,
-		OrgId:                       service.Project.ClientId,
-		Name:                        service.Name,
-		Status:                      service.Status,
-		ServiceTypeId:               service.ServiceStackTypeId,
-		ServiceTypeCategory:         service.ServiceStackTypeInfo.ServiceStackTypeCategory,
-		ServiceStackTypeVersionName: service.ServiceStackTypeInfo.ServiceStackTypeVersionName,
+		Id:                          entity.ServiceId(service.Id),
+		ProjectId:                   entity.ProjectId(service.ProjectId),
+		OrgId:                       entity.OrgId(service.Project.ClientId),
+		Name:                        service.Name.Native(),
+		Status:                      entity.ServiceStatus(service.Status),
+		ServiceTypeId:               entity.ServiceTypeId(service.ServiceStackTypeId),
+		ServiceTypeCategory:         entity.ServiceTypeCategory(service.ServiceStackTypeInfo.ServiceStackTypeCategory),
+		ServiceStackTypeVersionName: service.ServiceStackTypeInfo.ServiceStackTypeVersionName.Native(),
 	}
 }
 
 func serviceFromApiPostOutput(service output.ServiceStackProcess) entity.Service {
 	return entity.Service{
-		Id:                          service.Id,
-		ProjectId:                   service.ProjectId,
-		OrgId:                       service.Project.ClientId,
-		Name:                        service.Name,
-		Status:                      service.Status,
-		ServiceTypeId:               service.ServiceStackTypeId,
-		ServiceTypeCategory:         service.ServiceStackTypeInfo.ServiceStackTypeCategory,
-		ServiceStackTypeVersionName: service.ServiceStackTypeInfo.ServiceStackTypeVersionName,
+		Id:                          entity.ServiceId(service.Id),
+		ProjectId:                   entity.ProjectId(service.ProjectId),
+		OrgId:                       entity.OrgId(service.Project.ClientId),
+		Name:                        service.Name.Native(),
+		Status:                      entity.ServiceStatus(service.Status),
+		ServiceTypeId:               entity.ServiceTypeId(service.ServiceStackTypeId),
+		ServiceTypeCategory:         entity.ServiceTypeCategory(service.ServiceStackTypeInfo.ServiceStackTypeCategory),
+		ServiceStackTypeVersionName: service.ServiceStackTypeInfo.ServiceStackTypeVersionName.Native(),
 	}
 }

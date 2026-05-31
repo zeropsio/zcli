@@ -10,7 +10,6 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func GetAllOrgs(
@@ -48,7 +47,7 @@ func GetAllOrgs(
 func GetOrgById(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
-	orgId uuid.ClientId,
+	orgId entity.OrgId,
 ) (entity.Org, error) {
 	orgs, err := GetAllOrgs(ctx, restApiClient)
 	if err != nil {
@@ -65,9 +64,9 @@ func GetOrgById(
 
 func orgFromClientUser(clientUser output.ClientUserExtraWithClientLight) entity.Org {
 	return entity.Org{
-		Id:     clientUser.ClientId,
-		Name:   clientUser.Client.AccountName,
-		Status: clientUser.Status,
-		Role:   clientUser.RoleCode,
+		Id:     entity.OrgId(clientUser.ClientId),
+		Name:   clientUser.Client.AccountName.Native(),
+		Status: entity.OrgStatus(clientUser.Status),
+		Role:   entity.OrgRole(clientUser.RoleCode),
 	}
 }

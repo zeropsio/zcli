@@ -6,6 +6,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func vpnKeyListCmd() *cmdBuilder.Cmd {
@@ -22,7 +23,7 @@ func vpnKeyListCmd() *cmdBuilder.Cmd {
 
 			listResponse, err := cmdData.RestApiClient.GetProjectVpnList(
 				ctx,
-				path.ProjectId{Id: project.Id},
+				path.ProjectId{Id: uuid.ProjectId(project.Id)},
 				query.GetProjectVpn{},
 			)
 			if err != nil {

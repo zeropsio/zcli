@@ -1,30 +1,25 @@
 package entity
 
-import (
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/stringId"
-	"github.com/zeropsio/zerops-go/types/uuid"
-)
+import "github.com/zeropsio/zcli/src/optional"
 
 type Project struct {
-	Id          uuid.ProjectId
-	Name        types.String
-	Mode        enum.ProjectModeEnum
-	OrgId       uuid.ClientId
-	OrgName     types.String
-	Description types.Text
-	Status      enum.ProjectStatusEnum
+	Id          ProjectId
+	Name        string
+	Mode        ProjectMode
+	OrgId       OrgId
+	OrgName     string
+	Description string
+	Status      ProjectStatus
 }
 
 var ProjectFields = entityTemplateFields[Project]()
 
 type PostProject struct {
-	OrgId        uuid.ClientId
-	Name         types.String
-	Tags         types.StringArray
-	Mode         enum.ProjectModeEnum
-	SshIsolation types.StringNull
-	EnvIsolation types.StringNull
-	Location     stringId.LocationIdNull
+	OrgId        OrgId
+	Name         string
+	Tags         []string
+	Mode         ProjectMode
+	SshIsolation string
+	EnvIsolation string
+	Location     optional.Null[LocationId]
 }

@@ -17,6 +17,8 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/stringId"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func createAppVersion(
@@ -27,7 +29,7 @@ func createAppVersion(
 ) (output.PostAppVersion, error) {
 	appVersionResponse, err := restApiClient.PostServiceStackAppVersion(
 		ctx,
-		path.ServiceStackId{Id: service.Id},
+		path.ServiceStackId{Id: uuid.ServiceStackId(service.Id)},
 		body.PostAppVersion{
 			Name: func() types.StringNull {
 				if versionName != "" {
@@ -129,9 +131,9 @@ func validateZeropsYamlContent(
 	yamlContent []byte,
 ) error {
 	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
-		ServiceStackTypeVersionName: service.ServiceStackTypeVersionName,
-		ServiceStackName:            service.Name,
-		ServiceStackTypeId:          service.ServiceTypeId,
+		ServiceStackTypeVersionName: types.NewString(service.ServiceStackTypeVersionName),
+		ServiceStackName:            types.NewString(service.Name),
+		ServiceStackTypeId:          stringId.ServiceStackTypeId(service.ServiceTypeId),
 		ZeropsYaml:                  types.NewMediumText(string(yamlContent)),
 		ZeropsYamlSetup:             types.NewStringNull(setup),
 	})
