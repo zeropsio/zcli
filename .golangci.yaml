@@ -79,6 +79,17 @@ linters:
           deny:
             - pkg: github.com/zeropsio/zerops-go
               desc: cliStorage persists zcli domain types - do not import zerops-go here.
+        # Commands talk to the platform only through src/entity/repository. They
+        # must not import zerops-go directly - add a repository wrapper instead.
+        cmd-uses-repository:
+          files:
+            - "**/src/cmd/*.go"
+            # Tests may seed on-disk storage fixtures (profile.RepoProfile etc.) that carry
+            # zerops-go id types; only production command code must stay zerops-go-free.
+            - "!**/*_test.go"
+          deny:
+            - pkg: github.com/zeropsio/zerops-go
+              desc: cmd must go through src/entity/repository - do not import zerops-go in command code.
     godox:
       keywords:
         - FIXME
