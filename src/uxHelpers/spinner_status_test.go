@@ -11,13 +11,13 @@ import (
 // succeed, or fail.
 func TestClassifyProcessStatus(t *testing.T) {
 	cases := map[enum.ProcessStatusEnum]processOutcome{
-		enum.ProcessStatusEnumPending:     processPolling,
-		enum.ProcessStatusEnumRunning:     processPolling,
-		enum.ProcessStatusEnumFinished:    processSucceeded,
-		enum.ProcessStatusEnumRollbacking: processFailed,
-		enum.ProcessStatusEnumCanceling:   processFailed,
-		enum.ProcessStatusEnumFailed:      processFailed,
-		enum.ProcessStatusEnumCanceled:    processFailed,
+		enum.ProcessStatusEnumPending:              processPolling,
+		enum.ProcessStatusEnumRunning:              processPolling,
+		enum.ProcessStatusEnumFinished:             processSucceeded,
+		enum.ProcessStatusEnumRollbacking:          processFailed,
+		enum.ProcessStatusEnumCanceling:            processFailed,
+		enum.ProcessStatusEnumFailed:               processFailed,
+		enum.ProcessStatusEnumCanceled:             processFailed,
 		enum.ProcessStatusEnum("WHATEVER_UNKNOWN"): processFailed,
 	}
 

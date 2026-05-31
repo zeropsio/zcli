@@ -117,6 +117,11 @@ func classifyProcessStatus(status enum.ProcessStatusEnum) processOutcome {
 		return processPolling
 	case enum.ProcessStatusEnumFinished:
 		return processSucceeded
+	case enum.ProcessStatusEnumRollbacking,
+		enum.ProcessStatusEnumCanceling,
+		enum.ProcessStatusEnumFailed,
+		enum.ProcessStatusEnumCanceled:
+		return processFailed
 	default:
 		return processFailed
 	}

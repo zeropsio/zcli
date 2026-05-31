@@ -58,7 +58,27 @@ linters:
     - usetesting
     - wastedassign
     - whitespace
+    - depguard
   settings:
+    depguard:
+      rules:
+        # src/entity is the zcli domain layer and must not depend on zerops-go.
+        # All conversion between domain types and zerops-go wire types lives in
+        # src/entity/repository (which this rule does not cover). Keeping the
+        # domain free of zerops-go is the whole point of the boundary.
+        entity-domain-pure:
+          files:
+            - "**/src/entity/*.go"
+          deny:
+            - pkg: github.com/zeropsio/zerops-go
+              desc: src/entity is the domain boundary - keep zerops-go types in src/entity/repository and convert there.
+        # cliStorage persists domain types; it must not reach for zerops-go.
+        storage-domain-pure:
+          files:
+            - "**/src/cliStorage/*.go"
+          deny:
+            - pkg: github.com/zeropsio/zerops-go
+              desc: cliStorage persists zcli domain types - do not import zerops-go here.
     godox:
       keywords:
         - FIXME
