@@ -215,7 +215,6 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 		entity.PostService{
 			ProjectId: project.Id,
 			Name:      types.NewString(name),
-			Mode:      entity.ServiceModeNonHa,
 			// Location:  location.Id.LocationIdNull(),
 		},
 	)

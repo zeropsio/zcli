@@ -129,7 +129,6 @@ func PostGenericService(
 ) (entity.Process, entity.Service, error) {
 	postBody := body.PostStandardServiceStack{
 		Name:             post.Name,
-		Mode:             types.NewStringNull(string(post.Mode)),
 		UserDataEnvFile:  post.EnvFile,
 		StartWithoutCode: types.NewBoolNull(post.StartWithoutCode.Native()),
 		EnvIsolation:     post.EnvIsolation,

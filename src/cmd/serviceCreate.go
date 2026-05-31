@@ -36,7 +36,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 		StringFlag("zerops-yaml-path", "", i18n.T(i18n.ZeropsYamlLocation)).
 		StringFlag("working-dir", "./", i18n.T(i18n.BuildWorkingDir)).
 		StringFlag("name", "", "Service name").
-		StringFlag("mode", enumDefaultForFlag(entity.ServiceModeNonHa), "Service mode "+enumValuesForFlag(entity.ServiceModeAll())).
+		StringFlag("mode", "", "Service mode", cmdBuilder.DeprecatedFlag("service mode no longer has any effect, scaling is controlled by the autoscaling profile")).
 		StringFlag("out", "", "Output format of command, using golang's text/template engine. Entity fields: "+formatAllowedTemplateFields(entity.ServiceFields)).
 		StringFlag("env-file", "", "File with envs (will be set as secrets, runtime envs can be defined in zerops.yml). Max file size is "+units.ByteCountIEC(maxEnvFileSize)).
 		StringFlag("env-isolation", "service", "Env isolation rule [service, none] for more info see docs https://docs.zerops.io/features/env-variables#isolation-modes").
@@ -53,12 +53,6 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			}
 
 			startWithoutCode := cmdData.Params.GetBool("start-without-code")
-
-			mode := cmdData.Params.GetString("mode")
-			mode = strings.ToUpper(mode)
-			if !entity.ServiceMode(mode).Is(entity.ServiceModeAll()...) {
-				return errors.Errorf("Invalid --mode, expected one of %s, got %s", entity.ServiceModeAll(), mode)
-			}
 
 			envFile, err := readServiceEnvFile(cmdData)
 			if err != nil {
@@ -101,7 +95,6 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			postService := entity.PostService{
 				ProjectId:        project.Id,
 				Name:             types.NewString(name),
-				Mode:             entity.ServiceMode(mode),
 				EnvFile:          envFile,
 				StartWithoutCode: types.NewBool(startWithoutCode),
 				SshIsolation:     types.NewStringNull(cmdData.Params.GetString("ssh-isolation")),

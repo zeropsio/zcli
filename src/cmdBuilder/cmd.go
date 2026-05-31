@@ -47,6 +47,7 @@ type cmdFlag struct {
 	defaultValue interface{}
 	description  string
 	hidden       bool
+	deprecated   string
 	shorthand    string
 }
 
@@ -151,6 +152,13 @@ type FlagOption = func(cfg *cmdFlag)
 func HiddenFlag() FlagOption {
 	return func(cfg *cmdFlag) {
 		cfg.hidden = true
+	}
+}
+
+// DeprecatedFlag keeps the flag parseable but hides it from help and prints msg when it is used.
+func DeprecatedFlag(msg string) FlagOption {
+	return func(cfg *cmdFlag) {
+		cfg.deprecated = msg
 	}
 }
 

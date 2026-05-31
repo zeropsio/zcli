@@ -68,6 +68,13 @@ func buildCobraCmd(
 				return nil, err
 			}
 		}
+
+		if flag.deprecated != "" {
+			err := flagSet.MarkDeprecated(flag.name, flag.deprecated)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if cmd.guestRunFunc != nil || cmd.loggedUserRunFunc != nil {
