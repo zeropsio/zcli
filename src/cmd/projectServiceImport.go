@@ -4,15 +4,11 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 const serviceImportArgName = "import-yaml-path"
@@ -48,35 +44,24 @@ func projectServiceImportCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			importServiceResponse, err := cmdData.RestApiClient.PostProjectServiceStackImport(
-				ctx,
-				path.ProjectId{Id: uuid.ProjectId(project.Id)},
-				body.ServiceStackImport{
-					Yaml: types.Text(yamlContent),
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			responseOutput, err := importServiceResponse.Output()
+			importedServices, err := repository.ServiceImport(ctx, cmdData.RestApiClient, project.Id, string(yamlContent))
 			if err != nil {
 				return err
 			}
 
 			var processes []uxHelpers.Process
-			for _, service := range responseOutput.ServiceStacks {
+			for _, service := range importedServices {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
-						F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(process.Id), cmdData.RestApiClient, cmdData.UxBlocks),
-						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
-						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
-						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
+						RunningMessage:      service.Name + ": " + process.ActionName,
+						ErrorMessageMessage: service.Name + ": " + process.ActionName,
+						SuccessMessage:      service.Name + ": " + process.ActionName,
 					})
 				}
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(importedServices))))
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
 
 			err = uxHelpers.ProcessCheckWithSpinner(ctx, cmdData.UxBlocks, processes)

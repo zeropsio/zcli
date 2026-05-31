@@ -10,10 +10,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 const projectImportArgName = "import-yaml-path"
@@ -52,35 +48,24 @@ func projectImportCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			importProjectResponse, err := cmdData.RestApiClient.PostClientProjectImport(
-				ctx,
-				path.ClientId{Id: orgId},
-				body.ProjectImport{
-					Yaml: types.Text(yamlContent),
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			responseOutput, err := importProjectResponse.Output()
+			importedServices, err := repository.ProjectImport(ctx, cmdData.RestApiClient, orgId, string(yamlContent))
 			if err != nil {
 				return err
 			}
 
 			var processes []uxHelpers.Process
-			for _, service := range responseOutput.ServiceStacks {
+			for _, service := range importedServices {
 				for _, process := range service.Processes {
 					processes = append(processes, uxHelpers.Process{
-						F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(process.Id), cmdData.RestApiClient, cmdData.UxBlocks),
-						RunningMessage:      service.Name.String() + ": " + process.ActionName.String(),
-						ErrorMessageMessage: service.Name.String() + ": " + process.ActionName.String(),
-						SuccessMessage:      service.Name.String() + ": " + process.ActionName.String(),
+						F:                   uxHelpers.CheckZeropsProcess(process.Id, cmdData.RestApiClient, cmdData.UxBlocks),
+						RunningMessage:      service.Name + ": " + process.ActionName,
+						ErrorMessageMessage: service.Name + ": " + process.ActionName,
+						SuccessMessage:      service.Name + ": " + process.ActionName,
 					})
 				}
 			}
 
-			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(responseOutput.ServiceStacks))))
+			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.ServiceCount, len(importedServices))))
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.QueuedProcesses, len(processes))))
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.CoreServices)))
 
@@ -95,8 +80,8 @@ func projectImportCmd() *cmdBuilder.Cmd {
 		})
 }
 
-func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.ClientId, error) {
-	orgId := uuid.ClientId(cmdData.Params.GetString("org-id"))
+func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (entity.OrgId, error) {
+	orgId := entity.OrgId(cmdData.Params.GetString("org-id"))
 	if orgId != "" {
 		return orgId, nil
 	}
@@ -107,7 +92,7 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 	}
 
 	if len(orgs) == 1 {
-		return uuid.ClientId(orgs[0].Id), nil
+		return orgs[0].Id, nil
 	}
 
 	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.RestApiClient)
@@ -115,5 +100,5 @@ func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (uuid.
 		return "", err
 	}
 
-	return uuid.ClientId(selectedOrg.Id), nil
+	return selectedOrg.Id, nil
 }
