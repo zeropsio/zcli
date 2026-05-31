@@ -156,7 +156,7 @@ func TestMigration_V1_RescuesScopeIntoRepoProfile(t *testing.T) {
 	require.True(t, m.HasRepo(), "rescue should have created a repo profile")
 	id, ok := m.ScopeProject()
 	require.True(t, ok)
-	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", id.Native())
+	require.Equal(t, "AAAAAAAAAAAAAAAAAAAAAA", id.String())
 
 	// Global file got rewritten in v2 shape with no scope_project_id.
 	raw, err := os.ReadFile(globalPath)

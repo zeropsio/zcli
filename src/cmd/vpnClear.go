@@ -7,6 +7,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
@@ -41,7 +42,7 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 
 			deleteResponse, err := cmdData.RestApiClient.DeleteProjectVpn(
 				ctx,
-				path.ProjectId{Id: project.Id},
+				path.ProjectId{Id: uuid.ProjectId(project.Id)},
 				body.PostProjectVpn{PublicKey: types.String(wgKey.PublicKey().String())},
 			)
 			if err != nil {

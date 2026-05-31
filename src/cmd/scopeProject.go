@@ -10,9 +10,9 @@ import (
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func scopeProjectCmd() *cmdBuilder.Cmd {
@@ -35,7 +35,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 						return err
 					}
 				} else {
-					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.PreviouslyScopedProject), project.Name.String()))
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.PreviouslyScopedProject), project.Name))
 				}
 			}
 
@@ -44,7 +44,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 			var err error
 
 			if len(cmdData.Args) > 0 {
-				project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(cmdData.Args["project-id"][0]))
+				project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, entity.ProjectId(cmdData.Args["project-id"][0]))
 				if err != nil {
 					return err
 				}
@@ -60,11 +60,11 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			if err := cmdData.Profile.SetScopeProject(project.Id.ProjectIdNull()); err != nil {
+			if err := cmdData.Profile.SetScopeProject(optional.New(project.Id)); err != nil {
 				return err
 			}
 
-			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), project.Name.String()))
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(infoText), project.Name))
 
 			return nil
 		})

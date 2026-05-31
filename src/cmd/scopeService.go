@@ -9,10 +9,9 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/errorsx"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/errorCode"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func scopeServiceCmd() *cmdBuilder.Cmd {
@@ -29,13 +28,13 @@ func scopeServiceCmd() *cmdBuilder.Cmd {
 			if serviceId, serviceSet := cmdData.Profile.ScopeService(); serviceSet {
 				service, err := repository.GetServiceById(ctx, cmdData.RestApiClient, serviceId)
 				if err != nil {
-					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ServiceStackNotFound)) {
+					if errorsx.Is(err, errorsx.ErrorCode(errorsx.CodeServiceStackNotFound)) {
 						cmdData.UxBlocks.PrintWarning(styles.WarningLine(err.Error()))
 					} else {
 						return err
 					}
 				} else {
-					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Previously scoped service", service.Name.String()))
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Previously scoped service", service.Name))
 				}
 			}
 
@@ -64,7 +63,7 @@ func scopeServiceCmd() *cmdBuilder.Cmd {
 			if len(cmdData.Args[cmdBuilder.ServiceArgName]) > 0 {
 				arg := cmdData.Args[cmdBuilder.ServiceArgName][0]
 				if len(arg) == 22 {
-					service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, uuid.ServiceStackId(arg))
+					service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, entity.ServiceId(arg))
 				} else {
 					service, err = repository.GetServiceByIdOrName(ctx, cmdData.RestApiClient, project.Id, arg)
 				}
@@ -82,11 +81,11 @@ func scopeServiceCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			if err := cmdData.Profile.SetScopeService(service.Id.ServiceStackIdNull()); err != nil {
+			if err := cmdData.Profile.SetScopeService(optional.New(service.Id)); err != nil {
 				return err
 			}
 
-			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected service", service.Name.String()))
+			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected service", service.Name))
 
 			return nil
 		})

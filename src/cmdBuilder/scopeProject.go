@@ -14,9 +14,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/models/input"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 type ProjectOption gn.Option[projectScope]
@@ -87,7 +84,7 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 
 	// project id is passed as a flag
 	if projectId := cmdData.Params.GetString(ProjectArgName); projectId != "" {
-		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId))
+		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, entity.ProjectId(projectId))
 		if err != nil {
 			return errorsx.Convert(
 				err,
@@ -105,7 +102,7 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 	}
 
 	if projectId, exists := cmdData.Args[ProjectArgName]; exists && !cmdData.Project.Filled() {
-		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId[0]))
+		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, entity.ProjectId(projectId[0]))
 		if err != nil {
 			return errorsx.Convert(
 				err,
@@ -133,7 +130,7 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		}
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name.String()))
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.SelectedProject), project.Name))
 
 	return nil
 }
@@ -175,7 +172,7 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 		return entity.Project{}, err
 	}
 
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", selectedOrg.Name.String()))
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", selectedOrg.Name))
 
 	label := styles.NewStringBuilder()
 	label.WriteString("Type ")
@@ -204,13 +201,13 @@ func createNewProject(ctx context.Context, cmdData *LoggedUserCmdData) (entity.P
 	if err != nil {
 		return entity.Project{}, err
 	}
-	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name.String()))
+	cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected location", location.Name))
 
 	project, err := repository.PostProject(ctx, cmdData.RestApiClient, entity.PostProject{
 		OrgId:    selectedOrg.Id,
-		Name:     types.NewString(name),
-		Mode:     enum.ProjectModeEnumLight,
-		Location: location.Id.LocationIdNull(),
+		Name:     name,
+		Mode:     entity.ProjectModeLight,
+		Location: optional.New(location.Id),
 	})
 	if err != nil {
 		return entity.Project{}, err
@@ -224,7 +221,7 @@ func ProjectScopeReset(cmdData *LoggedUserCmdData) error {
 	if !cmdData.Profile.HasRepo() {
 		return nil
 	}
-	return cmdData.Profile.SetScopeProject(uuid.ProjectIdNull{})
+	return cmdData.Profile.SetScopeProject(optional.Empty[entity.ProjectId]())
 }
 
 // ServiceScopeReset clears the persisted service scope on the active repo profile. No-op when
@@ -234,5 +231,5 @@ func ServiceScopeReset(cmdData *LoggedUserCmdData) error {
 	if !cmdData.Profile.HasRepo() {
 		return nil
 	}
-	return cmdData.Profile.SetScopeService(uuid.ServiceStackIdNull{})
+	return cmdData.Profile.SetScopeService(optional.Empty[entity.ServiceId]())
 }

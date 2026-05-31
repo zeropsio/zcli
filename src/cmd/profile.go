@@ -12,7 +12,9 @@ import (
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/httpClient"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -24,7 +26,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 func profileCmd() *cmdBuilder.Cmd {
@@ -189,13 +190,13 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				}
 				if scope.project.Filled() {
 					id, _ := scope.project.Get()
-					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope project", id.Native()))
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope project", id.String()))
 				} else {
 					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope project: not set"))
 				}
 				if scope.service.Filled() {
 					id, _ := scope.service.Get()
-					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope service", id.Native()))
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope service", id.String()))
 				} else {
 					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope service: not set"))
 				}
@@ -216,7 +217,7 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 			if isCopy {
 				created, err = cmdData.Profile.AddRepoProfileCopy(name, sourceName)
 			} else {
-				created, err = cmdData.Profile.AddRepoProfileFull(profile.RepoProfile{
+				created, err = cmdData.Profile.AddRepoProfileFull(profile.NewRepoProfile{
 					Name:           name,
 					Region:         regionOverride,
 					ScopeProjectId: scope.project,
@@ -323,8 +324,8 @@ func promptProfileToken(ctx context.Context) (string, error) {
 // zero (un-filled) Null types when the user opts out, so the caller can persist them as-is
 // onto a RepoProfile without further checking.
 type profileScopeChoices struct {
-	project uuid.ProjectIdNull
-	service uuid.ServiceStackIdNull
+	project optional.Null[entity.ProjectId]
+	service optional.Null[entity.ServiceId]
 }
 
 // scopeApiClient builds the REST client used to drive the scope step's project / service
@@ -391,7 +392,7 @@ func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler
 		return out, nil
 	}
 	pickedProject := selectedProject.Some()
-	out.project = pickedProject.Id.ProjectIdNull()
+	out.project = optional.New(pickedProject.Id)
 
 	serviceIdx, err := uxBlock.Run(
 		prompt.NewRoot(
@@ -400,7 +401,7 @@ func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler
 			[]string{"Skip", "Pick from list"},
 			prompt.WithChoiceDescriptions([]string{
 				"Leave scope service unset. Same fallback path: `zcli scope service` after login picks one interactively against the project you just selected.",
-				"Open the service selector for \"" + pickedProject.Name.String() + "\" and pre-fill scope service on this profile with the picked entry.",
+				"Open the service selector for \"" + pickedProject.Name + "\" and pre-fill scope service on this profile with the picked entry.",
 			}),
 		),
 		prompt.GetChoiceCursor,
@@ -419,7 +420,7 @@ func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler
 	if !selectedService.Filled() {
 		return out, nil
 	}
-	out.service = selectedService.Some().Id.ServiceStackIdNull()
+	out.service = optional.New(selectedService.Some().Id)
 	return out, nil
 }
 
@@ -713,7 +714,7 @@ func scopeLine(mgr *profile.Manager) string {
 	if !ok {
 		return "(not set)"
 	}
-	return id.Native() + "  (from repo)"
+	return id.String() + "  (from repo)"
 }
 
 func scopeServiceLine(mgr *profile.Manager) string {
@@ -721,7 +722,7 @@ func scopeServiceLine(mgr *profile.Manager) string {
 	if !ok {
 		return "(not set)"
 	}
-	return id.Native() + "  (from repo)"
+	return id.String() + "  (from repo)"
 }
 
 func formatRow(label, value string) string {

@@ -23,6 +23,7 @@ import (
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/types"
+	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
 const vpnCheckAddress = "logger.core.zerops"
@@ -97,7 +98,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			postProjectResponse, err := cmdData.RestApiClient.PostProjectVpn(
 				ctx,
-				path.ProjectId{Id: project.Id},
+				path.ProjectId{Id: uuid.ProjectId(project.Id)},
 				body.PostProjectVpn{PublicKey: types.String(publicKey.String())},
 			)
 			if err != nil {
@@ -127,7 +128,6 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 			uxBlocks.PrintInfo(styles.InfoWithValueLine(i18n.T(i18n.VpnConfigSaved), filePath))
 
 			if err := cmdData.Profile.SetVpnKey(project.Id, profile.VpnKey{
-				ProjectId: project.Id,
 				Key:       privateKey.String(),
 				CreatedAt: time.Now(),
 			}); err != nil {

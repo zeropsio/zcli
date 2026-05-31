@@ -64,7 +64,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 	if serviceId, ok := cmdData.Profile.ScopeService(); ok {
 		service, err = repository.GetServiceById(ctx, cmdData.RestApiClient, serviceId)
 		if err != nil {
-			if errorsx.Is(err, errorsx.ErrorCode(errorCode.ServiceStackNotFound)) {
+			if errorsx.Is(err, errorsx.ErrorCode(errorsx.CodeServiceStackNotFound)) {
 				if resetErr := ServiceScopeReset(cmdData); resetErr != nil {
 					return resetErr
 				}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/secrets"
 	zuuid "github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -91,14 +92,14 @@ func (m *Manager) Clear() (Data, error) {
 // is the same regardless of which repo asks for it. Values written by older zcli versions
 // (no "version" key, default Go field names) decode through vpnKeyV0 and Up into the current
 // shape before being returned.
-func (m *Manager) VpnKey(projectId zuuid.ProjectId) (VpnKey, bool, error) {
-	raw, ok, err := m.secrets.Get(vpnKeyPath(projectId))
+func (m *Manager) VpnKey(projectId entity.ProjectId) (VpnKey, bool, error) {
+	raw, ok, err := m.secrets.Get(vpnKeyPath(zuuid.ProjectId(projectId)))
 	if err != nil || !ok {
 		return VpnKey{}, ok, err
 	}
 	result, err := vpnKeySchema.Load([]byte(raw), migrationCtx{})
 	if err != nil {
-		return VpnKey{}, false, errors.Wrapf(err, "decode cached vpn key for project %s", projectId.Native())
+		return VpnKey{}, false, errors.Wrapf(err, "decode cached vpn key for project %s", projectId)
 	}
 	return result.Value, true, nil
 }
@@ -106,18 +107,19 @@ func (m *Manager) VpnKey(projectId zuuid.ProjectId) (VpnKey, bool, error) {
 // SetVpnKey writes (or overwrites) the cached VPN key for a project. Always written in the
 // current on-disk shape with a fresh version stamp; legacy values keep their old shape until
 // they're next replaced.
-func (m *Manager) SetVpnKey(projectId zuuid.ProjectId, key VpnKey) error {
+func (m *Manager) SetVpnKey(projectId entity.ProjectId, key VpnKey) error {
+	key.ProjectId = zuuid.ProjectId(projectId)
 	key.StampVersion(CurrentVpnKeyVersion)
 	payload, err := json.Marshal(key)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	return m.secrets.Set(vpnKeyPath(projectId), string(payload))
+	return m.secrets.Set(vpnKeyPath(zuuid.ProjectId(projectId)), string(payload))
 }
 
 // DeleteVpnKey removes the cached VPN key for a project. Idempotent.
-func (m *Manager) DeleteVpnKey(projectId zuuid.ProjectId) error {
-	return m.secrets.Delete(vpnKeyPath(projectId))
+func (m *Manager) DeleteVpnKey(projectId entity.ProjectId) error {
+	return m.secrets.Delete(vpnKeyPath(zuuid.ProjectId(projectId)))
 }
 
 func vpnKeyPath(projectId zuuid.ProjectId) string {

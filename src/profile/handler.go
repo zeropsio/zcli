@@ -82,6 +82,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
+	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/secrets"
 	zuuid "github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -262,7 +264,7 @@ func (m *Manager) Region() Region {
 // ScopeProject returns the scoped project id from the active repo profile (if any). There is
 // no global fallback by design: scope is per-repo. Returns (zero, false) outside a repo profile
 // or when no scope is set on the active entry.
-func (m *Manager) ScopeProject() (zuuid.ProjectId, bool) {
+func (m *Manager) ScopeProject() (entity.ProjectId, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	p, ok := m.activeProfile()
@@ -270,26 +272,30 @@ func (m *Manager) ScopeProject() (zuuid.ProjectId, bool) {
 		return "", false
 	}
 	id, _ := p.ScopeProjectId.Get()
-	return id, true
+	return entity.ProjectId(id), true
 }
 
 // SetScopeProject persists a scoped project to the active repo profile. Errors when no repo
 // profile is initialised in the current directory tree - call InitRepo first or run from inside
 // a repo that already has one.
-func (m *Manager) SetScopeProject(id zuuid.ProjectIdNull) error {
+func (m *Manager) SetScopeProject(id optional.Null[entity.ProjectId]) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if err := m.requireRepo(); err != nil {
 		return err
 	}
-	m.activeProfilePtr().ScopeProjectId = id
+	var zid zuuid.ProjectIdNull
+	if v, ok := id.Get(); ok {
+		zid = zuuid.NewProjectIdNull(zuuid.ProjectId(v))
+	}
+	m.activeProfilePtr().ScopeProjectId = zid
 	return m.saveRepoFile()
 }
 
 // ScopeService returns the scoped service id from the active repo profile (if any). Like
 // ScopeProject, scope is per-repo - there is no global fallback. Returns (zero, false) outside
 // a repo profile or when no scope is set on the active entry.
-func (m *Manager) ScopeService() (zuuid.ServiceStackId, bool) {
+func (m *Manager) ScopeService() (entity.ServiceId, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	p, ok := m.activeProfile()
@@ -297,18 +303,22 @@ func (m *Manager) ScopeService() (zuuid.ServiceStackId, bool) {
 		return "", false
 	}
 	id, _ := p.ScopeServiceId.Get()
-	return id, true
+	return entity.ServiceId(id), true
 }
 
 // SetScopeService persists a scoped service to the active repo profile. Errors when no repo
 // profile is initialised - same rule as SetScopeProject.
-func (m *Manager) SetScopeService(id zuuid.ServiceStackIdNull) error {
+func (m *Manager) SetScopeService(id optional.Null[entity.ServiceId]) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if err := m.requireRepo(); err != nil {
 		return err
 	}
-	m.activeProfilePtr().ScopeServiceId = id
+	var zid zuuid.ServiceStackIdNull
+	if v, ok := id.Get(); ok {
+		zid = zuuid.NewServiceStackIdNull(zuuid.ServiceStackId(v))
+	}
+	m.activeProfilePtr().ScopeServiceId = zid
 	return m.saveRepoFile()
 }
 
@@ -415,23 +425,46 @@ func (m *Manager) RemoveRepoProfile(name string) error {
 // secrets are always isolated. Errors when the name is empty, collides, or no repo profile
 // is initialised. Useful as the catch-all create path when callers have a fully built
 // RepoProfile value (e.g. an interactive builder collecting region / scope / ... up front).
-func (m *Manager) AddRepoProfileFull(template RepoProfile) (RepoProfile, error) {
+func (m *Manager) AddRepoProfileFull(in NewRepoProfile) (RepoProfile, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if err := m.requireRepo(); err != nil {
 		return RepoProfile{}, err
 	}
-	if template.Name == "" {
+	if in.Name == "" {
 		return RepoProfile{}, errors.New("profile name must not be empty")
 	}
 	for _, p := range m.repoFile.Profiles {
-		if p.Name == template.Name {
-			return RepoProfile{}, errors.Errorf("profile %q already exists", template.Name)
+		if p.Name == in.Name {
+			return RepoProfile{}, errors.Errorf("profile %q already exists", in.Name)
 		}
 	}
-	template.Id = uuid.NewString()
+	var scopeProject zuuid.ProjectIdNull
+	if id, ok := in.ScopeProjectId.Get(); ok {
+		scopeProject = zuuid.NewProjectIdNull(zuuid.ProjectId(id))
+	}
+	var scopeService zuuid.ServiceStackIdNull
+	if id, ok := in.ScopeServiceId.Get(); ok {
+		scopeService = zuuid.NewServiceStackIdNull(zuuid.ServiceStackId(id))
+	}
+	template := RepoProfile{
+		Name:           in.Name,
+		Id:             uuid.NewString(),
+		Region:         in.Region,
+		ScopeProjectId: scopeProject,
+		ScopeServiceId: scopeService,
+	}
 	m.repoFile.Profiles = append(m.repoFile.Profiles, template)
 	return template, m.saveRepoFile()
+}
+
+// NewRepoProfile carries the domain-typed inputs for AddRepoProfileFull. Scope ids are domain
+// types; the Manager converts them to the on-disk uuid shape so callers never touch zerops-go.
+type NewRepoProfile struct {
+	Name           string
+	Region         *Region
+	ScopeProjectId optional.Null[entity.ProjectId]
+	ScopeServiceId optional.Null[entity.ServiceId]
 }
 
 // SetRepoProfileToken stores a token in the secrets backend under the named profile's
