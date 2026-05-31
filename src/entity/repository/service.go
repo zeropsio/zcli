@@ -7,12 +7,10 @@ import (
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -26,15 +24,15 @@ func GetServiceByIdOrName(
 	service, err := GetServiceById(ctx, restApiClient, uuid.ServiceStackId(serviceIdOrName))
 	if err != nil {
 		if errorsx.Is(err, errorsx.Or(
-			errorsx.ErrorCode(errorCode.InvalidUserInput),
-			errorsx.ErrorCode(errorCode.ServiceStackNotFound),
+			errorsx.ErrorCode(errorsx.CodeInvalidUserInput),
+			errorsx.ErrorCode(errorsx.CodeServiceStackNotFound),
 		)) {
 			service, err = GetServiceByName(ctx, restApiClient, projectId, types.String(serviceIdOrName))
 			if err != nil {
 				return entity.Service{}, errorsx.Convert(
 					err,
-					errorsx.ErrorCode(errorCode.ServiceStackNotFound, errorsx.ErrorCodeErrorMessage(
-						func(_ apiError.Error) string {
+					errorsx.ErrorCode(errorsx.CodeServiceStackNotFound, errorsx.ErrorCodeErrorMessage(
+						func(_ errorsx.ApiError) string {
 							return i18n.T(i18n.ErrorServiceNotFound, serviceIdOrName)
 						},
 					)),

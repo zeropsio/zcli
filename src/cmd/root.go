@@ -11,7 +11,6 @@ import (
 	"github.com/zeropsio/zcli/src/printer"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/wg"
-	"github.com/zeropsio/zerops-go/errorCode"
 )
 
 func ExecuteCmd() {
@@ -63,7 +62,7 @@ func rootCmd() *cmdBuilder.Cmd {
 			if projectId, ok := cmdData.Profile.ScopeProject(); ok {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
-					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
+					if errorsx.Is(err, errorsx.ErrorCode(errorsx.CodeProjectNotFound)) {
 						err := cmdBuilder.ProjectScopeReset(cmdData)
 						if err != nil {
 							return err

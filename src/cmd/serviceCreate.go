@@ -12,6 +12,7 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/entity/repository"
+	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/units"
@@ -20,8 +21,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/apiError"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/stringId"
 )
@@ -121,7 +120,7 @@ func serviceCreateCmd() *cmdBuilder.Cmd {
 			)
 			if err != nil {
 				noop := cmdData.Params.GetBool("noop")
-				if apiError.HasErrorCode(err, errorCode.ServiceStackNameUnavailable) && noop {
+				if errorsx.HasErrorCode(err, errorsx.CodeServiceStackNameUnavailable) && noop {
 					service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, types.NewString(name))
 					if err != nil {
 						return err

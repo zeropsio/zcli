@@ -12,7 +12,6 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -30,7 +29,7 @@ func scopeProjectCmd() *cmdBuilder.Cmd {
 			if projectId, projectSet := cmdData.Profile.ScopeProject(); projectSet {
 				project, err := repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 				if err != nil {
-					if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
+					if errorsx.Is(err, errorsx.ErrorCode(errorsx.CodeProjectNotFound)) {
 						cmdData.UxBlocks.PrintWarning(styles.WarningLine(err.Error()))
 					} else {
 						return err

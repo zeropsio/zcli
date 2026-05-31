@@ -13,11 +13,9 @@ import (
 	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/apiError"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 )
 
@@ -144,8 +142,8 @@ func validateZeropsYamlContent(
 		return errorsx.Convert(
 			err,
 			errorsx.And(
-				errorsx.ErrorCode(errorCode.ZeropsYamlSetupNotFound),
-				errorsx.Meta(func(_ apiError.Error, metaItem map[string]interface{}) string {
+				errorsx.ErrorCode(errorsx.CodeZeropsYamlSetupNotFound),
+				errorsx.Meta(func(_ errorsx.ApiError, metaItem map[string]interface{}) string {
 					if name, ok := metaItem["name"]; ok {
 						return i18n.T(i18n.ErrorServiceNotFound, name)
 					}

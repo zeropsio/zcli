@@ -4,19 +4,18 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zerops-go/apiError"
-	"github.com/zeropsio/zerops-go/errorCode"
 )
 
-type ErrorCodeExtractMessageFunc func(apiError.Error) string
+type ErrorCodeExtractMessageFunc func(ApiError) string
 
-func extractApiErrorMessage(err apiError.Error) string {
-	return err.GetMessage()
+func extractApiErrorMessage(err ApiError) string {
+	return err.Message()
 }
 
-type ErrorCodeExtractMessageMetaFunc func(apiError.Error, map[string]interface{}) string
+type ErrorCodeExtractMessageMetaFunc func(ApiError, map[string]interface{}) string
 
-func extractApiErrorMessageMeta(err apiError.Error, _ map[string]interface{}) string {
-	return err.GetMessage()
+func extractApiErrorMessageMeta(err ApiError, _ map[string]interface{}) string {
+	return err.Message()
 }
 
 type errorCodeConfig struct {
@@ -35,7 +34,7 @@ func ErrorCodeErrorMessage(f ErrorCodeExtractMessageFunc) ErrorCodeOption {
 	}
 }
 
-func ErrorCode(errorCode errorCode.ErrorCode, auxOptions ...ErrorCodeOption) Check {
+func ErrorCode(code Code, auxOptions ...ErrorCodeOption) Check {
 	return func(err error) error {
 		cfg := gn.ApplyOptionsWithDefault(defaultErrorCodeConfig, auxOptions...)
 
@@ -44,11 +43,11 @@ func ErrorCode(errorCode errorCode.ErrorCode, auxOptions ...ErrorCodeOption) Che
 			return nil
 		}
 
-		if string(errorCode) != apiErr.GetErrorCode() {
+		if string(code) != apiErr.GetErrorCode() {
 			return nil
 		}
 
-		return NewUserError(cfg.errorMessage(apiErr), err)
+		return NewUserError(cfg.errorMessage(apiErrorView{err: apiErr}), err)
 	}
 }
 
@@ -81,7 +80,7 @@ func HttpStatusCode(httpStatusCode int, auxOptions ...HttpStatusCodeOption) Chec
 			return nil
 		}
 
-		return NewUserError(cfg.errorMessage(apiErr), err)
+		return NewUserError(cfg.errorMessage(apiErrorView{err: apiErr}), err)
 	}
 }
 
@@ -105,7 +104,7 @@ func InvalidUserInput(parameterName string, auxOptions ...InvalidUserInputOption
 	return func(err error) error {
 		cfg := gn.ApplyOptionsWithDefault(defaultInvalidUserInputConfig, auxOptions...)
 
-		if err := ErrorCode(errorCode.InvalidUserInput)(err); err == nil {
+		if err := ErrorCode(CodeInvalidUserInput)(err); err == nil {
 			return nil
 		}
 
@@ -123,7 +122,7 @@ func InvalidUserInput(parameterName string, auxOptions ...InvalidUserInputOption
 			if metaItemTyped, ok := metaItem.(map[string]interface{}); ok {
 				if metaParameterName, ok := metaItemTyped["parameter"]; ok {
 					if metaParameterName == parameterName {
-						return NewUserError(cfg.errorMessage(apiErr, metaItemTyped), err)
+						return NewUserError(cfg.errorMessage(apiErrorView{err: apiErr}, metaItemTyped), err)
 					}
 				}
 			}
@@ -134,7 +133,7 @@ func InvalidUserInput(parameterName string, auxOptions ...InvalidUserInputOption
 }
 
 func Meta(
-	errorMessage func(apiErr apiError.Error, metaItem map[string]interface{}) string,
+	errorMessage func(apiErr ApiError, metaItem map[string]interface{}) string,
 ) Check {
 	return func(err error) error {
 		var apiErr apiError.Error
@@ -143,7 +142,7 @@ func Meta(
 		}
 
 		if metaTyped, ok := apiErr.GetMeta().(map[string]interface{}); ok {
-			return NewUserError(errorMessage(apiErr, metaTyped), err)
+			return NewUserError(errorMessage(apiErrorView{err: apiErr}, metaTyped), err)
 		}
 
 		return nil

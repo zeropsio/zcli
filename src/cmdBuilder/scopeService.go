@@ -15,8 +15,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/apiError"
-	"github.com/zeropsio/zerops-go/errorCode"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -93,7 +91,7 @@ func (s *serviceScope) LoadSelectedScope(ctx context.Context, cmd *Cmd, cmdData 
 				errorsx.InvalidUserInput(
 					"id",
 					errorsx.InvalidUserInputErrorMessage(
-						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
+						func(_ errorsx.ApiError, metaItemTyped map[string]interface{}) string {
 							return i18n.T(i18n.ErrorInvalidServiceId, serviceId, metaItemTyped["message"])
 						},
 					),
@@ -219,7 +217,7 @@ func createNewService(ctx context.Context, project entity.Project, cmdData *Logg
 		},
 	)
 	if err != nil {
-		if apiError.HasErrorCode(err, errorCode.ServiceStackNameUnavailable) {
+		if errorsx.HasErrorCode(err, errorsx.CodeServiceStackNameUnavailable) {
 			service, err := repository.GetServiceByName(ctx, cmdData.RestApiClient, project.Id, types.NewString(name))
 			if err != nil {
 				return entity.Service{}, err

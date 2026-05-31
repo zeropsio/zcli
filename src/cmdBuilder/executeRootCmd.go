@@ -31,7 +31,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock"
 	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
-	"github.com/zeropsio/zerops-go/apiError"
 )
 
 // runOptions controls how RunRootCmd executes. Build via the With... helpers.
@@ -154,13 +153,12 @@ func errorExitCode(err error, uxBlocks uxBlock.UxBlocks) int {
 		return 1
 	}
 
-	var apiErr apiError.Error
-	if errors.As(err, &apiErr) {
-		uxBlocks.PrintErrorText(apiErr.GetMessage())
-		if apiErr.GetMeta() != nil {
-			meta, err := yaml.Marshal(apiErr.GetMeta())
+	if apiErr, ok := errorsx.AsApiError(err); ok {
+		uxBlocks.PrintErrorText(apiErr.Message())
+		if apiErr.Meta() != nil {
+			meta, err := yaml.Marshal(apiErr.Meta())
 			if err != nil {
-				uxBlocks.PrintErrorText(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.GetMessage()))
+				uxBlocks.PrintErrorText(fmt.Sprintf("couldn't parse meta of error: %s", apiErr.Message()))
 			}
 			uxBlocks.PrintErrorText(string(meta))
 		}

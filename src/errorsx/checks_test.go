@@ -30,8 +30,8 @@ func TestCheckInvalidUserInput(t *testing.T) {
 	{
 		check := Or(InvalidUserInput(
 			"id",
-			InvalidUserInputErrorMessage(func(apiErr apiError.Error, metaItem map[string]interface{}) string {
-				return fmt.Sprintf("%s:%s", apiErr.GetMessage(), metaItem["message"])
+			InvalidUserInputErrorMessage(func(apiErr ApiError, metaItem map[string]interface{}) string {
+				return fmt.Sprintf("%s:%s", apiErr.Message(), metaItem["message"])
 			}),
 		))
 
@@ -55,7 +55,7 @@ func TestErrorCode(t *testing.T) {
 	}
 
 	{
-		check := Or(ErrorCode(errorCode.InvalidUserInput))
+		check := Or(ErrorCode(CodeInvalidUserInput))
 
 		expectedError := NewUserError("invalid user input", inputErr)
 
@@ -63,7 +63,7 @@ func TestErrorCode(t *testing.T) {
 		require.Equal(t, expectedError, Convert(inputErr, check))
 	}
 	{
-		check := Or(ErrorCode(errorCode.PaymentFailedError))
+		check := Or(ErrorCode(CodeProjectNotFound))
 
 		require.False(t, Is(inputErr, check))
 		require.Equal(t, inputErr, Convert(inputErr, check))
