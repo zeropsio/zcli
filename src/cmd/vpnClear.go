@@ -4,10 +4,7 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
@@ -40,18 +37,9 @@ func vpnClearCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			deleteResponse, err := cmdData.RestApiClient.DeleteProjectVpn(
-				ctx,
-				path.ProjectId{Id: uuid.ProjectId(project.Id)},
-				body.PostProjectVpn{PublicKey: types.String(wgKey.PublicKey().String())},
-			)
-			if err != nil {
+			if err := repository.DeleteProjectVpnKey(ctx, cmdData.RestApiClient, project.Id, wgKey.PublicKey().String()); err != nil {
 				return err
 			}
-			if err := deleteResponse.Err(); err != nil {
-				return err
-			}
-
 			cmdData.UxBlocks.PrintSuccessTextf("Removed registered public key from project via API: %s", wgKey.PublicKey().String())
 
 			if err := cmdData.Profile.DeleteVpnKey(project.Id); err != nil {

@@ -2,14 +2,9 @@ package cmd
 
 import (
 	"context"
-	"encoding/base64"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/dto/input/query"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/uuid"
+	"github.com/zeropsio/zcli/src/entity/repository"
 )
 
 func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
@@ -26,31 +21,16 @@ func vpnKeyRemoveCmd() *cmdBuilder.Cmd {
 			}
 
 			for _, publicKey := range cmdData.Args["public-keys"] {
-				getResponse, err := cmdData.RestApiClient.GetProjectVpn(
-					ctx,
-					path.ProjectIdBase64PublicKey{
-						Id:              uuid.ProjectId(project.Id),
-						Base64PublicKey: types.String(base64.URLEncoding.EncodeToString([]byte(publicKey))),
-					},
-					query.GetProjectVpn{},
-				)
+				exists, err := repository.ProjectVpnKeyExists(ctx, cmdData.RestApiClient, project.Id, publicKey)
 				if err != nil {
 					return err
 				}
-				if getResponse.Err() != nil {
+				if !exists {
 					cmdData.UxBlocks.PrintWarningTextf("Public key not found: %s", publicKey)
 					continue
 				}
 
-				deleteResponse, err := cmdData.RestApiClient.DeleteProjectVpn(
-					ctx,
-					path.ProjectId{Id: uuid.ProjectId(project.Id)},
-					body.PostProjectVpn{PublicKey: types.String(publicKey)},
-				)
-				if err != nil {
-					return err
-				}
-				if err := deleteResponse.Err(); err != nil {
+				if err := repository.DeleteProjectVpnKey(ctx, cmdData.RestApiClient, project.Id, publicKey); err != nil {
 					return err
 				}
 

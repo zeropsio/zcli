@@ -4,9 +4,7 @@ import (
 	"context"
 
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/dto/input/query"
-	"github.com/zeropsio/zerops-go/types/uuid"
+	"github.com/zeropsio/zcli/src/entity/repository"
 )
 
 func vpnKeyListCmd() *cmdBuilder.Cmd {
@@ -21,21 +19,13 @@ func vpnKeyListCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			listResponse, err := cmdData.RestApiClient.GetProjectVpnList(
-				ctx,
-				path.ProjectId{Id: uuid.ProjectId(project.Id)},
-				query.GetProjectVpn{},
-			)
-			if err != nil {
-				return err
-			}
-			list, err := listResponse.Output()
+			publicKeys, err := repository.ListProjectVpnPublicKeys(ctx, cmdData.RestApiClient, project.Id)
 			if err != nil {
 				return err
 			}
 
-			for _, peer := range list.Peers {
-				cmdData.Stdout.Println(peer.PublicKey)
+			for _, publicKey := range publicKeys {
+				cmdData.Stdout.Println(publicKey)
 			}
 
 			return nil
