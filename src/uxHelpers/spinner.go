@@ -99,6 +99,28 @@ type checkZeropsProcessSetup struct {
 	processOutputCallback optional.Null[ProcessCallback]
 }
 
+type processOutcome int
+
+const (
+	// processPolling - the process is still in flight, keep waiting.
+	processPolling processOutcome = iota
+	// processSucceeded - the process finished cleanly.
+	processSucceeded
+	// processFailed - the process ended in a non-success terminal state (or an unknown one, treated as failure).
+	processFailed
+)
+
+func classifyProcessStatus(status enum.ProcessStatusEnum) processOutcome {
+	switch status {
+	case enum.ProcessStatusEnumPending, enum.ProcessStatusEnumRunning:
+		return processPolling
+	case enum.ProcessStatusEnumFinished:
+		return processSucceeded
+	default:
+		return processFailed
+	}
+}
+
 func CheckZeropsProcess(
 	processId uuid.ProcessId,
 	restApiClient *zeropsRestApiClient.Handler,
@@ -151,20 +173,12 @@ func CheckZeropsProcess(
 					}
 				}
 
-				processStatus := processOutput.Status
-
-				switch processStatus {
-				case enum.ProcessStatusEnumPending, enum.ProcessStatusEnumRunning:
+				switch classifyProcessStatus(processOutput.Status) {
+				case processPolling:
 					continue
-				case enum.ProcessStatusEnumFinished:
+				case processSucceeded:
 					return nil
-				case enum.ProcessStatusEnumRollbacking:
-					fallthrough
-				case enum.ProcessStatusEnumCanceling:
-					fallthrough
-				case enum.ProcessStatusEnumFailed:
-					fallthrough
-				case enum.ProcessStatusEnumCanceled:
+				case processFailed:
 					fallthrough
 				default:
 					return errors.Errorf(i18n.T(i18n.ProcessInvalidState), processId)
