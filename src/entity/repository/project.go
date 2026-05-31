@@ -111,6 +111,41 @@ func PostProject(
 	return projectFromApiOutput(project), nil
 }
 
+// GetProjectEnvFile returns the rendered env file for a project. When serviceName
+// is non-empty the envs are resolved in that service's isolation context.
+func GetProjectEnvFile(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	projectId entity.ProjectId,
+	serviceName string,
+	userOnly bool,
+) (string, error) {
+	var name types.EmptyString
+	overrideEnvIsolation := enum.GetProjectEnvFileOverrideEnvIsolationEnumNone
+	if serviceName != "" {
+		name = types.NewEmptyString(serviceName)
+		overrideEnvIsolation = enum.GetProjectEnvFileOverrideEnvIsolationEnumService
+	}
+
+	response, err := restApiClient.GetProjectEnvFile(
+		ctx,
+		path.ProjectId{Id: uuid.ProjectId(projectId)},
+		query.GetProjectEnvFile{
+			Name:                 name,
+			OverrideEnvIsolation: overrideEnvIsolation,
+			UserOnly:             types.NewBool(userOnly),
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+	envs, err := response.Output()
+	if err != nil {
+		return "", err
+	}
+	return envs.EnvFile.String(), nil
+}
+
 func DeleteProject(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,

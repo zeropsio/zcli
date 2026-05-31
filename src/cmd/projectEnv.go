@@ -9,11 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/dto/input/query"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
-	"github.com/zeropsio/zerops-go/types/uuid"
+	"github.com/zeropsio/zcli/src/entity/repository"
 )
 
 func projectEnvCmd() *cmdBuilder.Cmd {
@@ -37,13 +33,7 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 				templateString = "export {{.Key}}={{.Value}}"
 			}
 
-			var serviceName types.EmptyString
-			overrideEnvIsolation := enum.GetProjectEnvFileOverrideEnvIsolationEnumNone
-			if value := cmdData.Params.GetString("service"); value != "" {
-				serviceName = types.NewEmptyString(value)
-				overrideEnvIsolation = enum.GetProjectEnvFileOverrideEnvIsolationEnumService
-			}
-
+			serviceName := cmdData.Params.GetString("service")
 			userOnly := cmdData.Params.GetBool("user-only")
 
 			tmpl, err := template.New("envs").Parse(templateString)
@@ -51,26 +41,13 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 				return errors.WithStack(err)
 			}
 
-			response, err := cmdData.RestApiClient.GetProjectEnvFile(
-				ctx,
-				path.ProjectId{Id: uuid.ProjectId(project.Id)},
-				query.GetProjectEnvFile{
-					Name:                 serviceName,
-					OverrideEnvIsolation: overrideEnvIsolation,
-					UserOnly:             types.NewBool(userOnly),
-				},
-			)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			envs, err := response.Output()
+			envFile, err := repository.GetProjectEnvFile(ctx, cmdData.RestApiClient, project.Id, serviceName, userOnly)
 			if err != nil {
 				return errors.WithStack(err)
 			}
 
 			output := new(strings.Builder)
-			scanner := bufio.NewScanner(strings.NewReader(envs.EnvFile.String()))
+			scanner := bufio.NewScanner(strings.NewReader(envFile))
 			for scanner.Scan() {
 				parts := strings.SplitN(scanner.Text(), "=", 2)
 				if len(parts) != 2 {
