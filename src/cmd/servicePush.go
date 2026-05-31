@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/serviceLogs"
@@ -18,10 +19,6 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/types"
 )
 
 //nolint:maintidx // TODO (lh): remove after refactoring
@@ -109,7 +106,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			}
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup))
 
-			if err = validateZeropsYamlContent(
+			if err = repository.ValidateZeropsYaml(
 				ctx,
 				cmdData.RestApiClient,
 				service,
@@ -121,10 +118,10 @@ func servicePushCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
 
-			appVersion, err := createAppVersion(
+			appVersion, err := repository.CreateAppVersion(
 				ctx,
 				cmdData.RestApiClient,
-				service,
+				service.Id,
 				cmdData.Params.GetString("version-name"),
 			)
 			if err != nil {
@@ -165,7 +162,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 							defer wg.Done()
 
 							// if an error occurred during upload, return it (it could be even auth error, before upload starts)
-							if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+							if err := repository.UploadAppVersionPackage(ctx, appVersion.UploadUrl, finalReader); err != nil {
 								_ = reader.CloseWithError(err)
 								uploadErr = err // in case the reader is already closed with EOF, sometimes happened with timeouts
 							}
@@ -197,20 +194,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
 
-			deployResponse, err := cmdData.RestApiClient.PutAppVersionBuildAndDeploy(ctx,
-				dtoPath.AppVersionId{
-					Id: appVersion.Id,
-				},
-				body.PutAppVersionBuildAndDeploy{
-					ZeropsYaml:      types.MediumText(configContent),
-					ZeropsYamlSetup: types.NewStringNull(setup),
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			deployProcess, err := deployResponse.Output()
+			deployProcess, err := repository.BuildAndDeployAppVersion(ctx, cmdData.RestApiClient, appVersion.Id, configContent, setup)
 			if err != nil {
 				return err
 			}
@@ -232,9 +216,9 @@ func servicePushCmd() *cmdBuilder.Cmd {
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{
 					{
-						F: uxHelpers.CheckZeropsProcess(entity.ProcessId(deployProcess.Id), cmdData.RestApiClient, cmdData.UxBlocks,
+						F: uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks,
 							uxHelpers.CheckZeropsProcessWithProcessOutputCallback(
-								func(ctx context.Context, process *uxHelpers.Process, apiProcess output.Process) error {
+								func(ctx context.Context, process *uxHelpers.Process, apiProcess entity.Process) error {
 									if cmdData.Params.GetBool("disable-logs") {
 										return nil
 									}
@@ -274,11 +258,11 @@ func servicePushCmd() *cmdBuilder.Cmd {
 									}
 									if !buildPhase && apiProcess.AppVersion.Build != nil {
 										buildPhase = true
-										buildServiceId, _ := apiProcess.AppVersion.Build.ServiceStackId.Get()
+										buildServiceId, _ := apiProcess.AppVersion.Build.ServiceId.Get()
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
 												Project:        project,
-												ServiceId:      entity.ServiceId(buildServiceId),
+												ServiceId:      buildServiceId,
 												Limit:          100,
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",
@@ -286,7 +270,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 												FormatTemplate: "{{.Message}}",
 												Follow:         true,
 												Tags: []string{
-													"zbuilder@" + appVersion.Id.Native(),
+													"zbuilder@" + appVersion.Id.String(),
 												},
 												Levels: serviceLogs.DefaultLevels,
 											}); err != nil {
@@ -298,7 +282,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										if apiProcess.AppVersion.PrepareCustomRuntime == nil {
 											return nil
 										}
-										prepareServiceId, ok := apiProcess.AppVersion.PrepareCustomRuntime.ServiceStackId.Get()
+										prepareServiceId, ok := apiProcess.AppVersion.PrepareCustomRuntime.ServiceId.Get()
 										if !ok {
 											return nil
 										}
@@ -306,7 +290,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 										go func() {
 											if err := logsHandler.Run(ctx, serviceLogs.RunConfig{
 												Project:        project,
-												ServiceId:      entity.ServiceId(prepareServiceId),
+												ServiceId:      prepareServiceId,
 												Limit:          100,
 												MinSeverity:    "DEBUG",
 												MsgType:        "APPLICATION",

@@ -23,3 +23,10 @@ type AppVersionBuild struct {
 	ServiceStackId   optional.Null[ServiceId]
 	ServiceStackName string
 }
+
+// AppVersionUpload is the result of creating an app version: the id to deploy
+// and the URL the source package must be uploaded to.
+type AppVersionUpload struct {
+	Id        AppVersionId
+	UploadUrl string
+}

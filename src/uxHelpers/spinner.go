@@ -9,11 +9,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock/models/logView"
-	"github.com/zeropsio/zerops-go/dto/output"
 
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock"
@@ -73,7 +73,7 @@ func ProcessCheckWithSpinner(
 }
 
 type ProcessFunc func(ctx context.Context, process *Process) error
-type ProcessCallback func(ctx context.Context, process *Process, apiProcess output.Process) error
+type ProcessCallback func(ctx context.Context, process *Process, apiProcess entity.Process) error
 
 type Process struct {
 	F                   ProcessFunc
@@ -174,7 +174,7 @@ func CheckZeropsProcess(
 				firstErrTime = time.Time{}
 
 				if callback, exists := setup.processOutputCallback.Get(); exists {
-					if err := callback(ctx, process, processOutput); err != nil {
+					if err := callback(ctx, process, repository.ProcessFromApiOutput(processOutput)); err != nil {
 						return err
 					}
 				}

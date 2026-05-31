@@ -60,4 +60,11 @@ func (s AppVersionSource) String() string { return string(s) }
 
 type ProcessStatus string
 
-func (s ProcessStatus) String() string { return string(s) }
+const (
+	ProcessStatusPending ProcessStatus = "PENDING"
+	ProcessStatusRunning ProcessStatus = "RUNNING"
+)
+
+func (s ProcessStatus) String() string  { return string(s) }
+func (s ProcessStatus) IsPending() bool { return s == ProcessStatusPending }
+func (s ProcessStatus) IsRunning() bool { return s == ProcessStatusRunning }

@@ -8,16 +8,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zeropsio/zcli/src/archiveClient"
 	"github.com/zeropsio/zcli/src/cmdBuilder"
-	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/entity/repository"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/yamlReader"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	dtoPath "github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types"
 )
 
 func serviceDeployCmd() *cmdBuilder.Cmd {
@@ -96,7 +93,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 			}
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected setup", setup))
 
-			if err := validateZeropsYamlContent(
+			if err := repository.ValidateZeropsYaml(
 				ctx,
 				cmdData.RestApiClient,
 				service,
@@ -108,10 +105,10 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployCreatingPackageStart)))
 
-			appVersion, err := createAppVersion(
+			appVersion, err := repository.CreateAppVersion(
 				ctx,
 				cmdData.RestApiClient,
-				service,
+				service.Id,
 				cmdData.Params.GetString("version-name"),
 			)
 			if err != nil {
@@ -161,7 +158,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 							writer.CloseWithError(err)
 						})
 
-						if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
+						if err := repository.UploadAppVersionPackage(ctx, appVersion.UploadUrl, finalReader); err != nil {
 							// if an error occurred while packing the app, return that error
 							return err
 						}
@@ -188,21 +185,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 
 			uxBlocks.PrintInfo(styles.InfoLine(i18n.T(i18n.PushDeployDeployingStart)))
 
-			deployResponse, err := cmdData.RestApiClient.PutAppVersionDeploy(
-				ctx,
-				dtoPath.AppVersionId{
-					Id: appVersion.Id,
-				},
-				body.PutAppVersionDeploy{
-					ZeropsYaml:      types.NewMediumTextNull(string(configContent)),
-					ZeropsYamlSetup: types.NewStringNull(setup),
-				},
-			)
-			if err != nil {
-				return err
-			}
-
-			deployProcess, err := deployResponse.Output()
+			deployProcess, err := repository.DeployAppVersion(ctx, cmdData.RestApiClient, appVersion.Id, configContent, setup)
 			if err != nil {
 				return err
 			}
@@ -218,7 +201,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
-					F:                   uxHelpers.CheckZeropsProcess(entity.ProcessId(deployProcess.Id), cmdData.RestApiClient, cmdData.UxBlocks),
+					F:                   uxHelpers.CheckZeropsProcess(deployProcess.Id, cmdData.RestApiClient, cmdData.UxBlocks),
 					RunningMessage:      i18n.T(i18n.DeployRunning),
 					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
 					SuccessMessage:      i18n.T(i18n.DeployFinished),

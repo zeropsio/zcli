@@ -1,54 +1,13 @@
 package cmd
 
 import (
-	"context"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/zeropsio/zcli/src/entity"
-	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/i18n"
-	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/dto/output"
-	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/stringId"
-	"github.com/zeropsio/zerops-go/types/uuid"
 )
-
-func createAppVersion(
-	ctx context.Context,
-	restApiClient *zeropsRestApiClient.Handler,
-	service entity.Service,
-	versionName string,
-) (output.PostAppVersion, error) {
-	appVersionResponse, err := restApiClient.PostServiceStackAppVersion(
-		ctx,
-		path.ServiceStackId{Id: uuid.ServiceStackId(service.Id)},
-		body.PostAppVersion{
-			Name: func() types.StringNull {
-				if versionName != "" {
-					return types.NewStringNull(versionName)
-				}
-				return types.StringNull{}
-			}(),
-		},
-	)
-	if err != nil {
-		return output.PostAppVersion{}, err
-	}
-	appVersion, err := appVersionResponse.Output()
-	if err != nil {
-		return output.PostAppVersion{}, err
-	}
-
-	return appVersion, nil
-}
 
 func OpenPackageFile(archiveFilePath string, workingDir string) (*os.File, error) {
 	return openPackageFile(archiveFilePath, workingDir)
@@ -84,25 +43,6 @@ func openPackageFile(archiveFilePath string, workingDir string) (*os.File, error
 	return file, nil
 }
 
-func packageStream(ctx context.Context, uploadUrl types.String, reader io.Reader) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadUrl.Native(), reader)
-	if err != nil {
-		return errors.Errorf("failed to create upload HTTP request: PUT %s => %v", uploadUrl, err)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return errors.Errorf("failed to upload HTTP request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= http.StatusMultipleChoices {
-		return errors.New(i18n.T(i18n.PushDeployUploadPackageFailed))
-	}
-
-	return nil
-}
-
 // validateSetupInYaml ensures that an explicitly requested setup name exists
 // in the local zerops.yaml. The API rejects unknown setups too, but a
 // client-side check produces a faster, friendlier error that lists the
@@ -121,39 +61,4 @@ func validateSetupInYaml(setup string, setups []string) error {
 		return errors.Errorf("setup %q was not found in zerops.yaml: the file has no setups defined", setup)
 	}
 	return errors.Errorf("setup %q was not found in zerops.yaml; available setups: %s", setup, strings.Join(setups, ", "))
-}
-
-func validateZeropsYamlContent(
-	ctx context.Context,
-	restApiClient *zeropsRestApiClient.Handler,
-	service entity.Service,
-	setup string,
-	yamlContent []byte,
-) error {
-	resp, err := restApiClient.PostServiceStackZeropsYamlValidation(ctx, body.ZeropsYamlValidation{
-		ServiceStackTypeVersionName: types.NewString(service.ServiceStackTypeVersionName),
-		ServiceStackName:            types.NewString(service.Name),
-		ServiceStackTypeId:          stringId.ServiceStackTypeId(service.ServiceTypeId),
-		ZeropsYaml:                  types.NewMediumText(string(yamlContent)),
-		ZeropsYamlSetup:             types.NewStringNull(setup),
-	})
-	if err != nil {
-		return err
-	}
-	if _, err = resp.Output(); err != nil {
-		return errorsx.Convert(
-			err,
-			errorsx.And(
-				errorsx.ErrorCode(errorsx.CodeZeropsYamlSetupNotFound),
-				errorsx.Meta(func(_ errorsx.ApiError, metaItem map[string]interface{}) string {
-					if name, ok := metaItem["name"]; ok {
-						return i18n.T(i18n.ErrorServiceNotFound, name)
-					}
-					return ""
-				}),
-			),
-		)
-	}
-
-	return nil
 }

@@ -159,7 +159,7 @@ func DeleteProject(
 	if err != nil {
 		return entity.Process{}, err
 	}
-	return processFromApiOutput(processOutput), nil
+	return ProcessFromApiOutput(processOutput), nil
 }
 
 func projectFromApiOutputWithOrg(org entity.Org, project output.Project) entity.Project {

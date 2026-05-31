@@ -61,7 +61,7 @@ func importServiceStacksFromOutput(in output.ProjectImportServiceStacks) []entit
 		result = append(result, entity.ImportServiceStack{
 			Id:        entity.ServiceId(s.Id),
 			Name:      s.Name.Native(),
-			Processes: gn.TransformSlice(s.Processes, processFromApiOutput),
+			Processes: gn.TransformSlice(s.Processes, ProcessFromApiOutput),
 		})
 	}
 	return result

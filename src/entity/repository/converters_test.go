@@ -71,7 +71,7 @@ func TestOrgFromClientUser(t *testing.T) {
 }
 
 func TestProcessFromApiOutput(t *testing.T) {
-	got := processFromApiOutput(output.Process{
+	got := ProcessFromApiOutput(output.Process{
 		Id:             uuid.ProcessId("proc-1"),
 		ClientId:       uuid.ClientId("org-1"),
 		ProjectId:      uuid.ProjectId("proj-1"),

@@ -159,7 +159,7 @@ func PostGenericService(
 		return entity.Process{}, entity.Service{}, err
 	}
 
-	return processFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
+	return ProcessFromApiOutput(serviceStackProcess.Process), serviceFromApiPostOutput(serviceStackProcess), nil
 }
 
 func StartService(
@@ -175,7 +175,7 @@ func StartService(
 	if err != nil {
 		return entity.Process{}, err
 	}
-	return processFromApiOutput(processOutput), nil
+	return ProcessFromApiOutput(processOutput), nil
 }
 
 func StopService(
@@ -191,7 +191,7 @@ func StopService(
 	if err != nil {
 		return entity.Process{}, err
 	}
-	return processFromApiOutput(processOutput), nil
+	return ProcessFromApiOutput(processOutput), nil
 }
 
 func DeleteService(
@@ -207,7 +207,7 @@ func DeleteService(
 	if err != nil {
 		return entity.Process{}, err
 	}
-	return processFromApiOutput(processOutput), nil
+	return ProcessFromApiOutput(processOutput), nil
 }
 
 func EnableServiceSubdomainAccess(
@@ -223,7 +223,7 @@ func EnableServiceSubdomainAccess(
 	if err != nil {
 		return entity.Process{}, err
 	}
-	return processFromApiOutput(processOutput), nil
+	return ProcessFromApiOutput(processOutput), nil
 }
 
 func serviceFromApiOutput(service output.ServiceStack) entity.Service {
