@@ -388,12 +388,14 @@ func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler
 	if err != nil {
 		return out, err
 	}
+	var pickedOrg optional.Null[entity.Org]
 	if clientIdx == 1 {
 		selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, client, uxHelpers.WithOrgPickOnlyOneItem(true))
 		if err != nil {
 			return out, err
 		}
 		out.client = optional.New(selectedOrg.Id)
+		pickedOrg = optional.New(selectedOrg)
 	}
 
 	projectIdx, err := uxBlock.Run(
@@ -415,7 +417,11 @@ func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler
 		return out, nil
 	}
 
-	selectedProject, err := uxHelpers.PrintProjectSelector(ctx, client)
+	var projectOpts []uxHelpers.ProjectSelectorOption
+	if org, ok := pickedOrg.Get(); ok {
+		projectOpts = append(projectOpts, uxHelpers.WithProjectOrgScope(org))
+	}
+	selectedProject, err := uxHelpers.PrintProjectSelector(ctx, client, projectOpts...)
 	if err != nil {
 		return out, err
 	}

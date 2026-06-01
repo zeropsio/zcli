@@ -139,6 +139,14 @@ func (p *projectScope) SelectProject(ctx context.Context, cmdData *LoggedUserCmd
 	selectedOptions := []uxHelpers.ProjectSelectorOption{
 		uxHelpers.WithCreateNewProject(p.createNew),
 	}
+	// A configured client scope restricts the selector to that org's projects.
+	if orgId, ok := cmdData.Profile.ScopeClient(); ok {
+		org, err := repository.GetOrgById(ctx, cmdData.RestApiClient, orgId)
+		if err != nil {
+			return entity.Project{}, false, err
+		}
+		selectedOptions = append(selectedOptions, uxHelpers.WithProjectOrgScope(org))
+	}
 	selectedOptions = append(selectedOptions, opts...)
 	selectedProject, err := uxHelpers.PrintProjectSelector(
 		ctx,

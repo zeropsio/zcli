@@ -21,12 +21,21 @@ import (
 type projectSelectorConfig struct {
 	preselectedId string
 	createNew     bool
+	orgScope      optional.Null[entity.Org]
 }
 type ProjectSelectorOption = gn.Option[projectSelectorConfig]
 
 func WithCreateNewProject(b bool) ProjectSelectorOption {
 	return func(s *projectSelectorConfig) {
 		s.createNew = b
+	}
+}
+
+// WithProjectOrgScope restricts the selector to a single org's projects. Used when a client
+// scope is in effect so only that client's projects are fetched and shown.
+func WithProjectOrgScope(org entity.Org) ProjectSelectorOption {
+	return func(s *projectSelectorConfig) {
+		s.orgScope = optional.New(org)
 	}
 }
 
@@ -44,7 +53,7 @@ func PrintProjectSelector(
 	var empty optional.Null[entity.Project]
 	cfg := gn.ApplyOptions(opts...)
 
-	projects, err := repository.GetAllProjects(ctx, restApiClient)
+	projects, err := getSelectorProjects(ctx, restApiClient, cfg.orgScope)
 	if err != nil {
 		return empty, err
 	}
@@ -90,6 +99,19 @@ func PrintProjectSelector(
 	}
 
 	return empty, nil
+}
+
+// getSelectorProjects fetches the projects the selector should offer: only the scoped org's
+// projects when a client scope is set, otherwise every org's projects.
+func getSelectorProjects(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	orgScope optional.Null[entity.Org],
+) ([]entity.Project, error) {
+	if org, ok := orgScope.Get(); ok {
+		return repository.GetProjectsByOrg(ctx, restApiClient, org)
+	}
+	return repository.GetAllProjects(ctx, restApiClient)
 }
 
 func PrintProjectList(

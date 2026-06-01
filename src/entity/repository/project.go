@@ -51,30 +51,46 @@ func GetAllProjects(
 		if !org.Status.IsActive() {
 			continue
 		}
-		for offset := 0; ; {
-			response, err := restApiClient.GetClientProject(ctx, path.ClientId{Id: uuid.ClientId(org.Id)}, query.ListClientProjects{
-				Limit:  types.NewIntNull(listPageLimit),
-				Offset: types.NewIntNull(offset),
-			})
-			if err != nil {
-				return nil, err
-			}
-			projectsResponse, err := response.Output()
-			if err != nil {
-				return nil, err
-			}
-
-			for _, project := range projectsResponse.List {
-				projects = append(projects, projectFromApiOutputWithOrg(org, project))
-			}
-
-			offset += len(projectsResponse.List)
-			if len(projectsResponse.List) == 0 || offset >= projectsResponse.Total.Native() {
-				break
-			}
+		orgProjects, err := GetProjectsByOrg(ctx, restApiClient, org)
+		if err != nil {
+			return nil, err
 		}
+		projects = append(projects, orgProjects...)
 	}
 
+	return projects, nil
+}
+
+// GetProjectsByOrg returns only the projects belonging to a single org (client). Used when a
+// client scope is in effect so listings / selectors don't pull in other orgs' projects.
+func GetProjectsByOrg(
+	ctx context.Context,
+	restApiClient *zeropsRestApiClient.Handler,
+	org entity.Org,
+) ([]entity.Project, error) {
+	var projects []entity.Project
+	for offset := 0; ; {
+		response, err := restApiClient.GetClientProject(ctx, path.ClientId{Id: uuid.ClientId(org.Id)}, query.ListClientProjects{
+			Limit:  types.NewIntNull(listPageLimit),
+			Offset: types.NewIntNull(offset),
+		})
+		if err != nil {
+			return nil, err
+		}
+		projectsResponse, err := response.Output()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, project := range projectsResponse.List {
+			projects = append(projects, projectFromApiOutputWithOrg(org, project))
+		}
+
+		offset += len(projectsResponse.List)
+		if len(projectsResponse.List) == 0 || offset >= projectsResponse.Total.Native() {
+			break
+		}
+	}
 	return projects, nil
 }
 
