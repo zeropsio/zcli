@@ -3,21 +3,21 @@ package profile
 import "github.com/zeropsio/zcli/src/versionedjson"
 
 // CurrentRepoVersion is the on-disk version stamp for the repo profile file wrapper. Lives
-// next to repoFileV1 (the current target) by convention - the latest version file owns the
+// next to repoFileV2 (the current target) by convention - the latest version file owns the
 // constant. Bumped when the file-level shape itself changes OR when the child entry shape
 // bumps (because each repoFileVN statically holds []repoProfileVN; bumping the child without
 // bumping this wrapper would leave the wrapper's static element type pinned to the older
 // child shape - see "Cascading" in handler.go's package doc).
-const CurrentRepoVersion = 1
+const CurrentRepoVersion = 2
 
 // DefaultRepoProfileName is the name assigned to the sole profile produced by `zcli profile
 // init`, and the suggested name for the first entry users keep around.
 const DefaultRepoProfileName = "default"
 
 // RepoFile is the in-memory + write-side shape of the repo profile file. Type alias to
-// repoFileV1 (the current target) so bumping the version is a single-line flip; the
+// repoFileV2 (the current target) so bumping the version is a single-line flip; the
 // embedded versionedjson.Probe carries the auto-stamp hook through.
-type RepoFile = repoFileV1
+type RepoFile = repoFileV2
 
 // repoFileSchema dispatches loads on the file wrapper version (active_profile + profiles[]).
 // Entries decode straight into typed repoProfileV1 values; each is then run through

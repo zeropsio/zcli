@@ -10,6 +10,7 @@ import (
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/httpClient"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/profile"
 	"github.com/zeropsio/zcli/src/region"
 	"github.com/zeropsio/zcli/src/terminal"
@@ -17,6 +18,7 @@ import (
 	"github.com/zeropsio/zcli/src/uxBlock/models/selector"
 	"github.com/zeropsio/zcli/src/uxBlock/models/table"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
+	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 )
 
@@ -67,6 +69,24 @@ func loginCmd() *cmdBuilder.Cmd {
 			}
 
 			uxBlocks.PrintInfo(styles.SuccessLine(i18n.T(i18n.LoginSuccess, output.FullName, output.Email)))
+
+			// Offer a global default org (client scope). Interactive only - non-terminal logins
+			// (CI) skip it and keep falling back to AllOrgs + --org-id at command time. Single-org
+			// accounts are picked silently via WithOrgPickOnlyOneItem.
+			if terminal.IsTerminal() {
+				selectedOrg, err := uxHelpers.PrintOrgSelector(
+					ctx,
+					restApiClient,
+					uxHelpers.WithOrgPickOnlyOneItem(true),
+				)
+				if err != nil {
+					return err
+				}
+				if err := cmdData.Profile.SetGlobalScopeClient(optional.New(selectedOrg.Id)); err != nil {
+					return err
+				}
+				uxBlocks.PrintInfo(styles.InfoWithValueLine("Default org", selectedOrg.Name))
+			}
 
 			return nil
 		})

@@ -188,6 +188,12 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				if err != nil {
 					return err
 				}
+				if scope.client.Filled() {
+					id, _ := scope.client.Get()
+					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope client", id.String()))
+				} else {
+					cmdData.UxBlocks.PrintInfo(styles.InfoLine("Scope client: not set (will use global default)"))
+				}
 				if scope.project.Filled() {
 					id, _ := scope.project.Get()
 					cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Scope project", id.String()))
@@ -220,6 +226,7 @@ func profileCreateCmd() *cmdBuilder.Cmd {
 				created, err = cmdData.Profile.AddRepoProfileFull(profile.NewRepoProfile{
 					Name:           name,
 					Region:         regionOverride,
+					ScopeClientId:  scope.client,
 					ScopeProjectId: scope.project,
 					ScopeServiceId: scope.service,
 				})
@@ -324,6 +331,7 @@ func promptProfileToken(ctx context.Context) (string, error) {
 // zero (un-filled) Null types when the user opts out, so the caller can persist them as-is
 // onto a RepoProfile without further checking.
 type profileScopeChoices struct {
+	client  optional.Null[entity.OrgId]
 	project optional.Null[entity.ProjectId]
 	service optional.Null[entity.ServiceId]
 }
@@ -363,6 +371,29 @@ func promptProfileScope(ctx context.Context, client *zeropsRestApiClient.Handler
 	var out profileScopeChoices
 	if client == nil {
 		return out, nil
+	}
+
+	clientIdx, err := uxBlock.Run(
+		prompt.NewRoot(
+			ctx,
+			"Pre-fill scope client (org)?",
+			[]string{"Skip", "Pick from list"},
+			prompt.WithChoiceDescriptions([]string{
+				"Leave scope client unset on this profile. Commands that need an org fall back to the global default, then `--org-id` / the interactive org selector.",
+				"Open the org selector and pre-fill scope client on this profile with the picked entry. Wins over the global default for this repo profile.",
+			}),
+		),
+		prompt.GetChoiceCursor,
+	)
+	if err != nil {
+		return out, err
+	}
+	if clientIdx == 1 {
+		selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, client, uxHelpers.WithOrgPickOnlyOneItem(true))
+		if err != nil {
+			return out, err
+		}
+		out.client = optional.New(selectedOrg.Id)
 	}
 
 	projectIdx, err := uxBlock.Run(
@@ -676,6 +707,7 @@ func printProfileWhere(cmdData *cmdBuilder.GuestCmdData) error {
 	out.Println("Effective values")
 	out.Println(formatRow("  region", regionLine(mgr)))
 	out.Println(formatRow("  token", tokenLine(mgr)))
+	out.Println(formatRow("  scope client", scopeClientLine(mgr)))
 	out.Println(formatRow("  scope project", scopeLine(mgr)))
 	out.Println(formatRow("  scope service", scopeServiceLine(mgr)))
 	return nil
@@ -703,6 +735,21 @@ func tokenLine(mgr *profile.Manager) string {
 		return "set  (from repo override)"
 	case profile.SourceGlobal:
 		return "set  (from global)"
+	case profile.SourceNone:
+		return "(not set)"
+	}
+	return "(not set)"
+}
+
+// scopeClientLine attributes the effective client scope to its layer. Unlike project / service
+// scope (repo-only), the client scope merges global + repo, so we surface which one won.
+func scopeClientLine(mgr *profile.Manager) string {
+	id, src := mgr.ScopeClientWithSource()
+	switch src {
+	case profile.SourceRepo:
+		return id.String() + "  (from repo override)"
+	case profile.SourceGlobal:
+		return id.String() + "  (from global)"
 	case profile.SourceNone:
 		return "(not set)"
 	}

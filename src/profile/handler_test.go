@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zeropsio/zcli/src/constants"
+	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/secrets"
 )
 
@@ -426,4 +428,158 @@ func TestRegion_RepoOverridesGlobal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "override", m.Region().Name)
 	require.Equal(t, "prg1", m.Data().Region.Name, "global Data() still shows the global region; effective Region() merges")
+}
+
+// TestMigration_GlobalV2ToV3 loads a v2 global file and asserts it lands at v3 with the region
+// preserved and the new client scope defaulting to empty (absent from disk via omitempty).
+func TestMigration_GlobalV2ToV3(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "profile.json")
+	require.NoError(t, os.WriteFile(path, []byte(`{"version":2,"region":{"name":"prg1","isDefault":true,"address":"api.app-prg1.zerops.io"}}`), 0o600))
+
+	m, err := NewManager(Config{GlobalPath: path, GlobalMode: 0o600, Cwd: dir, Secrets: secrets.NewMemory()})
+	require.NoError(t, err)
+
+	require.EqualValues(t, CurrentDataVersion, *m.Data().Version)
+	require.Equal(t, "prg1", m.Data().Region.Name)
+	_, ok := m.ScopeClient()
+	require.False(t, ok, "client scope should default to unset after v2 → v3")
+
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+	var onDisk map[string]any
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.EqualValues(t, CurrentDataVersion, onDisk["version"])
+	require.Nil(t, onDisk["scope_client_id"], "empty client scope serializes as null, like the sibling scope ids")
+}
+
+// TestMigration_RepoV1ToV2 loads a v1 repo file with a scoped project and asserts the file +
+// entry land at v2, the existing scope survives, and the new client scope defaults to empty.
+func TestMigration_RepoV1ToV2(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, RepoProfileDir), 0o755))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(repo, RepoProfileDir, RepoProfileFile),
+		[]byte(`{"version":1,"active_profile":"default","profiles":[{"name":"default","id":"repo-id","scope_project_id":"proj-1"}]}`),
+		0o600,
+	))
+	globalDir := t.TempDir()
+	globalPath := filepath.Join(globalDir, "profile.json")
+	require.NoError(t, os.WriteFile(globalPath, []byte(`{"version":2}`), 0o600))
+
+	m, err := NewManager(Config{GlobalPath: globalPath, GlobalMode: 0o600, Cwd: repo, Secrets: secrets.NewMemory()})
+	require.NoError(t, err)
+
+	projectId, ok := m.ScopeProject()
+	require.True(t, ok)
+	require.EqualValues(t, "proj-1", projectId)
+	_, ok = m.ScopeClient()
+	require.False(t, ok, "client scope should default to unset after v1 → v2")
+
+	raw, err := os.ReadFile(RepoProfilePath(repo))
+	require.NoError(t, err)
+	var onDisk struct {
+		Version  uint             `json:"version"`
+		Profiles []map[string]any `json:"profiles"`
+	}
+	require.NoError(t, json.Unmarshal(raw, &onDisk))
+	require.EqualValues(t, CurrentRepoVersion, onDisk.Version)
+	require.Len(t, onDisk.Profiles, 1)
+	require.EqualValues(t, CurrentRepoProfileVersion, onDisk.Profiles[0]["version"])
+	require.Equal(t, "proj-1", onDisk.Profiles[0]["scope_project_id"])
+	require.Nil(t, onDisk.Profiles[0]["scope_client_id"], "empty client scope serializes as null")
+}
+
+// TestScopeClient_RepoOverridesGlobal asserts the client scope merges like Region: the repo
+// entry's value wins, the global value is the fallback, and neither set reports unset.
+func TestScopeClient_RepoOverridesGlobal(t *testing.T) {
+	newMgr := func(t *testing.T, repoEntry, globalScope string) *Manager {
+		t.Helper()
+		repo := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+		require.NoError(t, os.MkdirAll(filepath.Join(repo, RepoProfileDir), 0o755))
+		require.NoError(t, os.WriteFile(
+			filepath.Join(repo, RepoProfileDir, RepoProfileFile),
+			[]byte(`{"version":2,"active_profile":"default","profiles":[{"name":"default","id":"repo-id"`+repoEntry+`}]}`),
+			0o600,
+		))
+		globalDir := t.TempDir()
+		globalPath := filepath.Join(globalDir, "profile.json")
+		require.NoError(t, os.WriteFile(globalPath, []byte(`{"version":3`+globalScope+`}`), 0o600))
+		m, err := NewManager(Config{GlobalPath: globalPath, GlobalMode: 0o600, Cwd: repo, Secrets: secrets.NewMemory()})
+		require.NoError(t, err)
+		return m
+	}
+
+	t.Run("repo overrides global", func(t *testing.T) {
+		m := newMgr(t, `,"scope_client_id":"repo-org"`, `,"scope_client_id":"global-org"`)
+		id, src := m.ScopeClientWithSource()
+		require.Equal(t, SourceRepo, src)
+		require.EqualValues(t, "repo-org", id)
+	})
+	t.Run("global fallback when repo entry has none", func(t *testing.T) {
+		m := newMgr(t, ``, `,"scope_client_id":"global-org"`)
+		id, src := m.ScopeClientWithSource()
+		require.Equal(t, SourceGlobal, src)
+		require.EqualValues(t, "global-org", id)
+	})
+	t.Run("unset when neither layer has it", func(t *testing.T) {
+		m := newMgr(t, ``, ``)
+		_, ok := m.ScopeClient()
+		require.False(t, ok)
+	})
+}
+
+// TestSetGlobalScopeClient_PersistsAndClears round-trips the global client scope setter, then
+// clears it with an empty input.
+func TestSetGlobalScopeClient_PersistsAndClears(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "profile.json")
+	require.NoError(t, os.WriteFile(path, []byte(`{"version":3}`), 0o600))
+	m, err := NewManager(Config{GlobalPath: path, GlobalMode: 0o600, Cwd: dir, Secrets: secrets.NewMemory()})
+	require.NoError(t, err)
+
+	require.NoError(t, m.SetGlobalScopeClient(optional.New(entity.OrgId("org-1"))))
+	id, src := m.ScopeClientWithSource()
+	require.Equal(t, SourceGlobal, src)
+	require.EqualValues(t, "org-1", id)
+
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+	require.Contains(t, string(raw), `"scope_client_id":"org-1"`)
+
+	require.NoError(t, m.SetGlobalScopeClient(optional.Empty[entity.OrgId]()))
+	_, ok := m.ScopeClient()
+	require.False(t, ok, "empty input should clear the global client scope")
+}
+
+// TestAddRepoProfileFull_PersistsAndCopiesClientScope asserts a created entry stores its client
+// scope and that AddRepoProfileCopy carries it to the copy.
+func TestAddRepoProfileFull_PersistsAndCopiesClientScope(t *testing.T) {
+	repo := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(repo, ".git"), 0o755))
+	globalDir := t.TempDir()
+	globalPath := filepath.Join(globalDir, "profile.json")
+	require.NoError(t, os.WriteFile(globalPath, []byte(`{"version":3}`), 0o600))
+	m, err := NewManager(Config{GlobalPath: globalPath, GlobalMode: 0o600, Cwd: repo, Secrets: secrets.NewMemory()})
+	require.NoError(t, err)
+	_, err = m.InitRepo()
+	require.NoError(t, err)
+
+	created, err := m.AddRepoProfileFull(NewRepoProfile{
+		Name:          "scoped",
+		ScopeClientId: optional.New(entity.OrgId("org-1")),
+	})
+	require.NoError(t, err)
+	gotId, ok := created.ScopeClientId.Get()
+	require.True(t, ok)
+	require.EqualValues(t, "org-1", gotId)
+
+	copied, err := m.AddRepoProfileCopy("scoped-copy", "scoped")
+	require.NoError(t, err)
+	copyId, ok := copied.ScopeClientId.Get()
+	require.True(t, ok, "copy should inherit the source client scope")
+	require.EqualValues(t, "org-1", copyId)
+	require.NotEqual(t, created.Id, copied.Id, "copy gets a fresh id")
 }

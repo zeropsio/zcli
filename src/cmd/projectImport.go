@@ -81,24 +81,9 @@ func projectImportCmd() *cmdBuilder.Cmd {
 }
 
 func getOrgId(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) (entity.OrgId, error) {
-	orgId := entity.OrgId(cmdData.Params.GetString("org-id"))
-	if orgId != "" {
-		return orgId, nil
-	}
-
-	orgs, err := repository.GetAllOrgs(ctx, cmdData.RestApiClient)
+	org, err := resolveScopedOrg(ctx, cmdData)
 	if err != nil {
 		return "", err
 	}
-
-	if len(orgs) == 1 {
-		return orgs[0].Id, nil
-	}
-
-	selectedOrg, err := uxHelpers.PrintOrgSelector(ctx, cmdData.RestApiClient)
-	if err != nil {
-		return "", err
-	}
-
-	return selectedOrg.Id, nil
+	return org.Id, nil
 }

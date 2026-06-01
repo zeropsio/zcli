@@ -322,6 +322,46 @@ func (m *Manager) SetScopeService(id optional.Null[entity.ServiceId]) error {
 	return m.saveRepoFile()
 }
 
+// ScopeClient returns the effective client (org) scope. Unlike ScopeProject / ScopeService -
+// which are repo-only with no global fallback - the client scope merges across layers the way
+// Region does: the active repo profile's value wins, then the global value, else (zero, false).
+// It is optional everywhere; callers fall back to AllOrgs + flag / interactive selector when unset.
+func (m *Manager) ScopeClient() (entity.OrgId, bool) {
+	id, src := m.ScopeClientWithSource()
+	return id, src != SourceNone
+}
+
+// ScopeClientWithSource is ScopeClient plus which layer produced the value, for `zcli profile
+// where` provenance. Regular callers should use ScopeClient, which discards the source.
+func (m *Manager) ScopeClientWithSource() (entity.OrgId, ValueSource) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if p, ok := m.activeProfile(); ok && p.ScopeClientId.Filled() {
+		id, _ := p.ScopeClientId.Get()
+		return entity.OrgId(id), SourceRepo
+	}
+	if m.global.ScopeClientId.Filled() {
+		id, _ := m.global.ScopeClientId.Get()
+		return entity.OrgId(id), SourceGlobal
+	}
+	return "", SourceNone
+}
+
+// SetGlobalScopeClient persists (or clears, on empty input) the global client scope. There is
+// no repo-layer counterpart: the per-repo client scope is set only at profile creation through
+// AddRepoProfileFull, matching the "selected when creating a new profile" model.
+func (m *Manager) SetGlobalScopeClient(id optional.Null[entity.OrgId]) error {
+	var zid zuuid.ClientIdNull
+	if v, ok := id.Get(); ok {
+		zid = zuuid.NewClientIdNull(zuuid.ClientId(v))
+	}
+	_, err := m.UpdateGlobal(func(data Data) Data {
+		data.ScopeClientId = zid
+		return data
+	})
+	return err
+}
+
 // InitRepo creates a fresh repo profile rooted at the nearest .git ancestor of cwd, seeded
 // with a single profile named DefaultRepoProfileName. Errors when cwd is not inside a git repo
 // or a repo profile already exists. Returns the directory the profile file was created in.
@@ -447,12 +487,17 @@ func (m *Manager) AddRepoProfileFull(in NewRepoProfile) (RepoProfile, error) {
 	if id, ok := in.ScopeServiceId.Get(); ok {
 		scopeService = zuuid.NewServiceStackIdNull(zuuid.ServiceStackId(id))
 	}
+	var scopeClient zuuid.ClientIdNull
+	if id, ok := in.ScopeClientId.Get(); ok {
+		scopeClient = zuuid.NewClientIdNull(zuuid.ClientId(id))
+	}
 	template := RepoProfile{
 		Name:           in.Name,
 		Id:             uuid.NewString(),
 		Region:         in.Region,
 		ScopeProjectId: scopeProject,
 		ScopeServiceId: scopeService,
+		ScopeClientId:  scopeClient,
 	}
 	m.repoFile.Profiles = append(m.repoFile.Profiles, template)
 	return template, m.saveRepoFile()
@@ -465,6 +510,7 @@ type NewRepoProfile struct {
 	Region         *Region
 	ScopeProjectId optional.Null[entity.ProjectId]
 	ScopeServiceId optional.Null[entity.ServiceId]
+	ScopeClientId  optional.Null[entity.OrgId]
 }
 
 // SetRepoProfileToken stores a token in the secrets backend under the named profile's
@@ -487,7 +533,7 @@ func (m *Manager) SetRepoProfileToken(name, token string) error {
 // AddRepoProfileCopy is AddRepoProfile plus an initial copy of the non-sensitive override
 // fields from another existing entry. The new entry gets a fresh Id (so per-profile secrets
 // are isolated from the source) but inherits the source's Region override and persisted scope
-// (project + service). Tokens / VPN keys are not copied - those live in the secrets backend
+// (project + service + client). Tokens / VPN keys are not copied - those live in the secrets backend
 // keyed by the entry's Id and stay isolated. Errors when sourceName doesn't exist, on the
 // same conditions as AddRepoProfile (empty name, collision, no repo).
 func (m *Manager) AddRepoProfileCopy(name, sourceName string) (RepoProfile, error) {
@@ -514,6 +560,7 @@ func (m *Manager) AddRepoProfileCopy(name, sourceName string) (RepoProfile, erro
 		Id:             uuid.NewString(),
 		ScopeProjectId: src.ScopeProjectId,
 		ScopeServiceId: src.ScopeServiceId,
+		ScopeClientId:  src.ScopeClientId,
 	}
 	if src.Region != nil {
 		clone := *src.Region

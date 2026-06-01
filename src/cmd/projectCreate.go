@@ -52,29 +52,9 @@ func projectCreateCmd() *cmdBuilder.Cmd {
 				}
 			}
 
-			orgId := cmdData.Params.GetString("org-id")
-			var org entity.Org
-			switch {
-			case orgId != "":
-				org, err = repository.GetOrgById(
-					ctx,
-					cmdData.RestApiClient,
-					entity.OrgId(orgId),
-				)
-				if err != nil {
-					return err
-				}
-			case !terminal.IsTerminal():
-				return errors.New("Must specify organization ID with --org-id")
-			default:
-				org, err = uxHelpers.PrintOrgSelector(
-					ctx,
-					cmdData.RestApiClient,
-					uxHelpers.WithOrgPickOnlyOneItem(true),
-				)
-				if err != nil {
-					return err
-				}
+			org, err := resolveScopedOrg(ctx, cmdData)
+			if err != nil {
+				return err
 			}
 
 			cmdData.UxBlocks.PrintInfo(styles.InfoWithValueLine("Selected org", org.Name))
