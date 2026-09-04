@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"slices"
+
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/enum"
 	"github.com/zeropsio/zerops-go/types/stringId"
@@ -20,10 +22,26 @@ type Service struct {
 
 var ServiceFields = entityTemplateFields[Service]()
 
+// ServiceMode mirrors the ServiceStackModeEnum the SDK dropped when the platform deprecated serviceStack.mode to a plain string.
+type ServiceMode string
+
+const (
+	ServiceModeHa    ServiceMode = "HA"
+	ServiceModeNonHa ServiceMode = "NON_HA"
+)
+
+func ServiceModeAll() []ServiceMode {
+	return []ServiceMode{ServiceModeHa, ServiceModeNonHa}
+}
+
+func (m ServiceMode) Is(values ...ServiceMode) bool {
+	return slices.Contains(values, m)
+}
+
 type PostService struct {
 	ProjectId        uuid.ProjectId
 	Name             types.String
-	Mode             enum.ServiceStackModeEnum
+	Mode             ServiceMode
 	EnvFile          types.TextNull
 	StartWithoutCode types.Bool
 	SshIsolation     types.StringNull

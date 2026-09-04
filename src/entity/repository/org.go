@@ -7,7 +7,9 @@ import (
 	"github.com/zeropsio/zcli/src/entity"
 	"github.com/zeropsio/zcli/src/gn"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
+	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
+	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -15,19 +17,29 @@ func GetAllOrgs(
 	ctx context.Context,
 	restApiClient *zeropsRestApiClient.Handler,
 ) ([]entity.Org, error) {
-	response, err := restApiClient.GetUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var orgs []entity.Org
+	for offset := 0; ; {
+		response, err := restApiClient.GetUserClientList(ctx, query.ListUserClients{
+			Limit:  types.NewIntNull(listPageLimit),
+			Offset: types.NewIntNull(offset),
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	resOutput, err := response.Output()
-	if err != nil {
-		return nil, err
-	}
+		resOutput, err := response.Output()
+		if err != nil {
+			return nil, err
+		}
 
-	orgs := make([]entity.Org, 0, len(resOutput.ClientUserList))
-	for _, client := range resOutput.ClientUserList {
-		orgs = append(orgs, orgFromEsSearch(client))
+		for _, client := range resOutput.List {
+			orgs = append(orgs, orgFromClientUser(client))
+		}
+
+		offset += len(resOutput.List)
+		if len(resOutput.List) == 0 || offset >= resOutput.Total.Native() {
+			break
+		}
 	}
 
 	return orgs, nil
@@ -51,11 +63,11 @@ func GetOrgById(
 	return org, nil
 }
 
-func orgFromEsSearch(esClientUser output.ClientUserExtraWithClientLight) entity.Org {
+func orgFromClientUser(clientUser output.ClientUserExtraWithClientLight) entity.Org {
 	return entity.Org{
-		Id:     esClientUser.ClientId,
-		Name:   esClientUser.Client.AccountName,
-		Status: esClientUser.Status,
-		Role:   esClientUser.RoleCode,
+		Id:     clientUser.ClientId,
+		Name:   clientUser.Client.AccountName,
+		Status: clientUser.Status,
+		Role:   clientUser.RoleCode,
 	}
 }
