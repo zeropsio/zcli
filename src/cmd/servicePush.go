@@ -48,6 +48,7 @@ func servicePushCmd() *cmdBuilder.Cmd {
 		StringFlag("workspace-state", archiveClient.WorkspaceAll, i18n.T(i18n.PushWorkspaceState), cmdBuilder.ShortHand("w")).
 		BoolFlag("no-git", false, i18n.T(i18n.NoGit)).
 		BoolFlag("disable-logs", false, "disable logs").
+		BoolFlag("no-wait", false, "Do not wait for the Zerops deploy process to finish.").
 		HelpFlag(i18n.T(i18n.CmdHelpPush)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -211,6 +212,13 @@ func servicePushCmd() *cmdBuilder.Cmd {
 			deployProcess, err := deployResponse.Output()
 			if err != nil {
 				return err
+			}
+
+			if cmdData.Params.GetBool("no-wait") {
+				if deployProcess.Status.IsPending() || deployProcess.Status.IsRunning() {
+					cmdData.UxBlocks.PrintSuccessText(i18n.T(i18n.PushRunning))
+				}
+				return nil
 			}
 
 			guiHost := cmdData.CliStorage.Data().RegionData.GuiAddress.OrDefault("app.zerops.io")

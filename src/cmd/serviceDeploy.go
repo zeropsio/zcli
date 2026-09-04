@@ -41,6 +41,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 		StringSliceFlag("path-to-file-or-dir", []string{"."}, "path to file or directory to be deployed. Can be repeated.").
 		BoolFlag("verbose", false, i18n.T(i18n.VerboseFlag), cmdBuilder.ShortHand("v")).
 		BoolFlag("deploy-git-folder", false, i18n.T(i18n.UploadGitFolder), cmdBuilder.ShortHand("g")).
+		BoolFlag("no-wait", false, "Do not wait for the Zerops deploy process to finish.").
 		HelpFlag(i18n.T(i18n.CmdHelpServiceDeploy)).
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			uxBlocks := cmdData.UxBlocks
@@ -154,12 +155,10 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 						}
 
 						wg := sync.WaitGroup{}
-						wg.Add(1)
-						go func() {
-							defer wg.Done()
+						wg.Go(func() {
 							err := arch.TarFiles(writer, files)
 							writer.CloseWithError(err)
-						}()
+						})
 
 						if err := packageStream(ctx, appVersion.UploadUrl, finalReader); err != nil {
 							// if an error occurred while packing the app, return that error
@@ -207,7 +206,14 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 				return err
 			}
 
-			err = uxHelpers.ProcessCheckWithSpinner(
+			if cmdData.Params.GetBool("no-wait") {
+				if deployProcess.Status.IsPending() || deployProcess.Status.IsRunning() {
+					cmdData.UxBlocks.PrintSuccessText(i18n.T(i18n.DeployRunning))
+				}
+				return nil
+			}
+
+			if err := uxHelpers.ProcessCheckWithSpinner(
 				ctx,
 				cmdData.UxBlocks,
 				[]uxHelpers.Process{{
@@ -216,9 +222,7 @@ func serviceDeployCmd() *cmdBuilder.Cmd {
 					ErrorMessageMessage: i18n.T(i18n.DeployFailed),
 					SuccessMessage:      i18n.T(i18n.DeployFinished),
 				}},
-			)
-
-			if err != nil {
+			); err != nil {
 				return err
 			}
 
