@@ -80,6 +80,9 @@ linters:
         - (io.Closer).Close
         - (*os.File).Close
         - os.Remove
+    maintidx:
+      # A high index indicates better maintainability (it's kind of the opposite of complexity).
+      under: 15 # Default: 20
   exclusions:
     rules:
       # QF1008 "could remove embedded field from selector" is cosmetic.

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.2] - 2026-09-04
+
+### Added
+- `--no-wait` flag to `service push` and `service deploy` commands, which will cause the command to end once a process on Zerops is created, instead of waiting for it to fully complete
+
+## [v1.1.1] - 2026-09-04
+
+### Changed
+- removed any use of deprecated elastic search endpoints and replaced with standard REST API
+
 ## [v1.1.0] - 2026-05-26
 
 ### Added
