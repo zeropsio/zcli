@@ -7,10 +7,14 @@ import (
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/input/query"
 	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
+
+// listPageLimit matches the API's maximum page size, so paged fetch-all loops need as few round trips as possible.
+const listPageLimit = 100
 
 func GetProjectById(
 	ctx context.Context,
@@ -45,27 +49,27 @@ func GetAllProjects(
 		if !org.Status.IsActive() {
 			continue
 		}
-		esFilter := body.EsFilter{
-			Search: []body.EsSearchItem{
-				{
-					Name:     "clientId",
-					Operator: "eq",
-					Value:    org.Id.TypedString(),
-				},
-			},
-		}
+		for offset := 0; ; {
+			response, err := restApiClient.GetClientProject(ctx, path.ClientId{Id: org.Id}, query.ListClientProjects{
+				Limit:  types.NewIntNull(listPageLimit),
+				Offset: types.NewIntNull(offset),
+			})
+			if err != nil {
+				return nil, err
+			}
+			projectsResponse, err := response.Output()
+			if err != nil {
+				return nil, err
+			}
 
-		response, err := restApiClient.PostProjectSearch(ctx, esFilter)
-		if err != nil {
-			return nil, err
-		}
-		projectsResponse, err := response.Output()
-		if err != nil {
-			return nil, err
-		}
+			for _, project := range projectsResponse.List {
+				projects = append(projects, projectFromApiOutputWithOrg(org, project))
+			}
 
-		for _, project := range projectsResponse.Items {
-			projects = append(projects, projectFromEsSearch(org, project))
+			offset += len(projectsResponse.List)
+			if len(projectsResponse.List) == 0 || offset >= projectsResponse.Total.Native() {
+				break
+			}
 		}
 	}
 
@@ -99,18 +103,10 @@ func PostProject(
 	return projectFromApiOutput(project), nil
 }
 
-func projectFromEsSearch(org entity.Org, esProject output.EsProject) entity.Project {
-	description, _ := esProject.Description.Get()
-
-	return entity.Project{
-		Id:          esProject.Id,
-		Name:        esProject.Name,
-		Mode:        esProject.Mode,
-		OrgId:       org.Id,
-		OrgName:     org.Name,
-		Description: description,
-		Status:      esProject.Status,
-	}
+func projectFromApiOutputWithOrg(org entity.Org, project output.Project) entity.Project {
+	out := projectFromApiOutput(project)
+	out.OrgName = org.Name
+	return out
 }
 
 func projectFromApiOutput(project output.Project) entity.Project {

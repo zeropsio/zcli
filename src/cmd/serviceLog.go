@@ -42,7 +42,7 @@ func serviceLogCmd() *cmdBuilder.Cmd {
 			)
 
 			serviceId := service.Id
-			if cmdData.Params.GetBool("showBuildLogs") {
+			if cmdData.Params.GetBool("show-build-logs") {
 				appVersions, err := repository.GetLatestAppVersionByService(ctx, cmdData.RestApiClient, service)
 				if err != nil {
 					return err

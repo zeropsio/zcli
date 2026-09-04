@@ -7,19 +7,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestProjectListCommand checks that `zcli project list` walks GetUserInfo →
-// org filtering (ACTIVE only) → PostProjectSearch and renders a table that
+// TestProjectListCommand checks that `zcli project list` walks GetUserClientList →
+// org filtering (ACTIVE only) → GetClientProject and renders a table that
 // contains the project id, name, and org name.
 func TestProjectListCommand(t *testing.T) {
 	f := newFixture(t)
 	f.SeedLogin("test-token")
 
-	// GetAllOrgs reads UserAuthorize.clientUserList. Only ACTIVE clients are
-	// queried for projects.
-	f.HandleJSON("/api/rest/public/user/info", 200, map[string]any{
-		"email":    "tester@example.com",
-		"fullName": "Test User",
-		"clientUserList": []map[string]any{{
+	// GetAllOrgs lists the user's active client memberships.
+	f.HandleJSON("/api/rest/public/user/client-list", 200, map[string]any{
+		"total": 1,
+		"list": []map[string]any{{
 			"id":       "00000000-0000-0000-0000-000000000001",
 			"clientId": "00000000-0000-0000-0000-0000000000aa",
 			"userId":   "00000000-0000-0000-0000-000000000002",
@@ -32,11 +30,9 @@ func TestProjectListCommand(t *testing.T) {
 		}},
 	})
 
-	f.HandleJSON("/api/rest/public/project/search", 200, map[string]any{
-		"limit":     50,
-		"offset":    0,
-		"totalHits": 1,
-		"items": []map[string]any{{
+	f.HandleJSON("/api/rest/public/client/00000000-0000-0000-0000-0000000000aa/project", 200, map[string]any{
+		"total": 1,
+		"list": []map[string]any{{
 			"id":          "00000000-0000-0000-0000-0000000000bb",
 			"clientId":    "00000000-0000-0000-0000-0000000000aa",
 			"name":        "demo-project",
