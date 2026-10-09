@@ -9,7 +9,10 @@ var en = map[string]string{
 To unlock the full potential of zCLI, you need to log in using your Zerops account.
 Logging in enables you to access various features and interact with Zerops services seamlessly.
 
-To log in, use the login command with your authentication token:
+To log in using a browser, run:
+zcli login
+
+To log in with an authentication token generated in your Zerops account, run:
 zcli login <your_token>
 
 Alternatively, you can use the ZEROPS_TOKEN environment variable to authenticate:
@@ -34,16 +37,51 @@ and your %s.`,
 
 	// login
 	CmdHelpLogin:          "Help for the login command.",
-	CmdDescLogin:          "Login into Zerops with generated Zerops token",
+	CmdDescLogin:          "Log in to Zerops using a browser, or with a Zerops token",
 	LoginSuccess:          "You are logged as %s <%s>",
+	LoginBrowserFlag:      "Log in using a browser even when the ZEROPS_TOKEN env variable is set.",
+	LoginEmptyToken:       "The token is empty. Run `zcli login` without arguments to log in using a browser.",
+	LoginTokenAndBrowser:  "Use either a token or the --browser flag, not both.",
+	LoginEnvToken:         "Using the token from the %s env variable.",
+	LoginEnvOverrides:     "The %s env variable takes precedence over the browser login until you unset it.",
+	LoginBrowserPrompt:    "You are not logged in. Log in using a browser?",
+	LoginBrowserInCi:      "Browser login is not available in CI. Use `zcli login <token>` or the %s env variable.",
+	LoginSessionExpired:   "Your login session expired. Run `zcli login` to log in again.",
 	RegionNotFound:        "Selected region %s not found",
 	RegionTableColumnName: "Name",
+
+	// device login
+	DeviceLoginConfirmCode:     "Confirm that your browser shows this code:",
+	DeviceLoginBrowserOpened:   "Opened in your browser. If it did not open, visit the link above.",
+	DeviceLoginOpenLink:        "Open the link above in your browser.",
+	DeviceLoginWaiting:         "Waiting for approval (%s)",
+	DeviceLoginExpired:         "The code expired. Press Enter for a new one, Ctrl+C to quit.",
+	DeviceLoginExpiredError:    "The code expired. Run the command again to get a new one.",
+	DeviceLoginPreviousExpired: "The previous code expired.",
+	DeviceLoginDenied:          "The login was denied in the browser.",
+	DeviceLoginSudoDenied:      "Sudo mode was denied in the browser.",
+
+	// sudo
+	CmdHelpSudo:        "Help for the sudo command.",
+	CmdDescSudo:        "Show whether you are in sudo mode, and enable it using a browser",
+	SudoOn:             "Sudo mode is on.",
+	SudoOnFor:          "Sudo mode is on for %s more. Each command that needs it extends it.",
+	SudoOff:            "Sudo mode is off.",
+	SudoEnablePrompt:   "Enable sudo mode using a browser?",
+	SudoRequiredPrompt: "This command needs sudo mode. Enable it using a browser?",
+	SudoRequired:       "This command needs sudo mode. Run `zcli sudo` to enable it.",
+	SudoInCi:           "Sudo mode cannot be enabled in CI. Use a token with sudo mode enabled.",
+	SudoNotApplied:     "Sudo mode was approved, but the session is still not in sudo mode. Run `zcli sudo` again.",
+	SudoTokenWithout:   "This token does not have sudo mode. Enable it in the token settings in the Zerops GUI.",
 
 	// logout
 	CmdHelpLogout:          "Help for the logout command.",
 	CmdDescLogout:          "Disconnect from VPN and log out from your Zerops account",
 	LogoutVpnDisconnecting: "Disconnecting from VPN. Please provide your password if prompted.",
 	LogoutSuccess:          "Successfully logged out. You are now disconnected from Zerops services.",
+	LogoutEnvToken:         "You are still authenticated by the %s env variable until you unset it.",
+	LogoutRevokeFailed:     "The login session could not be revoked on the server: %s",
+	LogoutNotLoggedIn:      "You are not logged in.",
 
 	// scope
 	CmdHelpScope: "Help for the scope command.",
@@ -327,6 +365,7 @@ at https://docs.zerops.io/references/cli for further details.`,
 	PromptAllowedOnlyInTerminal:    "Interactive prompt can be used only in terminal mode. Use --confirm=true flag to confirm it",
 
 	UnauthenticatedUser: `unauthenticated user, login before proceeding with this command
+zcli login
 zcli login {token}
 more info: https://docs.zerops.io/references/cli/`,
 
