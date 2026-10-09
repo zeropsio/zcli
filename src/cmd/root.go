@@ -25,6 +25,7 @@ func rootCmd() *cmdBuilder.Cmd {
 		SilenceError(true).
 		AddChildrenCmd(loginCmd()).
 		AddChildrenCmd(logoutCmd()).
+		AddChildrenCmd(sudoCmd()).
 		AddChildrenCmd(versionCmd()).
 		AddChildrenCmd(upgradeCmd()).
 		AddChildrenCmd(scopeCmd()).

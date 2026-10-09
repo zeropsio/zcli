@@ -67,3 +67,8 @@ func GetSize() (width int, height int) {
 	}
 	return width, height
 }
+
+// IsInteractive also requires a terminal on stdin, because prompts read keys from it.
+func IsInteractive() bool {
+	return IsTerminal() && (isatty.IsTerminal(os.Stdin.Fd()) || isatty.IsCygwinTerminal(os.Stdin.Fd()))
+}

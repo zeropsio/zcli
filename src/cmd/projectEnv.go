@@ -11,8 +11,8 @@ import (
 	"github.com/zeropsio/zcli/src/cmdBuilder"
 	"github.com/zeropsio/zerops-go/dto/input/path"
 	"github.com/zeropsio/zerops-go/dto/input/query"
+	dtoOutput "github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
-	"github.com/zeropsio/zerops-go/types/enum"
 )
 
 func projectEnvCmd() *cmdBuilder.Cmd {
@@ -25,6 +25,7 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 		StringFlag("template", "{{.Key}}={{.Value}}", "Output template.").
 		StringFlag("service", "", "Service name, in which context the environment variables are output.").
 		BoolFlag("user-only", false, "Exclude all non user env variables.").
+		BoolFlag("reveal", false, "Print the values of sensitive env variables. Needs sudo mode.").
 		LoggedUserRunFunc(func(ctx context.Context, cmdData *cmdBuilder.LoggedUserCmdData) error {
 			project, err := cmdData.Project.Expect("project is nil")
 			if err != nil {
@@ -37,10 +38,10 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 			}
 
 			var serviceName types.EmptyString
-			overrideEnvIsolation := enum.GetProjectEnvFileOverrideEnvIsolationEnumNone
+			overrideEnvIsolation := types.NewString("none")
 			if value := cmdData.Params.GetString("service"); value != "" {
 				serviceName = types.NewEmptyString(value)
-				overrideEnvIsolation = enum.GetProjectEnvFileOverrideEnvIsolationEnumService
+				overrideEnvIsolation = types.NewString("service")
 			}
 
 			userOnly := cmdData.Params.GetBool("user-only")
@@ -50,20 +51,24 @@ func projectEnvCmd() *cmdBuilder.Cmd {
 				return errors.WithStack(err)
 			}
 
-			response, err := cmdData.RestApiClient.GetProjectEnvFile(
-				ctx,
-				path.ProjectId{Id: project.Id},
-				query.GetProjectEnvFile{
-					Name:                 serviceName,
-					OverrideEnvIsolation: overrideEnvIsolation,
-					UserOnly:             types.NewBool(userOnly),
-				},
-			)
-			if err != nil {
-				return errors.WithStack(err)
-			}
-
-			envs, err := response.Output()
+			var envs dtoOutput.EnvFile
+			err = cmdData.WithSudo(ctx, func() error {
+				response, err := cmdData.RestApiClient.GetProjectEnvFile(
+					ctx,
+					path.ProjectId{Id: project.Id},
+					query.GetProjectEnvFile{
+						Name:                 serviceName,
+						OverrideEnvIsolation: overrideEnvIsolation,
+						UserOnly:             types.NewBool(userOnly),
+						Reveal:               types.NewBool(cmdData.Params.GetBool("reveal")),
+					},
+				)
+				if err != nil {
+					return err
+				}
+				envs, err = response.Output()
+				return err
+			})
 			if err != nil {
 				return errors.WithStack(err)
 			}

@@ -14,6 +14,7 @@ import (
 const (
 	DefaultRegionUrl          = "https://api.app-prg1.zerops.io/api/rest/public/region/zcli"
 	DefaultRegion             = "api.app-prg1.zerops.io"
+	DeviceLoginAppCode        = "zcli"
 	ZeropsDir                 = "zerops"
 	ZeropsLogFile             = "zerops.log"
 	WgConfigFile              = "zerops.conf"

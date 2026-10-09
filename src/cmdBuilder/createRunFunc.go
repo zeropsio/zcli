@@ -12,12 +12,17 @@ import (
 	"github.com/zeropsio/zcli/src/cliStorage"
 	"github.com/zeropsio/zcli/src/constants"
 	"github.com/zeropsio/zcli/src/entity"
+	"github.com/zeropsio/zcli/src/errorsx"
 	"github.com/zeropsio/zcli/src/flagParams"
 	"github.com/zeropsio/zcli/src/i18n"
+	"github.com/zeropsio/zcli/src/loginSession"
 	"github.com/zeropsio/zcli/src/optional"
 	"github.com/zeropsio/zcli/src/printer"
+	"github.com/zeropsio/zcli/src/region"
+	"github.com/zeropsio/zcli/src/terminal"
 	"github.com/zeropsio/zcli/src/upgrade"
 	"github.com/zeropsio/zcli/src/uxBlock"
+	"github.com/zeropsio/zcli/src/uxBlock/models/prompt"
 	"github.com/zeropsio/zcli/src/uxHelpers"
 	"github.com/zeropsio/zcli/src/zeropsRestApiClient"
 	"github.com/zeropsio/zerops-go/types/uuid"
@@ -45,6 +50,8 @@ type LoggedUserCmdData struct {
 	ProjectSelector func(context.Context, *LoggedUserCmdData, ...uxHelpers.ProjectSelectorOption) (entity.Project, bool, error)
 
 	VpnKeys map[uuid.ProjectId]entity.VpnKey
+
+	tokenSource zeropsRestApiClient.TokenSource
 }
 
 func createCmdRunFunc(
@@ -86,16 +93,17 @@ func createCmdRunFunc(
 		}
 
 		storedData := cliStorage.Data()
-
-		token := storedData.Token
-		// An empty value (e.g. `export ZEROPS_TOKEN=` in a shell, or a
-		// process inheriting an explicitly cleared env) must not overwrite
-		// the token persisted by `zcli login` — otherwise the user appears
-		// silently logged out.
-		if envToken := os.Getenv(constants.CliTokenEnvVar); envToken != "" {
-			token = envToken
+		if !hasToken(storedData) && cmd.guestRunFunc == nil && terminal.IsInteractive() {
+			loggedIn, err := offerBrowserLogin(ctx, guestCmdData, storedData.RegionData)
+			if err != nil {
+				return err
+			}
+			if loggedIn {
+				storedData = cliStorage.Data()
+			}
 		}
-		if token == "" {
+
+		if !hasToken(storedData) {
 			if cmd.guestRunFunc != nil {
 				return cmd.guestRunFunc(ctx, guestCmdData)
 			}
@@ -116,16 +124,54 @@ func createCmdRunFunc(
 		if host == "" {
 			host = constants.DefaultRegion
 		}
-		cmdData.RestApiClient = zeropsRestApiClient.NewAuthorizedClient(token, host)
+		source := tokenSource(storedData, cliStorage, host)
+		cmdData.tokenSource = source
+		cmdData.RestApiClient = zeropsRestApiClient.NewTokenSourceClient(source, host)
 
-		if cmd.scopeLevel != nil {
-			if err := cmd.scopeLevel.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
-				return err
+		err = func() error {
+			if cmd.scopeLevel != nil {
+				if err := cmd.scopeLevel.LoadSelectedScope(ctx, cmd, cmdData); err != nil {
+					return err
+				}
 			}
+			return cmd.loggedUserRunFunc(ctx, cmdData)
+		}()
+		// The root command reports API errors in its output and succeeds, so an expired session is checked even without err.
+		if session, ok := source.(*loginSession.Source); ok && session.Expired() {
+			return errorsx.NewUserError(i18n.T(i18n.LoginSessionExpired), err)
 		}
-
-		return cmd.loggedUserRunFunc(ctx, cmdData)
+		return err
 	}
+}
+
+func EnvToken() string {
+	return os.Getenv(constants.CliTokenEnvVar)
+}
+
+func hasToken(data cliStorage.Data) bool {
+	return EnvToken() != "" || data.Token != "" || data.LoginSession.IsSet()
+}
+
+func tokenSource(data cliStorage.Data, storage *cliStorage.Handler, host string) zeropsRestApiClient.TokenSource {
+	if token := EnvToken(); token != "" {
+		return zeropsRestApiClient.StaticToken(token)
+	}
+	if data.Token != "" {
+		return zeropsRestApiClient.StaticToken(data.Token)
+	}
+	return loginSession.New(storage, zeropsRestApiClient.NewClient(host))
+}
+
+func offerBrowserLogin(ctx context.Context, cmdData *GuestCmdData, storedRegion region.Item) (bool, error) {
+	confirmed, err := uxHelpers.YesNoPrompt(ctx, i18n.T(i18n.LoginBrowserPrompt), prompt.WithCursorPosition(1))
+	if err != nil || !confirmed {
+		return false, err
+	}
+	reg, err := defaultLoginRegion(ctx, storedRegion)
+	if err != nil {
+		return false, err
+	}
+	return true, BrowserLogin(ctx, cmdData, reg)
 }
 
 func convertArgs(cmd *Cmd, args []string) (map[string][]string, error) {
