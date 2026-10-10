@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.3] - 2026-10-10
+
+### Fixed
+- `service push` no longer runs `git prune` in the user's repository after packaging. The prune ran with the temporary index still selected, so every blob that was staged but not yet committed was deleted and the next `git commit` failed with `invalid object`. The temporary tree and commits are now written to a throwaway object directory outside the repository, which is simply removed afterwards. No object is created in or removed from the repository anymore, in any workspace state
+- `service push` works from a linked `git worktree` (it used to fail with `exit status 128`, since the temporary index was created inside `.git`, which is a file there) and no longer leaks a temporary index file into `.git` when `--working-dir` points at a subdirectory
+
 ## [v1.1.2] - 2026-09-04
 
 ### Added

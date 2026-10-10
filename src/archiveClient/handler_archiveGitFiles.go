@@ -100,10 +100,11 @@ func (h *Handler) createNoGitArchive(uxBlocks uxBlock.UxBlocks, workingDir strin
 // createSimpleArchive creates an archive without the .git directory
 func (h *Handler) createSimpleArchive(ctx context.Context, workingDir string, writer io.Writer) error {
 	archiver := newGitArchiver(workingDir, h.config.PushWorkspaceState, h.config.Verbose, h.config.Logger)
+	// Deferred before initialize so a half-built quarantine directory is removed when initialization fails.
+	defer archiver.cleanup()
 	if err := archiver.initialize(ctx); err != nil {
 		return err
 	}
-	defer archiver.cleanup(ctx)
 
 	// Run the git archive and pipe it to gzip
 	cmd := archiver.getArchiveCmd(ctx)

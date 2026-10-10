@@ -18,19 +18,20 @@ import (
 
 // --- git fixture helpers --------------------------------------------------
 
-// runGit invokes git in dir with system/global config disabled. Tests must
-// not pick up the developer's ~/.gitconfig.
-func runGit(t *testing.T, dir string, args ...string) {
+// runGit invokes git in dir with system/global config disabled and returns its trimmed output. Tests must not pick up the developer's ~/.gitconfig.
+func runGit(t *testing.T, dir string, args ...string) string {
 	t.Helper()
 	cmd := exec.CommandContext(t.Context(), "git", args...)
 	cmd.Dir = dir
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(
+		os.Environ(),
 		"GIT_TERMINAL_PROMPT=0",
 		"GIT_CONFIG_GLOBAL=/dev/null",
 		"GIT_CONFIG_SYSTEM=/dev/null",
 	)
 	out, err := cmd.CombinedOutput()
 	require.NoErrorf(t, err, "git %v failed: %s", args, out)
+	return strings.TrimSpace(string(out))
 }
 
 // gitInit creates an empty repo with deterministic identity/config.
