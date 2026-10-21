@@ -72,57 +72,39 @@ func (p *projectScope) LoadSelectedScope(ctx context.Context, _ *Cmd, cmdData *L
 		cmdData.Project = optional.New(project)
 	}
 
-	// project scope is set
-	if cmdData.CliStorage.Data().ScopeProjectId.Filled() {
-		projectId, _ := cmdData.CliStorage.Data().ScopeProjectId.Get()
+	// an explicitly given project id always beats the saved scope, the flag beats the positional argument
+	explicitProjectId := cmdData.Params.GetString(ProjectArgName)
+	if explicitProjectId == "" {
+		if projectId, exists := cmdData.Args[ProjectArgName]; exists {
+			explicitProjectId = projectId[0]
+		}
+	}
 
+	if explicitProjectId != "" {
+		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(explicitProjectId))
+		if err != nil {
+			return errorsx.Convert(
+				err,
+				errorsx.InvalidUserInput(
+					"id",
+					errorsx.InvalidUserInputErrorMessage(
+						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
+							return i18n.T(i18n.ErrorInvalidProjectId, explicitProjectId, metaItemTyped["message"])
+						},
+					),
+				),
+			)
+		}
+		cmdData.Project = optional.New(project)
+	} else if projectId, scoped := cmdData.CliStorage.Data().ScopeProjectId.Get(); scoped {
 		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, projectId)
 		if err != nil {
-			if errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
-				err := ProjectScopeReset(cmdData)
-				if err != nil {
-					return err
-				}
-			} else {
+			if !errorsx.Is(err, errorsx.ErrorCode(errorCode.ProjectNotFound)) {
 				return err
 			}
-		}
-		cmdData.Project = optional.New(project)
-	}
-
-	// project id is passed as a flag
-	if projectId := cmdData.Params.GetString(ProjectArgName); projectId != "" {
-		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId))
-		if err != nil {
-			return errorsx.Convert(
-				err,
-				errorsx.InvalidUserInput(
-					"id",
-					errorsx.InvalidUserInputErrorMessage(
-						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
-							return i18n.T(i18n.ErrorInvalidProjectId, projectId, metaItemTyped["message"])
-						},
-					),
-				),
-			)
-		}
-		cmdData.Project = optional.New(project)
-	}
-
-	if projectId, exists := cmdData.Args[ProjectArgName]; exists && !cmdData.Project.Filled() {
-		project, err = repository.GetProjectById(ctx, cmdData.RestApiClient, uuid.ProjectId(projectId[0]))
-		if err != nil {
-			return errorsx.Convert(
-				err,
-				errorsx.InvalidUserInput(
-					"id",
-					errorsx.InvalidUserInputErrorMessage(
-						func(_ apiError.Error, metaItemTyped map[string]interface{}) string {
-							return i18n.T(i18n.ErrorInvalidProjectId, projectId, metaItemTyped["message"])
-						},
-					),
-				),
-			)
+			if err := ProjectScopeReset(cmdData); err != nil {
+				return err
+			}
 		}
 		cmdData.Project = optional.New(project)
 	}
