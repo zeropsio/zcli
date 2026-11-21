@@ -13,9 +13,6 @@ import (
 	"github.com/zeropsio/zcli/src/i18n"
 	"github.com/zeropsio/zcli/src/uxBlock/styles"
 	"github.com/zeropsio/zcli/src/wg"
-	"github.com/zeropsio/zerops-go/dto/input/body"
-	"github.com/zeropsio/zerops-go/dto/input/path"
-	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
 
@@ -45,16 +42,7 @@ func vpnConfigCmd() *cmdBuilder.Cmd {
 
 			publicKey := privateKey.PublicKey()
 
-			postProjectResponse, err := cmdData.RestApiClient.PostProjectVpn(
-				ctx,
-				path.ProjectId{Id: project.Id},
-				body.PostProjectVpn{PublicKey: types.String(publicKey.String())},
-			)
-			if err != nil {
-				return err
-			}
-
-			vpnSettings, err := postProjectResponse.Output()
+			vpnSettings, err := postProjectVpn(ctx, cmdData, project.Id, publicKey)
 			if err != nil {
 				return err
 			}

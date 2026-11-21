@@ -22,6 +22,7 @@ import (
 	"github.com/zeropsio/zcli/src/wg"
 	"github.com/zeropsio/zerops-go/dto/input/body"
 	"github.com/zeropsio/zerops-go/dto/input/path"
+	"github.com/zeropsio/zerops-go/dto/output"
 	"github.com/zeropsio/zerops-go/types"
 	"github.com/zeropsio/zerops-go/types/uuid"
 )
@@ -96,16 +97,7 @@ func vpnUpCmd() *cmdBuilder.Cmd {
 
 			publicKey := privateKey.PublicKey()
 
-			postProjectResponse, err := cmdData.RestApiClient.PostProjectVpn(
-				ctx,
-				path.ProjectId{Id: project.Id},
-				body.PostProjectVpn{PublicKey: types.String(publicKey.String())},
-			)
-			if err != nil {
-				return err
-			}
-
-			vpnSettings, err := postProjectResponse.Output()
+			vpnSettings, err := postProjectVpn(ctx, cmdData, project.Id, publicKey)
 			if err != nil {
 				return err
 			}
@@ -187,6 +179,29 @@ func isVpnUp(ctx context.Context, uxBlocks *uxBlock.Blocks, attempts int) bool {
 	err := uxHelpers.ProcessCheckWithSpinner(ctx, uxBlocks, p)
 
 	return err == nil
+}
+
+// postProjectVpn registers the key and returns the VPN setup. The API asks for sudo mode only for a new key.
+func postProjectVpn(
+	ctx context.Context,
+	cmdData *cmdBuilder.LoggedUserCmdData,
+	projectId uuid.ProjectId,
+	publicKey wgtypes.Key,
+) (output.ProjectVpnItem, error) {
+	var vpnSettings output.ProjectVpnItem
+	err := cmdData.WithSudo(ctx, func() error {
+		response, err := cmdData.RestApiClient.PostProjectVpn(
+			ctx,
+			path.ProjectId{Id: projectId},
+			body.PostProjectVpn{PublicKey: types.String(publicKey.String())},
+		)
+		if err != nil {
+			return err
+		}
+		vpnSettings, err = response.Output()
+		return err
+	})
+	return vpnSettings, err
 }
 
 func getOrCreatePrivateVpnKey(project entity.Project, cmdData *cmdBuilder.LoggedUserCmdData) (wgtypes.Key, error) {
