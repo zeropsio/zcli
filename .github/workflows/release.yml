@@ -157,7 +157,7 @@ jobs:
             manager: npm
           - os: macos-latest
             manager: bun
-          - os: macos-13 # darwin amd64
+          - os: macos-15-intel # darwin amd64
             manager: npm
           - os: windows-latest # win x64
             manager: npm
@@ -172,19 +172,21 @@ jobs:
       - if: matrix.manager == 'bun'
         uses: oven-sh/setup-bun@v2
 
-      - name: Wait for the published version to be resolvable
+      # The registry lists a new version before it serves its tarball, so the install waits for both.
+      - name: Wait for the published version to be installable
         shell: bash
         run: |
           V="${VERSION#v}"
-          for i in $(seq 1 12); do
-            if npm view "@zerops/zcli@$V" version >/dev/null 2>&1; then
+          tarball="https://registry.npmjs.org/@zerops/zcli/-/zcli-$V.tgz"
+          for i in $(seq 1 30); do
+            if npm view "@zerops/zcli@$V" version >/dev/null 2>&1 && curl -sfIo /dev/null "$tarball"; then
               echo "found @zerops/zcli@$V"
               exit 0
             fi
-            echo "waiting for @zerops/zcli@$V to appear on the registry..."
+            echo "waiting for @zerops/zcli@$V to be installable..."
             sleep 10
           done
-          echo "@zerops/zcli@$V did not become resolvable in time"
+          echo "@zerops/zcli@$V did not become installable in time"
           exit 1
 
       - name: Install and run (npm)
