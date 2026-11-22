@@ -70,6 +70,8 @@ for (const p of PLATFORMS) {
     version,
     description: `zcli prebuilt binary for ${p.os}/${p.cpu}.`,
     license: "MIT",
+    // npm's provenance check rejects a package whose repository is not the repository that publishes it.
+    repository: { type: "git", url: "git+https://github.com/zeropsio/zcli.git" },
     os: [p.os],
     cpu: [p.cpu],
     files: ["bin/"],
