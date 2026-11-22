@@ -1,3 +1,5 @@
+# The npm packages are published through npm's trusted publishing, so no token is kept.
+# npm's trusted publisher of each package names this file and the `npm` environment, which must match.
 name: release
 
 on:
@@ -40,8 +42,10 @@ jobs:
     if: github.event.action == 'released' || github.event.action == 'prereleased'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: npm
     permissions:
       contents: read
+      id-token: write
     env:
       VERSION: ${{ github.event.release.tag_name }}
       # Full releases go to the default `latest` tag; pre-releases go to `next` so
@@ -51,8 +55,11 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org/
+
+      # trusted publishing needs npm 11.5.1 or later
+      - run: npm install -g npm@^11.5.1
 
       # The git tag carries a leading "v" (e.g. v1.2.3); npm package versions must be
       # plain semver. Keep the tag for the GitHub download, strip the "v" for package.json.
@@ -93,8 +100,6 @@ jobs:
       # Platform publishes are idempotent (skip versions already on the registry) so a
       # re-run after a partial failure completes cleanly without bumping the version.
       - name: Publish platform packages
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for dir in "$GITHUB_WORKSPACE"/dist-npm/*/; do
             name="$(node -p "require('$dir/package.json').name")"
@@ -125,13 +130,11 @@ jobs:
           done
           echo "all platform packages present at $NPM_VERSION"
 
+      # No package from the registry runs in this job, as it holds the publish identity.
       - name: Publish main package
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd tools/npm
-          npm i -g replace-in-files-cli@2.2.0
-          replace-in-files --string='v0.0.0-zerops' --replacement="$NPM_VERSION" package.json
+          node -e 'const fs = require("fs"); fs.writeFileSync("package.json", fs.readFileSync("package.json", "utf8").replaceAll("v0.0.0-zerops", process.env.NPM_VERSION))'
           npm publish --access=public --ignore-scripts --tag "$NPM_TAG"
 
   # Install the just-published package across OS/arch + package managers and run the
